@@ -20,7 +20,7 @@ footer:
   links:
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "/environmentalinformatics-marburg/rsdb"
+      url: "https://github.com/environmentalinformatics-marburg/rsdb"
 
 collections:
   docs:
