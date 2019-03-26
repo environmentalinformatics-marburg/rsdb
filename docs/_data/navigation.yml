@@ -1,0 +1,13 @@
+# main links
+main:
+  - title: "Documentation"
+    url: /docs/installation/    
+  - title: "About"
+    url: /about
+  
+docs:
+  - title: Getting Started
+    url: /docs/installation/
+    children:
+      - title: "Installation"
+        url: /docs/installation/
