@@ -11,3 +11,8 @@ docs:
     children:
       - title: "Installation"
         url: /docs/installation/
+  - title: Configuration
+    url: /docs/configuration/  
+    children:
+      - title: "config.yaml"
+        url: /docs/config.yaml/        

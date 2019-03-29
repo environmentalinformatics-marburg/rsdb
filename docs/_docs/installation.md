@@ -1,6 +1,9 @@
 ---
 title: Installation
 ---
+
+Ubuntu: Execute following commands on terminal (bash).
+
 ~~~ bash
 # show Ubuntu Version
 lsb_release -a
