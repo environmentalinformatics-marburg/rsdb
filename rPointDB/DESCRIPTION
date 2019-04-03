@@ -6,9 +6,7 @@ Date: 2019-04-03
 Author: woellauer
 Maintainer: woellauer <email@email>
 Description:
-    Remote sensing database manages (hyperspectral) rasters and (LiDAR) point-clouds as well as auxiliary ROIs (regions of interest as named polygons) and POIs (points of interest as named points). 
-    Contained data can be queried, processed and analysed.
-    This package provides R connection to Remote Sensing Database at local or at remote computer (server).
+    Remote sensing database manages (hyperspectral) rasters and (LiDAR) point-clouds as well as auxiliary ROIs (regions of interest as named polygons) and POIs (points of interest as named points). Contained data can be queried, processed and analysed. This package provides R connection to Remote Sensing Database at local or at remote computer (server).
 License: GPL (>= 3)
 LazyData: TRUE
 Depends:
