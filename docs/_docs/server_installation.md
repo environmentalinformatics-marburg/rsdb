@@ -1,5 +1,5 @@
 ---
-title: Installation
+title: Server Installation
 ---
 
 Ubuntu: Execute following commands on terminal (bash).
