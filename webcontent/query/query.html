@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex, nofollow" />
+  <!-- Basic Page Needs-->
+  <meta charset="utf-8">
+  <title>Database Query</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas-->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT-->
+  <link href="../css/relaway.css" rel="stylesheet" type="text/css">
+
+  <!-- CSS-->
+  <link rel="stylesheet" href="../css/normalize.css">
+  <link rel="stylesheet" href="../css/skeleton.css">
+
+  <!-- Favicon-->
+  <link rel="shortcut icon" href="../images/favicon.png">
+  
+  <!--script-->
+  <script src="../script/Helper.js"></script>
+  <script src="../script/Class.js"></script>
+  <script src="../script/Combo.js"></script>
+  <script src="../script/ComboDbType.js"></script>
+  <script src="../script/ComboLayer.js"></script>
+  <script src="../script/ComboImageScale.js"></script>
+  <script src="../script/ComboImageType.js"></script>
+  <script src="../script/ComboBand.js"></script>
+  <script src="../script/ComboPoiGroup.js"></script>
+  <script src="../script/ComboPoi.js"></script>
+  <script src="ComboQueryType.js"></script>
+  <script src="ComboPointdbFeature.js"></script>
+  <script src="../script/Checkbox.js"></script> 
+  <script src="../script/Edit.js"></script>   
+  <script src="query.js"></script>
+
+</head>
+<body>
+
+  <!---->
+  <div class="container">
+  
+    <section class="header">
+		<h1 class="title">Database Query</h1>
+	</section>
+	
+	<label for="select_dbType">Type</label>
+	<select class="u-full-width" id="select_dbType"></select>
+	
+	<label for="select_layer">Layer</label>
+	<select class="u-full-width" id="select_layer">
+        <option value="error">[no layers]</option>
+    </select>
+	
+	<section>	
+		<label>Location</label>
+		
+		<label for="select_poi_group">Points of Interest</label>
+		<select class="u-full-width" id="select_poi_group">
+			<option value="error">[no group]</option>
+		</select>
+		
+		<!--<label for="select_poi">Point of Interest</label>-->
+		<select class="u-full-width" id="select_poi">
+			<option value="error">[no point]</option>
+		</select>
+		
+		<table>
+			<tr>
+			<td>range<td id="easting_range">?</td><td>range<td id="northing_range">?</td>
+			<tr>
+			<td><label for="easting">easting</label>
+			<td><input type="text" id="easting" maxlength="30" name="x" value="599220">
+			<td><label for="northing">northing</label>
+			<td><input type="text" id="northing" maxlength="30" name="y" value="5669220">		
+		</table>
+		
+		<label for="select_query_type">Query Type</label>
+		<select class="u-full-width" id="select_query_type">
+			<option value="error">[no query type]</option>
+		</select>
+		
+		<hr>
+		
+		
+		
+	</section>
+
+	<div id="div_image_dimensions">	
+		<label>Image Dimensions</label>
+		<table>
+			<tr>
+			<td><label for="imageWidth">width pixels</label>
+			<td><input type="text" id="imageWidth" maxlength="30" name="width" value="320">
+			<td><label for="imageHeight">height pixels</label>
+			<td><input type="text" id="imageHeight" maxlength="30" name="height" value="240">
+		</table>	
+	</div>
+	
+	<!--<div data-include="query_.html"></div>-->
+	
+
+	
+	<div id="div_create_lidar_image">
+	
+		<table>
+		<tr>
+		<td><label for="select_image_scale">extent per pixel</label><select id="select_image_scale"></select>
+		<td><label for="select_image_type">image type</label><select id="select_image_type"></select>
+		<td><label for="checkbox_image_fill">fill gaps</label><input type="checkbox" id="checkbox_image_fill">
+		</table>
+		
+		<button class="button-primary" id="button_create_lidar_image">Create Image</button>
+	
+	</div>
+	
+	<div id="div_create_hyperspectral_image">
+		<table>
+		<tr>
+		<td><label for="select_hyperspectral_image_type">image type</label><select id="select_hyperspectral_image_type"></select>
+		<td><div id="div_hyperspectral_band"><label for="select_hyperspectral_band">band</label><select id="select_hyperspectral_band"></select></div>
+		</table>
+		<button class="button-primary" id="button_create_hyperspectral_image">Create Image</button>	
+	</div>
+
+	<div id="div_pointdb_feature">
+		<label for="select_pointdb_feature">Feature</label>
+		<select class="u-full-width" id="select_pointdb_feature">
+			<option value="error">[no feature]</option>
+		</select>
+		<button class="button-primary" id="button_pointdb_feature">Get Feature</button>
+
+		<div id="div_pointdb_feature_result"></div>		
+	</div>
+	
+  </div>
+
+<!-- End Document-->
+</body>
+</html>

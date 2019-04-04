@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<link rel="shortcut icon" href="../images/favicon.png">
+	<title>LiDAR Indices</title>
+	<link rel="stylesheet" href="lidar_indices.css" type="text/css">
+	<script src="vue.js"></script>
+	<script src="axios.js"></script>
+	<script src="copy.js"></script>
+	<script src="lidar_indices.js"></script>
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+	<div id="app">
+		<div class="header">
+			<h1>LiDAR Indices</h1>
+		</div>
+		<div class="flex">
+			<div class="container">
+				<div v-show="functionsMessage !== undefined">{{functionsMessage}}</div>
+				<div v-if="functionsMessage == undefined" class="section">
+					<div style="display: inline-block;">
+						<div style="text-align: center;">Indices ({{functionsFiltered.length}}) (<a href="../lidar_indices_description/lidar_indices_description.html" target="_blank">descriptions</a>)</div>
+						Tag
+						<select v-model="tag">
+							<option>-</option>
+							<option v-for="tag in tags">
+								{{tag}}
+							</option>
+						</select>
+						<div class="functions">
+							<div v-for="f in functionsFiltered" @click="onFunctionClick(f)" :class="['function', f.selected ? 'functionSelected' : 'functionUnselected']"
+							 :title="f.description">{{f.name}}</div>
+						</div>
+						<div style="text-align: left; display: inline-block;" title="filter by part of index name">
+							filter by
+							<input maxlength="40" size="10" type="text" v-model="functionsFilterText" />
+						</div>
+						<div style="float: right;">
+							<button @click="onFunctionsAllClick" title="select all indices">all-></button>
+						</div>
+					</div>
+					<div style="display: inline-block; vertical-align: top;">
+						<div style="text-align: center;">Selected ({{functionsSelectedCount}})</div>
+						&nbsp;
+						<div class="functions">
+							<div v-for="f in functions">
+								<div v-show="f.selected" @click="onFunctionClick(f)" :class="['function', f.selected ? 'functionSelected' : 'functionUnselected']"
+								 :title="f.description">{{f.name}}</div>
+							</div>
+						</div>
+						<div style="text-align: right;">
+							<button @click="onFunctionsClearClick" title="unselect all indices">clear</button>
+						</div>
+					</div>
+				</div>
+				<div v-show="layersMessage !== undefined">{{layersMessage}}</div>
+				<div v-show="layersMessage == undefined">
+					<div class="section" style="text-align: center;">
+						Layer
+						<select v-model="layerIndex">
+							<option v-for="x, i in layers" :value="i">
+								{{x.name}}
+							</option>
+						</select>
+						{{layer === undefined ? "no layer selected" : layer.type}}
+						<br>{{layer === undefined ? "" : layer.description}}
+					</div>
+					<div class="section" style="text-align: center;">
+						Area Selection by
+						<span v-for="s, i in subsetMethods" :class="s === subsetMethod ? 'highlighted' : ''">
+							<input type="radio" v-model="subsetMethod" :value="s">{{subsetMethodTexts[i]}}</input>
+						</span>
+						<div v-show="subsetMethod == 'POI'" style="text-align: left;" :class="isValidDiameter(poiDiameter) ? '' : 'warn'">
+							Diameter
+							<input maxlength="20" size="8" type="text" v-model="poiDiameter" /> m of point enclosing square.
+						</div>
+					</div>
+
+					<div v-show="subsetMethod == 'POI'">
+						<div v-show="poiGroupsMessage !== undefined">{{poiGroupsMessage}}</div>
+						<div v-show="poiGroupsMessage == undefined" class="section">
+							POI group
+							<span v-show="poiGroups.length == 1" class="highlighted">{{poiGroup == undefined ? '' : poiGroupMap[poiGroup].title}}</span>
+							<select v-show="poiGroups.length != 1" v-model="poiGroup">
+								<option v-for="x in poiGroups" :value="x.name">
+									{{x.title}}
+								</option>
+							</select>
+						</div>
+
+						<div v-show="poiGroup !== undefined && poisMessage !== undefined">{{poisMessage}}</div>
+						<div v-show="poiGroup !== undefined && poisMessage == undefined" class="section">
+							<div style="display: inline-block;">
+								<div style="text-align: center;">POIs ({{poisFiltered.length}})</div>
+								<div class="functions">
+									<div v-for="f in poisFiltered" @click="onPoiClick(f)" :class="['function', f.selected ? 'functionSelected' : 'functionUnselected']"
+									 :title="f.x.toFixed(3)+'    '+f.y.toFixed(3)">{{f.name}}</div>
+								</div>
+								<div style="text-align: left; display: inline-block;" title="fiter by part of POI name">
+									filter by
+									<input maxlength="40" size="10" type="text" v-model="poisFilterText" />
+								</div>
+								<div style="float: right;">
+									<button @click="onPoisAllClick" title="select all POIs">all-></button>
+								</div>
+							</div>
+							<div style="display: inline-block;">
+								<div style="text-align: center;">Selected ({{poisSelectedCount}})</div>
+								<div class="functions">
+									<div v-for="f in pois" v-show="f.selected" @click="onPoiClick(f)" :class="['function', f.selected ? 'functionSelected' : 'functionUnselected']"
+									 :title="f.x.toFixed(3)+'    '+f.y.toFixed(3)">{{f.name}}</div>
+								</div>
+								<div style="text-align: right;">
+									<button @click="onPoisClearClick" title="unselect all POIs">clear</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div v-show="subsetMethod == 'ROI'">
+						<div v-show="roiGroupsMessage !== undefined">{{roiGroupsMessage}}</div>
+						<div v-show="roiGroupsMessage == undefined" class="section">
+							ROI group
+							<span v-show="roiGroups.length == 1">
+								<b>{{roiGroup == undefined ? '' : roiGroupMap[roiGroup].title}}</b>
+							</span>
+							<select v-show="roiGroups.length != 1" v-model="roiGroup">
+								<option v-for="x in roiGroups" :value="x.name">
+									{{x.title}}
+								</option>
+							</select>
+						</div>
+
+						<div v-show="roiGroup !== undefined && roisMessage !== undefined">{{roisMessage}}</div>
+						<div v-show="roiGroup !== undefined && roisMessage == undefined" class="section">
+							<div style="display: inline-block;">
+								<div style="text-align: center;">ROIs ({{roisFiltered.length}})</div>
+								<div class="functions">
+									<div v-for="f in roisFiltered" @click="onRoiClick(f)" :class="['function', f.selected ? 'functionSelected' : 'functionUnselected']"
+									 :title="(f.polygon.length-1)+' edges'">{{f.name}}</div>
+								</div>
+								<div style="text-align: left; display: inline-block;" title="fiter by part of ROI name">
+									filter by
+									<input maxlength="40" size="10" type="text" v-model="roisFilterText" />
+								</div>
+								<div style="float: right;">
+									<button @click="onRoisAllClick" title="select all ROIs">all-></button>
+								</div>
+							</div>
+							<div style="display: inline-block;">
+								<div style="text-align: center;">Selected ({{roisSelectedCount}})</div>
+								<div class="functions">
+									<div v-for="f in rois" v-show="f.selected" @click="onRoiClick(f)" :class="['function', f.selected ? 'functionSelected' : 'functionUnselected']"
+									 :title="(f.polygon.length-1)+' edges'">{{f.name}}</div>
+								</div>
+								<div style="text-align: right;">
+									<button @click="onRoisClearClick" title="unselect all ROIs">clear</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+				<!--<hr>-->
+				<div class="section" style="text-align: center;">
+					<!--omit gaps-->
+					<button @click="onProcessCancel" :disabled="!processBusy">Cancel</button>
+					<button @click="onProcess" :disabled="processBusy || !isProcessReady()">Process</button>
+					<img v-show="processBusy" src="../images/busy.svg">
+					<img v-show="!processBusy" src="../images/empty.svg">
+					<a v-show="processDownload !== undefined" :href="processDownload" download="lidar_indices.csv" title="as CSV-file">download</a>
+					<span v-show="processDownload == undefined" style="color: grey;" title="as CSV-file">download</span>
+					<button @click="onProcessCopy" :disabled="processDownload == undefined" title="copy table to clipboard and paste it onto 'LibreOffice Calc' or 'Microsoft Excel'">copy to clipboard</button>
+					<div style="text-align: left;">
+						<span v-show="functionsSelectedCount < 1" class="warn">no indices selected</span>
+						<span v-show="subsetMethod == 'POI' && poisSelectedCount < 1" class="warn">no POIs selected</span>
+						<span v-show="subsetMethod == 'ROI' && roisSelectedCount < 1" class="warn">no ROIs selected</span>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+
+		<div class="flexResult">
+			<div v-show="processMessage !== undefined" class="result">
+				{{processMessage}}
+			</div>
+
+			<div v-show="processMessage == undefined" class="result">
+				<table v-show="processData.header != undefined">
+					<thead>
+						<tr>
+							<th></th>
+							<th v-for="col in processData.header" :title="functionsMap[col].description">
+								<span v-html="col.replace(/_/g, '<br>')"></span>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(row, key) in processData.data">
+							<td>{{key}}</td>
+							<td v-for="(col, i) in row" :title="key + '    '+ processData.header[i]">{{('NA'==col) ? 'NA' : col.toFixed(3)}}</td>
+						</tr>
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+
+	</div>
+</body>
+
+</html>

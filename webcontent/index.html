@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1" />
+	<meta name="robots" content="noindex, nofollow" />
+	<link rel="shortcut icon" href="images/favicon.png">
+
+	<script src="script/vue.js"></script>
+	<script src="script/axios.js"></script>
+
+	<link rel="stylesheet" href="css/relaway.css">
+
+	<!--<link href="css/normalize.css" type="text/css" rel="stylesheet">
+<link href="css/skeleton.css" type="text/css" rel="stylesheet">-->
+
+	<style type="text/css">
+		/*html {
+  font-family: sans-serif;
+}*/
+
+		body {
+			/*font-family: Raleway;*/
+			margin: 0px;
+			display: flex;
+			flex-direction: column;
+			text-align: center;
+			min-height: 100vh;
+
+		}
+
+		header {
+			font-family: serif;
+			font-weight: bold;
+			font-variant: small-caps;
+			color: rgba(0, 0, 0, 0.7);
+			background: rgba(147, 128, 108, 0.1);
+		}
+
+		h2 {
+			color: rgba(0, 0, 0, 0.6);
+		}
+
+		h3 {
+			color: rgba(0, 0, 0, 0.6);
+		}
+
+		/* unvisited link */
+
+		a:link {
+			color: rgba(20, 20, 200, 0.8);
+		}
+
+		/* visited link */
+
+		a:visited {
+			color: rgba(0, 0, 150, 0.9);
+		}
+
+		/* mouse over link */
+
+		a:hover {
+			color: rgba(0, 0, 255, 1);
+			background: rgba(0, 0, 0, 0.1);
+		}
+
+		/* selected link */
+
+		a:active {
+			color: rgba(0, 0, 255, 1);
+		}
+
+
+		img {
+			-moz-box-shadow: 2px 3px 4px rgba(0, 0, 0, .5);
+			-webkit-box-shadow: 2px 3px 5px rgba(0, 0, 0, .5);
+			box-shadow: 2px 3px 4px rgba(0, 0, 0, .5);
+		}
+
+
+
+		footer {
+			color: rgba(0, 0, 0, 0.7);
+			background: rgba(100, 100, 100, 0.1);
+			text-align: right;
+		}
+
+		.layoutbody {
+			background-image: url("background.png");
+			display: flex;
+			flex: 1;
+			flex-direction: row;
+		}
+
+		.spacer {
+			flex: auto;
+		}
+
+		.main {
+			text-align: left;
+
+		}
+
+		.layoutfunctions {
+			background: rgba(134, 168, 134, 0.44);
+
+			-moz-box-shadow: 1px 2px 3px rgba(0, 0, 0, .5);
+			-webkit-box-shadow: 1px 2px 3px rgba(0, 0, 0, .5);
+			box-shadow: 1px 2px 3px rgba(0, 0, 0, .5);
+
+		}
+
+		.layoutfunctions img {
+			margin: 10px;
+		}
+
+		.layoutquery {
+			background: rgba(70, 70, 200, 0.1);
+		}
+
+		table {
+			text-align: center;
+		}
+
+		#app {
+			position: absolute;
+			top: 0px;
+			right: 2px;
+			/*background-color: #4D472BE6;*/
+			opacity: 0.6;
+			text-align: left;
+			font-family: sans-serif;
+			font-size: 10px;
+		}
+
+		#status {
+			text-align: left;
+			border-spacing: 0px;
+		}
+	</style>
+
+	<script>
+		"use strict";
+		document.addEventListener('DOMContentLoaded', function () { init(); }, false);
+
+		function init() {
+
+			var app = new Vue({
+
+				el: '#app',
+
+				data: {
+					loadingMessage: "init...",
+					identity: {},
+				},
+
+				methods: {
+					getHTTPS_url: function() {
+						var port = this.identity.https_port;
+						
+						var host = window.location.host;
+						var pIndex = host.indexOf(':');
+						if(pIndex >= 0) {
+							host = host.slice(0, pIndex);
+						}
+						host = host + ':' + port;	
+						return 'https://' + host + window.location.pathname;
+					},
+				},
+
+				computed: {
+					HTTPS_url: function() {
+						return this.getHTTPS_url();
+					},
+				},
+
+				mounted: function () {
+					var self = this;
+					self.loadingMessage = "loading...";
+					axios.get("../api/identity")
+						.then(function (response) {
+							self.loadingMessage = undefined;
+							self.identity = response.data;
+						})
+						.catch(function (error) {
+							self.loadingMessage = "ERROR " + error;
+						});
+				},
+
+			});
+
+		}
+	</script>
+
+	<title>Remote Sensing Database</title>
+</head>
+
+<body>
+
+	<div id="app">
+		<span v-if="loadingMessage != undefined">
+			{{loadingMessage}}
+		</span>
+		<span v-if="loadingMessage == undefined">
+			<table id="status">
+				<tr>
+					<td>identity</td>
+					<td>{{identity.user}}</td>
+				</tr>
+				<tr>
+					<td>access</td>
+					<td>{{identity.roles.join(", ")}}</td>
+				</tr>
+				<tr>
+					<td>ip</td>
+					<td>{{identity.ip}}</td>
+				</tr>
+				<tr>
+					<td>authentication</td>
+					<td>{{identity.auth_method}}</td>
+				</tr>
+				<tr>
+					<td>connection</td>
+					<td>{{identity.secure ? 'secure' : 'plain'}}</td>
+				</tr>
+				<tr v-if="!identity.secure">
+					<td>==></td>
+					<td><a :href="HTTPS_url" target="_blank">HTTPS</a></td>
+				</tr>
+			</table>
+		</span>
+	</div>
+
+	<header>
+		<h1>Remote Sensing Database</h1>
+	</header>
+
+	<div class="layoutbody">
+
+		<div class="spacer"></div>
+
+		<div class="main">
+
+			<div class="layoutfunctions">
+
+				<h2>Map Explorer</h2>
+				<table>
+					<tr>
+						<td>
+							<a href="catalog/catalog.html">
+								<img src="catalog2.png" />
+							</a>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="catalog/catalog.html">explore catalog of layers</a>
+						</td>
+					</tr>
+				</table>
+
+				<h2>Layer Viewer</h2>
+
+				<table>
+
+					<tr>
+						<!-- <td style="color: grey;">LiDAR Point Cloud</td> -->
+						<td>Raster</td>
+					</tr>
+
+					<tr>
+						<!-- <td style="color: grey;">
+							(obsolete)
+						</td> -->
+						<td>
+
+						</td>
+					</tr>
+
+					<tr>
+						<!-- <td>
+							<a href="pointdb_map/pointdb_map.html">
+								<img style="opacity: 0.5;" src="lidar_map2.png">
+							</a>
+						</td> -->
+						<td>
+							<a href="rasterdb_wms/rasterdb_wms.html">
+								<img src="rasterdb_image2.png">
+							</a>
+						</td>
+					</tr>
+
+					<tr>
+						<!-- <td>
+							<a href="pointdb_map/pointdb_map.html">view</a>
+						</td> -->
+						<td>
+							<a href="rasterdb_wms/rasterdb_wms.html">view</a>
+						</td>
+					</tr>
+
+					<tr>
+						<!-- <td>Use
+							<b>Raster view</b> to explore
+							<br>Rasterized Point Clouds</td> -->
+						<td></td>
+					</tr>
+
+				</table>
+
+				<h2>Functions</h2>
+
+				<h3>
+					---->> <a href="admin2/">*** New Web Interface ***</a>
+				</h3>
+
+				<h3>
+					<a href="/files">Download Section (R-Package, use cases, etc.)
+						<a>
+				</h3>
+
+				<h3>
+					<a href="lidar_indices/lidar_indices.html">LiDAR indices processing</a>
+				</h3>
+
+				<h3>
+					<a href="lidar_indices_description/lidar_indices_description.html">LiDAR indices description</a>
+				</h3>
+
+				<h3>
+					<a href="wms_access/wms_access.html">WMS access info</a>
+				</h3>
+
+				<!--<h2>Obsolete</h2>-->
+
+				<!--<a href="hyperspectral_data_request/hyperspectral_data_request.html">Hyperspectral data processing</a>
+				<br>-->
+				<!--<a href="statistics/statistics.html">Database technical statistics</a>
+				<br>-->
+				<!--<a href="wms/wms.html">Hyperspectral view (WMS)</a>
+				<br>-->
+				<!--<a href="spectraldb_map/spectraldb_map.html">Hyperspectral view (old interface)</a>-->
+				<!--<h3><a href="lidar_data_request/lidar_processing.html" style="color: grey;">LiDAR indices processing (deprecated)</a></h3>-->
+
+			</div>
+			<!--layoutfunctions-->
+
+			<br>
+
+
+			<!--<h3>Testing</h3>-->
+
+			<a href="query/query.html"> </a>
+
+
+
+			<!--<a href="/pointdb/image?x=328300&y=9636800&width=800&height=800">.</a>-->
+			<!--<h4><a href="/pointdb/image?x=328300&y=9636800&width=800&height=800">compare image 1</a></h4>-->
+
+			<!-- <h4><a href="/pointdb/image?x=322090&y=9635630&width=800&height=600">query test image</a></h4>-->
+
+			<!--<h4><a href="/pointdb/radius_rect?x=322090&y=9635630&radius=200&filter=last_return=1">query test data</a></h4>-->
+			<!--<br>
+<a href="/wmts?REQUEST=GetCapabilities">WMTS cap</a>
+<br>
+<a href="wmts/wmts.html">WMTS openlayers</a>
+<br>
+<br>
+<a href="/wms?REQUEST=GetCapabilities">WMS cap</a>
+<br>-->
+
+
+			<!--<br>
+<br>
+<a href="/wcs?REQUEST=GetCapabilities">WCS GetCapabilities</a>
+<br>
+<a href="/wcs?REQUEST=DescribeCoverage">WCS DescribeCoverage</a>
+<br>
+<br>
+<a href="pointdb_vue/page.html">(testing) pointdb vue</a>-->
+
+		</div>
+		<!--main-->
+
+
+
+		<div class="spacer"></div>
+
+	</div>
+	<!--layoutbody-->
+
+	<footer>
+		internal page
+		<br>
+		<b>Environmental Informatics Marburg</b>
+	</footer>
+
+</body>
+
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+<meta name="robots" content="noindex, nofollow" />
+
+<link href="height_map_view.css" type="text/css" rel="stylesheet">
+
+<script src="vue.js"></script>
+<script src="axios.js"></script>
+<script src="three.js"></script>
+<script src="OrbitControls.js"></script>
+<script src="height_map_view.js"></script>
+
+</head>
+<body ondragstart="return false;" ondrop="return false;">
+
+<div id="app">
+	<div class="loading_panel" v-show="loadingMessage != undefined">
+	<img src="../images/default.svg" style="border: 0; vertical-align:middle;" width="24" >
+		{{loadingMessage}}
+	</div>
+	<div class="control_panel">
+		<table>
+		<tr><td>type<td><select v-model="viewType"><option v-for="v in viewTypes.filter(function(e){return e.data_type==='basic_raster';})" :value="v.name">{{v.name}} - {{v.title}}</option></select>
+		<tr><td><label for="checkbox_illuminated">fog</label><td><input type="checkbox" id="checkbox_illuminated" v-model="illuminated"><span v-show="illuminated">{{(1/this.fogDensity).toFixed(0)}}</span>
+		<tr><td><label for="checkbox_animated">animated</label><td><input type="checkbox" id="checkbox_animated" v-model="useAnimation">
+		</table>
+	
+	
+		<hr>
+		<div>
+			<table>
+				<tr><td><b>Rotate</b></td><td>left mouse button move</td></tr>
+				<tr><td><b>Shift</b></td><td>right mouse button move</td></tr>
+				<tr><td><b>Zoom</b></td><td>rotate mouse wheel</td></tr>
+			</table>
+		</div>
+	</div>	
+	<div id="webgl_container"></div>
+</div>
+
+</body>
+</html>

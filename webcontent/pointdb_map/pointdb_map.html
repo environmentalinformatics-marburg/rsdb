@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="shortcut icon" href="favicon.png">
+<link href="pointdb_map.css" type="text/css" rel="stylesheet">
+<script src="../script/Helper.js"></script>
+<script src="../script/Class.js"></script>
+<script src="../script/Combo.js"></script>
+<script src="../script/ComboImageScale.js"></script>
+<script src="../script/ComboImageType.js"></script>
+<script src="../script/ComboPoiGroup.js"></script>
+<script src="../script/ComboPoi.js"></script>
+<script src="ComboPointdb.js"></script>
+<script src="ComboScale.js"></script>
+<script src="../script/Checkbox.js"></script>
+<script src="../script/CheckboxShowHide.js"></script>
+<script src="Map.js"></script>
+<script src="ImageViewer.js"></script>
+<script src="pointdb_map.js"></script>
+
+<script type="text/javascript">
+function show_instructions() {
+	if(document.getElementById("div_instructions").style.display==="inline") {
+		document.getElementById("div_instructions").style.display = "none";
+	} else {
+		document.getElementById("div_instructions").style.display = "inline";
+	}
+}
+</script>
+
+<title>PointDB Map</title>
+</head>
+<body ondragstart="return false;" ondrop="return false;">
+
+<div id="container">
+
+	<div id="div_instructions">
+		<h2>Explorer of LiDAR point cloud</h2>
+		<h3>overview map</h3>
+		At the lower section a overview map is shown. There you can choose a layer and a map-scale. 
+		<p>Left-mouse-click on the map to get a detail view of that position.
+		<p>Shift-key + left-mouse-click to get a messagebox with position (e.g. to copy postion to clipboard).
+		<h3>detail image</h3>
+		At the upper section a detail view is shown. There you can choose image scale, type of visualisation and option to fill empty pixels.
+		<p>Left-mouse-click on the image to move detail view to center of this position.
+		<p>Shift-key + left-mouse-click to get a messagebox with position (e.g. to copy postion to clipboard).
+		<p>Ctrl-key + left-mouse-click to get image in full page dimensions.
+	</div>
+
+	<div id="top">
+		<div id="image_tools" class="tools">		
+			<table>
+			<tr><td><label for="select_image_scale">scale</label><td><select id="select_image_scale"></select>
+			<tr><td><label for="select_image_type">type</label><td><select id="select_image_type"></select>
+			<tr><td><label for="checkbox_image_fill">fill</label><td><input type="checkbox" id="checkbox_image_fill">	
+			<tr><td><label for="text_easting">E</label><td><input type="text" id="text_easting" size="7" disabled>
+			<tr><td><label for="text_northing">N</label><td><input type="text" id="text_northing" size="7" disabled>
+			<tr><td><hr><td><hr>
+			<tr><td>3D view<td>at current position
+            <tr><td><td><button id="buttonView3D">Point Cloud</button><button id="buttonViewElevationMap">Surface</button>
+            <tr><td><hr><td><hr>
+            <tr><td><label for="select_poi_group">group</label><td><select id="select_poi_group"></select>
+            <tr><td><td><select id="select_poi"></select><button id="button_goto">Go to</button>
+            
+			</table>
+		</div>
+		<div id="image_container">
+			<div class="spacer"></div>
+			<div id="image">no image</div>
+			<div class="spacer"></div>
+		</div> <!--image_container-->
+	</div> <!--top-->
+	<div id="main">
+		<div id="map_tools"  class="tools">
+			<table>
+				<tr><td>layer<td><select id="select_pointdb"></select>
+				<tr><td>scale<td><select id="select_scale"></select>
+				<tr><td>tone<td><select id="select_tone"></select>
+			</table>
+		</div>
+		<div class="spacer"></div>
+		<div id="map_container">
+			<div class="spacer"></div>
+			<div id="map">?</div>
+			<div class="spacer"></div>
+		</div> <!--map_container-->
+		<div class="spacer"></div>
+	</div> <!--main-->
+	
+	<div id="bottom">
+		<div id="bottom_left">
+			<span id="image_text">---</span>
+		</div> <!--bottom_left-->
+		<div id="bottom_right">
+			<span id="map_text">---</span>
+			<input type="checkbox" id="checkbox_settings" />settings
+			<button onclick="show_instructions()">?</button>
+		</div> <!--bottom_right-->
+	</div> <!--bottom-->	
+</div> <!--container-->
+
+</body>
+</html>

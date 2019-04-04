@@ -1,0 +1,19 @@
+body {
+font-family: sans-serif;
+background-color: rgb(240, 240, 240);
+}
+
+h1 {
+	text-align: center;
+}
+
+#app {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-flow: column;
+}
+
+#content {
+	background-color: rgb(230, 230, 230);	
+}

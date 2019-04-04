@@ -1,7 +1,9 @@
 # main links
 main:
   - title: "Documentation"
-    url: /docs/documentation/    
+    url: /docs/documentation/
+  - title: "Source"
+    url: https://github.com/environmentalinformatics-marburg/rsdb    
   - title: "About"
     url: /about
   

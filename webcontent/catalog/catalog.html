@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<title>Catalog of Layers</title>
+	<link rel="stylesheet" href="ol.css" type="text/css">
+	<link rel="stylesheet" href="catalog.css" type="text/css">
+	<!--<script src="ol.js"></script>-->
+	<script src="ol-debug.js"></script>
+	<script src="axios.js"></script>
+	<script src="vue.js"></script>
+	<script src="catalog.js"></script>
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+
+	<div id="map"></div>
+
+	<div id="app">
+		<div v-if="appMessage != undefined" id="appMessage">
+			{{appMessage}}
+		</div>
+		<div v-show="appMessage == undefined && !selectedLayersDialogShow" class="appView">
+			<div class="infopanel">
+			<div class="infomessage">
+				<b>filter by type</b> 
+				<select style="pointer-events: auto;" v-model="selectedType">
+					<option>-</option>
+					<option>RasterDB</option>
+					<option>PointDB</option>
+					<option>pointcloud</option>
+				</select>
+				<br>
+				<b>filter by tag</b> 
+				<select style="pointer-events: auto;" v-model="selectedTag">
+					<option>-</option>
+					<option v-for="tag in tags">
+						{{tag}}
+					</option>
+				</select>
+			</div>
+			<button @click="onSelectAllLayers" style="pointer-events: auto;" title="includes layers that are not georeferenced">select all layers</button>
+		</div>
+
+			<div class="navigationPanel">
+				<b>Navigation</b>
+				<br>Zoom: rotate mouse-wheel
+				<br>Move: hold mouse-btn.
+				<br>
+				<br><b>Selection</b>
+				<br>Position: mouse-click
+				<br>Extent: <span>hold ctrl + mouse-btn.</span>
+			</div>
+
+			<div class="hoverbox" v-show="hoverEntries.length > 0">
+				<strong>Layers at cursor</strong>
+				<hr>
+				<div v-for="entry in hoverEntries">{{entry.title !== undefined ? entry.title : entry.name}}</div>
+			</div>
+
+			<div class="background">
+				<select v-model="background">
+					<option v-for="background in backgrounds">{{background}}</option>
+				</select>
+			</div>
+
+			
+
+		</div>
+
+		<div v-show="selectedLayersDialogShow" class="selectedLayersDialogContainer" @click.self="selectedLayersDialogShow = false;" @keyup.enter="selectedLayersDialogShow = false;">
+			<div class="selectedLayersDialog">
+				<button type="button" class="close" @click="selectedLayersDialogShow = false;">X (close)</button>
+				<h1 style="text-align: center; margin: 0px; padding: 0px;">Selected Layers</h1>
+				<div class="selectedLayersDialogContent">
+					<div v-if="selectedType !== '-' && selectedType !== '' && selectedType !== undefined">
+						filtered by type <b>{{selectedType}}</b> 
+					</div>
+					<div v-if="selectedTag !== '-' && selectedTag !== '' && selectedTag !== undefined">
+						filtered by tag <b>{{selectedTag}}</b> 
+					</div>
+					<table v-show="selectedEntries.length > 0">
+						<thead>
+							<tr><th>Name</th><th>ID</th><th>Type</th><th>Description</th></tr>
+						</thead>
+						<tbody>
+							<tr v-for="entry in selectedEntries">
+								<template v-if="entry.type === 'RasterDB'">
+									<td>{{entry.title !== undefined ? entry.title : ''}}</td>
+									<td><a :href="getLinkOfEntry(entry)">{{entry.name}}</a></td>
+									<td style="color: #000047; white-space: nowrap;">raster</td>
+									<td>{{entry.description}}</td>
+								</template>
+								<template v-else-if="entry.type === 'PointDB'">
+									<td>{{entry.title !== undefined ? entry.title : ''}}</td>
+									<td><a :href="getLinkOfEntry(entry)">{{entry.name}}</a></td>
+									<td style="color: #533d3d; white-space: nowrap;">pointdb</td>
+									<td>{{entry.description}}</td>
+								</template>
+								<template v-else-if="entry.type === 'pointcloud'">
+									<td>{{entry.title !== undefined ? entry.title : ''}}</td>
+									<td><a :href="getLinkOfEntry(entry)">{{entry.name}}</a></td>
+									<td style="color: #490000; white-space: nowrap;">pointcloud</td>
+									<td>{{entry.description}}</td>
+								</template>
+								<template v-else>
+									<td>{{entry.title !== undefined ? entry.title : ''}}</td>
+									<td>{{entry.name}}</td>
+									<td style="color: #02531D; white-space: nowrap;">{{entry.type}}</td>
+									<td>{{entry.description}}</td>
+								</template>
+							</tr>
+						</tbody>
+					</table>
+					<div v-show="selectedEntries.length === 0" style="text-align: center;">
+						no layers selected
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+</body>
+
+</html>

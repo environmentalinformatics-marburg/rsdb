@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<meta name="robots" content="noindex, nofollow" />
+	<link rel="shortcut icon" href="../images/favicon.png">
+    <title>LiDAR Data Request</title>
+	<link rel="stylesheet" href="lidar_processing.css" type="text/css">
+	<script src="vue.js"></script>
+	<script src="axios.js"></script>
+	<script src="lidar_processing.js"></script>
+  </head>
+  
+  <body ondragstart="return false;" ondrop="return false;">
+	<div id="app">
+		<div v-if="appMessage != undefined">
+			{{appMessage}}
+		</div>
+		<div v-else>
+
+			
+		
+			<div class="container_layers" @mouseover="topHover = true" @mouseleave="topHover = false">
+				<div class="interactive layers">
+					Layer 
+					<select @focus="topHoverStay = true" @blur="topHoverStay = false" v-model="layer" v-show="(topHover||topHoverStay)"><option v-for="layer in layers">{{layer}}</option></select>
+					<span v-show="!(topHover||topHoverStay)" class="state">{{layer}}</span>
+				</div>
+				<div class="meta_layers">
+					<span v-show="metadataMessage != null">{{metadataMessage}}</span>
+					<span v-show="metadataMessage == null">projection {{meta.projectionText}}, extent: {{rangeText}}, points: {{String(meta.points).replace(/(.)(?=(\d{3})+$)/g,'$1´')}} </span>
+				</div>
+				<div v-show="(topHover||topHoverStay)" class="top_right">
+				<input type="checkbox" id="cbox_internals" v-model="internals"> <label for="cbox_internals">internals</label>				
+				</div>
+			</div>
+			
+			<h2>LiDAR Subset</h2>
+			<div @mouseover="subsetMethodHover = true" @mouseleave="subsetMethodHover = false" class="interactive layers">
+				selection method:
+				<span v-show="!subsetMethodHover" class="state">{{subsetMethodText[subsetMethod]}}</span>				
+				<span v-show="subsetMethodHover">
+					<input type="radio" name="selection_method" value="POI" v-model="subsetMethod"> <span v-bind:class="{ state: subsetMethod=='POI' }">{{subsetMethodText.POI}}</span>
+					<input type="radio" name="selection_method" value="ROI" v-model="subsetMethod"> <span v-bind:class="{ state: subsetMethod=='ROI' }">{{subsetMethodText.ROI}}</span>
+					<input type="radio" name="selection_method" value="TXT" v-model="subsetMethod"> <span v-bind:class="{ state: subsetMethod=='TXT' }">{{subsetMethodText.TXT}}</span>
+				</span>
+			</div>
+			
+			<div v-show="subsetMethod=='POI'">
+				<div @mouseover="poigroupHover = true" @mouseleave="poigroupHover = false" class="interactive layers">
+					POI group <select @focus="poigroupHoverStay = true" @blur="poigroupHoverStay = false" v-model="poigroup" v-show="(poigroupHover||poigroupHoverStay)"><option v-for="poigroup in poigroups" :value="poigroup.name">{{poigroup.title}}</option></select>
+					<span v-show="metadataMessage != null">{{metadataMessage}}</span>
+					<span v-show="metadataMessage == null && !(poigroupHover||poigroupHoverStay)" class="state">{{poigroup==undefined?"none":poigroupMap[poigroup].title}}</span>
+				</div>
+				
+				<div class="container_pois interactive">
+				<span class="container_pois">Select (multiple) POIs</span>
+				<select multiple size="10" v-model="pois_selected"><option v-for="poi in pois" :value="poi.name">{{poi.name}}</option></select>
+				<span class="container_pois">{{pois_selected.length}} of {{pois.length}}</span>
+				</div>
+				
+				<div @mouseover="poiEvalHover = true" @mouseleave="poiEvalHover = false" class="interactive">
+				<span v-show="!poiEvalHover"><span class="state">{{poi_edge}}</span> m edges</span>
+				<span v-show="poiEvalHover"><input type="text" v-model.number="poi_edge" :size="4" /> m edges (square around POI), {{poi_area}} m<sup>2</sup> area. Subsets with no LiDAR data will be excluded.</span>
+				</div>
+			</div>
+			
+			<div v-show="subsetMethod=='ROI'">
+				<div @mouseover="roigroupHover = true" @mouseleave="roigroupHover = false" class="interactive layers">
+					ROI group <select @focus="roigroupHoverStay = true" @blur="roigroupHoverStay = false" v-model="roigroup" v-show="(roigroupHover||roigroupHoverStay)"><option v-for="roigroup in roigroups" :value="roigroup.name">{{roigroup.title}}</option></select>
+					<span v-show="metadataMessage != null">{{metadataMessage}}</span>
+					<span v-show="metadataMessage == null && !(roigroupHover||roigroupHoverStay)" class="state">{{roigroup==undefined?"none":roigroupMap[roigroup].title}}</span>
+				</div>
+				
+				<div class="container_rois interactive">
+				<span class="container_rois">Select (multiple) ROIs</span>
+				<select multiple size="10" v-model="rois_selected"><option v-for="roi in rois" :value="roi.name">{{roi.name}}</option></select>
+				<span class="container_rois">{{rois_selected.length}} of {{rois.length}}</span>
+				</div>
+			</div>
+			
+			<div v-show="subsetMethod=='TXT'" class="interactive">
+				<textarea v-model="subsetFreeText" placeholder="type free text here" cols="80" rows="10"></textarea>
+			</div>
+			
+			<div>
+				<h2>Processing</h2>
+				
+				<div @mouseover="declarationMethodHover = true" @mouseleave="declarationMethodHover = false" class="interactive">
+					declaration method:
+					<span v-show="!declarationMethodHover" class="state">{{declarationMethodText[declarationMethod]}}</span>				
+					<span v-show="declarationMethodHover">
+						<input type="radio" name="declaration_method" value="SELECT" v-model="declarationMethod"> <span v-bind:class="{ state: declarationMethod=='SELECT' }">{{declarationMethodText.SELECT}}</span>
+						<input type="radio" name="declaration_method" value="TEXT" v-model="declarationMethod"> <span v-bind:class="{ state: declarationMethod=='TEXT' }">{{declarationMethodText.TEXT}}</span>
+					</span>
+				</div>				
+				
+				
+				<div class="container_processing interactive" v-show="declarationMethod=='SELECT'">
+					<span class="container_processing">Select (multiple) LiDAR Functions</span>
+					<select multiple size="20" v-model="functions_selected"><option v-for="f in functions" :value="f.name">{{f.name}}</option></select>
+					<span class="container_processing">{{functions_selected.length}} of {{functions.length}}</span>
+					<!--<div class="container_processing" style="display:inline-block;"><span v-for="f in functions_selected"><b>{{f}}</b>: {{functionsMap[f].description}}<br></span></div>-->
+					
+					<div class="container_processing" style="display:inline-block;">
+						<table>
+							<tr v-for="f in functions_selected"><td><b>{{f}}</b></td><td>{{functionsMap[f].description}}</td></tr>
+						</table>
+					</div>					
+				</div>
+				
+				<div class="container_processing interactive" v-show="declarationMethod=='TEXT'">
+					<textarea v-model="declarationFreeText" placeholder="type free text here" cols="80" rows="10"></textarea>
+				</div>
+			</div>
+			<br>
+			<button @click="onProcess">Process</button>
+			<br>
+			<div v-show="internals">
+				<br><b>subset</b> 
+				<br>
+				{{subset_script.split(';').join('; ').split(',').join(', ')}}
+				<br>
+				<br><b>process</b>
+				<br>
+				{{process_script.split(';').join('; ').split(',').join(', ')}}
+				<br>
+				<br>
+			</div>
+			<div v-show="data.header != undefined">
+			<a :href="tableDownloadURL" download="lidar_indices.csv">download table as CSV-file</a>
+			</div>
+			<table class="result" v-show="data.header != undefined">
+				<thead>
+					<tr>
+						<th>subset</th>
+						<th v-for="col in data.header">{{col}}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(row, key) in data.data">
+						<td>{{key}}</td>
+						<td v-for="col in row">{{col}}</td>
+					</tr>
+				</tbody>
+			</table>			
+			
+		</div>
+	</div>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+<meta name="robots" content="noindex, nofollow" />
+
+<link href="pointcloud_view.css" type="text/css" rel="stylesheet">
+
+<script src="vue.js"></script>
+<script src="vue-router.js"></script>
+<script src="axios.js"></script>
+<script src="three.js"></script>
+<script src="OrbitControlsMirror.js"></script>
+<script src="pointcloud_view.js"></script>
+
+</head>
+
+<script type="text/x-template" id="point-cloud-view-template">
+<div>
+	<div class="infoPanel">{{this.urlParameters.db}} - center: {{this.urlParameters.x}}, {{this.urlParameters.y}} - points: {{pointCount}}</div>
+	<div class="loading_panel" v-show="loadingMessage != undefined">
+	<img src="../images/default.svg" style="border: 0; vertical-align:middle;" width="24" >
+		{{loadingMessage}}
+	</div>
+	<div class="control_panel">
+		<table>
+		<tr><td>filter</td><td><select v-model="viewType"><option v-for="v in viewTypes">{{v}}</option></select></td></tr>
+		<tr><td>color</td><td><select v-model="viewColor"><option v-for="v in viewColors">{{v}}</option></select></td></tr>
+		<tr><td>z</td><td><select v-model="viewZ"><option v-for="v in viewZs">{{v}}</option></select></td></tr>
+		<tr><td>point size</td><td><button @click="pointSizeMinus" title="smaller">-</button>{{pointSize.toFixed(1)}}<button @click="pointSizePlus" title="bigger">+</button></td></tr>
+		<tr><td><label for="checkbox_illuminated">light</label></td><td>
+			<input type="checkbox" id="checkbox_illuminated" v-model="illuminated">
+			<span v-show="illuminated"><button @click="illuminatedMinus" title="darker &#013;&#010; Key: PAGE DOWN">-</button>{{(1/this.fogDensity).toFixed(0)}}<button @click="illuminatedPlus" title="brighter &#013;&#010; Key: PAGE UP">+</button></span></td></tr>
+		<tr><td><label for="checkbox_filterExtremes">outliers -</label></td><td><input type="checkbox" id="checkbox_filterExtremes" v-model="filterExtremes"></td></tr>
+		<tr><td><label for="checkbox_animated">animated</label></td><td><input type="checkbox" id="checkbox_animated" v-model="useAnimation"></td></tr>
+		</table>
+		<hr>
+		<div>
+			<table>
+				<tr><td><b>Rotate</b></td><td>left mouse button<br>move</td></tr>
+				<tr><td><b>Shift</b></td><td>right mouse button<br>move</td></tr>
+				<tr><td><b>Zoom</b></td><td>rotate mouse wheel</td></tr>
+			</table>
+		</div>
+		<hr>
+		<div>
+			<table>
+				<tr><td></td><td><button @click="moveStep(0,1);">North</button></td><td></td></tr>
+				<tr><td><button @click="moveStep(-1,0);">West</button></td><td style="text-align: center;">Move</td><td><button @click="moveStep(1,0);">East</button></td></tr>
+				<tr><td></td><td><button @click="moveStep(0,-1);">South</button></td><td></td></tr>
+			</table>
+		</div>
+	</div>	
+	<div id="webgl_container"></div>
+</div>
+</script>
+
+<body ondragstart="return false;" ondrop="return false;">
+<div id="app">
+	<!--<point-cloud-view>	
+	</point-cloud-view>-->
+	<router-view></router-view>
+</div>
+</body>
+</html>

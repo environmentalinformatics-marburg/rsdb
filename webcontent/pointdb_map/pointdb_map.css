@@ -1,0 +1,99 @@
+body {
+	margin: 0;
+}
+
+#container {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	max-height: 100vh;
+}
+
+#top {
+	background-image: url("background_detail.png");
+	flex: 0 1 auto;
+	/*background:rgba(147, 128, 108, 0.3);*/
+	
+}
+
+#image_container {
+	min-height: 400px;
+	overflow: auto;
+	display: flex;
+	align-items:flex-center;	
+}
+
+#image {
+	text-align: center;
+}
+
+#image img {
+	vertical-align: bottom;
+	cursor:pointer;
+}
+
+#main {
+	background-image: url("background_overview.png");	
+	flex: 1 1 auto;
+	min-height: 100px;
+	/*background: #555544;*/
+
+	display: flex;
+	flex-direction: column;	
+}
+
+#map_container {
+	background-image: url("background_overview.png");
+	overflow: auto;
+	/*background: #555544;*/
+	display: flex;
+}
+
+
+
+#map {
+	color: red;
+	background-color: #000000;
+	cursor:crosshair;	
+}
+
+
+
+.tools {	
+	position:absolute;
+	float: left;
+	
+	background: #fff;
+	opacity:0.75;
+}
+
+#bottom {
+	flex: 0 1 auto;
+	background: gray;
+	
+	display: flex;
+}
+
+#bottom_left {
+	flex: 1 0 auto;
+	text-align: left;
+}
+
+#bottom_right {
+	flex: 1 0 auto;
+	text-align: right;
+}
+
+.spacer{
+  flex: auto; 
+}
+
+#text_easting, #text_northing {
+  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+  text-align: right;
+}
+
+#div_instructions {
+	display: none;
+}
+

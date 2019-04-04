@@ -1,0 +1,149 @@
+html {
+	height: 100%;
+}
+	
+body {
+	margin: 0;
+	height: 100%;
+	/*background-color: rgb(255, 255, 255);*/
+	background-color: rgb(0, 0, 0);
+	font-family: sans-serif;
+}
+
+#map {
+	height: 100%;
+}
+
+#app {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+}
+
+#appMessage {
+	color: #da480f;
+	background-color: #fffc;
+}
+
+.appView {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 100%;
+	width: 100%;
+}
+
+.infopanel {
+	position: absolute;
+	top: 10px;
+	left: 50px;
+	padding: 1px;
+}
+
+.infomessage {
+	background-color: rgba(225, 225, 225, 0.79);
+	border-radius: 4px;
+	border-style: solid;
+	border-color: rgba(0,0,0,0.3);
+	border-width: 1px;
+}
+
+.navigationPanel {
+	position: absolute;
+	bottom: 60px;
+	right: 10px;
+	background-color: rgba(225, 225, 225, 0.87);
+	border-radius: 1px;
+	border-style: solid;
+	border-color: rgba(0, 0, 0, 0.829);
+	padding: 1px;
+}
+
+.hoverbox {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	background-color: rgba(225, 225, 225, 0.77);
+	border-radius: 4px;
+	border-style: solid;
+	border-color: rgba(0,0,0,0.3);
+	padding: 5px;
+	width: 250px;
+	overflow: hidden;
+}
+
+.background {
+	position: absolute;
+	bottom: 22px;
+	right: 10px;
+	background-color: rgba(225, 225, 225, 0.56);
+	border-radius: 4px;
+	border-style: solid;
+	border-color: rgba(0,0,0,0.3);
+	padding: 0px;
+	pointer-events: auto;
+}
+
+.selectedLayersDialogContainer {
+	position: relative;
+	background-color: rgba(0, 0, 0, 0.7);
+	pointer-events: auto;
+	height: 100%;
+	width: 100%;
+	display: flex;           /* establish flex container */
+    flex-direction: column;  /* make main axis vertical */
+    justify-content: center; /* center items vertically, in this case */
+    align-items: center;     /* center items horizontally, in this case */
+}
+
+.selectedLayersDialog {
+	position: relative;
+	background-color: rgb(243, 243, 243);
+	pointer-events: auto;
+	/*width: 800px;*/
+	border-radius: 15px;
+	border-style: solid;
+	border-color: rgb(51, 51, 51);
+	overflow: auto;
+	min-width: 500px;
+}
+
+/*.selectedLayersDialogContent {
+	overflow: auto;
+}*/
+
+.selectedLayersDialog a:link { color: #173572; }
+.selectedLayersDialog a:visited { color: #173572; }
+.selectedLayersDialog a:hover { color: #1F4CA7; }
+.selectedLayersDialog a:active { color: #1F4CA7; }
+
+.close {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+}
+
+th, td {
+    padding: 8px;
+}
+
+thead tr {
+	background-color: rgba(87, 87, 87, 0.3);
+}
+
+tbody tr {
+	background-color: rgba(111, 111, 111, 0.2);
+}
+
+tbody tr a {
+	color: rgba(224, 11, 11, 0.2);
+}
+
+tbody tr:hover {background-color: rgba(111, 111, 150, 0.2);}
+
+tr:nth-child(even){background-color: rgba(39, 39, 39, 0.1);}
+
+

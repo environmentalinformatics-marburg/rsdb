@@ -1,0 +1,35 @@
+body {
+	color: #cccccc;
+	font-family: sans-serif;
+	font-size:13px;
+	text-align:center;
+	background-color: #050505;
+	margin: 0px;
+	overflow: hidden;
+}
+
+.loading_panel {
+	position: absolute; 
+	top: 0; 
+	left: 400px;
+	background-color: #4B4B4B;
+	opacity: 0.9;
+	text-align: left;
+}
+
+.control_panel {
+	position: absolute; 
+	top: 0; 
+	right: 0;
+	background-color: #4D472B;
+	opacity: 0.85;
+	text-align: left;
+}
+
+.infoPanel {
+	position: absolute; 
+	bottom: 0; 
+	left: 0;
+	background-color: #4D472BE6;
+	opacity: 0.8;
+}

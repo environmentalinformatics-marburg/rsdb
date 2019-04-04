@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<title>RasterDB WMS</title>
+	<link rel="stylesheet" href="ol.css" type="text/css">
+	<link rel="stylesheet" href="rasterdb_wms.css" type="text/css">
+	<!--<script src="ol.js"></script>-->
+	<script src="ol-debug.js"></script>
+	<script src="proj4.js"></script>
+	<script src="drag_div.js"></script>
+	<script src="axios.js"></script>
+	<script src="vue.js"></script>
+	<script src="httpVueLoader.js"></script>
+	<script src="rasterdb_wms.js"></script>
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+
+	<div id="map"></div>
+
+	<div id="app">
+		<div v-if="appMessage != undefined" id="appMessage">
+			{{appMessage}}
+		</div>
+		<div v-show="appMessage == undefined">
+
+			<div class="top_box">
+				<div class="panel">
+					<div>Raster</div>
+					<select v-model="tag">
+						<option>-</option>
+						<option v-for="tag in rasterdbLayers.tags">
+							{{tag}}
+						</option>
+					</select>
+					/
+					<select v-model="layerName">
+						<option v-for="layer in filteredLayers" v-bind:value="layer.name">
+							{{layer.name}}
+						</option>
+					</select>
+				</div>
+
+				<div v-show="layerMessage == undefined && (layerMeta.timestamps.length > 1 || (layerMeta.timestamps.length == 1 && layerMeta.timestamps[0].timestamp != 0))"
+				 class="panel">
+					<div>Time</div>
+					<select v-model="timestamp">
+						<option v-for="timestamp in layerMeta.timestamps" v-bind:value="timestamp.timestamp">
+							{{timestamp.datetime}}
+						</option>
+					</select>
+				</div>
+
+				<div v-show="layerMessage == undefined" class="panel">
+					<div>Product</div>
+					<div style="position: relative;">
+						<select v-model="styleName" :style="{ visibility: layerMeta.wms.styles.length > 1 ? 'visible' : 'hidden'}">
+							<option v-for="style in layerMeta.wms.styles" v-bind:value="style.name">
+								{{style.name}}{{style.title == style.name ? '' : ' - ' + style.title}}
+							</option>
+						</select>
+						<div style="position: absolute; left: 0px; top: 0px; font-size: 1rem;" :style="{ visibility: layerMeta.wms.styles.length == 1 ? 'visible' : 'hidden'}">{{layerMeta.wms.styles.length == 1 ? layerMeta.wms.styles[0].title : '-'}}</div>
+					</div>
+				</div>
+
+				<div v-show="layerMessage == undefined" class="panel" @mouseover="rangeHover = true" @mouseleave="rangeHover = false">
+					<div>Range</div>
+					<div style="position: relative;">
+						<select style="visibility: hidden;">
+							<option>MMMM</option>
+						</select>
+						<div style="position: absolute; top: 0px; left: 0px;">{{rangeType}}</div>
+						<div class="rangePanel" v-show="rangeHover || rangeSelectFocus">
+							<div>Range</div>
+							<select @focus="rangeSelectFocus = true" @blur="rangeSelectFocus = false" v-model="rangeType">
+								<option v-for="rangeType in rangeTypes">{{rangeType}}</option>
+							</select>
+							<div v-show="rangeType == 'static'" style="white-space: nowrap">
+								[{{rangeStatic[0]}}, {{rangeStatic[1]}}]
+								<br> [
+								<input type="text" size="5" v-model="rangeStaticMinText"></input>,
+								<input type="text" size="5" v-model="rangeStaticMaxText"></input>]
+								<button type="button" @click="onRangeStaticSet">set</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div v-show="layerMessage == undefined" class="panel">
+					<div>Gamma</div>
+					<select v-model="gamma">
+						<option v-for="gamma in gammas" v-bind:value="gamma">
+							{{gamma}}
+						</option>
+					</select>
+				</div>
+
+				<div v-show="layerMessage == undefined" class="panel" @mouseover="settingsHover = true" @mouseleave="settingsHover = false">
+					<div>Settings</div>
+					<div style="position: relative;">
+						<select style="visibility: hidden;">
+							<option>MMMM</option>
+						</select>
+						<div style="position: absolute; top: 0px; left: 0px;">
+							<div v-show="syncBands">
+								sync
+							</div>
+						</div>
+						<div class="rangePanel" v-show="settingsHover || settingsSelectFocus">
+							<div style="white-space: nowrap;">
+								<input type="checkbox" id="syncbandscheckbox" v-model="syncBands">
+								<label for="syncbandscheckbox">align rgb bands</label>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div v-show="layerMessage != undefined" class="panel" id="layerMessage">
+					{{layerMessage}}
+				</div>
+
+				<div class="busy" style="margin-left: 100px;" v-show="loadingCount > 0">
+					<img src="../images/busy.svg" /> Processing {{loadingCount > 1 ? '(' + loadingCount + ' queued)' : ''}}
+					<b>{{loadingCount > 1 ? 'Please wait until processing finished.' : ''}}</b>
+				</div>
+				<div class="panel error" v-show="loadingErrorMessage !== undefined">
+					{{loadingErrorMessage}}
+				</div>
+
+
+			</div>
+
+
+			<div class="toolsPanel">
+				<span v-show="noSelectedPosition && noSelectedExtent" class="position valid">
+					<b>No Position Selected</b>
+				</span>
+				<span v-show="!noSelectedPosition" class="position" :class="{valid: !validSelectedPosition}">
+					<b>
+						<button style="padding: 0px;" @click="selectedPosition = [NaN, NaN];">X</button>
+					</b>
+					selected position
+					<b>{{selectedPosition[0].toFixed(3)}}</b>,
+					<b>{{selectedPosition[1].toFixed(3)}}</b>
+				</span>
+				<span v-if="!noSelectedExtent" class="position" :class="{valid: !validSelectedExtent}">
+					<b>
+						<button style="padding: 0px;" @click="interactionExtentClear">X</button>
+					</b>
+					selected extent
+					<b>{{selectedExtent[0].toFixed(3)}}</b>,
+					<b>{{selectedExtent[1].toFixed(3)}}</b>,
+					<b>{{selectedExtent[2].toFixed(3)}}</b>,
+					<b>{{selectedExtent[3].toFixed(3)}}</b>
+				</span>
+				<span v-show="(!noSelectedPosition && !selectedPositionIsInView) || (!noSelectedExtent && !selectedExtentIsInView)" class="valid">
+					not in view
+				</span>
+				<!--<div v-if="layerMeta.associated.PointDB !== undefined">
+					<hr> => PointDB:
+					<b>{{layerMeta.associated.PointDB}}</b>
+					<br> 3D view
+					<button @click="onClickButtonPointCloud" :disabled="!(validSelectedPosition || validSelectedExtent)" title="view at position interactive point cloud">Point Cloud</button>
+					<button @click="onClickButtonSurface" :disabled="!(validSelectedPosition || validSelectedExtent)" title="view at position DTM (Digital Terrain Model), DSM, CHM, etc">Surface</button>
+					<br>Point Processing:
+					<button @click="onClickButtonPointProcessing" :disabled="!(validSelectedPosition || validSelectedExtent)" title="start point processing">open</button>
+				</div>-->
+				<div>
+					<!--<hr> Raster Processing:
+					<button @click="onClickButtonRasterProcessing" :disabled="!(validSelectedPosition || validSelectedExtent)" title="start raster processing">open</button>-->
+					<button @click="$refs.consumerApp.show();" :disabled="!(validSelectedPosition || validSelectedExtent)" title="open tools panel">open tools</button>
+				</div>
+			</div>
+
+			<span v-show="layerMessage == undefined">
+				<div class="navigationPanel" id="navigationPanel">
+					<b>Navigation 
+						<button style="font-size: 1rem; padding: 0px;" @click="showNavigationPanel = true" v-show="!showNavigationPanel">&#65085;</button>
+						<button style="font-size: 1rem; padding: 0px;" @click="showNavigationPanel = false" v-show="showNavigationPanel">&#65086;</button>
+					</b>
+					<table v-show="showNavigationPanel">
+						<tr>
+							<td>Zoom</td>
+							<td>rotate mouse wheel</td>
+						</tr>
+						<tr>
+							<td>Move</td>
+							<td>hold left mouse button<br>move mouse</td>
+						</tr>
+						<tr>
+							<td>Select Point</td>
+							<td>left mouse click</td>
+						</tr>
+						<tr>
+							<td>Select Extent</td>
+							<td>hold Crtl key<br>hold left mouse button<br>move mouse</td>
+						</tr>
+					</table>
+				</div>
+
+				<div id="background_panel" class="panel">
+					<div>Background</div>
+					<select v-model="backgroundLayer">
+						<option v-for="backgroundLayer in backgroundLayers" v-bind:value="backgroundLayer">
+							{{backgroundLayer}}
+						</option>
+					</select>
+					<div style="text-align: right;">
+						opacity
+						<select v-model="layerWMSopacity">
+							<option v-for="opacity in layerWMSopacities" v-bind:value="opacity">
+								{{opacity}}
+							</option>
+						</select>
+					</div>
+				</div>
+
+				<div id="poi_group_panel" class="panel">
+					<div>POI group</div>
+					<select v-model="poiGroup">
+						<option value="none">none</option>
+						<option v-for="poiGroup in poiGroups" v-bind:value="poiGroup.name">
+							{{poiGroup.name}}
+						</option>
+					</select>
+					<div style="position: relative;" v-show="poiGroup !== 'none'">
+						<div class="movetopoi" @mouseover="movetopoiHover = true" @mouseleave="movetopoiHover = false">move to</div>
+						<div class="movetopoiPanel" @mouseover="movetopoiPanelHover = true" @mouseleave="movetopoiPanelHover = false" v-show="movetopoiHover || movetopoiPanelHover || poiSelectFocus">
+							move to POI
+							<select v-model="poiName" @focus="poiSelectFocus = true" @blur="poiSelectFocus = false">
+								<option value="none">none</option>
+								<option v-for="poi in pois" v-bind:value="poi.name">
+									{{poi.name}}
+								</option>
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<div id="roi_group_panel" class="panel">
+					<div>ROI group</div>
+					<select v-model="roiGroup">
+						<option value="none">none</option>
+						<option v-for="roiGroup in roiGroups" v-bind:value="roiGroup.name">
+							{{roiGroup.name}}
+						</option>
+					</select>
+					<div style="position: relative;" v-show="roiGroup !== 'none'">
+						<div class="movetoroi" @mouseover="movetoroiHover = true" @mouseleave="movetoroiHover = false">move to</div>
+						<div class="movetoroiPanel" @mouseover="movetoroiPanelHover = true" @mouseleave="movetoroiPanelHover = false" v-show="movetoroiHover || movetoroiPanelHover || roiSelectFocus">
+							move to ROI
+							<select v-model="roiName" @focus="roiSelectFocus = true" @blur="roiSelectFocus = false">
+								<option value="none">none</option>
+								<option v-for="roi in rois" v-bind:value="roi.name">
+									{{roi.name}}
+								</option>
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<span id="projection">
+					{{layerMeta.ref==undefined ? '' : layerMeta.ref.code}} {{layerMeta.ref==undefined ? '' : layerMeta.ref.proj4}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<b>{{layerMeta.description}}</b>
+				</span>
+
+				<span id="pixelScale">
+					pixel scale {{viewScaleDisplay}}
+				</span>
+
+			</span>
+
+		</div>
+
+		<consumer-app ref="consumerApp" :layer-meta="layerMeta" :selected-type="selectedType" :selected-position="selectedPosition" :selected-extent="selectedExtent"></consumer-app>
+
+	</div> <!--app-->
+</body>
+
+</html>

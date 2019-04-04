@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex, nofollow" />
+  <!-- Basic Page Needs-->
+  <meta charset="utf-8">
+  <title>Database Statistics</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas-->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT-->
+  <link href="../css/relaway.css" rel="stylesheet" type="text/css">
+
+  <!-- CSS-->
+  <link rel="stylesheet" href="../css/normalize.css">
+  <link rel="stylesheet" href="../css/skeleton.css">
+
+  <!-- Favicon-->
+  <link rel="shortcut icon" href="../images/favicon.png">
+  
+  <!--script-->
+  <script src="../script/Helper.js"></script>
+  <script src="../script/Class.js"></script>
+  <script src="../script/Combo.js"></script>  
+  <script src="../script/ComboDbType.js"></script>
+  <script src="../script/ComboLayer.js"></script>
+  <script src="statistics.js"></script>
+
+</head>
+<body>
+
+  <!---->
+  <div class="container">
+  
+    <section class="header">
+	<h1 class="title">Database Statistics</h1>
+	</section>
+		
+	<label for="select_dbType">Type</label>
+	<select class="u-full-width" id="select_dbType"></select>
+	
+	<label for="select_layer">Layer</label>
+	<select class="u-full-width" id="select_layer">
+        <option value="PointDB">[no layers]</option>
+    </select>
+	
+	<button class="button-primary" id="button_get_statistics">Get statistics</button>
+	<hr>
+	<div id="div_statistics_header">
+	(no statistics loaded)
+	</div>
+	<hr>
+	<div id="div_statistics"></div>
+	<hr>	
+	<div id="div_statistics_2"></div>
+  </div>
+
+<!-- End Document-->
+</body>
+</html>

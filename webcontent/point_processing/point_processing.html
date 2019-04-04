@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<link rel="shortcut icon" href="../images/favicon.png">
+
+	<link href="point_processing.css" type="text/css" rel="stylesheet">
+
+	<script src="vue.js"></script>
+	<script src="vue-router.js"></script>
+	<script src="axios.js"></script>
+	<script src="point_processing.js"></script>
+
+	<title>Point Processing</title>
+
+	<script type="text/x-template" id="raster-processing-view-template">
+		<div>
+			<h1>Point Processing</h1>
+			PointDB Layer: <b>{{pointdb}}</b>
+			<div v-if="metaMessage == undefined">
+			description: {{meta.description}}
+			<br>Projection: {{meta.projectionText}} - EPSG:{{meta.epsg}}</span>
+			<br><span style="font-size: 0.6em;">{{meta.proj4}}</span>
+			<br><br>
+			<hr>
+			area selection by <select v-model="areaSelection">
+				<option v-for="(val, key) in areaSelections" :value="key">{{val}}</option>
+			</select>
+			<hr> 
+			<div v-if="areaSelection === 'pos'">
+				<table>
+					<tr><td class="center">Center</td><td class="center">x</td><td class="center">y</td></tr>
+					<tr><td class="center">Position</td><td><input v-model="user_xpos" placeholder="xpos"></td><td><input v-model="user_ypos" placeholder="ypos"></td><td>coordinate</td></tr>
+				</table>
+				<br>
+				<table>
+					<tr><td class="center">width</td><td><input v-model="user_width" placeholder="width in units"></td><td class="center">units</td></tr>
+					<tr><td class="center">height</td><td><input v-model="user_height" placeholder="height in units"></td class="center"><td>units</td></tr>
+				</table>
+
+			</div>
+			<div v-if="areaSelection === 'ext'">
+				<table>
+					<tr><td class="center">extent</td><td class="center">x</td><td class="center">y</td></tr>
+					<tr><td class="center">min</td><td><input v-model="user_xmin" placeholder="xmin"></td><td><input v-model="user_ymin" placeholder="ymin"></td><td>coordinate</td></tr>
+					<tr><td class="center">max</td><td><input v-model="user_xmax" placeholder="xmax"></td><td><input v-model="user_ymax" placeholder="ymax"></td><td>coordinate</td></tr>
+				</table>
+			</div>
+			<hr>
+			<br>
+			all point attributes
+			<br><br>
+            <hr>
+			<br>projected dimensions {{width.toFixed(4)}} x {{height.toFixed(4)}} units 
+			<br><br>extent {{xmin.toFixed(4)}}, {{ymin.toFixed(4)}} to {{xmax.toFixed(4)}}, {{ymax.toFixed(4)}}
+			<br><br>file format <select v-model="fileFormat">
+					<option v-for="(val, key) in fileFormats" :value="key">{{val}}</option>
+				</select>
+			<br><br><button @click="onClickDownload">download</button>
+			<br>
+			<hr>
+			<br>
+
+			<div v-show="fileFormat === 'las'">
+				<b>LAS format information</b>
+				<br>
+				<br>
+				This file format is binary point format.
+				<br><a href="https://www.asprs.org/committee-general/laser-las-file-format-exchange-activities.html">LAS</a> version 1.2 Point Data Format 0
+				<br>
+				<br>tested applications: <a href="https://www.liblas.org/">libLAS</a>
+				<br>
+				<br>
+			</div>
+
+			<div v-show="fileFormat === 'xyz'">
+				<b>xyz format information</b>
+				<br>
+				<br>
+				This file format is text based point format.
+				<br>
+				<br>
+			</div>
+
+			<div v-show="fileFormat === 'rdat'">
+					<b>rDAT format information</b>
+					<br>
+					<br>
+					This file format is point cloud transfer format of rPointDB package.
+					<br>
+					<br>
+					Extensive meta data is preserved by this format.
+					<br>e.g. projection
+					<br>
+					<br>
+					example: 
+					<br>load file in <a href="https://www.r-project.org/">R</a> as data.frame and plot it.
+					<br>
+					<pre>
+library(rPointDB)
+df <- read.rdat("points.rdat")
+library(rgl)
+plot3d(df$x, df$y, df$z)
+					</pre>
+				</div>
+
+			</div>
+			<div v-else>
+			{{metaMessage}}
+			</div>
+		</div>
+	</script>
+
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+	<div id="app">
+		<div id="content">
+			<router-view></router-view>
+		</div>
+	</div>
+</body>
+
+</html>

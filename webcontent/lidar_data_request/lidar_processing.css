@@ -1,0 +1,70 @@
+body {
+	margin: 0px;
+	/*margin-left: 10px;*/
+	height: 100%;
+	background-color: rgb(240, 235, 230);
+	width: 100%;
+	font-family: sans-serif;
+}
+
+.top_right { 
+	position: absolute; 
+	top: 0; 
+	right: 0; 
+}
+
+.interactive {
+	cursor: pointer;
+	background-color: rgba(58, 83, 225, 0.1);
+	border-radius: 5px;
+	box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+	padding: 5px;
+	margin: 2px;
+	margin-left: 25px;
+	margin-right: 25px;
+}
+
+.state {
+	font-weight: bold;
+}
+
+.container_layers {
+	display: flex;
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.layers {
+}
+
+.meta_layers {
+	margin: 10px;
+}
+
+.invalid {
+	color: rgb(220, 20, 20);
+}
+
+.container_pois {
+	vertical-align:top;
+}
+
+.container_processing {
+	vertical-align:top;
+}
+
+.result th, .result td {
+    text-align: left;
+    padding: 8px;
+}
+
+.result thead tr {
+	background-color: rgba(87, 75, 70, 0.3);
+}
+
+.result tbody tr {
+	background-color: rgba(132, 104, 76, 0.2);
+}
+
+.result tbody tr:hover {background-color: rgba(132, 104, 76, 0.4);}
+
+.result tr:nth-child(even){background-color: rgba(132, 104, 76, 0.1);}

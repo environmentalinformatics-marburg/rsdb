@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<link rel="shortcut icon" href="../images/favicon.png">
+
+	<link href="raster_processing.css" type="text/css" rel="stylesheet">
+
+	<script src="vue.js"></script>
+	<script src="vue-router.js"></script>
+	<script src="axios.js"></script>
+	<script src="raster_processing.js"></script>
+
+	<title>Raster Processing</title>
+
+	<script type="text/x-template" id="raster-processing-view-template">
+		<div>
+			<h1>Raster Processing</h1>
+			<h2 style="color: red;">This interface is outdated! Please use the <a :href="'../admin2/#/viewer/' + rasterdb">new Web Interface</a> with more features.</h2>
+			Raster Layer <b>{{rasterdb}}</b>
+			<div v-if="metaMessage == undefined">
+			description: {{meta.description}}
+			<br>
+			pixel size {{meta.ref.pixel_size.x.toFixed(4)}} x {{meta.ref.pixel_size.y.toFixed(4)}} units
+			<br>
+			Projection: {{meta.ref.projectionTitle}} - {{meta.ref.code}}
+			<br><span style="font-size: 0.6em;">{{meta.ref.proj4}}</span>
+			<br><br>
+			<div v-if="meta.associated !== undefined && meta.associated.PointDB !== undefined">
+				<b>Note</b>: <span style="color: rgb(209, 5, 5);">This raster layer is associated with a PointDB layer.
+				<br>So here you are downloading prerasterized point data only.
+				<br><br></span>
+			</div>
+			<hr>
+			area selection by <select v-model="areaSelection">
+				<option v-for="(val, key) in areaSelections" :value="key">{{val}}</option>
+			</select>
+			<hr> 
+			<div v-if="areaSelection === 'pos'">
+				<table>
+					<tr><td class="center">Center</td><td class="center">x</td><td class="center">y</td></tr>
+					<tr><td class="center">Position</td><td><input v-model="user_xpos" placeholder="xpos"></td><td><input v-model="user_ypos" placeholder="ypos"></td><td>coordinate</td></tr>
+				</table>
+				<br>
+				<table>
+					<tr><td class="center">width</td><td><input v-model="user_width" placeholder="width in pixel"></td><td class="center">pixel</td></tr>
+					<tr><td class="center">height</td><td><input v-model="user_height" placeholder="height in pixel"></td class="center"><td>pixel</td></tr>
+				</table>
+
+			</div>
+			<div v-if="areaSelection === 'ext'">
+				<table>
+					<tr><td class="center">extent</td><td class="center">x</td><td class="center">y</td></tr>
+					<tr><td class="center">min</td><td><input v-model="user_xmin" placeholder="xmin"></td><td><input v-model="user_ymin" placeholder="ymin"></td><td>coordinate</td></tr>
+					<tr><td class="center">max</td><td><input v-model="user_xmax" placeholder="xmax"></td><td><input v-model="user_ymax" placeholder="ymax"></td><td>coordinate</td></tr>
+				</table>
+			</div>
+			<hr>			
+			<span v-if="meta.timestamps.length > 1">
+			timestamp  
+			<select v-model="timestampSelection">
+					<option v-for="timestamp in meta.timestamps" :value="timestamp.datetime">{{timestamp.datetime}}</option>
+			</select>
+			<hr>
+			</span>
+			<br>
+			data selection
+			<select v-model="dataSelectionType">
+					<option v-for="(val, key) in dataSelectionTypes" :value="key">{{val}}</option>
+			</select>
+			<select v-model="oneBandSelection" v-show="dataSelectionType === 'one'">
+					<option v-for="band in meta.bands" :value="band.index">{{band.title}}</option>
+			</select>
+			<span v-show="dataSelectionType === 'multi'">
+					hold Ctrl-key to select multiple bands 
+			<br>
+					<select v-model="multiBandSelections" multiple>
+					<option v-for="band in meta.bands" :value="band.index">{{band.title}}</option>
+			</select> 
+			</span>
+			<span v-show="dataSelectionType === 'processing'">
+			<br>
+			<br>
+			formula <input v-model="processingFormula" placeholder="processing formula">
+			</select> 
+			</span>
+			<br><br>
+            <hr>
+			<br>projected dimensions {{diameter_geo_x.toFixed(4)}} x {{diameter_geo_y.toFixed(4)}} units 
+			<br><br>extent {{xmin.toFixed(4)}}, {{ymin.toFixed(4)}} to {{xmax.toFixed(4)}}, {{ymax.toFixed(4)}}
+			<br><br>size {{width}} x {{height}} = {{width * height}} pixel (estimate)
+			<br><br>file format <select v-model="fileFormat">
+					<option v-for="(val, key) in fileFormats" :value="key">{{val}}</option>
+				</select>
+			<br><br><button @click="onClickDownload">download</button>
+			<br>
+			<hr>
+			<br>
+			<div v-show="fileFormat === 'tiff'">
+				<input type="checkbox" id="visualisation" v-model="visualisation" />
+				<label for="visualisation">tone mapping for visualisation</label>
+				<br>
+				<br>
+				<b>GeoTIFF format information</b>
+				<br>
+				<br>
+				File format is TIFF with GeoTIFF extensions.
+				<br>
+				<br>
+				As this format is intended for GIS-software general image-processing<br> applications may not be able to read that files.
+				<br>
+				<br>
+				For compatibility with TIFF readers (e.g. GDAL) all bands need to be of same data type, for output "biggest" data type is chosen. 
+				<br>
+				<br>
+				Tested with: <a href="http://gdal.org/">GDAL</a>, <a href="https://qgis.org/">QGIS</a>, <a href="https://cran.r-project.org/web/packages/raster/">R raster</a>
+			</div>
+
+			<div v-show="fileFormat === 'rdat'">
+					<b>rDAT format information</b>
+					<br>
+					<br>
+					This file format is raster transfer format of rPointDB package.
+					<br>
+					<br>
+					Extensive meta data is preserved by this format.
+					<br>e.g. band names, wavelength
+					<br>
+					<br>
+					For compatibility with R rasters all bands need to be of same data type, for output "biggest" data type is chosen. 
+					<br>
+					<br>
+					example: 
+					<br>load file in <a href="https://www.r-project.org/">R</a>
+					<br>as RasterLayer (one band)
+					or as RasterStack (multiple bands)
+					<br>and plot it.
+					<br>
+					<pre>
+library(rPointDB)
+r <- read.rdat("c:/downloads/raster.rdat")
+plot(r)
+					</pre>
+			</div>
+
+			<div v-show="fileFormat === 'png'">
+				<b>PNG format information</b>
+				<br>
+				<br>
+				Up to three bands are rendered:
+				<br><br>three or more bands:
+				<br>Raster data of first three bands is rendered to red-green-blue PNG image (8 bit per component).
+				<br>two bands:
+				<br>Raster data is rendered to red-green-blue PNG image (8 bit per component) with interpolated green.
+				<br>one band:
+				<br>Raster data is rendered to 8-bit greyscale PNG image.
+				<br>
+				<br>
+				This format is intended for visualisation only.
+				<br>
+				Pixel values are mapped non-linearly to image range (0 - 255) 
+				<br>to present hight detail in resulting image.
+				<br>
+				<br>				
+			</div>
+
+			</div>
+			<div v-else>
+			{{metaMessage}}
+			</div>
+		</div>
+	</script>
+
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+	<div id="app">
+		<div id="content">
+			<router-view></router-view>
+		</div>
+	</div>
+</body>
+
+</html>

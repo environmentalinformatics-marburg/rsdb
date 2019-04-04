@@ -1,0 +1,70 @@
+valid: true
+# details of processing functions
+area: |
+  Area that is covered by query polygon resp. rectangle. (independent of LiDAR point data)
+bbox_area: |
+  Area that is covered by bounding box of query polygon resp. rectangle. (independent of LiDAR point data)
+BE_FHD: | 
+  The Foliage Height Diversity (FHD) metric was first described by MacArthur & MacArthur (1961) for describing bird species richness. 
+  He applied the Shannon-Wiener information index to the proportion of foliage mapped in three different height layers manually in forest. 
+  Here, we use the penetration rates as described above as a proxy for foliage biomass to calculate FHD from LiDAR data.
+  <br>
+  <br>
+  can := BE_PR_CAN * ln(BE_PR_CAN)
+  <br>
+  und := BE_PR_UND * ln(BE_PR_UND)
+  <br>
+  reg := BE_PR_REG * ln(BE_PR_REG)
+  <br>
+  <br>
+  If a term is not finite set that term to zero.
+  <br>
+  <br>
+  BE_FHD := - (can + und + reg)
+BE_H_KURTOSIS: |
+  <a href="https://en.wikipedia.org/wiki/Kurtosis#Excess_kurtosis">Excess Kurtosis</a>
+BE_H_MEDIAN: |
+  <a href="https://en.wikipedia.org/wiki/Median">Median</a>
+BE_H_SD: |
+  <a href="https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation">Corrected sample standard deviation</a>
+BE_H_SKEW: |
+  <a href="https://en.wikipedia.org/wiki/Skewness#Sample_skewness">Skewness</a>
+BE_H_VAR: |
+  <a href="https://en.wikipedia.org/wiki/Variance#Sample_variance">Sample Variance</a>
+BE_H_VAR_COEF: |
+  <a href="https://en.wikipedia.org/wiki/Coefficient_of_variation">Coefficient of Variation</a> 
+BE_RD_GND: |
+  BE_RD_GND := ground_point_count / point_count
+BE_RD_REG: |
+  BE_RD_REG := regeneration_layer_point_count / point_count  
+BE_RD_UND: |
+  BE_RD_UND := understory_layer_point_count / point_count  
+BE_RD_CAN: |
+  BE_RD_CAN := canopy_layer_point_count / point_count
+BE_PR_REG: |
+  BE_PR_REG := regeneration_layer_point_count / regeneration_layer_and_below_point_count
+BE_PR_UND: |
+  BE_PR_UND := understory_layer_point_count / understory_layer_and_below_point_count
+BE_PR_CAN: |
+  BE_PR_CAN := canopy_layer_point_count / point_count
+BE_ELEV_ASPECT: |
+  unit: angle in rad (radian)
+  <br>
+  <br>On DTM a bilinear regression model is calculated to get dx and dy (x- and y-slope) and then aspect by <a href="https://en.wikipedia.org/wiki/Atan2">atan2</a>.
+  <br>
+  <br>
+  BE_ELEV_ASPECT := atan2(dy, dx)
+BE_ELEV_MEAN: |
+  Mean of DTM-values.
+BE_ELEV_SLOPE: |  
+  unit: angle in rad (radian)
+  <br>
+  <br>On DTM a bilinear regression model is calculated to get dx and dy (x- and y-slope) and then slope by arcus tangent of absolute value.
+  <br>
+  <br>
+  BE_ELEV_SLOPE := arctan( sqrt( dx² + dy² ) )
+point_coverage: |
+  Query area is divided in 1x1 meter areas. One area is covered if at least one point is contained.
+  <br>
+  <br>
+  point_coverage := covered_areas_count / areas_count

@@ -1,0 +1,278 @@
+html {
+	height: 100%;
+}
+	
+body {
+	margin: 0;
+	height: 100%;
+	/*background-color: rgb(255, 255, 255);*/
+	background-color: rgb(0, 0, 0);
+}
+
+#map {
+	height: 100%;
+}
+
+#app {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+}
+
+#appMessage {
+	color: #da480f;
+	background-color: #fffc;
+}
+
+#layerMessage {
+	color: #da480f;
+	background-color: #fffc;
+}
+
+#projection {
+	position: absolute;
+	bottom: 10px;
+	left: 180px;
+	color: #0a1356b3;
+	background-color: rgba(216, 214, 209, 0.64);
+	font-size: .9rem;
+	padding: 1px;
+	border-radius: 4px;
+}
+
+#pixelScale {
+	position: absolute;
+	bottom: 0px;
+	left: 10px;
+	color: #cad0ff;
+	background-color: rgba(1, 47, 105, 0.48);
+	font-size: .8rem;
+	padding: 0px;
+	border-radius: 1px;
+}
+
+#background_panel {
+	position: absolute;
+	top: 10px;
+	right: 10px;	
+}
+
+#poi_group_panel {
+	position: absolute;
+	top: 100px;
+	right: 10px;	
+}
+
+#roi_group_panel {
+	position: absolute;
+	top: 150px;
+	right: 10px;	
+}
+
+.panel {
+	background-color: rgba(216, 214, 209, 0.64);
+	border-radius: 4px;
+	padding: 2px;
+	text-align: center;
+	font-size: .7rem;
+	pointer-events: auto;
+	display: inline-block;
+}
+
+.navigationPanel {
+	position: absolute;
+	bottom: 50px;
+	right: 10px;	
+	background-color: rgba(216, 214, 209, 0.64);
+	border-radius: 4px;
+	padding: 2px;
+	text-align: center;
+	font-size: .8rem;
+	pointer-events: auto;
+	display: inline-block;
+}
+
+.navigationPanel table {
+    border-collapse: collapse;
+    border-style: hidden;
+}
+
+.navigationPanel th, .navigationPanel td {
+	border: 1px solid #545454;
+	padding: 2px;	
+}
+
+.navigationPanel tr td:nth-child(2) {
+	text-align: left;
+ }
+
+.busy {
+	background-color: rgba(216, 214, 209, 0.64);
+	border-radius: 4px;
+	padding: 2px;
+	text-align: center;
+	font-family: sans-serif;
+	font-size: 1rem;
+	pointer-events: auto;
+	display: inline-block;	
+}
+
+.error {
+	color: rgb(141, 53, 25);
+	font-size: 1rem;
+}
+
+#layer_panel {
+	position: absolute;
+	top: 10px;
+	left: 50px;
+}
+
+#style_panel {
+	position: absolute;
+	top: 10px;
+	left: 300px;
+}
+
+.ol-mouse-position {
+	top: initial;
+	bottom: 22px;
+	right: 0px;
+	font-size: .7rem;
+}
+
+.ol-zoomslider {
+	top: 38px;
+	height: 160px;
+}
+
+.ol-zoom .ol-zoom-out {
+    margin-top: 168px;
+ }
+
+.top_box {
+	position: absolute;
+	top: 10px;
+	left: 50px;
+}
+
+.ol-rotate-reset {
+	top: 63px;
+	right: 0px;
+	position: absolute;
+}
+
+.ol-overviewmap {
+    left: 5px;
+    bottom: 30px;
+}
+
+.ol-scale-line {
+	background: rgba(0,60,136,.3);
+	border-radius: 4px;
+	bottom: 17px;
+	left: 8px;
+	padding: 2px;
+	position: absolute;
+}
+
+.ol-attribution:not(.ol-collapsed) {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.movetopoi {
+	background: rgba(255, 255, 255, 0.65);
+	padding: 1px;
+	margin: 2px;
+}
+
+.movetopoiPanel {
+	position: absolute; 
+	top: 0px; 
+	right: 0px;
+	background: rgba(255, 255, 255, 0.9);
+	padding: 20px;
+	margin: 0px;
+	font-size: 1rem;
+	border-radius: 4px;
+	 z-index: 100;
+}
+
+.movetoroi {
+	background: rgba(255, 255, 255, 0.65);
+	padding: 1px;
+	margin: 2px;
+}
+
+.movetoroiPanel {
+	position: absolute; 
+	top: 0px; 
+	right: 0px;
+	background: rgba(255, 255, 255, 0.9);
+	padding: 20px;
+	margin: 0px;
+	font-size: 1rem;
+	border-radius: 4px;
+	 z-index: 100;
+}
+
+.rangePanel {
+	position: absolute; 
+	top: 0px; 
+	left: 0px;
+	background: rgba(255, 255, 255, 0.9);
+	padding: 20px;
+	margin: 0px;
+	font-size: 1rem;
+	border-radius: 4px;
+	 z-index: 100;
+}
+
+.toolsPanel {
+    position: absolute;
+    top: 55px;
+    left: 50px;
+    background-color: rgba(216, 214, 209, 0.64);
+    padding: 3px;
+    margin: 0px;
+    font-size: 1rem;
+    border-radius: 4px;
+	pointer-events: auto;
+	font-family: sans-serif;
+}
+
+.position {
+	font-size: 0.7rem;
+	background-color: rgba(247, 240, 223, 0.64);
+	padding: 2px;
+}
+
+.valid {
+	color: #c31c00;
+}
+
+.consumerPanelContainer {
+	display: flex;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 100%;
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0.75);
+}
+
+.consumerPanel {
+	margin: auto;
+	background-color: rgba(230, 226, 218, 0.85);
+	padding: 5px;
+	font-size: 1rem;
+	border-radius: 4px;
+	pointer-events: auto;
+	font-family: sans-serif;
+}
+
+
+

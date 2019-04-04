@@ -1,0 +1,50 @@
+/*this file is referenced by ResourceHandler of webfiles directory*/
+
+body 
+{
+	background-color: #F9F9F9;
+	margin: 10px;
+	padding: 5px;
+}
+
+h1
+{
+	color: #AAAABB;
+	font-weight: bold;
+}
+
+a
+{
+	color: #7055be;
+	font-weight: bold;
+	font-style: normal;
+	text-decoration: none;
+	font-size:inherit;
+}
+
+td
+{
+	font-style: italic;
+	padding: 2px 15px 2px 0px;
+}
+
+/* unvisited link */
+a:link {
+    color: rgba(20, 20, 200, 0.8);
+}
+
+/* visited link */
+a:visited {
+    color: rgba(0, 0, 150, 0.9);
+}
+
+/* mouse over link */
+a:hover {
+    color: rgba(0, 0, 255, 1);
+	background:rgba(0, 0, 0, 0.1);
+}
+
+/* selected link */
+a:active {
+    color: rgba(0, 0, 255, 1);
+}

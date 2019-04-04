@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1" />
+	<meta name="robots" content="noindex, nofollow" />
+	<link rel="shortcut icon" href="../images/favicon.png">
+
+	<link href="wms_access.css" type="text/css" rel="stylesheet">
+
+	<script src="vue.js"></script>
+	<script src="axios.js"></script>
+	<script src="wms_access.js"></script>
+
+	<title>WMS access info</title>
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+	<div id="app">
+		<h1>WMS access info</h1>
+		<div id="content">
+			Remote Sensing Database provides a WMS-server endpoint for external access by WMS-clients.
+			<br>
+			<br>Initial connection by take up to one minute, if it is first connect after server start.
+
+			<h2>URL:</h2>
+
+			<h3>HTTP:</h3>
+			Generated URL:
+			<br>
+			<b style="background: rgb(214, 214, 214);">{{plain_url}}</b>
+			<br>
+			<br>Not compatible with Qgis.
+			<br>Login: Digest access authentication (secure password transfer)
+			<br>Connection: plain
+			<br>URL-format: http://[SERVER_IP]:[SERVER_PORT]/rasterdb_wms
+			<br>
+
+
+
+			<h3>HTTPS:</h3>
+			Generated URL:
+			<br>
+			<b style="background: rgb(214, 214, 214);">{{secure_url}}</b>
+			<br>
+			<br> Compatible with Qgis.
+			<br>Login: Basic access authentication (not secured password transfer, but over secure https connection)
+			<br>Connection: secure
+			<br>Authentication certificate is self signed, so it needs to be allowed by client.
+			<br>URL-format: https://[SERVER_IP]:[SERVER_SECURE_PORT]/rasterdb_wms
+			<br>
+
+
+			<h2>Checked WMS-clients:</h2>
+			<h3>Qgis (
+				<a href="https://qgis.org/">link</a> )</h3>
+
+			For Qgis the https url needs to be used.
+			<br>(Qgis does not support digest authentication.)
+			<br>At connection start the error dialog opens with message "
+			<i>Self-signed Certificate: The certificate is self-signed, and untrusted</i>".
+			<br>Click "ignore" to proceed.
+			<br>In the following dialog avaiable layers are listed.
+			<br>Double-click on a layer entry or click on "+" shows all bands and processings of that layer.
+			<br>Select one and then click button "add" to add it to Qgis view.
+			<br>
+			<br>Qgis does cache WMS (meta) data.
+			<br>If Remote Sensing Server provides updated data (e.g. new layers), Qgis may need to be restarted and cache cleared:
+			<br>
+			<i>Settings - Options - Network - Cache settings - "reverse arrow"-button (clear cache)</i>
+
+			<h3>OpenLayers (
+				<a href="http://openlayers.org/">link</a> )</h3>
+
+			To correctly handle OpenLayers requests the query parameter "modus=openlayers" needs to be added as compatiblity hint.
+			<br>(OpenLayers sends requests with coordinates in swapped order for some projections.)
+			<br>
+			<br>capabilities request:
+			<br>
+			<i>[...]rasterdb_wms?REQUEST=GetCapabilities</i>
+			<br>
+			<br>map request:
+			<br><i>[...]rasterdb_wms?REQUEST=GetMap&modus=openlayers
+			<br>&<b>LAYERS</b>=[LAYER_NAME]
+			<br>&<b>TIME</b>=[TIMESTAMP]
+			<br>&<b>STYLES</b>=[STYLE_NAME]
+			<br>&WIDTH=[WIDTH]
+			<br>&HEIGHT=[HEIGHT]
+			<br>&BBOX=[XMIN],[YMIN],[XMAX],[YMAX]</i>
+			<br>
+			<br>url to be used in Openlayers source:
+			<br>
+			<br><i>[...]rasterdb_wms?modus=openlayers</i>
+			<br>
+			<br>Parameters REQUEST, WIDTH, HEIGHT, BBOX are set by Openlayers.
+			<br>Parameters LAYERS, TIME, STYLES are set by user.
+			<br>
+			<br><b>LAYERS</b> (required)
+			<br>Name of RasterDB layer.
+			<br>
+			<br><b>TIME</b> (optional)
+			<br>Timestamp within layer. Defaults to most recent timestamp in layer.
+			<br>
+			<br><b>STYLES</b> (optional)
+			<br>Applied Processing / band selection. Defaults to automatic color processing.
+		</div>
+	</div>
+</body>
+
+</html>

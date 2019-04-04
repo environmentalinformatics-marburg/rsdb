@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<link rel="shortcut icon" href="../images/favicon.png">
+
+	<link href="raster_point_processing.css" type="text/css" rel="stylesheet">
+
+	<script src="vue.js"></script>
+	<script src="vue-router.js"></script>
+	<script src="axios.js"></script>
+	<script src="raster_point_processing.js"></script>
+
+	<title>Raster Processing of Point Data</title>
+
+	<script type="text/x-template" id="raster-processing-view-template">
+		<div>
+			<h1>Raster Processing of Point Data</h1>
+			PointDB Layer: <b>{{pointdb}}</b>
+			<div v-if="metaMessage == undefined">
+			description: {{meta.description}}
+			<br>Projection: {{meta.projectionText}} - EPSG:{{meta.epsg}}</span>
+			<br><span style="font-size: 0.6em;">{{meta.proj4}}</span>
+			<br><br>
+			<hr>
+			area selection by <select v-model="areaSelection">
+				<option v-for="(val, key) in areaSelections" :value="key">{{val}}</option>
+			</select>
+			<hr> 
+			<div v-if="areaSelection === 'pos'">
+				<table>
+					<tr><td class="center">Center</td><td class="center">x</td><td class="center">y</td></tr>
+					<tr><td class="center">Position</td><td><input v-model="user_xpos" placeholder="xpos"></td><td><input v-model="user_ypos" placeholder="ypos"></td><td>coordinate</td></tr>
+				</table>
+				<br>
+				<table>
+					<tr><td class="center">width</td><td><input v-model="user_width" placeholder="width in units"></td><td class="center">units</td></tr>
+					<tr><td class="center">height</td><td><input v-model="user_height" placeholder="height in units"></td class="center"><td>units</td></tr>
+				</table>
+
+			</div>
+			<div v-if="areaSelection === 'ext'">
+				<table>
+					<tr><td class="center">extent</td><td class="center">x</td><td class="center">y</td></tr>
+					<tr><td class="center">min</td><td><input v-model="user_xmin" placeholder="xmin"></td><td><input v-model="user_ymin" placeholder="ymin"></td><td>coordinate</td></tr>
+					<tr><td class="center">max</td><td><input v-model="user_xmax" placeholder="xmax"></td><td><input v-model="user_ymax" placeholder="ymax"></td><td>coordinate</td></tr>
+				</table>
+			</div>
+			<hr>
+			<br>
+			Raster
+			<select v-model="raster_processing_type">
+				<option v-for="processing_type in raster_processing_types" :value="processing_type.name">{{processing_type.name}} - {{processing_type.title}}</option>
+			</select>
+			<br><br>
+            <hr>
+			<br>projected dimensions {{width.toFixed(4)}} x {{height.toFixed(4)}} units 
+			<br><br>extent {{xmin.toFixed(4)}}, {{ymin.toFixed(4)}} to {{xmax.toFixed(4)}}, {{ymax.toFixed(4)}}
+			<br><br>file format <select v-model="fileFormat">
+					<option v-for="(val, key) in fileFormats" :value="key">{{val}}</option>
+				</select>
+			<br><br><button @click="onClickDownload">download</button>
+			<br>
+			<hr>
+			<br>
+			<div v-show="fileFormat === 'tiff'">
+				<b>GeoTIFF format information</b>
+				<br>
+				<br>
+				File format is TIFF with GeoTIFF extensions.
+				<br>
+				<br>
+				As this format is intended for GIS-software it is unliekly that <br>general image-processing applications are able to read that files.
+				<br>
+				<br>
+				Tested with: <a href="http://gdal.org/">GDAL</a>, <a href="https://qgis.org/">QGIS</a>, <a href="https://cran.r-project.org/web/packages/raster/">R raster</a>
+			</div>
+			<div v-show="fileFormat === 'rdat'">
+				<b>rDAT format information</b>
+				<br>
+				<br>
+				This file format is raster transfer format of rPointDB package.
+				<br>
+				<br>
+				Extensive meta data is preserved by this format.
+				<br>
+				<br>
+				example: 
+				<br>load file in <a href="https://www.r-project.org/">R</a>
+				as RasterLayer
+				and plot it.
+				<br>
+				<pre>
+library(rPointDB)
+r <- read.rdat("c:/downloads/raster.rdat")
+plot(r)
+				</pre>
+			</div>
+
+			<div v-show="fileFormat === 'png'">
+				<b>PNG format information</b>
+				<br>
+				<br>
+				Raster data of first band is rendered to 8-bit greyscale PNG image.
+				<br>
+				<br>
+				This format is intended for visualisation only.
+				<br>
+				Pixel values are mapped non-linearly to image range (0 - 255) 
+				<br>to present hight detail in resulting image.
+				<br>
+				<br>				
+			</div>
+
+			</div>
+			<div v-else>
+			{{metaMessage}}
+			</div>
+		</div>
+	</script>
+
+</head>
+
+<body ondragstart="return false;" ondrop="return false;">
+	<div id="app">
+		<div id="content">
+			<router-view></router-view>
+		</div>
+	</div>
+</body>
+
+</html>
