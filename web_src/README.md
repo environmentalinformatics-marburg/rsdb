@@ -1,4 +1,4 @@
-# admin
+# Web Interface
 
 ## Project setup
 ```
