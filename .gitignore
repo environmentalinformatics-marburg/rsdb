@@ -1,3 +1,13 @@
 .gradle
+.settings
+bin
 build
+catalog
+log
 package
+rasterdb
+temp
+vectordb
+
+.classpath
+.project

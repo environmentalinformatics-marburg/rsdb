@@ -22,9 +22,6 @@ import ar.com.hjg.pngj.IImageLine;
 import ar.com.hjg.pngj.ImageInfo;
 import ar.com.hjg.pngj.PngWriter;
 import ar.com.hjg.pngj.chunks.PngChunkTRNS;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.WritableImage;
-import javafx.scene.image.WritablePixelFormat;
 import util.Timer;
 
 /**
@@ -166,9 +163,9 @@ public class ImageRGBA implements PureImage {
 	 * Create buffered image (with data copy). Slow JavaFX version.
 	 * @return
 	 */
-	public BufferedImage getBufferedImageSlowFX() {//slow old default
+	/*public BufferedImage getBufferedImageSlowFX() {//slow old default
 		return SwingFXUtils.fromFXImage(getWritableImage(), null);
-	}
+	}*/
 
 	/**
 	 * Create buffered image (with data copy). Slow version.
@@ -193,21 +190,21 @@ public class ImageRGBA implements PureImage {
 	 * with color type INT_ARGB 
 	 * @return
 	 */
-	public WritableImage getWritableImage() {
+	/*public WritableImage getWritableImage() {
 		WritableImage writableImage = new WritableImage(width, height);
 		writableImage.getPixelWriter().setPixels(0, 0, width, height, WritablePixelFormat.getIntArgbInstance(), imageBuffer, 0, width);
 		return writableImage;
-	}
+	}*/
 
 	/**
 	 * Get JavaFX image. Slow alternative to getWritableImage
 	 * with color type INT_ARGB 
 	 * @return
 	 */
-	public WritableImage getWritableImageSlow() { //slow
+	/*public WritableImage getWritableImageSlow() { //slow
 		BufferedImage bi = getBufferedImage();
 		return SwingFXUtils.toFXImage(bi, null);
-	}
+	}*/
 
 
 	/**

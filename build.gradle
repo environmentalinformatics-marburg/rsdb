@@ -8,7 +8,19 @@ markdownToHtml {
 }
 
 apply plugin: 'java'
+apply plugin: 'eclipse'
 compileJava.options.encoding = 'UTF-8'
+
+//remove gdal dependency if loaded in eclipse for manual gdal library specification
+eclipse {
+  classpath {
+    file {
+      whenMerged { classpath ->
+        classpath.entries.removeIf { it instanceof org.gradle.plugins.ide.eclipse.model.Library && it.moduleVersion.toString() == 'org.gdal:gdal:2.2.0' }
+      }
+    }
+  }
+}
 
 repositories {
     jcenter()
@@ -28,7 +40,6 @@ dependencies {
   	compile group: 'org.json', name: 'json', version: '20180813'
   	compile group: 'org.yaml', name: 'snakeyaml', version: '1.24'
   	compile group: 'com.opencsv', name: 'opencsv', version: '4.5'  	
-	compile group: 'org.gdal', name: 'gdal', version: '2.2.0'
   	compile group: 'com.github.mreutegg', name: 'laszip4j', version: '0.5'
   	compile group: 'ar.com.hjg', name: 'pngj', version: '2.1.0'
   	
@@ -50,6 +61,8 @@ dependencies {
 	compile group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.10.6'
 	runtime group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.10.6'
 	runtime group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.10.6'
+	
+	compile group: 'org.gdal', name: 'gdal', version: '2.2.0'	
 }
 
 sourceSets.main.java.srcDir 'src'

@@ -74,7 +74,7 @@ public class Broker implements AutoCloseable {
 		if(new File("config.yaml").exists()) {
 			brokerConfig = new BrokerConfigYaml("config.yaml");
 		} else {
-			log.error("no config found");
+			log.info("no config found: config.yaml file missing");
 			brokerConfig = new BrokerConfig(); // empty default config
 		}		
 		loadPoiGroupMap();
@@ -258,8 +258,12 @@ public class Broker implements AutoCloseable {
 	}
 
 	public void refreshRasterdbConfigs() {
+		if(!rasterdb_root.toFile().exists()) {
+			log.info("no rasterdb layers: rasterdb folder missing");
+			return;
+		}
 		try {
-			ConcurrentSkipListMap<String, RasterdbConfig> map = new ConcurrentSkipListMap<String, RasterdbConfig>();
+			ConcurrentSkipListMap<String, RasterdbConfig> map = new ConcurrentSkipListMap<String, RasterdbConfig>();			
 			Path[] paths = Util.getPaths(rasterdb_root);
 			for(Path path:paths) {
 				RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(path);
@@ -272,6 +276,10 @@ public class Broker implements AutoCloseable {
 	}
 
 	public void refreshPointcloudConfigs() {
+		if(!pointcloud_root.toFile().exists()) {
+			log.info("no pointcloud layers: pointcloud folder missing");
+			return;
+		}
 		try {
 			ConcurrentSkipListMap<String, PointCloudConfig> map = new ConcurrentSkipListMap<String, PointCloudConfig>();
 			Path[] paths = Util.getPaths(pointcloud_root);
@@ -286,7 +294,10 @@ public class Broker implements AutoCloseable {
 	}
 	
 	public void refreshVectordbConfigs() {
-		log.info("refreshVectordbConfigs");
+		if(!vectordb_root.toFile().exists()) {
+			log.info("no vectordb layers: vectordb folder missing");
+			return;
+		}
 		try {
 			ConcurrentSkipListMap<String, VectordbConfig> map = new ConcurrentSkipListMap<String, VectordbConfig>();
 			Path[] paths = Util.getPaths(vectordb_root);
@@ -579,6 +590,12 @@ public class Broker implements AutoCloseable {
 			throw new RuntimeException("no name");
 		}
 		Util.checkStrictID(name);
+		if(!vectordb_root.toFile().exists()) {
+			if(!vectordb_root.toFile().mkdirs()) {
+				throw new RuntimeException("could not create vectordb root folder");
+			}
+			log.info("created vectordb root folder");
+		}
 		Path subPath = vectordb_root.resolve(name);
 		if(subPath.toFile().exists()) {
 			throw new RuntimeException("path exists");
