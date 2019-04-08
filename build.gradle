@@ -1,0 +1,121 @@
+plugins {
+  id "org.kordamp.markdown.convert" version "1.1.0" // https://github.com/aalmiray/markdown-gradle-plugin
+}
+
+markdownToHtml {
+	sourceDir file('webfiles')
+	outputDir file('package/webfiles')
+}
+
+apply plugin: 'java'
+compileJava.options.encoding = 'UTF-8'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.2'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.2'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-web', version: '2.11.2'
+  	compile group: 'com.lmax', name: 'disruptor', version: '3.4.2'
+  	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.2'  	
+  	
+  	compile group: 'org.mapdb', name: 'mapdb', version: '2.0-beta13'
+  	compile group: 'org.ehcache', name: 'ehcache', version: '3.7.0'
+  	
+  	compile group: 'org.json', name: 'json', version: '20180813'
+  	compile group: 'org.yaml', name: 'snakeyaml', version: '1.24'
+  	compile group: 'com.opencsv', name: 'opencsv', version: '4.5'  	
+	compile group: 'org.gdal', name: 'gdal', version: '2.2.0'
+  	compile group: 'com.github.mreutegg', name: 'laszip4j', version: '0.5'
+  	compile group: 'ar.com.hjg', name: 'pngj', version: '2.1.0'
+  	
+  	compile group: 'org.locationtech.jts', name: 'jts-core', version: '1.16.1'
+  	compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+  	compile group: 'com.mkobos', name: 'pca_transform', version: '1.0.2'
+  	
+  	compile group: 'com.googlecode.javaewah', name: 'JavaEWAH', version: '1.1.6'  	
+  	compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.2'  	
+  	compile group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.12'
+  	compile group: 'com.github.luben', name: 'zstd-jni', version: '1.3.8-6'
+  	
+  	compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.7.2'
+  	
+	compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.15.v20190215'
+	compile group: 'org.eclipse.jetty', name: 'jetty-security', version: '9.4.15.v20190215'
+	compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.14.0'
+	
+	compile group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.10.6'
+	runtime group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.10.6'
+	runtime group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.10.6'
+}
+
+sourceSets.main.java.srcDir 'src'
+sourceSets.main.java.srcDir 'dsl/generated-sources'
+
+jar {
+	from file('src/log4j2.xml')
+	destinationDir file('package')
+	
+	manifest {
+		String classPathFiles = "";
+		for(java.io.File file : files(configurations.runtime)) {
+			classPathFiles += "lib/"+file.getName()+" "; 
+		}
+		println("the class path: "+classPathFiles);	
+	
+        attributes 	'Built-Date': new Date(),
+					'Built-JDK': System.getProperty('java.version'),
+					'Main-Class': 'run.Terminal',
+					'Class-Path': classPathFiles
+    }
+}
+
+compileJava   {
+  sourceCompatibility = "1.8"
+  targetCompatibility = "1.8"
+}
+
+tasks.withType(JavaCompile){
+    //options.deprecation = true
+	//options.listFiles = true
+	//options.verbose = true
+}
+
+task clean_package(type: Delete) {
+  delete 'package'
+}
+
+task copy_lib(type: Copy) {
+	from files(configurations.runtime)
+    into 'package/lib'
+}
+
+task copy_add(type: Copy) {
+	from fileTree('add')
+	into 'package'
+}
+
+task copy_webcontent(type: Copy) {
+	from fileTree('webcontent')
+	into 'package/webcontent'
+}
+
+task copy_webfiles(type: Copy) {
+	from fileTree('webfiles')
+	into 'package/webfiles'
+}
+
+task copy_webfiles_with_markdown(dependsOn: markdownToHtml) { //convert markdown to html and copy all other files
+}
+
+task copy_build(type: Copy, dependsOn: [jar]) {
+	from fileTree('build/libs')
+	into 'package'
+}
+
+task _package(dependsOn:[ clean_package, copy_build, copy_lib, copy_webcontent, copy_webfiles_with_markdown, copy_add ]) {
+	group = 'project' 
+}

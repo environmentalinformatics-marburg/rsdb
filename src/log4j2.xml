@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="info">
+
+  <Appenders>
+	
+	<Console name="console" target="SYSTEM_OUT">
+	  <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+	  <!-- <PatternLayout pattern="%-5p (%F:%L) %msg%n"/> -->
+	  <PatternLayout pattern="%-5p %-80msg   %l%n"/>
+	</Console>
+	
+ 
+    <RollingRandomAccessFile name="log_file_all" fileName="log/all.log" filePattern="log/old/all_%i.log">
+		<PatternLayout pattern="[%-5p] %msg   %l%n"/>
+		<Policies>
+			<OnStartupTriggeringPolicy />
+			<SizeBasedTriggeringPolicy size="128 MB" />
+		</Policies>
+	</RollingRandomAccessFile>
+	
+	<RollingRandomAccessFile name="log_file_api" fileName="log/api.log" filePattern="log/old/api_%i.log">
+			<MarkerFilter marker="API"/>
+			<PatternLayout pattern="%m%n"/>
+			<Policies>
+				<OnStartupTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="1024 MB" />
+			</Policies>
+	</RollingRandomAccessFile>
+	
+	<RollingRandomAccessFile name="log_file_req" fileName="log/req.log" filePattern="log/old/req_%i.log">
+			<MarkerFilter marker="REQ"/>
+			<PatternLayout pattern="%m%n"/>
+			<Policies>
+				<OnStartupTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="1024 MB" />
+			</Policies>
+	</RollingRandomAccessFile>	
+    
+    
+    <Async name="log_file_all_async">
+		<AppenderRef ref="log_file_all"/>
+	</Async>
+	
+	 <Async name="Console_async" includeLocation="true">
+		<AppenderRef ref="console"/>
+	</Async>
+	
+  </Appenders>
+  
+  <Loggers>
+  
+	<Root level="info" includeLocation="true">
+	  <AppenderRef ref="console"/>
+	  <AppenderRef ref="log_file_all"/>
+	  <AppenderRef ref="log_file_api"/>
+	  <AppenderRef ref="log_file_req"/>
+	</Root>
+	
+  </Loggers>
+  
+</Configuration>

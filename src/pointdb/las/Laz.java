@@ -1,0 +1,180 @@
+package pointdb.las;
+
+import java.nio.file.Path;
+import java.util.BitSet;
+import java.util.Iterator;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.github.mreutegg.laszip4j.LASHeader;
+import com.github.mreutegg.laszip4j.LASPoint;
+import com.github.mreutegg.laszip4j.LASReader;
+
+import pointcloud.CellTable;
+import pointdb.base.Point;
+
+public class Laz {
+	private static final Logger log = LogManager.getLogger();
+
+	public final Path filename;
+	public final LASReader reader;
+	public final LASHeader header;
+
+	public final double[] scale_factor;
+	public final double[] offset;
+	public final double[] min;
+	public final double[] max;
+	public final long number_of_point_records;
+	public final int point_Data_Record_Length;
+
+	private Iterator<LASPoint> lasPointIterator;
+	private long lasPointIteratorPos;
+
+	public Laz(Path filename) {
+		this.filename = filename;		
+		this.reader = new LASReader(filename.toFile());
+		this.header = reader.getHeader();
+
+		scale_factor = new double[] {header.getXScaleFactor(), header.getYScaleFactor(), header.getZScaleFactor()};
+		offset = new double[] {header.getXOffset(), header.getYOffset(), header.getZOffset()};
+		min = new double[] {header.getMinX(), header.getMinY(), header.getMinZ()};
+		max = new double[] {header.getMaxX(), header.getMaxY(), header.getMaxZ()};
+		number_of_point_records = getSafeNumberOfPointRecords();
+		point_Data_Record_Length = header.getPointDataRecordLength();
+	}
+
+	private long getSafeNumberOfPointRecords() {
+		long recordCount = header.getNumberOfPointRecords();
+		if(recordCount == 0) {
+			recordCount = header.getLegacyNumberOfPointRecords();
+		}
+		if(recordCount <= 0) {
+			throw new RuntimeException("error in LAZ: no record count");
+		}
+		return recordCount;
+	}
+
+	@Override
+	public String toString() {
+		return "laz";
+	}
+
+	public Point[] read(long record_start, int record_count, int[] intDiffs, int[] intFactors) {
+		if(lasPointIterator == null) {
+			lasPointIterator = reader.getPoints().iterator();
+			lasPointIteratorPos = 0;
+		}
+		if(record_start != lasPointIteratorPos) {
+			throw new RuntimeException("can not read not in sequence " + lasPointIteratorPos + "  " + record_start);
+		}
+
+		int xd = intDiffs==null?0:intDiffs[0];
+		int yd = intDiffs==null?0:intDiffs[1];
+		int zd = intDiffs==null?0:intDiffs[2];
+		int xf = intFactors==null?1:intFactors[0];
+		int yf = intFactors==null?1:intFactors[1];
+		int zf = intFactors==null?1:intFactors[2];
+
+		Point[] points = new Point[record_count];
+		int cnt = 0;
+		Iterator<LASPoint> it = lasPointIterator;
+		while(it.hasNext() && cnt < record_count) {
+			LASPoint lasPoint = it.next();
+			points[cnt] = Laz.lasPointToPoint(lasPoint, xd, yd, zd, xf, yf, zf);
+			cnt++;
+		}
+		if(cnt < record_count) {
+			log.warn("not all points read "+ cnt + "  " + record_count);
+		}
+		lasPointIteratorPos += cnt;
+		return points;
+	}
+
+	public static Point lasPointToPoint(LASPoint lasPoint) {
+		int x = lasPoint.getX();
+		int y = lasPoint.getY();
+		int z = lasPoint.getZ();
+		char intensity = lasPoint.getIntensity();
+		byte returnNumber = lasPoint.getReturnNumber();
+		byte returns = lasPoint.getNumberOfReturns();
+		byte scanAngleRank = lasPoint.getScanAngleRank();
+		byte classification = lasPoint.getClassification();
+		byte classificationFlags = 0; // TODO
+		return new Point(x, y, z, intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
+	}
+
+	public static Point lasPointToPoint(LASPoint lasPoint, int xd, int yd, int zd, int xf, int yf, int zf) {
+		int x = (lasPoint.getX() - xd) + xf;
+		int y = (lasPoint.getY() - yd) + yf;
+		int z = (lasPoint.getZ() - zd) + zf;
+		char intensity = lasPoint.getIntensity();
+		byte returnNumber = lasPoint.getReturnNumber();
+		byte returns = lasPoint.getNumberOfReturns();
+		byte scanAngleRank = lasPoint.getScanAngleRank();
+		byte classification = lasPoint.getClassification();
+		byte classificationFlags = 0; // TODO
+		return new Point(x, y, z, intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
+	}
+
+	public CellTable getRecords(long record_start, int record_count) {
+		if(lasPointIterator == null) {
+			lasPointIterator = reader.getPoints().iterator();
+			lasPointIteratorPos = 0;
+		}
+		if(record_start != lasPointIteratorPos) {
+			throw new RuntimeException("can not read not in sequence " + lasPointIteratorPos + "  " + record_start);
+		}
+
+		int[] xs = new int[record_count];
+		int[] ys = new int[record_count];
+		int[] zs = new int[record_count];
+		char[] intensity = new char[record_count];
+		byte[] returnNumber = new byte[record_count];
+		byte[] returns = new byte[record_count];
+		BitSet scanDirectionFlag = new BitSet(record_count);
+		BitSet edgeOfFlightLine = new BitSet(record_count);
+		byte[] classification = new byte[record_count];
+		byte[] scanAngleRank = new byte[record_count];
+
+		int cnt = 0;
+		Iterator<LASPoint> it = lasPointIterator;
+		while(it.hasNext() && cnt < record_count) {
+			LASPoint lasPoint = it.next();
+
+			xs[cnt] = lasPoint.getX();
+			ys[cnt] = lasPoint.getY();
+			zs[cnt] = lasPoint.getZ();
+			intensity[cnt] = lasPoint.getIntensity();
+			returnNumber[cnt] = lasPoint.getReturnNumber();
+			returns[cnt] = lasPoint.getNumberOfReturns();
+			if(lasPoint.getScanDirectionFlag() != 0) {
+				scanDirectionFlag.set(cnt);
+			}
+			if(lasPoint.getEdgeOfFlightLine() != 0) {
+				edgeOfFlightLine.set(cnt);
+			}
+			classification[cnt] = lasPoint.getClassification();
+			scanAngleRank[cnt] = lasPoint.getScanAngleRank();
+
+			cnt++;
+		}
+		if(cnt < record_count) {
+			log.warn("not all points read "+ cnt + "  " + record_count);
+		}
+		lasPointIteratorPos += cnt;
+
+		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		recordTable.intensity = intensity;
+		recordTable.returnNumber = returnNumber;
+		recordTable.returns = returns;
+		recordTable.scanDirectionFlag = scanDirectionFlag;
+		recordTable.edgeOfFlightLine = edgeOfFlightLine;
+		recordTable.classification = classification;
+		recordTable.scanAngleRank = scanAngleRank;
+
+		recordTable.cleanup();
+
+		return recordTable;
+	}
+}

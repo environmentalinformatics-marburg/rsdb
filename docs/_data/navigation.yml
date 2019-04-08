@@ -19,4 +19,6 @@ docs:
     url: /docs/configuration/  
     children:
       - title: "config.yaml"
-        url: /docs/config.yaml/        
+        url: /docs/config.yaml/
+  - title: Development
+    url: /docs/development/   
