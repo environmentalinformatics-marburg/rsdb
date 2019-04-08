@@ -3,5 +3,11 @@ vue.js linguist-vendored
 vue-router.js linguist-vendored
 epsg.js linguist-vendored
 ol.css linguist-vendored
+ol.js linguist-vendored
 ol-debug.js linguist-vendored
 three.js linguist-vendored
+OrbitControls.js linguist-vendored
+OrbitControlsMirror.js linguist-vendored
+js-yaml.js linguist-vendored
+httpVueLoader.js linguist-vendored
+proj4.js linguist-vendored
