@@ -101,6 +101,8 @@
 
 <script>
 
+import { mapState } from 'vuex'
+
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 import RingLoader from 'vue-spinner/src/RingLoader.vue'
@@ -210,7 +212,7 @@ export default {
       }
       var self = this;
       var messageID = this.addMessage("loading meta data of layer ...");
-      axios.get('../../rasterdb/' + this.rasterdb + '/meta.json')
+      axios.get(this.urlPrefix + '../../rasterdb/' + this.rasterdb + '/meta.json')
       .then(function(response) {
         self.meta = response.data;
         self.removeMessage(messageID);
@@ -378,6 +380,9 @@ export default {
     },
   },
   computed: {
+    ...mapState({
+      urlPrefix: state => state.identity.urlPrefix,
+    }),
     session() {
       var i = this.$store.state.identity.data;
       return i === undefined ? undefined : i.session;

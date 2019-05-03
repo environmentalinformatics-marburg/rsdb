@@ -33,6 +33,7 @@
 
 <script>
 
+import { mapState } from 'vuex'
 import axios from 'axios'
 
 import Multiselect from 'vue-multiselect'
@@ -59,6 +60,9 @@ export default {
     },
 
     computed: {
+        ...mapState({
+            urlPrefix: state => state.identity.urlPrefix,
+        }),
         acl_roles() {
             return this.availableRoles.concat(this.createdAclRoles);
         },
@@ -81,7 +85,7 @@ export default {
             this.selectedRoles = this.meta.acl;
             this.selectedRolesMod = this.meta.acl_mod;
 
-            axios.get('../../api/roles')
+            axios.get(this.urlPrefix + '../../api/roles')
                 .then(function(response) {
                     self.availableRoles = response.data.roles;
                     //console.log(self.availableRoles);
@@ -93,7 +97,7 @@ export default {
 
         set() {
             var self = this;
-            var url = '../../rasterdb/' + self.meta.name + '/set';
+            var url = this.urlPrefix + '../../rasterdb/' + self.meta.name + '/set';
             axios.post(url, {
                 meta: {
                     acl: self.selectedRoles,

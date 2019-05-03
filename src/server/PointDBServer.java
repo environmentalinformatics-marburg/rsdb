@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
+import org.eclipse.jetty.http.CompressedContentFormat;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
@@ -210,7 +211,7 @@ public class PointDBServer {
 
 
 		HandlerList handlerList = new HandlerList();
-		handlerList.addHandler(new NoindexHandler());
+		handlerList.addHandler(new InjectHandler());
 
 		if(broker.brokerConfig.server().login) {
 			createAuthentication(handlerList, contextCollection, broker);
@@ -339,6 +340,7 @@ public class PointDBServer {
 	private static Handler createWebcontentHandler() {
 		ResourceHandler resource_handler = new ResourceHandler();
 		resource_handler.setCacheControl("no-store,no-cache,must-revalidate"); // don't cache
+		resource_handler.setPrecompressedFormats(new CompressedContentFormat[]{CompressedContentFormat.GZIP});
 		//MimeTypes mimeTypes = resource_handler.getMimeTypes();
 		//resource_handler.setMinMemoryMappedContentLength(-1); // not memory mapped to prevent file locking, removed in jetty 9.4
 		resource_handler.setDirectoriesListed(false); // don't show directory content

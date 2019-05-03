@@ -40,6 +40,7 @@
 
 <script>
 
+import { mapState } from 'vuex'
 import axios from 'axios'
 
 import Multiselect from 'vue-multiselect'
@@ -73,11 +74,13 @@ export default {
             setError: false,
             setErrorMessage: undefined,
             selectedTags: [],
-            availableTags: [],
             createdTags: [],            
         }
     },
     computed: {
+        ...mapState({
+            availableTags: state => state.layer_tags.data,
+        }),
         layer_tags() {
             return this.availableTags.concat(this.createdTags);
         },
@@ -89,22 +92,12 @@ export default {
         }, 
         
         refresh() {
-            var self = this;
             this.newTitle = this.meta.title;
             this.newDescription = this.meta.description;
             this.newAcquisition_date = this.meta.acquisition_date === undefined ? '' : this.meta.acquisition_date;
             this.new_corresponding_contact = this.meta.corresponding_contact === undefined ? '' : this.meta.corresponding_contact;
             this.selectedTags = optArray(this.meta.tags);
-            this.availableTags = [];
-
-            axios.get('../../api/layer_tags')
-                .then(function(response) {
-                    self.availableTags = response.data.layer_tags;
-                    //console.log(self.availableTags);
-                })
-                .catch(function(error) {
-                    console.log(error);
-                });
+            this.$store.dispatch('layer_tags/refresh');
         },
 
         set() {

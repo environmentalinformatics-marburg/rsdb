@@ -69,7 +69,7 @@
 
 <script>
 
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import axios from 'axios'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
@@ -100,7 +100,7 @@ export default {
     methods: {
         refresh() {
             var self = this;
-            var url = '../../poi_groups/' + self.poi_group;
+            var url = this.urlPrefix + '../../poi_groups/' + self.poi_group;
             self.metaError = false;
             self.metaErrorMessage = undefined;
             self.busy = true;
@@ -138,6 +138,9 @@ export default {
         },
     },
     computed: {
+        ...mapState({
+            urlPrefix: state => state.identity.urlPrefix,
+        }),
         ...mapGetters({
             isAdmin: 'identity/isAdmin',
         }),

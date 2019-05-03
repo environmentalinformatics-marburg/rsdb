@@ -332,6 +332,8 @@
 
 <script>
 
+import { mapState } from 'vuex'
+
 import Vue from 'vue'
 import axios from 'axios'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
@@ -464,7 +466,7 @@ export default {
       if(this.guessTimestamp) {
         params.guess_timestamp = true;
       }
-      axios.get('../../api/inspect', {params: params})
+      axios.get(this.urlPrefix + '../../api/inspect', {params: params})
       .then(function(response) {
           self.inspectState = 'done';
           self.specification = response.data.specification;
@@ -604,7 +606,7 @@ export default {
 
     query_remote_task() {
       var self = this;
-      axios.get('../../api/remote_tasks/' + this.remote_task.id)
+      axios.get(this.urlPrefix + '../../api/remote_tasks/' + this.remote_task.id)
       .then(function(response) {
           console.log(response.data.remote_task);
           self.remote_task = response.data.remote_task;
@@ -704,6 +706,9 @@ export default {
 
   },
   computed: {
+    ...mapState({
+      urlPrefix: state => state.identity.urlPrefix,
+    }),
     validEPSG() {
       return this.specification !== undefined && this.specification.geo_code !== undefined && this.specification.geo_code.startsWith("EPSG:");
     },

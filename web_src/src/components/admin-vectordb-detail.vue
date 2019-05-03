@@ -27,7 +27,7 @@
             </h3>
             <div class="meta-content" style="poisition: relative;">
                 <a :href="'#/vectorviewer/' + vectordb" target="_blank" title="open layer in viewer on new tab">
-                    <img :key="meta.name" :src="'../../vectordbs/' + meta.name + '/raster.png?width=400&height=600&datatag=' + meta.datatag" alt="" class="thumbnail" /> 
+                    <img :key="meta.name" :src="urlPrefix + '../../vectordbs/' + meta.name + '/raster.png?width=400&height=600&datatag=' + meta.datatag" alt="" class="thumbnail" /> 
                 </a>
                 <table style="padding-right: 420px;">
                     <tr>
@@ -129,7 +129,7 @@
 <script>
 
 
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import axios from 'axios'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
@@ -163,7 +163,7 @@ export default {
         refresh() {
             var self = this;
             this.$store.dispatch('vectordbs/refresh');
-            var url = '../../vectordbs/' + self.vectordb;
+            var url = this.urlPrefix + '../../vectordbs/' + self.vectordb;
             self.metaError = false;
             self.metaErrorMessage = undefined;
             self.busy = true;
@@ -206,14 +206,14 @@ export default {
         },
     },
     computed: {
+        ...mapState({
+            urlPrefix: state => state.identity.urlPrefix,
+        }),
         ...mapGetters({
             isAdmin: 'identity/isAdmin',
         }),        
         modify() {
             return this.meta === undefined || this.meta.modify == undefined ? false :  this.meta.modify;
-        },
-        urlPrefix() {
-            return this.$store.state.identity.urlPrefix;
         },
     },
     mounted() {

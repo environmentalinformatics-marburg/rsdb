@@ -20,3 +20,12 @@ npm run serve
 # Compiles and minifies for production
 npm run build
 ```
+
+## Package Creation
+
+Development process is managed by [Gradle](https://gradle.org/).
+
+``` bash
+# create package
+gradle _package
+```

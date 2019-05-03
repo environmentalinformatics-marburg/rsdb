@@ -17,17 +17,16 @@ const actions = {
             dispatch('refresh');
         }
     },
-    refresh(context) {
-        var state = context.state;
+    refresh({state, commit, rootState}) {
         state.mode = 'load';
-        axios.get('../../rasterdbs.json?vuex')
+        axios.get(rootState.identity.urlPrefix + '../../rasterdbs.json?vuex')
             .then(function(response) {
                 state.data = response.data.rasterdbs;
                 state.mode = 'ready';
             })
             .catch(function(error) {
                 state.mode = 'error';
-                context.commit('setMessage', error);
+                commit('setMessage', error);
             });
     },
 }

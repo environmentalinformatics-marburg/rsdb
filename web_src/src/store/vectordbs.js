@@ -17,17 +17,16 @@ const actions = {
             dispatch('refresh');
         }
     },
-    refresh(context) {
-        var state = context.state;
+    refresh({state, commit, rootState}) {
         state.mode = 'load';
-        axios.get('../../vectordbs?vuex')
+        axios.get(rootState.identity.urlPrefix + '../../vectordbs?vuex')
             .then(function(response) {
                 state.data = response.data.vectordbs;
                 state.mode = 'ready';
             })
             .catch(function(error) {
                 state.mode = 'error';
-                context.commit('setMessage', error);
+                commit('setMessage', error);
             });
     },
 }

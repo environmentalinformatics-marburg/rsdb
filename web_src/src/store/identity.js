@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 const state = {
     data: undefined,
     mode: 'init',
@@ -7,7 +9,7 @@ const state = {
     messageActive: false,
     transactionCount: 0,
     transactionRunCount: 0,
-    urlPrefix: '',
+    urlPrefix: isDev ? 'http://127.0.0.1:8081/' : '',
 }
 
 const getters = {
@@ -50,20 +52,20 @@ const mutations = {
 }
 
 const actions = {
-    init({state, commit, dispatch}) {
+    init({state, dispatch}) {
         var mode = state.mode;
         if(mode === 'init' || mode === 'error') {
             dispatch('refresh');
         }
-        if(window.webpackHotUpdate) {
+        /*if(window.webpackHotUpdate) {
             commit('setUrlPrefix', 'http://127.0.0.1:8081/');
         } else {
             commit('setUrlPrefix', '');
-        }
+        }*/
     },
-    refresh({state, commit}) {
+    refresh({state, commit, rootState}) {
         state.mode = 'load';
-        axios.get('../../api/identity')
+        axios.get(rootState.identity.urlPrefix + '../../api/identity')
             .then(function(response) {
                 commit('setData', response.data);
             })

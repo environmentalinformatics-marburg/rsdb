@@ -47,6 +47,7 @@
 
 <script>
 
+import { mapState } from 'vuex'
 import axios from 'axios'
 
 export default {
@@ -71,7 +72,7 @@ export default {
   methods: {
     refresh() {
       var self = this;
-      axios.get('../../api/accounts')
+      axios.get(this.urlPrefix + '../../api/accounts')
         .then(function(response) {
           self.accounts = response.data.accounts;
         })
@@ -86,6 +87,9 @@ export default {
     },
   },
   computed: {
+    ...mapState({
+      urlPrefix: state => state.identity.urlPrefix,
+    }),
     acl_roles() {
       return ['admin'].concat(this.$store.state.acl_roles.data);
     },

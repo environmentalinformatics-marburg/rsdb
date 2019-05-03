@@ -23,6 +23,7 @@
 
 <script>
 
+import { mapState } from 'vuex'
 import axios from 'axios'
 
 export default {
@@ -57,7 +58,7 @@ export default {
 
         query_remote_task() {
             var self = this;
-            axios.get('../../api/remote_tasks/' + this.id)
+            axios.get(this.urlPrefix + '../../api/remote_tasks/' + this.id)
             .then(function(response) {
                 console.log(response.data.remote_task);
                 self.remote_task = response.data.remote_task;
@@ -85,6 +86,11 @@ export default {
             });            
         },
 
+    },
+    computed: {
+        ...mapState({
+            urlPrefix: state => state.identity.urlPrefix,
+        }),
     },
     watch: {
         meta() {

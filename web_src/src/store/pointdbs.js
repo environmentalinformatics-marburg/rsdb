@@ -17,17 +17,16 @@ const actions = {
             dispatch('refresh');
         }
     },
-    refresh(context) {
-        var state = context.state;
+    refresh({state, commit, rootState}) {
         state.mode = 'load';
-        axios.get('../../pointdbs?vuex')
+        axios.get(rootState.identity.urlPrefix + '../../pointdbs?vuex')
             .then(function(response) {
                 state.data = response.data.pointdbs;
                 state.mode = 'ready';
             })
             .catch(function(error) {
                 state.mode = 'error';
-                context.commit('setMessage', error);
+                commit('setMessage', error);
             });
     },
 }

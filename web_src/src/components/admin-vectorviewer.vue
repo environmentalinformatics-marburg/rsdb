@@ -40,6 +40,8 @@
 
 <script>
 
+import { mapState } from 'vuex'
+
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 import RingLoader from 'vue-spinner/src/RingLoader.vue'
@@ -60,6 +62,7 @@ import ol_control_MousePosition from 'ol/control/MousePosition';
 import * as ol_style from 'ol/style';
 import {toStringXY} from 'ol/coordinate';
 import GeoJSON from 'ol/format/GeoJSON';
+import * as ol_interaction from 'ol/interaction';
 
 import axios from 'axios';
 
@@ -115,8 +118,8 @@ export default {
     loadGeojson() {
       var self = this;
       var messageID = this.addMessage("loading vector data of layer ...");
-      //axios.get('../../vectordbs/v1b/geometry.json?epsg=3857')
-      var url = '../../vectordbs/' + this.selectedVectordb.name + '/geometry.json?epsg=3857';
+      //axios.get(this.urlPrefix + '../../vectordbs/v1b/geometry.json?epsg=3857')
+      var url = this.urlPrefix + '../../vectordbs/' + this.selectedVectordb.name + '/geometry.json?epsg=3857';
       axios.get(url)
       .then(function(response) {
         self.geojson = response.data;
@@ -167,6 +170,9 @@ export default {
     },
   },
   computed: {
+    ...mapState({
+      urlPrefix: state => state.identity.urlPrefix,
+    }),
     vectordbs() {
       var dbs = this.$store.state.vectordbs.data;
       return dbs === undefined ? undefined : dbs.slice().sort(layerComparator);
@@ -254,6 +260,12 @@ export default {
           new ol_control.ScaleLine(),
           new ol_control_MousePosition({projection: 'EPSG:4326', target: 'foot-end-1', coordinateFormat: function(coordinate) {return toStringXY(coordinate, 4);}}),
         ]),
+      });
+
+      var selectSingleClick = new ol_interaction.Select();
+      self.olmap.addInteraction(selectSingleClick); 
+      selectSingleClick.on('select', function(e) {
+        console.log(e.selected);
       });     
   },
   destroyed() {

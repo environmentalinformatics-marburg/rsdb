@@ -17,17 +17,16 @@ const actions = {
             dispatch('refresh');
         }
     },
-    refresh(context) {
-        var state = context.state;
+    refresh({state, commit, rootState}) {
         state.mode = 'load';
-        axios.get('../../roi_groups?vuex')
+        axios.get(rootState.identity.urlPrefix + '../../roi_groups?vuex')
             .then(function(response) {
                 state.data = response.data.roi_groups;
                 state.mode = 'ready';
             })
             .catch(function(error) {
                 state.mode = 'error';
-                context.commit('setMessage', error);
+                commit('setMessage', error);
             });
     },
 }

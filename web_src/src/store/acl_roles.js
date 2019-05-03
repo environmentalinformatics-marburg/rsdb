@@ -36,9 +36,9 @@ const actions = {
             dispatch('refresh');
         }
     },
-    refresh({state, commit}) {
+    refresh({state, commit, rootState}) {
         state.mode = 'load';
-        axios.get('../../api/roles')
+        axios.get(rootState.identity.urlPrefix + '../../api/roles')
             .then(function(response) {
                 commit('setData', response.data.roles);
             })

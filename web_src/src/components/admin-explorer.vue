@@ -57,6 +57,8 @@
 
 <script>
 
+import { mapState } from 'vuex'
+
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 import RingLoader from 'vue-spinner/src/RingLoader.vue'
@@ -130,7 +132,7 @@ export default {
     refreshCatalog() {
       var self = this;
       var messageID = this.addMessage("loading catalog of layers ...");
-      axios.get('../../api/catalog.json')
+      axios.get(this.urlPrefix + '../../api/catalog.json')
       .then(function(response) {
         self.catalog = response.data;
         self.removeMessage(messageID);
@@ -204,6 +206,9 @@ export default {
       },
   },
   computed: {
+    ...mapState({
+      urlPrefix: state => state.identity.urlPrefix,
+    }),
     layer_tags() {
       return this.$store.state.layer_tags.data;
     },
