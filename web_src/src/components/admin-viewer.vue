@@ -351,7 +351,7 @@ export default {
     loadGeojson() {
       var self = this;
       var messageID = this.addMessage("loading vector data of layer ...");
-      var url = '../../vectordbs/' + this.selectedVectordb.name + '/geometry.json';
+      var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/geometry.json');
       axios.get(url, {
         params: {
           epsg: this.epsgCode,

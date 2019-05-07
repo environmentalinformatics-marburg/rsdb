@@ -28,6 +28,7 @@ import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
+import org.json.JSONObject;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Informal;
@@ -159,12 +160,80 @@ public class VectorDB {
 		ogr.RegisterAll();
 	}
 
+
+	public String getGeoJSON(int epsg) {
+		nameAttribute = getNameAttribute();
+		SpatialReference refDst = null;
+		if(epsg >= 0) {
+			if(epsg == WEB_MERCATOR_EPSG) {
+				refDst = WEB_MERCATOR_SPATIAL_REFERENCE;
+			} else {
+				refDst = new SpatialReference("");
+				refDst.ImportFromEPSG(epsg);			
+			}
+		}
+		DataSource datasource = getDataSource();
+		try {
+			StringBuilder sb = new StringBuilder();
+			sb.append("{\"type\":\"FeatureCollection\",\"features\":");
+			sb.append("[");
+			boolean isFirst = true;
+			int cnt = 0;
+			int layerCount = datasource.GetLayerCount();
+			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
+				Layer layer = datasource.GetLayerByIndex(layerIndex);
+				SpatialReference layerRef = layer.GetSpatialRef();
+				CoordinateTransformation ct = null;
+				if(refDst != null && layerRef != null) {
+					ct = CoordinateTransformation.CreateCoordinateTransformation(layerRef, refDst);		
+				}
+				layer.ResetReading();
+				Feature feature = layer.GetNextFeature();
+				while(feature != null) {
+					Geometry geometry = feature.GetGeometryRef();
+					if(ct != null) {
+						geometry.Transform(ct);
+					}
+					String json = geometry.ExportToJson();
+					if(isFirst) {
+						isFirst = false;
+					} else {
+						sb.append(",");						
+					}
+					sb.append("{\"type\":\"Feature\",\"geometry\":");
+					sb.append(json);
+					String id = "" + cnt++;
+					
+					String name = id;
+					if(!getNameAttribute().isEmpty()) {
+						String featureName = feature.GetFieldAsString(getNameAttribute());
+						if(featureName != null) {
+							name = featureName;
+						}
+						
+					}
+					//int name = id;
+					sb.append(",\"id\":\"" + id +"\"");
+					sb.append(",\"properties\":{\"name\": \""+ name +"\"}");
+					sb.append("}");
+					feature = layer.GetNextFeature();
+				}
+			}
+			sb.append("]");
+			sb.append("}");
+			return sb.toString();
+		} finally {
+			closeDataSource(datasource);
+		}
+	}
+
+
 	/**
 	 * 
 	 * @param epsg  if epsg < 0 then no transformation
 	 * @return
 	 */
-	public String getGeoJSON(int epsg) {
+	public String getGeoJSONAsCollection(int epsg) {
 		DataSource datasource = getDataSource();
 		try {
 			/*log.info("datasource.GetLayerCount() " + datasource.GetLayerCount());

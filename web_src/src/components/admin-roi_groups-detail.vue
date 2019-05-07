@@ -102,7 +102,7 @@ export default {
     methods: {
         refresh() {
             var self = this;
-            var url = '../../roi_groups/' + self.roi_group;
+            var url = this.$store.getters.apiUrl('roi_groups/' + self.roi_group);
             self.metaError = false;
             self.metaErrorMessage = undefined;
             self.busy = true;

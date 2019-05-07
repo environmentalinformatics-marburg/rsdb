@@ -174,7 +174,7 @@ export default {
     },
     zip_download() {
       var self = this;
-      var url = '../../rasterdb/' + self.meta.name + '/packages';
+      var url = this.$store.getters.apiUrl('rasterdb/' + self.meta.name + '/packages');
       var spec = {
         ext: self.selectedExtent,
         compression: self.compression.id,
@@ -231,10 +231,7 @@ export default {
       return this.$store.state.identity.urlPrefix;
     },
     downloadLink() {
-      var url_rasterdb = '../../rasterdb';
-      console.log(url_rasterdb);
-      url_rasterdb = this.urlPrefix + '../../rasterdb';
-      console.log(url_rasterdb);
+      var url_rasterdb = this.$store.getters.apiUrl('rasterdb');
       var method = 'raster.tiff';
       var ext = this.selectedExtent.join(' ');
       var parameters = { ext: ext };

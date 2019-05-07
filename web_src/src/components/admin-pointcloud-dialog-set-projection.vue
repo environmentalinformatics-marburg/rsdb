@@ -59,7 +59,7 @@ export default {
 
         set() {
             var self = this;
-            var url = '../../pointclouds/' + self.meta.name;
+            var url = this.$store.getters.apiUrl('pointclouds/' + self.meta.name);
             axios.post(url, {
                 pointcloud: {
                     code: self.newCode,

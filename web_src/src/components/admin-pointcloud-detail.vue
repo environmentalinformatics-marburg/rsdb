@@ -193,7 +193,7 @@ export default {
         refresh() { 
             var self = this;
             this.$store.dispatch('pointclouds/refresh');
-            var url = '../../pointclouds/' + self.pointcloud;
+            var url = this.$store.getters.apiUrl('pointclouds/' + self.pointcloud);
             self.metaError = false;
             self.metaErrorMessage = undefined;
             self.busy = true;

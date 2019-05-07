@@ -85,7 +85,7 @@ export default {
             this.selectedRoles = this.meta.acl;
             this.selectedRolesMod = this.meta.acl_mod;
 
-            axios.get(this.urlPrefix + '../../api/roles')
+            axios.get(this.$store.getters.apiUrl('api/roles'))
                 .then(function(response) {
                     self.availableRoles = response.data.roles;
                     //console.log(self.availableRoles);
@@ -97,7 +97,7 @@ export default {
 
         set() {
             var self = this;
-            var url = this.urlPrefix + '../../rasterdb/' + self.meta.name + '/set';
+            var url = this.$store.getters.apiUrl('rasterdb/' + self.meta.name + '/set');
             axios.post(url, {
                 meta: {
                     acl: self.selectedRoles,

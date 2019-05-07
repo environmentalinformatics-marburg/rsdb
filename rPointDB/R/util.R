@@ -207,14 +207,16 @@ as.speclib <- function(rasterStack, na=NULL) {
   return(sp)
 }
 
-#' data.frame of points in this package to LAS object of lidR package conversion.
+#' Convert data.frame of points to LAS object of lidR package.
 #'
 #' Convert data.frame of points (received from PointDB or PointCloud) to \link[lidR]{LAS} in lidR package.
+#' 
+#' optional parameter proj4string: crs of points. e.g. proj4string <- CRS(pointdb$info$proj4)
 #'
 #' @seealso \link[lidR]{LAS}
 #' @author woellauer
 #' @export
-as.LAS <- function(df) {
+as.LAS <- function(df, proj4string = sp::CRS()) {
   stopifnot(is.data.frame(df))
   cn <- colnames(df)
   stopifnot("x" %in% cn && "y" %in% cn)
@@ -225,10 +227,10 @@ as.LAS <- function(df) {
   if("returns" %in% cn) dt$NumberOfReturns <- df$returns
   if("scanAngleRank" %in% cn) dt$ScanAngle <- df$scanAngleRank
   if("classification" %in% cn) dt$Classification <- df$classification
-
-  header <- list("X offset"=0, "Y offset"=0, "Z offset"=0, "X scale factor"=1, "Y scale factor"=1, "Z scale factor"=1)
-
-  result <- lidR::LAS(data=dt, header=header, check=TRUE)
+  
+  header <- rlas::header_create(dt)
+  
+  result <- lidR::LAS(data=dt, header=header, proj4string=proj4string, check=TRUE)
   return(result)
 }
 

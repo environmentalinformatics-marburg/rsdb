@@ -252,7 +252,7 @@ export default {
         refresh() {
             var self = this;
             this.$store.dispatch('rasterdbs/refresh');
-            var url = '../../rasterdb/' + self.rasterdb + '/meta.json';
+            var url = this.$store.getters.apiUrl('rasterdb/' + self.rasterdb + '/meta.json');
             self.metaError = false;
             self.metaErrorMessage = undefined;
             self.busy = true;

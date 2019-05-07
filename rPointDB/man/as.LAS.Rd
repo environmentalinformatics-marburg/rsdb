@@ -2,12 +2,15 @@
 % Please edit documentation in R/util.R
 \name{as.LAS}
 \alias{as.LAS}
-\title{data.frame of points in this package to LAS object of lidR package conversion.}
+\title{Convert data.frame of points to LAS object of lidR package.}
 \usage{
-as.LAS(df)
+as.LAS(df, proj4string = sp::CRS())
 }
 \description{
 Convert data.frame of points (received from PointDB or PointCloud) to \link[lidR]{LAS} in lidR package.
+}
+\details{
+optional parameter proj4string: crs of points. e.g. proj4string <- CRS(pointdb$info$proj4)
 }
 \seealso{
 \link[lidR]{LAS}

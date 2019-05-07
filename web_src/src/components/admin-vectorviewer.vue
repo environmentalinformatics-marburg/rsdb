@@ -133,7 +133,7 @@ export default {
     },
     refreshVectorSource() {
       var features = this.geojson === undefined ? [] : (new GeoJSON()).readFeatures(this.geojson);
-      //console.log(features[0]);
+      console.log(features);
 
       var vectorSource = new ol_source.Vector({
         features: features,
@@ -228,20 +228,30 @@ export default {
       width: 2,
       /*lineDash: [1, 5],*/
     });
-    var styles = [
-      new ol_style.Style({
-        image: new ol_style.Circle({
+
+    function styleFun(feature) {
+      var geometry = feature.getGeometry();
+      console.log(geometry.getType());
+      var text = new ol_style.Text({
+        text: feature.getProperties().name,
+        scale: 1,
+        overflow: false,
+      });
+      return new ol_style.Style({
+          image: new ol_style.Circle({
+            fill: fill,
+            stroke: stroke,
+            radius: 5
+          }),
           fill: fill,
           stroke: stroke,
-          radius: 5
-        }),
-        fill: fill,
-        stroke: stroke
-      })
-    ];
+          text: text,
+        });
+    }
 
     this.vectorLayer = new ol_layer.Vector({
-      style: styles,
+      style: styleFun,
+      declutter: true,
     });
 
     self.olmap = new ol_Map({

@@ -483,7 +483,7 @@ export default {
     start_import() {
       var self = this;
       this.remote_task = undefined;
-      var url = '../../api/import';
+      var url = this.$store.getters.apiUrl('api/import');
       self.importState = "importing";
       axios.post(
         url, 

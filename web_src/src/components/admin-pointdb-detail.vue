@@ -185,7 +185,7 @@ export default {
     methods: {
         refresh() {
             var self = this;
-            var url = '../../pointdb/info.json?db=' + self.pointdb + "&statistics=false";
+            var url = this.$store.getters.apiUrl('pointdb/info.json?db=' + self.pointdb + '&statistics=false');
             self.metaError = false;
             self.metaErrorMessage = undefined;
             self.busy = true;

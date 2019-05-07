@@ -99,7 +99,7 @@ export default {
         },
         set() {
             var self = this;
-            var url = '../../vectordbs/' + self.meta.name;
+            var url = this.$store.getters.apiUrl('vectordbs/' + self.meta.name);
             axios.post(url, {
                 title: self.newTitle,
                 description: self.newDescription,

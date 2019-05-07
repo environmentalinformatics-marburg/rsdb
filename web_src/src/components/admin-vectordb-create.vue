@@ -54,7 +54,7 @@ export default {
         
         execute() {
             var self = this;
-            var url = '../../vectordbs';
+            var url = this.$store.getters.apiUrl('vectordbs');
             axios.post(url, {
                 create_vectordb: {
                     name: self.name,

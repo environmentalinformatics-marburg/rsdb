@@ -49,7 +49,7 @@ export default {
 
         delete_layer() {
             var self = this;
-            var url = '../../rasterdb/' + self.meta.name + '/delete';
+            var url = this.$store.getters.apiUrl('rasterdb/' + self.meta.name + '/delete');
             axios.post(url, {
                 action: {
                     delete_rasterdb: self.meta.name,

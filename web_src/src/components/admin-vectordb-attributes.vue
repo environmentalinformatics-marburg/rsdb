@@ -67,22 +67,9 @@ export default {
             setErrorMessage: undefined,
             remote_task_id: undefined,
             need_refreh_catalog_entry: false,
-
-             options: {
-                // https://github.com/simple-uploader/Uploader/tree/develop/samples/Node.js
-                target: '../../api/upload',
-                testChunks: false,
-                chunkSize: 10*1024*1024,
-                simultaneousUploads: 1,
-            },
         }
     },
-    methods: {
-        
-        refresh() {
-            this.options.target = '../../vectordbs/' + this.meta.name + "/files";
-        },
-
+    methods: {        
         errorToText(error) {
             if(error === undefined) {
                 return "unknown error";
@@ -105,7 +92,7 @@ export default {
         setNameAttribute(attribute) {
             var self = this;
             this.need_refreh_catalog_entry = true;
-            var url = '../../vectordbs/' + self.meta.name;
+            var url = this.$store.getters.apiUrl('vectordbs/' + self.meta.name);
             axios.post(url,{
                 name_attribute: attribute,
             }).then(function(response) {
@@ -123,7 +110,7 @@ export default {
 
         refreshCatalogEntry() {
             var self = this;
-            var url = '../../api/insert_remote_task';
+            var url = this.$store.getters.apiUrl('api/insert_remote_task');
             axios.post(url, {
                 remote_task: {
                     task_vectordb: "refreh_catalog_entry",

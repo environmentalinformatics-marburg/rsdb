@@ -25,6 +25,7 @@ public class VectordbHandler_geometry extends VectordbHandler {
 	public void handleGET(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {		
 		try {
 			int epsg = Web.getInt(request, "epsg", -1);
+			//String geometry = vectordb.getGeoJSONAsCollection(epsg);
 			String geometry = vectordb.getGeoJSON(epsg);
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentType("application/geo+json");

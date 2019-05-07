@@ -14,6 +14,8 @@ import acl_roles from './acl_roles'
 
 Vue.use(Vuex)
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 const modules = {
     rasterdbs,
     pointclouds,
@@ -27,18 +29,24 @@ const modules = {
 }
 
 const state = {
+    isDev: isDev,
 }
 
 const getters = {
+    apiUrl: (state) => (url) => state.isDev ? 'http://127.0.0.1:8081/' + url : '../../' + url,
 }
 
 const actions = {
-    init({dispatch}) {
+    init({commit, dispatch}) {
         dispatch('identity/init');
+        commit('setDev', isDev);
     },
 }
 
 const mutations = {
+    setDev(isDev) {
+        state.isDev = isDev;
+    },
 }
 
 export default new Vuex.Store({

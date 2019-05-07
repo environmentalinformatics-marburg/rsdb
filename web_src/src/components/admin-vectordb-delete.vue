@@ -49,7 +49,7 @@ export default {
 
         delete_layer() {
             var self = this;
-            var url = '../../vectordbs/' + self.meta.name;
+            var url = this.$store.getters.apiUrl('vectordbs/' + self.meta.name);
             axios.delete(url
             ).then(function(response) {
                 console.log(response);

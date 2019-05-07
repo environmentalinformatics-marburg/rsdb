@@ -102,7 +102,7 @@ export default {
         },
         set() {
             var self = this;
-            var url = '../../rasterdb/' + self.meta.name + '/set';
+            var url = this.$store.getters.apiUrl('rasterdb/' + self.meta.name + '/set');
             axios.post(url, {
                 meta: {
                     title: self.newTitle,
