@@ -233,6 +233,15 @@ export default {
       /*lineDash: [1, 5],*/
     });
 
+    /*var labelBackgroundStroke = new ol_style.Stroke({
+      //color: 'rgba(95, 112, 245, 0.3)',
+      color: 'rgba(255,255,255,0.5)',
+      width: 2,
+    });*/
+    var labelBackgroundFill = new ol_style.Fill({
+      color: 'rgba(255,255,255,0.6)',
+    });
+
     function styleFun(/*feature*/) {
       return new ol_style.Style({
         image: new ol_style.Circle({
@@ -247,8 +256,12 @@ export default {
 
     function vectorLabelStyleFun(feature) {
       var text = new ol_style.Text({
+        font: '15px sans-serif',
         text: feature.getProperties().name,
-        scale: 1,
+        overflow: true,
+        //backgroundStroke: labelBackgroundStroke,
+        backgroundFill: labelBackgroundFill,
+        padding: [2, 2, 2, 2],
       });
       return new ol_style.Style({
         text: text,
