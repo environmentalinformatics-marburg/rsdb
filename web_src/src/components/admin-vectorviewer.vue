@@ -63,6 +63,7 @@ import * as ol_style from 'ol/style';
 import {toStringXY} from 'ol/coordinate';
 import GeoJSON from 'ol/format/GeoJSON';
 import * as ol_interaction from 'ol/interaction';
+//import * as ol_geom from 'ol/geom';
 
 import axios from 'axios';
 
@@ -93,6 +94,7 @@ export default {
 
       olmap: undefined,
       vectorLayer: undefined,
+      vectorLabelLayer: undefined,
       filter_focus: false,
       geojson: undefined,
       selectedVectordb: undefined,
@@ -140,6 +142,8 @@ export default {
       });
 
       this.vectorLayer.setSource(vectorSource);
+      this.vectorLabelLayer.setSource(vectorSource);
+
       if(features.length > 0) {
         var ext = vectorSource.getExtent();
         this.olmap.getView().fit(ext);
@@ -229,29 +233,38 @@ export default {
       /*lineDash: [1, 5],*/
     });
 
-    function styleFun(feature) {
-      var geometry = feature.getGeometry();
-      console.log(geometry.getType());
+    function styleFun(/*feature*/) {
+      return new ol_style.Style({
+        image: new ol_style.Circle({
+          fill: fill,
+          stroke: stroke,
+          radius: 5
+        }),
+        fill: fill,
+        stroke: stroke,
+      });
+    }
+
+    function vectorLabelStyleFun(feature) {
       var text = new ol_style.Text({
         text: feature.getProperties().name,
         scale: 1,
-        overflow: false,
       });
       return new ol_style.Style({
-          image: new ol_style.Circle({
-            fill: fill,
-            stroke: stroke,
-            radius: 5
-          }),
-          fill: fill,
-          stroke: stroke,
-          text: text,
-        });
+        text: text,
+      });
     }
 
     this.vectorLayer = new ol_layer.Vector({
       style: styleFun,
+      //declutter: true,
+      renderMode: 'image',
+    });
+
+     this.vectorLabelLayer = new ol_layer.Vector({
+      style: vectorLabelStyleFun,
       declutter: true,
+      renderMode: 'image',
     });
 
     self.olmap = new ol_Map({
@@ -261,6 +274,7 @@ export default {
             source: new ol_source.OSM(),
           }),
           this.vectorLayer,
+          this.vectorLabelLayer,
         ],
         view: new ol_View({
           center: ol_proj.fromLonLat([11, 20.82]),
