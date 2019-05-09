@@ -62,7 +62,7 @@ import ol_control_MousePosition from 'ol/control/MousePosition';
 import * as ol_style from 'ol/style';
 import {toStringXY} from 'ol/coordinate';
 import GeoJSON from 'ol/format/GeoJSON';
-import * as ol_interaction from 'ol/interaction';
+//import * as ol_interaction from 'ol/interaction';
 //import * as ol_geom from 'ol/geom';
 
 import axios from 'axios';
@@ -93,6 +93,7 @@ export default {
       notificationsIndex: 0,
 
       olmap: undefined,
+      vectorSource: undefined,
       vectorLayer: undefined,
       vectorLabelLayer: undefined,
       filter_focus: false,
@@ -137,15 +138,15 @@ export default {
       var features = this.geojson === undefined ? [] : (new GeoJSON()).readFeatures(this.geojson);
       console.log(features);
 
-      var vectorSource = new ol_source.Vector({
+      this.vectorSource = new ol_source.Vector({
         features: features,
       });
 
-      this.vectorLayer.setSource(vectorSource);
-      this.vectorLabelLayer.setSource(vectorSource);
+      this.vectorLayer.setSource(this.vectorSource);
+      this.vectorLabelLayer.setSource(this.vectorSource);
 
       if(features.length > 0) {
-        var ext = vectorSource.getExtent();
+        var ext = this.vectorSource.getExtent();
         this.olmap.getView().fit(ext);
       }
       //console.log("refreshVectorSource done");
@@ -232,6 +233,11 @@ export default {
       width: 2,
       /*lineDash: [1, 5],*/
     });
+    var pointStroke = new ol_style.Stroke({
+      color: 'rgb(200, 20, 35)',
+      width: 2,
+      /*lineDash: [1, 5],*/
+    });
 
     /*var labelBackgroundStroke = new ol_style.Stroke({
       //color: 'rgba(95, 112, 245, 0.3)',
@@ -244,10 +250,17 @@ export default {
 
     function styleFun(/*feature*/) {
       return new ol_style.Style({
-        image: new ol_style.Circle({
+        /*image: new ol_style.Circle({
           fill: fill,
           stroke: stroke,
           radius: 5
+        }),*/
+        image: new ol_style.RegularShape({
+            stroke: pointStroke,
+            points: 4,
+            radius: 10,
+            radius2: 0,
+            angle: Math.PI / 4
         }),
         fill: fill,
         stroke: stroke,
@@ -299,11 +312,16 @@ export default {
         ]),
       });
 
-      var selectSingleClick = new ol_interaction.Select();
+    /*var selectSingleClick = new ol_interaction.Select();
       self.olmap.addInteraction(selectSingleClick); 
-      selectSingleClick.on('select', function(e) {
+    selectSingleClick.on('select', function(e) {
         console.log(e.selected);
-      });     
+    });*/
+
+    self.olmap.on('click', function(e) {
+      var feature = self.vectorSource.getClosestFeatureToCoordinate(e.coordinate);
+      console.log("clicked " + feature.getId()+"  ");
+    });
   },
   destroyed() {
     document.getElementById('foot-start-1').innerHTML = '?';
