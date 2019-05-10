@@ -2,6 +2,8 @@
 title: Server Installation
 ---
 
+Download package: [https://github.com/environmentalinformatics-marburg/rsdb/releases](https://github.com/environmentalinformatics-marburg/rsdb/releases)
+
 Ubuntu: Execute following commands on terminal (bash).
 
 ~~~ bash
@@ -25,7 +27,7 @@ sudo apt install libgdal-java
 # go to new folder with zip-archiv
 
 # extract zip-archiv
-unzip remotesensing_package.zip
+unzip package.zip
 
 # mark sh-files as executable
 chmod +x *.sh
