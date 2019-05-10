@@ -29,6 +29,7 @@ import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import org.json.JSONObject;
+import org.json.JSONWriter;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Informal;
@@ -37,6 +38,7 @@ import broker.acl.EmptyACL;
 import broker.group.Poi;
 import server.api.vectordbs.VectordbDetails;
 import util.Util;
+import util.collections.ReadonlyList;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap;
 
@@ -158,6 +160,38 @@ public class VectorDB {
 
 	static {
 		ogr.RegisterAll();
+	}
+	
+	public void writeTableJSON(JSONWriter json) {
+		VectordbDetails details = getDetails();
+		ReadonlyList<String> attributes = details.attributes;
+		DataSource datasource = getDataSource();
+		try {
+			json.object();
+			json.key("attributes");
+			json.value(attributes);
+			json.key("data");
+			json.array();
+			int layerCount = datasource.GetLayerCount();
+			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
+				Layer layer = datasource.GetLayerByIndex(layerIndex);
+				layer.ResetReading();
+				Feature feature = layer.GetNextFeature();
+				while(feature != null) {
+					json.array();
+					for(String attibute:attributes) {
+						String value = feature.GetFieldAsString(attibute);
+						json.value(value);
+					}
+					json.endArray();
+					feature = layer.GetNextFeature();
+				}
+			}
+			json.endArray();			
+			json.endObject();
+		} finally {
+			closeDataSource(datasource);
+		}
 	}
 
 

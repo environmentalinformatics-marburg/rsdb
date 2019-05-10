@@ -20,6 +20,11 @@
             <template slot="option" slot-scope="props">{{props.option.title === undefined ? props.option.name : props.option.title}}</template>
           </multiselect>
         </v-list-tile>
+
+        <v-list-tile v-if="selectedVectordb !== undefined && selectedVectordb !== null">
+          <input type="checkbox" id="labels" v-model="showLabels">
+          <label for="labels">Show Labels</label>
+        </v-list-tile>
         <a v-if="selectedVectordb !== undefined && selectedVectordb !== null" :href="urlPrefix + '../../vectordbs/' + selectedVectordb.name + '/package.zip'" :download="selectedVectordb.name + '.zip'" title="download as ZIP-file"><v-icon color="blue">cloud_download</v-icon>(download vector layer)</a>
       </v-list>
             
@@ -99,6 +104,7 @@ export default {
       filter_focus: false,
       geojson: undefined,
       selectedVectordb: undefined,
+      showLabels: true,
     }
   },
   methods: {
@@ -215,7 +221,10 @@ export default {
     },
     vectordb() {
       this.updateSelectedVectordb();
-    }   
+    },
+    showLabels() {
+      this.vectorLabelLayer.setVisible(this.showLabels);
+    },   
   },
   mounted() {
     var self = this;
