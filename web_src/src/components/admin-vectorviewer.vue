@@ -145,8 +145,7 @@ export default {
     loadGeojson() {
       var self = this;
       var messageID = this.addMessage("loading vector data of layer ...");
-      //axios.get(this.urlPrefix + '../../vectordbs/v1b/geometry.json?epsg=3857')
-      var url = this.urlPrefix + '../../vectordbs/' + this.selectedVectordb.name + '/geometry.json?epsg=3857';
+      var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/geometry.json?epsg=3857');
       axios.get(url)
       .then(function(response) {
         self.geojson = response.data;
@@ -161,7 +160,7 @@ export default {
     loadTable() {
       var self = this;
       var messageID = this.addMessage("loading table data of layer ...");
-      var url = this.urlPrefix + '../../vectordbs/' + this.selectedVectordb.name + '/table.json';
+      var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/table.json');
       axios.get(url)
       .then(function(response) {
         self.table = response.data;
