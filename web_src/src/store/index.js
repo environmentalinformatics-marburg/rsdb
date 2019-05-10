@@ -29,24 +29,19 @@ const modules = {
 }
 
 const state = {
-    isDev: isDev,
 }
 
 const getters = {
-    apiUrl: (state) => (url) => state.isDev ? 'http://127.0.0.1:8081/' + url : '../../' + url,
+    apiUrl: () => (url) => isDev ? 'http://127.0.0.1:8081/' + url : '../../' + url,
 }
 
 const actions = {
-    init({commit, dispatch}) {
+    init({dispatch}) {
         dispatch('identity/init');
-        commit('setDev', isDev);
     },
 }
 
 const mutations = {
-    setDev(isDev) {
-        state.isDev = isDev;
-    },
 }
 
 export default new Vuex.Store({

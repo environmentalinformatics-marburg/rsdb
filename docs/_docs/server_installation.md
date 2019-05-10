@@ -32,5 +32,5 @@ chmod +x *.sh
 
 # Start server in direct mode (for testing).
 # Stop server and go back to commandline by pressing "ctrl c".
-./pointdb.sh server
+./rsdb.sh server
 ~~~

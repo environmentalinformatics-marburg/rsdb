@@ -105,6 +105,7 @@
                 <tr><td><b>Proj4:</b></td><td>{{meta.details.proj4}}</td></tr>
                 <tr><td><b>attributes:</b></td><td><span v-for="name in meta.details.attributes" :key="name"><span :class="name === meta.name_attribute ? 'name-attribute' : 'attributes'">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></td></tr>
             </table>
+            <admin-vectordb-dialog-data-table :meta="meta" @changed="refresh" v-if="modify" />
         </div>
 
         <div v-if="modify">
@@ -138,6 +139,7 @@ import adminVectordbUpload from './admin-vectordb-upload'
 import adminVectordbAttributes from './admin-vectordb-attributes'
 import adminVectordbDialogSetInfo from './admin-vectordb-dialog-set-info.vue'
 import adminVectordbDialogSetAcl from './admin-vectordb-dialog-set-acl.vue'
+import adminVectordbDialogDataTable from './admin-vectordb-dialog-data-table.vue'
 
 export default {
     name: 'admin-vectordb-detail', 
@@ -148,6 +150,7 @@ export default {
         'admin-vectordb-attributes': adminVectordbAttributes,
         'admin-vectordb-dialog-set-info': adminVectordbDialogSetInfo,
         'admin-vectordb-dialog-set-acl': adminVectordbDialogSetAcl,
+        'admin-vectordb-dialog-data-table': adminVectordbDialogDataTable,
     },
     props: ['vectordb'],
     data() {

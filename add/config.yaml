@@ -1,0 +1,28 @@
+# server config
+server:
+  # HTTP port (default 8081) 
+  #port: 8081
+  
+  # HTTPS port (default 8082) 
+  #port: 8082
+
+  # password of certificate store
+  #keystore_password: password  
+  
+  # login protected HTTP and HTTPS ports (default true)  
+  #login: true
+  
+  # JWS port (default none)
+  #jws_port: 8083
+
+# JWS config: list of JWS provider entries  
+jws:
+
+# PointDB config: list of PointDB Layer entries  
+pointdb:
+
+# POI config: list of POI Layer entries  
+Points_of_interest:
+
+ # ROI config: list of ROI Layer entries    
+Regions_of_interest:

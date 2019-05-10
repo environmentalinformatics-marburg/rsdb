@@ -20,10 +20,30 @@
             <template slot="option" slot-scope="props">{{props.option.title === undefined ? props.option.name : props.option.title}}</template>
           </multiselect>
         </v-list-tile>
+
+        <v-list-tile v-if="selectedVectordb !== undefined && selectedVectordb !== null">
+          <input type="checkbox" id="labels" v-model="showLabels">
+          <label for="labels">Show Labels</label>
+        </v-list-tile>
         <a v-if="selectedVectordb !== undefined && selectedVectordb !== null" :href="urlPrefix + '../../vectordbs/' + selectedVectordb.name + '/package.zip'" :download="selectedVectordb.name + '.zip'" title="download as ZIP-file"><v-icon color="blue">cloud_download</v-icon>(download vector layer)</a>
       </v-list>
             
     </div>
+
+    <v-dialog :value="featureDetailsShow" lazy persistent max-width="500px">
+      <v-card>
+        <v-card-title class="headline">Attributes</v-card-title>
+        <v-card-text>
+        <table v-for="feature in selectedFeatures" :key="feature.getId()">
+          <tr v-for="(a, i) in table.attributes" :key="i"><td><b>{{a}}</b></td><td>{{table.data[feature.getId()][i]}}</td></tr>
+        </table>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" flat="flat" @click.native="featureDetailsShow = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <div v-show="Object.keys(messages).length > 0" class="message_box">
       <div v-for="(text, id) in messages" :key="id">
@@ -62,7 +82,8 @@ import ol_control_MousePosition from 'ol/control/MousePosition';
 import * as ol_style from 'ol/style';
 import {toStringXY} from 'ol/coordinate';
 import GeoJSON from 'ol/format/GeoJSON';
-import * as ol_interaction from 'ol/interaction';
+//import * as ol_interaction from 'ol/interaction';
+//import * as ol_geom from 'ol/geom';
 
 import axios from 'axios';
 
@@ -92,10 +113,16 @@ export default {
       notificationsIndex: 0,
 
       olmap: undefined,
+      vectorSource: undefined,
       vectorLayer: undefined,
+      vectorLabelLayer: undefined,
       filter_focus: false,
       geojson: undefined,
+      table:{attibutes: [], data: []},
       selectedVectordb: undefined,
+      showLabels: true,
+      featureDetailsShow: false,
+      selectedFeatures: [],
     }
   },
   methods: {
@@ -118,8 +145,7 @@ export default {
     loadGeojson() {
       var self = this;
       var messageID = this.addMessage("loading vector data of layer ...");
-      //axios.get(this.urlPrefix + '../../vectordbs/v1b/geometry.json?epsg=3857')
-      var url = this.urlPrefix + '../../vectordbs/' + this.selectedVectordb.name + '/geometry.json?epsg=3857';
+      var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/geometry.json?epsg=3857');
       axios.get(url)
       .then(function(response) {
         self.geojson = response.data;
@@ -131,17 +157,33 @@ export default {
         self.removeMessage(messageID);
       });
     },
+    loadTable() {
+      var self = this;
+      var messageID = this.addMessage("loading table data of layer ...");
+      var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/table.json');
+      axios.get(url)
+      .then(function(response) {
+        self.table = response.data;
+        self.removeMessage(messageID);
+      })
+      .catch(function() {
+        self.addnotification('ERROR table data of layer');
+        self.removeMessage(messageID);
+      });
+    },
     refreshVectorSource() {
       var features = this.geojson === undefined ? [] : (new GeoJSON()).readFeatures(this.geojson);
       console.log(features);
 
-      var vectorSource = new ol_source.Vector({
+      this.vectorSource = new ol_source.Vector({
         features: features,
       });
 
-      this.vectorLayer.setSource(vectorSource);
+      this.vectorLayer.setSource(this.vectorSource);
+      this.vectorLabelLayer.setSource(this.vectorSource);
+
       if(features.length > 0) {
-        var ext = vectorSource.getExtent();
+        var ext = this.vectorSource.getExtent();
         this.olmap.getView().fit(ext);
       }
       //console.log("refreshVectorSource done");
@@ -202,15 +244,20 @@ export default {
       if(this.selectedVectordb !== undefined) {
         //console.log("changed: " + this.selectedVectordb);
         this.loadGeojson();
+        this.loadTable();
       } else {
         this.geojson = undefined;
+        this.table = {attibutes: [], data: []};
         this.refreshVectorSource();
       }
       this.refreshRoute();
     },
     vectordb() {
       this.updateSelectedVectordb();
-    }   
+    },
+    showLabels() {
+      this.vectorLabelLayer.setVisible(this.showLabels);
+    },   
   },
   mounted() {
     var self = this;
@@ -228,30 +275,64 @@ export default {
       width: 2,
       /*lineDash: [1, 5],*/
     });
+    var pointStroke = new ol_style.Stroke({
+      color: 'rgb(200, 20, 35)',
+      width: 2,
+      /*lineDash: [1, 5],*/
+    });
 
-    function styleFun(feature) {
-      var geometry = feature.getGeometry();
-      console.log(geometry.getType());
-      var text = new ol_style.Text({
-        text: feature.getProperties().name,
-        scale: 1,
-        overflow: false,
-      });
+    /*var labelBackgroundStroke = new ol_style.Stroke({
+      //color: 'rgba(95, 112, 245, 0.3)',
+      color: 'rgba(255,255,255,0.5)',
+      width: 2,
+    });*/
+    var labelBackgroundFill = new ol_style.Fill({
+      color: 'rgba(255,255,255,0.6)',
+    });
+
+    function styleFun(/*feature*/) {
       return new ol_style.Style({
-          image: new ol_style.Circle({
-            fill: fill,
-            stroke: stroke,
-            radius: 5
-          }),
+        /*image: new ol_style.Circle({
           fill: fill,
           stroke: stroke,
-          text: text,
-        });
+          radius: 5
+        }),*/
+        image: new ol_style.RegularShape({
+            stroke: pointStroke,
+            points: 4,
+            radius: 10,
+            radius2: 0,
+            angle: Math.PI / 4
+        }),
+        fill: fill,
+        stroke: stroke,
+      });
+    }
+
+    function vectorLabelStyleFun(feature) {
+      var text = new ol_style.Text({
+        font: '15px sans-serif',
+        text: feature.getProperties().name,
+        overflow: true,
+        //backgroundStroke: labelBackgroundStroke,
+        backgroundFill: labelBackgroundFill,
+        padding: [2, 2, 2, 2],
+      });
+      return new ol_style.Style({
+        text: text,
+      });
     }
 
     this.vectorLayer = new ol_layer.Vector({
       style: styleFun,
+      //declutter: true,
+      renderMode: 'image',
+    });
+
+     this.vectorLabelLayer = new ol_layer.Vector({
+      style: vectorLabelStyleFun,
       declutter: true,
+      renderMode: 'image',
     });
 
     self.olmap = new ol_Map({
@@ -261,6 +342,7 @@ export default {
             source: new ol_source.OSM(),
           }),
           this.vectorLayer,
+          this.vectorLabelLayer,
         ],
         view: new ol_View({
           center: ol_proj.fromLonLat([11, 20.82]),
@@ -272,11 +354,18 @@ export default {
         ]),
       });
 
-      var selectSingleClick = new ol_interaction.Select();
+    /*var selectSingleClick = new ol_interaction.Select();
       self.olmap.addInteraction(selectSingleClick); 
-      selectSingleClick.on('select', function(e) {
+    selectSingleClick.on('select', function(e) {
         console.log(e.selected);
-      });     
+    });*/
+
+    self.olmap.on('click', function(e) {
+      var feature = self.vectorSource.getClosestFeatureToCoordinate(e.coordinate);
+      console.log("clicked " + feature.getId()+"  ");
+      self.selectedFeatures = [feature];
+      self.featureDetailsShow = true;
+    });
   },
   destroyed() {
     document.getElementById('foot-start-1').innerHTML = '?';

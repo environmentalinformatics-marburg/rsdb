@@ -1,0 +1,1 @@
+exec java -Djava.awt.headless=true -XX:-UsePerfData -Djava.io.tmpdir=/var/tmp -Xmx8g -classpath 'rsdb.jar:/usr/share/java/*:lib/*' -Djava.library.path='/usr/lib/jni' run.Terminal "$@"

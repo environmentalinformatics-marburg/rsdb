@@ -40,6 +40,7 @@ public class VectordbsHandler extends AbstractHandler {
 		this.broker = broker;
 		addMethod(new VectordbHandler_root(broker));
 		addMethod(new VectordbHandler_geometry(broker));
+		addMethod(new VectordbHandler_table(broker));
 		addMethod(new VectordbHandler_files(broker));
 		addMethod(new VectordbHandler_package_zip(broker));
 		addMethod(new VectordbHandler_raster_png(broker));
