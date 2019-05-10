@@ -30,6 +30,21 @@
             
     </div>
 
+    <v-dialog :value="featureDetailsShow" lazy persistent max-width="500px">
+      <v-card>
+        <v-card-title class="headline">Attributes</v-card-title>
+        <v-card-text>
+        <table v-for="feature in selectedFeatures" :key="feature.getId()">
+          <tr v-for="(a, i) in table.attributes" :key="i"><td><b>{{a}}</b></td><td>{{table.data[feature.getId()][i]}}</td></tr>
+        </table>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" flat="flat" @click.native="featureDetailsShow = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <div v-show="Object.keys(messages).length > 0" class="message_box">
       <div v-for="(text, id) in messages" :key="id">
         <ring-loader color="#000000" size="25px" style="display: inline-block;"/>
@@ -103,8 +118,11 @@ export default {
       vectorLabelLayer: undefined,
       filter_focus: false,
       geojson: undefined,
+      table:{attibutes: [], data: []},
       selectedVectordb: undefined,
       showLabels: true,
+      featureDetailsShow: false,
+      selectedFeatures: [],
     }
   },
   methods: {
@@ -137,6 +155,20 @@ export default {
       })
       .catch(function() {
         self.addnotification('ERROR vector data of layer');
+        self.removeMessage(messageID);
+      });
+    },
+    loadTable() {
+      var self = this;
+      var messageID = this.addMessage("loading table data of layer ...");
+      var url = this.urlPrefix + '../../vectordbs/' + this.selectedVectordb.name + '/table.json';
+      axios.get(url)
+      .then(function(response) {
+        self.table = response.data;
+        self.removeMessage(messageID);
+      })
+      .catch(function() {
+        self.addnotification('ERROR table data of layer');
         self.removeMessage(messageID);
       });
     },
@@ -213,8 +245,10 @@ export default {
       if(this.selectedVectordb !== undefined) {
         //console.log("changed: " + this.selectedVectordb);
         this.loadGeojson();
+        this.loadTable();
       } else {
         this.geojson = undefined;
+        this.table = {attibutes: [], data: []};
         this.refreshVectorSource();
       }
       this.refreshRoute();
@@ -330,6 +364,8 @@ export default {
     self.olmap.on('click', function(e) {
       var feature = self.vectorSource.getClosestFeatureToCoordinate(e.coordinate);
       console.log("clicked " + feature.getId()+"  ");
+      self.selectedFeatures = [feature];
+      self.featureDetailsShow = true;
     });
   },
   destroyed() {
