@@ -373,7 +373,7 @@ export default {
 
       options: {
           // https://github.com/simple-uploader/Uploader/tree/develop/samples/Node.js
-          target: '../../api/upload',
+          target: this.$store.getters.apiUrl('api/upload'),
           testChunks: false,
           chunkSize: 10*1024*1024,
           simultaneousUploads: 1,

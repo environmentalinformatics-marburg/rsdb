@@ -14,11 +14,25 @@ docs:
       - title: "Server Installation"
         url: /docs/server_installation/
       - title: "R Package Installation"
-        url: /docs/r_package_installation/        
+        url: /docs/r_package_installation/   
+      - title: "Administration"
+        url: /docs/administration/              
   - title: Configuration
     url: /docs/configuration/  
     children:
       - title: "config.yaml"
         url: /docs/config.yaml/
+      - title: "realm.properties"
+        url: /docs/realm.properties/        
+      - title: "realm_ip.csv"
+        url: /docs/realm_ip.csv/         
   - title: Development
-    url: /docs/development/   
+    url: /docs/development/    
+    children:
+      - title: "Package"
+        url: /docs/package/        
+      - title: "Java Backend"
+        url: /docs/backend/
+      - title: "Web Frontend"
+        url: /docs/frontend/
+        

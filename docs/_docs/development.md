@@ -2,30 +2,10 @@
 title: Development
 ---
 
-## Web Frontend
-
-Files of web frontend are in folder `webcontent`.
-
-Sources of web frontend are in folder `web_src` and compile to folder `webcontent/admin2`.
-
-Development process is managed by [Node.js](https://nodejs.org).
+Sources of RSDB can be received from GitHub by direct [download](https://github.com/environmentalinformatics-marburg/rsdb/archive/master.zip) or by 'git clone':
 
 ``` bash
-# Project setup
-npm install
-
-# Compiles and hot-reloads for development
-npm run serve
-
-# Compiles and minifies for production
-npm run build
+git clone https://github.com/environmentalinformatics-marburg/rsdb.git
 ```
 
-## Package Creation
-
-Development process is managed by [Gradle](https://gradle.org/).
-
-``` bash
-# create package
-gradle _package
-```
+RSDB [package](../package) is build from [java backend](../backend) and [web frontend](../frontend).

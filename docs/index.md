@@ -8,7 +8,7 @@ header:
   overlay_image: /assets/images/front3.png
   actions:
     - label: "Install now"
-      url: /docs/server_installation/
+      url: /docs/getting_started/
   caption: "Photo credit: Environmental Informatics Marburg"
 excerpt: "Manage remote sensing raster, point-cloud and vector data online."  
 intro: 

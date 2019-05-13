@@ -2,6 +2,12 @@
 title: Getting Started
 ---
 
-[server installation](../server_installation)
+Endusers do just need an account in RSDB for access by web browser and by [R-package](../r_package_installation).
 
-[r package installation](../r_package_installation)
+For local installation RSDB package needs to be downloaded.
+
+- [server installation](../server_installation)
+
+- [R-package installation](../r_package_installation)
+
+- [Administration](../administration)

@@ -2,7 +2,7 @@
 title: R Package Installation
 ---
 
-For installation of R package paste the following lines -into an R terminal.
+For installation of R package paste the following lines into an R terminal.
 
 ~~~ R
 install.packages("devtools")

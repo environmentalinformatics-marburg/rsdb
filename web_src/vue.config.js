@@ -1,11 +1,12 @@
 const CompressionWebpackPlugin = require("compression-webpack-plugin");
 
 module.exports = {
-    baseUrl: '', // use relative paths
+    publicPath: '', // use relative paths
     outputDir: '../webcontent/admin2',
     filenameHashing: false,
     devServer: {
-        //proxy: 'http://localhost:8081'
+		host: '127.0.0.1',  
+		port: 8080,		
     },
     productionSourceMap: false,
 	configureWebpack: {
@@ -14,7 +15,7 @@ module.exports = {
 			maxAssetSize: 10000000,
 		},
 		plugins: [
-        new CompressionWebpackPlugin({}),
-      ],		
+			new CompressionWebpackPlugin({}),
+		],		
 	},
 }
