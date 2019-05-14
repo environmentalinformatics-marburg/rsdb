@@ -17,7 +17,7 @@ sudo apt update
 sudo apt-get install default-jdk
 
 # check if Java is installed and show Java version
-java version
+java -version
 
 # install library connection GDAL to Java
 sudo apt install libgdal-java

@@ -19,18 +19,19 @@ first line csv header and one entry per line:
 | entry | description |
 | ------------- | ------------- |
 | **ip**  | IPv4 or IPv6 |
-| **user**  | user name, needs to be specified in 'realm.properties' file  |
+| **user**  | user name, to assign roles use name needs to be specified in 'realm.properties' file  |
 
 ~~~ conf
 ip,user
-#127.0.0.1,user1
-#0:0:0:0:0:0:0:1,user1
+127.0.0.1,local_user
+#0:0:0:0:0:0:0:1,local_user
 ~~~
 
+Note: Entry with IP '127.0.0.1' needs to be specified to allow access from server local scripts to RSDB server.
+
 ### example
-User on local computer does not need to login. (All other users are prompted for login.)
+User 'local_user' on local computer '127.0.0.1' does not need to login. (All other users are prompted for login.)
 ~~~ conf
 ip,user
-127.0.0.1,user1
-0:0:0:0:0:0:0:1,user1
+127.0.0.1,local_user
 ~~~

@@ -10,7 +10,7 @@ This file lists local user accounts. If file is missing default no user accounts
 
 ### structure
 
-Fileformat is [.properties](https://en.wikipedia.org/wiki/.properties).
+Fileformat is [.properties](https://en.wikipedia.org/wiki/.properties). Lines starting with '#' are ignored (interpreted as comment).
 
 one entry per line:
 
@@ -28,16 +28,21 @@ Special role 'admin' includes all roles.
 # list of of accounts with name, password, roles
 # (role "admin": access to all roles)
 #
+# Lines starting with # are ignored (interpreted as comment)
+#
 # format:
 #user:password,role
 #
 # e.g.
 #user1:passwor1,role1
 #user2:password2,role1,role2
+#
+#local_user:change_password,admin
 ~~~
 
 ### example
 ~~~  conf
-user1:password1,admin
-user2:password2,role1,role2  
+local_user:change_passwordA,admin
+user1:change_passwordB,admin
+user2:change_passwordC,role1,role2  
 ~~~

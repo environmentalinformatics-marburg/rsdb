@@ -1,3 +1,6 @@
+# no line ending conversion
+* -crlf
+
 axios.js linguist-vendored
 vue.js linguist-vendored
 vue-router.js linguist-vendored
