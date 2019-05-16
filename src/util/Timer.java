@@ -58,6 +58,9 @@ public final class Timer implements AutoCloseable, Serializable, Iterable<Timer>
 	public String toString() {
 		return msToText(begin, end)+" "+name;
 	}
+	public String timeToString() {
+		return msToText(begin, end);
+	}
 	public void stopAndPrint() {
 		stop();
 		System.out.println(toString());

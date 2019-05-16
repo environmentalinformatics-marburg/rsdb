@@ -15,8 +15,13 @@ docs:
         url: /docs/server_installation/
       - title: "R Package Installation"
         url: /docs/r_package_installation/   
-      - title: "Administration"
-        url: /docs/administration/              
+  - title: Administration
+    url: /docs/administration/
+    children:
+      - title: "Server Operation"
+        url: /docs/server_operation/      
+      - title: "Tasks"
+        url: /docs/tasks/                        
   - title: Configuration
     url: /docs/configuration/  
     children:

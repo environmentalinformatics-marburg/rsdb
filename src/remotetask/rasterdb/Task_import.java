@@ -1,29 +1,33 @@
-package task.rasterdb;
+package remotetask.rasterdb;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.RasterDBimporter;
+import remotetask.RemoteTask;
 
-public class Task_import {
+@task_rasterdb("import")
+public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
 	private final JSONObject task;
 
-	public Task_import(Broker broker, JSONObject task) {
+	public Task_import(Broker broker, JSONObject task, UserIdentity userIdentity) {
 		this.broker = broker;
 		this.task = task;
 	}
 
-	public void run() {
+	@Override
+	public void process() {
 		String name = task.getString("rasterdb");
 		RasterDB rasterdb =  broker.createOrGetRasterdb(name);
 		String filename = task.getString("file");

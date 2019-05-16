@@ -4,12 +4,14 @@ import java.io.BufferedReader;
 import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
@@ -40,8 +42,10 @@ import rasterdb.Import_rapideye;
 import rasterdb.Import_soda;
 import rasterdb.RasterDB;
 import rasterdb.RasterDBimporter;
+import remotetask.RemoteTask;
+import remotetask.RemoteTaskExecutor;
+import remotetask.RemoteTasks;
 import server.RunServer;
-import task.Executor;
 import util.TimeUtil;
 import util.Timer;
 
@@ -92,6 +96,7 @@ public class Terminal {
 		addCommand("rasterize_pointcloud", Terminal::command_rasterize_pointcloud);
 		addCommand("recompress_pointcloud", Terminal::command_recompress_pointcloud);
 		addCommand("task", Terminal::command_task);
+		addCommand("tasks", Terminal::command_tasks);
 	}
 
 	@FunctionalInterface
@@ -807,44 +812,41 @@ public class Terminal {
 			console.printf("\n%s", "task$ ");
 			console.flush();
 			String input = console.readLine();
-			try {
-				JSONArray tasks = new JSONArray(input);
-				try(Broker broker = new Broker()) {
-					Executor.run(broker, tasks);
-				} catch (Exception e) {
-					e.printStackTrace();
-					log.error(e);
-				}
-			} catch(Exception e0) {
-				//log.warn(e0);
-				JSONObject task = new JSONObject(input);
-				try(Broker broker = new Broker()) {
-					Executor.run(broker, task);
-				} catch (Exception e) {
-					e.printStackTrace();
-					log.error(e);
-				}
+			JSONObject task = new JSONObject(input);
+			try(Broker broker = new Broker()) {
+				RemoteTask remoteTask = RemoteTaskExecutor.createTask(broker, task, null);
+				remoteTask.run();
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.error(e);
 			}
-		} else if(args.length == 2) {
-			try {
-				JSONArray tasks = new JSONArray(args[1]);
-				try(Broker broker = new Broker()) {
-					Executor.run(broker, tasks);
-				} catch (Exception e) {
-					e.printStackTrace();
-					log.error(e);
-				}
-			} catch(Exception e0) {
-				JSONObject task = new JSONObject(args[1]);
-				try(Broker broker = new Broker()) {
-					Executor.run(broker, task);
-				} catch (Exception e) {
-					e.printStackTrace();
-					log.error(e);
-				}
+		} else if(args.length == 2) {			
+			JSONObject task = new JSONObject(args[1]);
+			try(Broker broker = new Broker()) {
+				RemoteTask remoteTask = RemoteTaskExecutor.createTask(broker, task, null);
+				remoteTask.run();
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.error(e);
 			}
 		} else {
 			System.out.println("command_task can only have zero or two args: " + (args.length - 1));
+		}		
+	}
+
+	public static void command_tasks(String[] args) {
+		log.info("command_tasks " + Arrays.toString(args));
+		if(args.length == 1) {
+			Map<String, TreeMap<String, Constructor<? extends RemoteTask>>> map = RemoteTasks.list();
+			for(Entry<String, TreeMap<String, Constructor<? extends RemoteTask>>> eCat:map.entrySet()) {
+				String task_category = eCat.getKey();
+				for(Entry<String, Constructor<? extends RemoteTask>> e:eCat.getValue().entrySet()) {
+					String name = e.getKey();
+					System.out.println(task_category+":\t\t" + name);
+				}
+			}
+		} else {
+			System.out.println("command_tasks can only have zero args: " + (args.length - 1));
 		}		
 	}
 }

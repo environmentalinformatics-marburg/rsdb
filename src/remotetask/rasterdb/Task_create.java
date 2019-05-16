@@ -1,22 +1,26 @@
-package task.rasterdb;
+package remotetask.rasterdb;
 
+import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
+import remotetask.RemoteTask;
 
-public class Task_create {
+@task_rasterdb("create")
+public class Task_create extends RemoteTask {
 	
 	private final Broker broker;
 	private final JSONObject task;
 	
-	public Task_create(Broker broker, JSONObject task) {
+	public Task_create(Broker broker, JSONObject task, UserIdentity userIdentity) {
 		this.broker = broker;
 		this.task = task;
 	}
 
-	public void run() {
+	@Override
+	public void process() {
 		String name = task.getString("rasterdb");
 		
 		double pixel_size_x = GeoReference.NO_PIXEL_SIZE;

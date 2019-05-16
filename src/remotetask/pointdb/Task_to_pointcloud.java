@@ -1,9 +1,10 @@
-package task.pointdb;
+package remotetask.pointdb;
 
 import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -19,10 +20,12 @@ import pointdb.base.Tile;
 import pointdb.base.TileKey;
 import pointdb.processing.tilekey.TileKeyIsEmptyCollector;
 import pointdb.processing.tilemeta.StatisticsCreator.Statistics;
+import remotetask.RemoteTask;
 import util.Timer;
 import util.collections.vec.Vec;
 
-public class Task_to_pointcloud {
+@task_pointdb("to_pointcloud")
+public class Task_to_pointcloud extends RemoteTask{
 	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
@@ -82,12 +85,13 @@ public class Task_to_pointcloud {
 		}
 	}
 
-	public Task_to_pointcloud(Broker broker, JSONObject task) {
+	public Task_to_pointcloud(Broker broker, JSONObject task, UserIdentity userIdentity) {
 		this.broker = broker;
 		this.task = task;
 	}
 
-	public void run() {
+	@Override
+	public void process() {
 		try {
 			if(!task.has("pointdb")) {
 				throw new RuntimeException("missing parameter 'pointdb'");

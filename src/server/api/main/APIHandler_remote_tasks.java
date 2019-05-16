@@ -9,6 +9,8 @@ import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
 
 import broker.Broker;
+import remotetask.RemoteTask;
+import remotetask.RemoteTaskExecutor;
 import server.api.APIHandler;
 
 public class APIHandler_remote_tasks extends APIHandler {
@@ -28,7 +30,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 		}			
 		long id = Long.parseLong(idText);
 		
-		RemoteTask remoteTask = RemoteTasks.get(id);
+		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
 		if(remoteTask == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.setContentType(MIME_JSON);
@@ -51,11 +53,11 @@ public class APIHandler_remote_tasks extends APIHandler {
 		res.key("id");
 		res.value(remoteTask.id);
 		res.key("status");
-		res.value(remoteTask.status);
+		res.value(remoteTask.getStatus());
 		res.key("active");
 		res.value(remoteTask.isActive());
 		res.key("runtime");
-		res.value(remoteTask.runtime());
+		res.value(remoteTask.getRuntimeMillis());
 		res.key("message");
 		res.value(remoteTask.getMessage());
 		res.endObject();

@@ -1,4 +1,4 @@
-package server.api.main;
+package remotetask;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -22,7 +22,7 @@ public abstract class RemoteTask implements Runnable {
 		ERROR,
 	}
 
-	public volatile Status status = Status.READY;
+	private volatile Status status = Status.READY;
 
 	@Override
 	public final void run() {
@@ -45,20 +45,24 @@ public abstract class RemoteTask implements Runnable {
 	protected abstract void process() throws Exception;
 	protected void close() {}
 
-	public boolean isActive() {
+	public final boolean isActive() {
 		return status == Status.READY || status == Status.RUNNING;
 	}
 	
-	public long runtime() {
+	public final long getRuntimeMillis() {
 		return  tstart == -1 ? 0 : (tend == -1 ? System.currentTimeMillis() - tstart : tend - tstart);
 	}
 	
-	public void setMessage(String message) {
+	protected final void setMessage(String message) {
 		log.info("message: " + message);
 		this.message = message;
 	}
 	
-	public String getMessage() {
+	public final String getMessage() {
 		return message;
+	}
+
+	public Status getStatus() {
+		return status;
 	}
 }

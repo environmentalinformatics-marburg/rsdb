@@ -1,13 +1,15 @@
-package server.api.main;
+package remotetask.rasterdb;
 
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
 import rasterdb.RasterDB;
+import remotetask.RemoteTask;
 import util.JsonUtil;
 import util.TimeUtil;
 
+@task_rasterdb("remove_timestamps")
 public class RemoveTimestampsRemoteTask extends RemoteTask {
 
 	//private final Broker broker;
@@ -15,13 +17,13 @@ public class RemoveTimestampsRemoteTask extends RemoteTask {
 	private RasterDB rasterdb;
 	private int[] timestamps;
 
-	public RemoveTimestampsRemoteTask(Broker broker, JSONObject args, UserIdentity userIdentity) {
+	public RemoveTimestampsRemoteTask(Broker broker, JSONObject task, UserIdentity userIdentity) {
 		//this.broker = broker;
 		//this.args = args;
-		String name = args.getString("rasterdb");
+		String name = task.getString("rasterdb");
 		this.rasterdb =  broker.getRasterdb(name);
 		rasterdb.checkMod(userIdentity);
-		this.timestamps = JsonUtil.getIntArray(args, "timestamps");
+		this.timestamps = JsonUtil.getIntArray(task, "timestamps");
 	}	
 
 	@Override

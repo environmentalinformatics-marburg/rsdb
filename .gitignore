@@ -6,6 +6,7 @@ catalog
 log
 package
 rasterdb
+src_testing
 temp
 vectordb
 

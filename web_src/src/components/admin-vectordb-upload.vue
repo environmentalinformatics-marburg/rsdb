@@ -77,7 +77,7 @@ export default {
             setError: false,
             setErrorMessage: undefined,
             remote_task_id: undefined,
-            need_refreh_catalog_entry: false,
+            need_refresh_catalog_entry: false,
 
              options: {
                 // https://github.com/simple-uploader/Uploader/tree/develop/samples/Node.js
@@ -108,14 +108,14 @@ export default {
         },
 
         fileFinished() {
-            this.need_refreh_catalog_entry = true;
+            this.need_refresh_catalog_entry = true;
             console.log("fileFinished");
             this.$emit("changed");
         },
 
         deleteFile(filename) {
             var self = this;
-            this.need_refreh_catalog_entry = true;
+            this.need_refresh_catalog_entry = true;
             var url = this.$store.getters.apiUrl('vectordbs/' + self.meta.name + "/files/" + filename);
             axios.delete(url
             ).then(function(response) {
@@ -133,7 +133,7 @@ export default {
 
         setAnchorFile(filename) {
             var self = this;
-            this.need_refreh_catalog_entry = true;
+            this.need_refresh_catalog_entry = true;
             var url = this.$store.getters.apiUrl('vectordbs/' + self.meta.name);
             axios.post(url,{
                 data_filename: filename,
@@ -155,7 +155,7 @@ export default {
             var url = this.$store.getters.apiUrl('api/insert_remote_task');
             axios.post(url, {
                 remote_task: {
-                    task_vectordb: "refreh_catalog_entry",
+                    task_vectordb: "refresh_catalog_entry",
                     vectordb: self.meta.name,
                 }
             }).then(function(response) {
@@ -182,9 +182,9 @@ export default {
             if(this.dialog) {
                 this.refresh();
             } else {
-                if(this.need_refreh_catalog_entry) {
+                if(this.need_refresh_catalog_entry) {
                     this.refreshCatalogEntry();
-                    this.need_refreh_catalog_entry = false;
+                    this.need_refresh_catalog_entry = false;
                 }
             }
             if(this.$refs.uploader !== undefined) {

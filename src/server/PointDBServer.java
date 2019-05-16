@@ -248,7 +248,7 @@ public class PointDBServer {
 		try {
 			Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 			System.out.println(gdal.VersionInfo("version"));			
-			System.out.println("-----------------------------------------");
+			System.out.println("-------------------------------------------------------------------");
 			System.out.println("Hostnames: ");
 			System.out.println();
 			while(networkInterfaces.hasMoreElements()) {
@@ -261,7 +261,6 @@ public class PointDBServer {
 				}
 
 			}
-			System.out.println();
 		} catch (Exception e) {
 			log.error(e);
 		}
@@ -285,9 +284,9 @@ public class PointDBServer {
 			System.out.println("HTTPS (JWS authentication)\t\t" + toBold("https://[HOSTNAME]:" + jws_https_connector));
 		}
 		System.out.println();
-		System.out.println("Stop server directly with key combination '"+toBold("Ctrl-C")+"'");
+		//System.out.println("Stop server directly with key combination '"+toBold("Ctrl-C")+"'");
 		System.out.println("Stop server with linux shell command: "+toBold("curl --proxy '' --request POST http://localhost:"+broker.brokerConfig.server().port+"/shutdown?token=pointdb"));
-		System.out.println();
+		System.out.println("-------------------------------------------------------------------");
 	}
 
 	private static ContextHandler[] createContextHanlders(Broker broker) {

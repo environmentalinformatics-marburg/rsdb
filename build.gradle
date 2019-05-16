@@ -67,6 +67,7 @@ dependencies {
 
 sourceSets.main.java.srcDir 'src'
 sourceSets.main.java.srcDir 'dsl/generated-sources'
+sourceSets.main.java.srcDir 'src_testing'
 
 jar {
 	from file('src/log4j2.xml')

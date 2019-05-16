@@ -212,7 +212,7 @@ public class Broker implements AutoCloseable {
 	@Override
 	public synchronized void close() {
 		if(pointdbMap !=null || rasterdbMap!= null || pointcloudMap!= null) {
-			log.info("broker close...");
+			log.info("close broker ...");
 			Timer.start("broker close");
 			//ForkJoinPool exe = new ForkJoinPool(); // may be queued
 			ExecutorService exe = Executors.newCachedThreadPool(); //ensures that tasks are run.
@@ -221,7 +221,7 @@ public class Broker implements AutoCloseable {
 				for(Entry<String, PointDB> e:pointdbMap.entrySet()) {
 					String name = e.getKey();
 					PointDB pointdb = e.getValue();
-					exe.execute(()->{log.info("run close pointdb "+name);pointdb.close();log.info("pointdb closed "+name);});
+					exe.execute(()->{/*log.info("run close pointdb "+name);*/pointdb.close();/*log.info("pointdb closed "+name);*/});
 				}
 			}
 
@@ -229,7 +229,7 @@ public class Broker implements AutoCloseable {
 				for(Entry<String, RasterDB> e:rasterdbMap.entrySet()) {
 					String name = e.getKey();
 					RasterDB rasterdb = e.getValue();
-					exe.execute(()->{log.info("run close rasterdb "+name);rasterdb.close();log.info("rasterdb closed "+name);});
+					exe.execute(()->{/*log.info("run close rasterdb "+name);*/rasterdb.close();/*log.info("rasterdb closed "+name);*/});
 				}
 			}
 
@@ -237,7 +237,7 @@ public class Broker implements AutoCloseable {
 				for(Entry<String, PointCloud> e:pointcloudMap.entrySet()) {
 					String name = e.getKey();
 					PointCloud pointcloud = e.getValue();
-					exe.execute(()->{log.info("run close pointcloud "+name);pointcloud.close();log.info("pointcloud closed "+name);});
+					exe.execute(()->{/*log.info("run close pointcloud "+name);*/pointcloud.close();/*log.info("pointcloud closed "+name);*/});
 				}
 			}
 
@@ -246,7 +246,7 @@ public class Broker implements AutoCloseable {
 				if(!exe.awaitTermination(5, TimeUnit.MINUTES)) {
 					log.error("broker close timeout   "+Timer.stop("broker close"));
 				} else {
-					log.info("broker closed.   "+Timer.stop("broker close"));
+					log.info("broker closed.   "+Timer.stop("broker close").timeToString());
 				}
 			} catch (InterruptedException e) {
 				log.error(e+"   "+Timer.stop("broker close"));
@@ -337,7 +337,7 @@ public class Broker implements AutoCloseable {
 			refreshRasterdbConfigs();
 			config = rasterdbConfigMap.get(name);
 			if(config==null) {
-				throw new RasterDBNotFoundExeption("RasterDB not found: "+name);
+				throw new RasterDBNotFoundExeption("RasterDB not found: ["+name+"]");
 			}
 		}
 		rastrdb = new RasterDB(config);
@@ -345,7 +345,7 @@ public class Broker implements AutoCloseable {
 		if(ret!=null) {
 			throw new PdbException("double load: "+name);
 		}
-		log.info("opened " + name + "   " + rasterdbMap.get(name));
+		//log.info("opened " + name + "   " + rasterdbMap.get(name));
 		return rastrdb;
 	}
 

@@ -39,7 +39,7 @@ public class RunServer {
 			Server server = PointDBServer.createServer(broker);
 			server.start();
 			PointDBServer.printServerEntrypoint(server, broker);
-			System.out.println("server ready...");
+			System.out.println("Server running...   (press ctrl-c to stop)");
 			addShutdownHook(server, broker);
 			server.join();
 		} catch(Exception e) {

@@ -13,6 +13,9 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import broker.Broker;
+import remotetask.RemoteTask;
+import remotetask.RemoteTaskExecutor;
+import remotetask.RemoteTasks;
 import server.api.APIHandler;
 import util.Web;
 
@@ -30,8 +33,8 @@ public class APIHandler_insert_remote_task extends APIHandler {
 		JSONObject args = json.getJSONObject("remote_task");
 		log.info(args);
 		UserIdentity userIdentity = Web.getUserIdentity(request);
-		RemoteTask remoteTask = RemoteTasks.parseTask(broker, args, userIdentity);
-		RemoteTasks.insert(remoteTask);
+		RemoteTask remoteTask = RemoteTaskExecutor.createTask(broker, args, userIdentity);
+		RemoteTaskExecutor.insertToExecute(remoteTask);
 		
 		
 		response.setStatus(HttpServletResponse.SC_OK);

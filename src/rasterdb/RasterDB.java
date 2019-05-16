@@ -88,9 +88,9 @@ public class RasterDB implements AutoCloseable {
 
 	@Override
 	public synchronized void close() {
-		log.info("close rasterdb " + config.getName());
+		log.info("close rasterdb " + config.getName()+" ...");
 		if (rasterUnit != null) {
-			log.info("close rasterUnit");
+			//log.info("close rasterUnit");
 			rasterUnit.close();
 			rasterUnit = null;
 		}
@@ -201,7 +201,7 @@ public class RasterDB implements AutoCloseable {
 				}
 						
 			}
-			log.info("*** ref *** " + ref + "    of   " + metaPath);
+			//log.info("*** ref *** " + ref + "    of   " + metaPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 			log.warn(e);
@@ -368,7 +368,7 @@ public class RasterDB implements AutoCloseable {
 
 	private synchronized RasterUnit loadRasterUnit() {
 		if (rasterUnit == null) {
-			log.info("open rasterUnit of " + config.getName());
+			//log.info("open rasterUnit of " + config.getName());
 			rasterUnit = new RasterUnit(path, "raster", config.is_fast_unsafe_import()); // 4^0 = 1
 		}
 		return rasterUnit;

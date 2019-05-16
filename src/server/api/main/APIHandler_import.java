@@ -24,6 +24,9 @@ import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.RasterDB;
+import remotetask.RemoteTaskExecutor;
+import remotetask.RemoteTasks;
+import remotetask.rasterdb.ImportRemoteTask;
 import server.api.APIHandler;
 import server.api.main.APIHandler_inspect.Strategy;
 import server.api.main.ChunkedUploader.ChunkedUpload;
@@ -432,7 +435,7 @@ public class APIHandler_import extends APIHandler {
 		}
 
 		ImportRemoteTask importRemoteTask = new ImportRemoteTask(broker, rasterdb, gdalreader, bandSpecs, pixel_size_y, update_pyramid, update_catalog, generalTimestamp);
-		RemoteTasks.insert(importRemoteTask);
+		RemoteTaskExecutor.insertToExecute(importRemoteTask);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);

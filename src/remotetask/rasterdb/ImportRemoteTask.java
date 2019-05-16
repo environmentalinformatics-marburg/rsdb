@@ -1,4 +1,4 @@
-package server.api.main;
+package remotetask.rasterdb;
 
 import java.io.IOException;
 
@@ -13,6 +13,7 @@ import rasterdb.RasterDB;
 import rasterdb.TileFloat;
 import rasterdb.TilePixel;
 import rasterunit.RasterUnit;
+import remotetask.RemoteTask;
 import server.api.main.APIHandler_import.BandSpec;
 import util.Range2d;
 import util.Util;

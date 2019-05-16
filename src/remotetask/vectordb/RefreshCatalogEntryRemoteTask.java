@@ -1,11 +1,14 @@
-package server.api.main;
+package remotetask.vectordb;
 
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
+import remotetask.RemoteTask;
+import remotetask.rasterdb.task_rasterdb;
 import vectordb.VectorDB;
 
+@task_vectordb("refresh_catalog_entry")
 public class RefreshCatalogEntryRemoteTask extends RemoteTask {
 
 	private final Broker broker;
@@ -24,5 +27,4 @@ public class RefreshCatalogEntryRemoteTask extends RemoteTask {
 		broker.catalog.update(vectordb, true);
 		setMessage("refresh catalog entry done.");
 	}
-
 }
