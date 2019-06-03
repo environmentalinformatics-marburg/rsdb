@@ -1,11 +1,11 @@
 package remotetask.pointcloud;
 
-import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
 import pointcloud.PointCloud;
 import rasterdb.RasterDB;
+import remotetask.Context;
 import remotetask.RemoteTask;
 
 @task_pointcloud("rasterize")
@@ -15,9 +15,9 @@ public class Task_rasterize extends RemoteTask {
 	private final Broker broker;
 	private final JSONObject task;
 
-	public Task_rasterize(Broker broker, JSONObject task, UserIdentity userIdentity) {
-		this.broker = broker;
-		this.task = task;
+	public Task_rasterize(Context ctx) {
+		this.broker = ctx.broker;
+		this.task = ctx.task;
 	}
 
 	@Override
@@ -35,6 +35,4 @@ public class Task_rasterize extends RemoteTask {
 		rasterdb.commit();
 		rasterdb.rebuildPyramid();
 	}
-
-
 }

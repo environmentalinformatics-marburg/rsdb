@@ -4,17 +4,23 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.UserIdentity;
+import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import broker.Broker;
+import remotetask.Context;
 import remotetask.RemoteTask;
 import remotetask.RemoteTaskExecutor;
 import server.api.APIHandler;
+import util.Web;
 
 public class APIHandler_remote_tasks extends APIHandler {
-	//private static final Logger log = LogManager.getLogger();
+	private static final Logger log = LogManager.getLogger();
 
 	public APIHandler_remote_tasks(Broker broker) {
 		super(broker, "remote_tasks");
@@ -22,14 +28,90 @@ public class APIHandler_remote_tasks extends APIHandler {
 
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
-		//log.info("target " + target);
-		String idText = target;
-		int i = idText.indexOf('/');
-		if(i>=0) {
-			idText = idText.substring(0, i);
-		}			
-		long id = Long.parseLong(idText);
+		if(target.isEmpty()) {
+			handleRoot(request, response);
+		} else {
+			log.info("target [" + target + "]");
+			String idText = target;
+			int i = idText.indexOf('/');
+			if(i>=0) {
+				idText = idText.substring(0, i);
+			}			
+			long id = Long.parseLong(idText);
+			handleId(id, request, response);
+		}		
+	}
+
+	protected void handleRoot(Request request, Response response) throws IOException {
+		switch(request.getMethod()) {
+		case "GET":
+			handleRootGET(request, response);
+			break;
+		case "POST":
+			handleRootPOST(request, response);
+			break;
+		default:
+			throw new RuntimeException("invalid HTTP method: " + request.getMethod());
+		}		
+	}
+
+	protected void handleRootGET(Request request, Response response) throws IOException {
+		response.setContentType(MIME_JSON);		
+		JSONWriter res = new JSONWriter(response.getWriter());
+		res.object();
+		res.key("remote_tasks");
+		res.array();
+		for(RemoteTask remoteTask:RemoteTaskExecutor.getRemoteTasks()) {
+			res.object();
+			res.key("id");
+			res.value(remoteTask.id);
+			res.key("name");
+			res.value(remoteTask.getName());
+			res.key("status");
+			res.value(remoteTask.getStatus());
+			res.key("runtime");
+			res.value(remoteTask.getRuntimeMillis());
+			res.key("message");
+			res.value(remoteTask.getMessage());
+			res.endObject();
+		}
+		res.endArray();
+		res.endObject();
+	}
+
+	protected void handleRootPOST(Request request, Response response) throws IOException {
+		JSONObject json = new JSONObject(Web.requestContentToString(request));
+		JSONObject args = json.getJSONObject("remote_task");
+		log.info(args);
+		UserIdentity userIdentity = Web.getUserIdentity(request);
+		Context ctx = new Context(broker, args, userIdentity);
+		RemoteTask remoteTask = RemoteTaskExecutor.createTask(ctx);
+		RemoteTaskExecutor.insertToExecute(remoteTask);
 		
+		
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(MIME_JSON);
+		JSONWriter res = new JSONWriter(response.getWriter());
+		res.object();
+		res.key("remote_task");
+		res.object();	
+		res.key("id");
+		res.value(remoteTask.id);		
+		res.endObject();
+		res.endObject();	
+	}
+
+	private void handleId(long id, Request request, Response response) throws IOException {
+		switch(request.getMethod()) {
+		case "GET":
+			handleIdGET(id, request, response);
+			break;
+		default:
+			throw new RuntimeException("invalid HTTP method: " + request.getMethod());
+		}
+	}
+
+	private void handleIdGET(long id, Request request, Response response) throws IOException {
 		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
 		if(remoteTask == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -43,7 +125,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.endObject();
 			res.endObject();
 		}
-		
+
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		JSONWriter res = new JSONWriter(response.getWriter());

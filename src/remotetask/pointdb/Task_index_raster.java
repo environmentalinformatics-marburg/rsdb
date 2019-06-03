@@ -2,7 +2,6 @@ package remotetask.pointdb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -21,6 +20,7 @@ import rasterdb.RasterDB;
 import rasterdb.TilePixel;
 import rasterdb.TimeBandProcessor;
 import rasterunit.RasterUnit;
+import remotetask.Context;
 import remotetask.RemoteTask;
 import util.BlokingTaskSubmitter;
 import util.BlokingTaskSubmitter.PhasedTask;
@@ -35,9 +35,9 @@ public class Task_index_raster extends RemoteTask{
 	private final Broker broker;
 	private final JSONObject task;
 
-	public Task_index_raster(Broker broker, JSONObject task, UserIdentity userIdentity) {
-		this.broker = broker;
-		this.task = task;
+	public Task_index_raster(Context ctx) {
+		this.broker = ctx.broker;
+		this.task = ctx.task;
 	}
 
 	@Override

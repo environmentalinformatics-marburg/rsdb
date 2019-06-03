@@ -5,7 +5,10 @@ build
 catalog
 log
 package
+poi
+pointdb
 rasterdb
+roi
 src_testing
 temp
 vectordb
@@ -13,3 +16,4 @@ vectordb
 .classpath
 .project
 .Rproj.user
+config.yaml

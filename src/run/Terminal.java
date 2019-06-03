@@ -42,6 +42,7 @@ import rasterdb.Import_rapideye;
 import rasterdb.Import_soda;
 import rasterdb.RasterDB;
 import rasterdb.RasterDBimporter;
+import remotetask.Context;
 import remotetask.RemoteTask;
 import remotetask.RemoteTaskExecutor;
 import remotetask.RemoteTasks;
@@ -97,6 +98,7 @@ public class Terminal {
 		addCommand("recompress_pointcloud", Terminal::command_recompress_pointcloud);
 		addCommand("task", Terminal::command_task);
 		addCommand("tasks", Terminal::command_tasks);
+		addCommand("echo", Terminal::command_echo);
 	}
 
 	@FunctionalInterface
@@ -334,7 +336,76 @@ public class Terminal {
 		runCommand(args);
 	}
 
+
 	public static String[] mergeQuote(String[] args) {
+		ArrayList<String> result = new ArrayList<String>();
+		boolean quoteOne = false;
+		boolean quoteTwo = false;
+		boolean quoteParenthesis = false;
+		String argCollector = "";
+		for(int i=0;i<args.length;i++) {
+			String arg = args[i];
+			if(!(quoteOne || quoteTwo || quoteParenthesis)) {
+				if(arg.startsWith("'")) {
+					quoteOne = true;
+					arg = arg.substring(1);
+				} else if(arg.startsWith("\"")) {
+					quoteTwo = true;
+					arg = arg.substring(1);
+				} else if (arg.startsWith("{")) {
+					quoteParenthesis = true;
+				} else {
+					result.add(arg);
+				}
+				argCollector = "";
+			}
+			if(quoteOne || quoteTwo || quoteParenthesis) {
+				if(quoteOne && arg.endsWith("'")) {
+					quoteOne = false;
+					if(!argCollector.isEmpty()) {
+						argCollector += ' ';
+					}
+					argCollector += arg.substring(0, argCollector.length() - 1);
+					result.add(argCollector);
+					argCollector = "";
+				} else if(quoteTwo && arg.endsWith("\"")) {
+					quoteTwo = false;
+					if(!argCollector.isEmpty()) {
+						argCollector += ' ';
+					}
+					argCollector += arg.substring(0, argCollector.length() - 1);
+					result.add(argCollector);
+					argCollector = "";
+				} else if(quoteParenthesis && arg.endsWith("}")) {
+					quoteParenthesis = false;
+					if(!argCollector.isEmpty()) {
+						argCollector += ' ';
+					}
+					argCollector += arg;
+					result.add(argCollector);
+					argCollector = "";
+				} else {
+					if(!argCollector.isEmpty()) {
+						argCollector += ' ';
+					}
+					argCollector += arg;
+				}
+			}
+		}
+		if(quoteOne) {
+			throw new RuntimeException("error in commandline quotes (missing closing quote ' )");
+		}
+		if(quoteTwo) {
+			throw new RuntimeException("error in commandline quotes (missing closing quote \" )");
+		}
+		if(quoteParenthesis) {
+			throw new RuntimeException("error in commandline quotes (missing closing quote } )");
+		}
+		return result.toArray(new String[0]);
+	}
+
+
+	public static String[] mergeQuote_OLD(String[] args) {
 		ArrayList<String> res = new ArrayList<String>();
 		boolean quote = false;
 		String quoteString = "";
@@ -814,16 +885,19 @@ public class Terminal {
 			String input = console.readLine();
 			JSONObject task = new JSONObject(input);
 			try(Broker broker = new Broker()) {
-				RemoteTask remoteTask = RemoteTaskExecutor.createTask(broker, task, null);
+				Context ctx = new Context(broker, task, null);
+				RemoteTask remoteTask = RemoteTaskExecutor.createTask(ctx);
 				remoteTask.run();
 			} catch (Exception e) {
 				e.printStackTrace();
 				log.error(e);
 			}
-		} else if(args.length == 2) {			
+		} else if(args.length == 2) {
+			log.info("JSON "+ args[1]);
 			JSONObject task = new JSONObject(args[1]);
 			try(Broker broker = new Broker()) {
-				RemoteTask remoteTask = RemoteTaskExecutor.createTask(broker, task, null);
+				Context ctx = new Context(broker, task, null);
+				RemoteTask remoteTask = RemoteTaskExecutor.createTask(ctx);
 				remoteTask.run();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -848,5 +922,12 @@ public class Terminal {
 		} else {
 			System.out.println("command_tasks can only have zero args: " + (args.length - 1));
 		}		
+	}
+
+	public static void command_echo(String[] args) {
+		log.info("command_echo " + Arrays.toString(args));
+		for (int i = 0; i < args.length; i++) {
+			log.info(i+". [" + args[i] + "]");
+		}
 	}
 }

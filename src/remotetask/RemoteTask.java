@@ -1,14 +1,27 @@
 package remotetask;
 
+import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import remotetask.pointcloud.task_pointcloud;
+import remotetask.pointdb.task_pointdb;
+import remotetask.rasterdb.task_rasterdb;
+import remotetask.vectordb.task_vectordb;
+
 public abstract class RemoteTask implements Runnable {
 	private static final Logger log = LogManager.getLogger();
 	
 	private static final AtomicLong cnt = new AtomicLong(0);
+	
+	public static Comparator<RemoteTask> START_TIME_COMPARATOR = new Comparator<RemoteTask>() {
+		@Override
+		public int compare(RemoteTask o1, RemoteTask o2) {
+			return Long.compare(o1.tstart, o2.tstart);
+		}
+	};
 	
 	public final long id = cnt.incrementAndGet();
 	private long tstart = -1;
@@ -64,5 +77,22 @@ public abstract class RemoteTask implements Runnable {
 
 	public Status getStatus() {
 		return status;
+	}
+	
+	public String getName() {		
+		Class<? extends RemoteTask> clazz = this.getClass();
+		if(clazz.isAnnotationPresent(task_rasterdb.class)) {
+			return "rasterdb/" + clazz.getAnnotation(task_rasterdb.class).value();
+		}
+		if(clazz.isAnnotationPresent(task_pointdb.class)) {
+			return "pointdb/" + clazz.getAnnotation(task_pointdb.class).value();
+		}		
+		if(clazz.isAnnotationPresent(task_pointcloud.class)) {
+			return "pointcloud/" + clazz.getAnnotation(task_pointcloud.class).value();
+		}
+		if(clazz.isAnnotationPresent(task_vectordb.class)) {
+			return "vectordb/" + clazz.getAnnotation(task_vectordb.class).value();
+		}		
+		return clazz.getSimpleName();
 	}
 }

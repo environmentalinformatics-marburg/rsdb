@@ -5,13 +5,13 @@ import java.nio.file.Paths;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.RasterDBimporter;
+import remotetask.Context;
 import remotetask.RemoteTask;
 
 @task_rasterdb("import")
@@ -21,9 +21,9 @@ public class Task_import extends RemoteTask {
 	private final Broker broker;
 	private final JSONObject task;
 
-	public Task_import(Broker broker, JSONObject task, UserIdentity userIdentity) {
-		this.broker = broker;
-		this.task = task;
+	public Task_import(Context ctx) {
+		this.broker = ctx.broker;
+		this.task = ctx.task;
 	}
 
 	@Override

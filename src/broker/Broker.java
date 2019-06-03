@@ -212,7 +212,7 @@ public class Broker implements AutoCloseable {
 	@Override
 	public synchronized void close() {
 		if(pointdbMap !=null || rasterdbMap!= null || pointcloudMap!= null) {
-			log.info("close broker ...");
+			//log.info("close broker ...");
 			Timer.start("broker close");
 			//ForkJoinPool exe = new ForkJoinPool(); // may be queued
 			ExecutorService exe = Executors.newCachedThreadPool(); //ensures that tasks are run.

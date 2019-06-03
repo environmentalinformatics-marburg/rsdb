@@ -1,13 +1,15 @@
 package pointdb.processing.tilepoint;
 
+import java.util.Arrays;
+
 import pointdb.base.Point;
 
 public interface PointFilter {
 	public static final PointFilter FILTER_LAST_RETURN = Point::isLastReturn;
 	public static final PointFilter FILTER_GROUND_CLASSIFICATIONS = Point::isGround;
-	
+
 	boolean test(Point p);
-	
+
 	public static PointFilter createFilter(String text) {
 		String[] filtetTexts = text.split(";");
 		PointFilter[] filters = new PointFilter[filtetTexts.length];
@@ -31,13 +33,26 @@ public interface PointFilter {
 			int last_returnNumber = Integer.parseInt(r);
 			return p->p.returns-(p.returnNumber-1)==last_returnNumber;
 		}else if (text.startsWith(cEQ)) {
-			String r = text.substring(cEQ.length());
-			int classNr = Integer.parseInt(r);
-			return p->p.classification==classNr;
+			String classNrsText = text.substring(cEQ.length());
+			String[] classNrsTexts = classNrsText.split("_");
+			if(classNrsTexts.length == 1) {
+				int classNr = Integer.parseInt(classNrsText);
+				return p -> p.classification == classNr;
+			} else {
+				int[] classNrs = Arrays.stream(classNrsTexts).mapToInt(Integer::parseInt).toArray();
+				return p->{
+					for(int classNr:classNrs) {
+						if(p.classification == classNr) {
+							return true;
+						}
+					}
+					return false;
+				};
+			}
 		}  
 		throw new RuntimeException("filter unknown: "+text);
 	}
-	
+
 	public static class FilterAnd implements PointFilter {
 		private final PointFilter a;
 		private final PointFilter b;

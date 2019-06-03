@@ -8,10 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.UserIdentity;
-import org.json.JSONObject;
 
-import broker.Broker;
 import remotetask.pointcloud.Task_rasterize;
 import remotetask.pointcloud.task_pointcloud;
 import remotetask.pointdb.Task_index_raster;
@@ -30,6 +27,8 @@ import remotetask.vectordb.task_vectordb;
 
 public class RemoteTasks {
 	private static final Logger log = LogManager.getLogger();
+	
+	private static final Class<?>[] CONSTRUCTOR_ARGS = new Class[] {Context.class};
 
 	final static Map<String, Constructor<? extends RemoteTask>> task_rasterdbMap = new ConcurrentHashMap<>();
 	final static Map<String, Constructor<? extends RemoteTask>> task_pointdbMap = new ConcurrentHashMap<>();
@@ -47,6 +46,8 @@ public class RemoteTasks {
 		put(Task_refresh_extent.class);
 
 		//task_pointdb
+		put(remotetask.pointdb.Task_import.class);
+		put(remotetask.pointdb.Task_rasterize.class);
 		put(Task_index_raster.class);
 		put(Task_to_pointcloud.class);
 		
@@ -56,14 +57,13 @@ public class RemoteTasks {
 		//task_vectordb
 		put(RefreshCatalogEntryRemoteTask.class);
 	}
-
+	
 	private static <T extends RemoteTask> void put(Class<T> clazz) {
 		boolean inserted = false;
 		if(clazz.isAnnotationPresent(task_rasterdb.class)) {
 			try {
 				String name = clazz.getAnnotation(task_rasterdb.class).value();
-				Class<?>[] constructorArgs = new Class[] {Broker.class, JSONObject.class, UserIdentity.class};
-				Constructor<T> constructor = clazz.getDeclaredConstructor(constructorArgs);
+				Constructor<T> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
 				if(task_rasterdbMap.containsKey(name)) {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}
@@ -77,8 +77,7 @@ public class RemoteTasks {
 		if(clazz.isAnnotationPresent(task_pointdb.class)) {
 			try {
 				String name = clazz.getAnnotation(task_pointdb.class).value();
-				Class<?>[] constructorArgs = new Class[] {Broker.class, JSONObject.class, UserIdentity.class};
-				Constructor<T> constructor = clazz.getDeclaredConstructor(constructorArgs);
+				Constructor<T> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
 				if(task_pointdbMap.containsKey(name)) {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}
@@ -92,8 +91,7 @@ public class RemoteTasks {
 		if(clazz.isAnnotationPresent(task_pointcloud.class)) {
 			try {
 				String name = clazz.getAnnotation(task_pointcloud.class).value();
-				Class<?>[] constructorArgs = new Class[] {Broker.class, JSONObject.class, UserIdentity.class};
-				Constructor<T> constructor = clazz.getDeclaredConstructor(constructorArgs);
+				Constructor<T> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
 				if(task_pointcloudMap.containsKey(name)) {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}
@@ -107,8 +105,7 @@ public class RemoteTasks {
 		if(clazz.isAnnotationPresent(task_vectordb.class)) {
 			try {
 				String name = clazz.getAnnotation(task_vectordb.class).value();
-				Class<?>[] constructorArgs = new Class[] {Broker.class, JSONObject.class, UserIdentity.class};
-				Constructor<T> constructor = clazz.getDeclaredConstructor(constructorArgs);
+				Constructor<T> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
 				if(task_vectordbMap.containsKey(name)) {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}

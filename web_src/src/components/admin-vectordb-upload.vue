@@ -152,7 +152,7 @@ export default {
 
         refreshCatalogEntry() {
             var self = this;
-            var url = this.$store.getters.apiUrl('api/insert_remote_task');
+            var url = this.$store.getters.apiUrl('api/remote_tasks');
             axios.post(url, {
                 remote_task: {
                     task_vectordb: "refresh_catalog_entry",

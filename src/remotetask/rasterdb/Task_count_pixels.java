@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -17,6 +16,7 @@ import rasterunit.BandKey;
 import rasterunit.RasterUnit;
 import rasterunit.Tile;
 import rasterunit.TileKey;
+import remotetask.Context;
 import remotetask.RemoteTask;
 
 @task_rasterdb("count_pixels")
@@ -26,9 +26,9 @@ public class Task_count_pixels extends RemoteTask {
 	private final Broker broker;
 	private final JSONObject task;
 
-	public Task_count_pixels(Broker broker, JSONObject task, UserIdentity userIdentity) {
-		this.broker = broker;
-		this.task = task;
+	public Task_count_pixels(Context ctx) {
+		this.broker = ctx.broker;
+		this.task = ctx.task;
 	}
 
 	@Override

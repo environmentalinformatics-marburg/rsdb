@@ -44,7 +44,7 @@ public class RunImport {
 	 * currently not recursive
 	 * @param dir
 	 */
-	private void loadDirectory(Path dir) {
+	public void loadDirectory(Path dir) {
 		try {
 			DirectoryStream<Path> filesStream = Files.newDirectoryStream(dir);
 			List<Path> files = new ArrayList<Path>();

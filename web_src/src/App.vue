@@ -4,7 +4,7 @@
     <div class="grid-item-head">
       <v-tabs dark color="blue-grey lighten-1" slider-color="yellow">
         <v-tab v-for="tab in tabs" :key="tab.name" :to="'/' + (tab.target === undefined ? tab.name : tab.target)" ripple replace>
-              {{tab.title}}
+          {{tab.title}}
         </v-tab>
       </v-tabs>
     </div>

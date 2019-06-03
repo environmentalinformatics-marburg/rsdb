@@ -17,6 +17,10 @@ import adminViewer from './components/admin-viewer.vue'
 import adminUpload from './components/admin-upload.vue'
 import adminAccounts from './components/admin-accounts.vue'
 import adminTools from './components/admin-tools.vue'
+import adminToolsInfo from './components/admin-tools-info.vue'
+import adminToolsStatus from './components/admin-tools-status.vue'
+import adminToolsTask from './components/admin-tools-task.vue'
+
 import adminFiles from './components/admin-files.vue'
 import adminVectorviewer from './components/admin-vectorviewer.vue'
 
@@ -42,7 +46,15 @@ export default new Router({
     {path: '/viewer/:rasterdb?', component: adminViewer, props: (route) => ({ rasterdb: route.params.rasterdb,  timestamp: route.query.timestamp, product: route.query.product })},
     {path: '/upload', component: adminUpload}, 
     {path: '/accounts', component: adminAccounts},
-    {path: '/tools', component: adminTools},
+    {path: '/tools', component: adminTools,
+      children: [
+        {path: 'info', component: adminToolsInfo},
+        {path: 'status', component: adminToolsStatus},
+        {path: 'task', component: adminToolsTask},
+        {path: '*', redirect: 'info' },
+        {path: '', redirect: 'info' },
+      ],    
+    },
     {path: '/files', component: adminFiles},  
     {path: '/vectorviewer/:vectordb?', component: adminVectorviewer, props: true},
     {path: '*', redirect: '/' },

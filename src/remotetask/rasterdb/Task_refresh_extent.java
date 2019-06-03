@@ -2,11 +2,11 @@ package remotetask.rasterdb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 
 import broker.Broker;
 import rasterdb.RasterDB;
+import remotetask.Context;
 import remotetask.RemoteTask;
 import util.Range2d;
 
@@ -17,9 +17,9 @@ public class Task_refresh_extent extends RemoteTask {
 	private final Broker broker;
 	private final JSONObject task;
 
-	public Task_refresh_extent(Broker broker, JSONObject task, UserIdentity userIdentity) {
-		this.broker = broker;
-		this.task = task;
+	public Task_refresh_extent(Context ctx) {
+		this.broker = ctx.broker;
+		this.task = ctx.task;
 	}
 
 	@Override

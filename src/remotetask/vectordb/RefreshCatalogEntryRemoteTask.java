@@ -1,11 +1,8 @@
 package remotetask.vectordb;
 
-import org.eclipse.jetty.server.UserIdentity;
-import org.json.JSONObject;
-
 import broker.Broker;
+import remotetask.Context;
 import remotetask.RemoteTask;
-import remotetask.rasterdb.task_rasterdb;
 import vectordb.VectorDB;
 
 @task_vectordb("refresh_catalog_entry")
@@ -14,11 +11,11 @@ public class RefreshCatalogEntryRemoteTask extends RemoteTask {
 	private final Broker broker;
 	private VectorDB vectordb;
 	
-	public RefreshCatalogEntryRemoteTask(Broker broker, JSONObject args, UserIdentity userIdentity) {
-		this.broker = broker;
-		String name = args.getString("vectordb");
+	public RefreshCatalogEntryRemoteTask(Context ctx) {
+		this.broker = ctx.broker;
+		String name = ctx.task.getString("vectordb");
 		this.vectordb =  broker.getVectorDB(name);
-		vectordb.checkMod(userIdentity);
+		vectordb.checkMod(ctx.userIdentity);
 	}	
 
 	@Override

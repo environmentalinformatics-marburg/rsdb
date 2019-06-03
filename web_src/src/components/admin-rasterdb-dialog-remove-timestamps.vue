@@ -66,7 +66,7 @@ export default {
 
         execute() {
             var self = this;
-            var url = this.$store.getters.apiUrl('api/insert_remote_task');
+            var url = this.$store.getters.apiUrl('api/remote_tasks');
             var ts = this.timestamps.filter(t=>t.remove).map(t=>t.timestamp);
             axios.post(url, {
                 remote_task: {
