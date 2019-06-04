@@ -338,6 +338,7 @@ public class Terminal {
 
 
 	public static String[] mergeQuote(String[] args) {
+		log.info("merge " + Arrays.toString(args));
 		ArrayList<String> result = new ArrayList<String>();
 		boolean quoteOne = false;
 		boolean quoteTwo = false;

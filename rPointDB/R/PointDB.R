@@ -279,7 +279,11 @@ PointDB_private <- list( # **************** private *********************
 #'
 #'  \item \strong{\code{"classification=n"}}
 #'
-#'  returns all points that are classified n.
+#'  returns all points that are classified n. Multiple classes are separated by _
+#'  
+#'  example: filter="classification=1" returns alle point that are of class 1.
+#'  
+#'  example: filter="classification=1_2_4" returns alle point that are of class 1 or 2 or 4.
 #' }
 #'
 #' Filters can be conjunctive combined with "\code{;}" separator or as elements of a list. Currently no spaces are allowed in the filter expressions.

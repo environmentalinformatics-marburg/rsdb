@@ -2,11 +2,22 @@
 title: Tasks
 ---
 
-Tasks specify instructions to be executed on RSDB server. They are grouped into categories: *task_rasterdb*, *task_pointdb*, *task_pointcloud*, *task_vectordb*
+Tasks specify instructions to be executed on RSDB server. They are grouped into categories: 
 
-One mode of operation for tasks is in offline mode: RSDB server is stopped and instruction is send by command line. e.g.
+* task_rasterdb
+* task_pointdb
+* task_pointcloud
+* task_vectordb
+
+One mode to run tasks is in offline mode: RSDB server is stopped and instruction is send by command line. Command format is `./rsdb.sh task '{MY_TASK_PARAMETERS}'` 
+Note the single quote around '{MY_TASK_PARAMETERS}' to preserve double quotes inside.
+
+{MY_TASK_PARAMETERS} is a JSON-Object with properties of the task.
+
+examples
 ~~~bash
-./rsdb.sh task {task_pointdb: "to_pointcloud", pointdb: "area", pointcloud: "cloud", transactions: false}
+./rsdb.sh task '{task_pointdb: "import", pointdb: "layer1", source: "/media/lidar_data"}'
+./rsdb.sh task '{task_pointdb: "rasterize", pointdb: "layer1", rasterdb: "layer1_rasterized"}'
 ~~~
 
 ---
@@ -60,7 +71,7 @@ pointdb properties needs to be specified in [config.yaml](../config.yaml). Targe
 | **source** | source directory with las/laz files as absolute path or relative to rsdb root folder path|
 
 ~~~json
-{task_pointdb: "import", pointdb: "layer1", source: "/las"}
+{task_pointdb: "import", pointdb: "layer1", source: "/media/lidar_data"}
 ~~~
 
 ### task_pointdb: **"rasterize"**
