@@ -8,13 +8,20 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.RasterDBimporter;
 import remotetask.Context;
+import remotetask.Description;
+import remotetask.Param;
 import remotetask.RemoteTask;
 
 @task_rasterdb("import")
+@Description("import raster file data into rasterdb layer")
+@Param(name="rasterdb", desc="ID of RasterDB layer (new or existing)")
+@Param(name="file", desc="Raster file to import (located on server)")
+@Param(name="band", desc="existing band number as import target", required=false)
 public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
@@ -24,6 +31,7 @@ public class Task_import extends RemoteTask {
 	public Task_import(Context ctx) {
 		this.broker = ctx.broker;
 		this.task = ctx.task;
+		EmptyACL.ADMIN.check(ctx.userIdentity);
 	}
 
 	@Override

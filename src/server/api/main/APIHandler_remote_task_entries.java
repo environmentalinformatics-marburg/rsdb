@@ -14,6 +14,8 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import remotetask.RemoteTask;
+import remotetask.RemoteTaskInfo;
+import remotetask.RemoteTaskParameter;
 import remotetask.RemoteTasks;
 import server.api.APIHandler;
 
@@ -49,19 +51,37 @@ public class APIHandler_remote_task_entries extends APIHandler {
 		res.object();
 		res.key("remote_task_categories");
 		res.array();		
-		Map<String, TreeMap<String, Constructor<? extends RemoteTask>>> map = RemoteTasks.list();
-		for(Entry<String, TreeMap<String, Constructor<? extends RemoteTask>>> eCat:map.entrySet()) {
+		Map<String, TreeMap<String, RemoteTaskInfo>> map = RemoteTasks.list();
+		for(Entry<String, TreeMap<String, RemoteTaskInfo>> eCat:map.entrySet()) {
 			String task_category = eCat.getKey();
 			res.object();
 			res.key("category");
 			res.value(task_category);
 			res.key("remote_task_entries");
 			res.array();
-			for(Entry<String, Constructor<? extends RemoteTask>> e:eCat.getValue().entrySet()) {
-				String name = e.getKey();
+			for(RemoteTaskInfo rti:eCat.getValue().values()) {
 				res.object();
 				res.key("name");
-				res.value(name);
+				res.value(rti.name);
+				if(!rti.description.isEmpty()) {
+					res.key("description");
+					res.value(rti.description);
+				}
+				res.key("params");
+				res.array();
+				for(RemoteTaskParameter param:rti.params) {
+					res.object();
+					res.key("name");
+					res.value(param.name);
+					res.key("type");
+					res.value(param.type);
+					res.key("desc");
+					res.value(param.desc);
+					res.key("required");
+					res.value(param.required);
+					res.endObject();
+				}
+				res.endArray();
 				res.endObject();				
 			}
 			res.endArray();

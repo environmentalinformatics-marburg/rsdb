@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.acl.EmptyACL;
 import pointcloud.CellTable;
 import pointcloud.DoublePoint;
 import pointcloud.PointCloud;
@@ -30,6 +31,7 @@ public class Task_to_pointcloud extends RemoteTask{
 
 	private final Broker broker;
 	private final JSONObject task;
+	private final PointDB pointdb;
 
 	public static class Commiter implements AutoCloseable {
 		public static final int maxTileWriteCount = 512;
@@ -88,16 +90,18 @@ public class Task_to_pointcloud extends RemoteTask{
 	public Task_to_pointcloud(Context ctx) {
 		this.broker = ctx.broker;
 		this.task = ctx.task;
+		if(!task.has("pointdb")) {
+			throw new RuntimeException("missing parameter 'pointdb'");
+		}
+		String pointdb_name = task.getString("pointdb");
+		pointdb = broker.getPointdb(pointdb_name);
+		pointdb.config.getAcl().check(ctx.userIdentity);
+		EmptyACL.ADMIN.check(ctx.userIdentity);
 	}
 
 	@Override
 	public void process() {
-		try {
-			if(!task.has("pointdb")) {
-				throw new RuntimeException("missing parameter 'pointdb'");
-			}
-			String pointdb_name = task.getString("pointdb");
-			PointDB pointdb = broker.getPointdb(pointdb_name);
+		try {			
 			if(!task.has("pointcloud")) {
 				throw new RuntimeException("missing parameter 'pointcloud'");
 			}

@@ -4,6 +4,7 @@
     <div class="grid-item-head">
       <v-tabs dark color="blue-grey lighten-1" slider-color="yellow">
         <v-tab v-for="tab in tabs" :key="tab.name" :to="'/' + (tab.target === undefined ? tab.name : tab.target)" ripple replace>
+          <v-icon v-if="tab.icon !== undefined">{{tab.icon}}</v-icon>
           {{tab.title}}
         </v-tab>
       </v-tabs>
@@ -35,23 +36,19 @@ export default {
   methods: {
   },
   computed: {
-      ...mapGetters({
+    ...mapGetters({
       isAdmin: 'identity/isAdmin',
     }),
     tabs() {
-      var tabs = [
-        {name: 'overview', title: 'Overview', target: ''},
-        {name: 'layers', title: 'Layers'},
-        {name: 'explorer', title: 'Explorer'},
-        {name: 'viewer', title: 'Viewer'},   
-        {name: 'upload', title: 'Upload'},
-      ];
-      if(this.isAdmin) {
-        tabs.push({name: 'accounts', title: 'Accounts'});
-      }
-      tabs.push({name: 'tools', title: 'Tools'});
-      tabs.push({name: 'vectorviewer', title: 'VectorViewer'});
-      tabs.push({name: 'files', title: 'Files'});
+      var tabs = [];
+      tabs.push({name: 'overview', title: 'Overview', target: '', icon: 'home'});
+      tabs.push({name: 'layers', title: 'Layers', icon: 'photo_album'});
+      tabs.push({name: 'explorer', title: 'Explorer', icon: 'vpn_lock'});
+      tabs.push({name: 'viewer', title: 'Viewer', icon: 'satellite'});
+      tabs.push({name: 'vectorviewer', title: 'VectorViewer', icon: 'map'});
+      tabs.push({name: 'upload', title: 'Upload', icon: 'cloud_upload'});
+      tabs.push({name: 'files', title: 'Files', icon: 'attachment'});
+      tabs.push({name: 'tools', title: 'Tools', icon: 'build'});
       return tabs;
     },
     isInternetExplorer() {

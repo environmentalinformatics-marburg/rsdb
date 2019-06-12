@@ -52,7 +52,7 @@
             {{setErrorMessage}}
             <v-btn flat class="pink--text" @click.native="setError = false">Close</v-btn>
         </v-snackbar>
-        <admin-task-console :id="remote_task_id" @done="$emit('changed');" @error="$emit('changed');" />
+        <admin-task-console :id="remote_task_id" closeOnDone @done="$emit('changed');" @error="$emit('changed');" />
     </span>
 </template>
 

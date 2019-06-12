@@ -45,6 +45,7 @@ import rasterdb.RasterDBimporter;
 import remotetask.Context;
 import remotetask.RemoteTask;
 import remotetask.RemoteTaskExecutor;
+import remotetask.RemoteTaskInfo;
 import remotetask.RemoteTasks;
 import server.RunServer;
 import util.TimeUtil;
@@ -912,12 +913,11 @@ public class Terminal {
 	public static void command_tasks(String[] args) {
 		log.info("command_tasks " + Arrays.toString(args));
 		if(args.length == 1) {
-			Map<String, TreeMap<String, Constructor<? extends RemoteTask>>> map = RemoteTasks.list();
-			for(Entry<String, TreeMap<String, Constructor<? extends RemoteTask>>> eCat:map.entrySet()) {
+			Map<String, TreeMap<String, RemoteTaskInfo>> map = RemoteTasks.list();
+			for(Entry<String, TreeMap<String, RemoteTaskInfo>> eCat:map.entrySet()) {
 				String task_category = eCat.getKey();
-				for(Entry<String, Constructor<? extends RemoteTask>> e:eCat.getValue().entrySet()) {
-					String name = e.getKey();
-					System.out.println(task_category+":\t\t" + name);
+				for(RemoteTaskInfo rti:eCat.getValue().values()) {
+					System.out.println(task_category+":\t\t" + rti.name);
 				}
 			}
 		} else {

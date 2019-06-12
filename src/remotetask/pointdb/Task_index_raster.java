@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.acl.EmptyACL;
 import pointdb.PointDB;
 import pointdb.base.PdbConst;
 import pointdb.base.Rect;
@@ -21,6 +22,8 @@ import rasterdb.TilePixel;
 import rasterdb.TimeBandProcessor;
 import rasterunit.RasterUnit;
 import remotetask.Context;
+import remotetask.Description;
+import remotetask.Param;
 import remotetask.RemoteTask;
 import util.BlokingTaskSubmitter;
 import util.BlokingTaskSubmitter.PhasedTask;
@@ -29,21 +32,30 @@ import util.Timer;
 import util.frame.BooleanFrame;
 
 @task_pointdb("index_raster")
+@Description("create raster of pointcloud with index metrics calculations. Existing target RasterDB layer is needed.")
+@Param(name="pointdb", desc="ID of PointDB layer (source)")
+@Param(name="rasterdb", type="rasterdb", desc="existing ID of RasterDB layer (target)")
+@Param(name="indices",  desc="list of indices")
+@Param(name="rect",  desc="extent to process")
+@Param(name="mask_band",  desc="band number of mask in RasterDB layer", required=false)
 public class Task_index_raster extends RemoteTask{
 	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
 	private final JSONObject task;
+	private final PointDB pointdb;
 
 	public Task_index_raster(Context ctx) {
 		this.broker = ctx.broker;
 		this.task = ctx.task;
+		String name = task.getString("pointdb");
+		pointdb = broker.getPointdb(name);
+		pointdb.config.getAcl().check(ctx.userIdentity);
+		EmptyACL.ADMIN.check(ctx.userIdentity);
 	}
 
 	@Override
 	public void process() {
-		String name = task.getString("pointdb");
-		PointDB pointdb = broker.getPointdb(name);
 		String rasterdb_name = task.getString("rasterdb");
 		RasterDB rasterdb = broker.getRasterdb(rasterdb_name);		
 		JSONArray indices_text = task.getJSONArray("indices");

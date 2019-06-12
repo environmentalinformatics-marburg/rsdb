@@ -24,16 +24,17 @@ import remotetask.rasterdb.Task_refresh_extent;
 import remotetask.rasterdb.task_rasterdb;
 import remotetask.vectordb.RefreshCatalogEntryRemoteTask;
 import remotetask.vectordb.task_vectordb;
+import util.collections.vec.Vec;
 
 public class RemoteTasks {
 	private static final Logger log = LogManager.getLogger();
-	
-	private static final Class<?>[] CONSTRUCTOR_ARGS = new Class[] {Context.class};
 
-	final static Map<String, Constructor<? extends RemoteTask>> task_rasterdbMap = new ConcurrentHashMap<>();
-	final static Map<String, Constructor<? extends RemoteTask>> task_pointdbMap = new ConcurrentHashMap<>();
-	final static Map<String, Constructor<? extends RemoteTask>> task_pointcloudMap = new ConcurrentHashMap<>();
-	final static Map<String, Constructor<? extends RemoteTask>> task_vectordbMap = new ConcurrentHashMap<>();
+	private static final Class<?>[] CONSTRUCTOR_ARGS = new Class[] {Context.class};
+	
+	final static Map<String, RemoteTaskInfo> task_rasterdbMap = new ConcurrentHashMap<>();
+	final static Map<String, RemoteTaskInfo> task_pointdbMap = new ConcurrentHashMap<>();
+	final static Map<String, RemoteTaskInfo> task_pointcloudMap = new ConcurrentHashMap<>();
+	final static Map<String, RemoteTaskInfo> task_vectordbMap = new ConcurrentHashMap<>();
 
 	static {
 		//task_rasterdb
@@ -50,7 +51,7 @@ public class RemoteTasks {
 		put(remotetask.pointdb.Task_rasterize.class);
 		put(Task_index_raster.class);
 		put(Task_to_pointcloud.class);
-		
+
 		//task_pointcloud
 		put(Task_rasterize.class);
 
@@ -58,16 +59,16 @@ public class RemoteTasks {
 		put(RefreshCatalogEntryRemoteTask.class);
 	}
 	
-	private static <T extends RemoteTask> void put(Class<T> clazz) {
+	private static void put(Class<? extends RemoteTask> clazz) {
 		boolean inserted = false;
 		if(clazz.isAnnotationPresent(task_rasterdb.class)) {
 			try {
 				String name = clazz.getAnnotation(task_rasterdb.class).value();
-				Constructor<T> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
+				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_rasterdbMap.containsKey(name)) {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}
-				task_rasterdbMap.put(name, constructor);
+				task_rasterdbMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
 				log.error("could not put task: "+ clazz.getName() + e);
@@ -77,25 +78,25 @@ public class RemoteTasks {
 		if(clazz.isAnnotationPresent(task_pointdb.class)) {
 			try {
 				String name = clazz.getAnnotation(task_pointdb.class).value();
-				Constructor<T> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
+				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_pointdbMap.containsKey(name)) {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}
-				task_pointdbMap.put(name, constructor);
+				task_pointdbMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
 				log.error("could not put task: "+ clazz.getName() + e);
 			}
 		}
-		
+
 		if(clazz.isAnnotationPresent(task_pointcloud.class)) {
 			try {
 				String name = clazz.getAnnotation(task_pointcloud.class).value();
-				Constructor<T> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
+				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_pointcloudMap.containsKey(name)) {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}
-				task_pointcloudMap.put(name, constructor);
+				task_pointcloudMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
 				log.error("could not put task: "+ clazz.getName() + e);
@@ -105,11 +106,11 @@ public class RemoteTasks {
 		if(clazz.isAnnotationPresent(task_vectordb.class)) {
 			try {
 				String name = clazz.getAnnotation(task_vectordb.class).value();
-				Constructor<T> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
+				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_vectordbMap.containsKey(name)) {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}
-				task_vectordbMap.put(name, constructor);
+				task_vectordbMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
 				log.error("could not put task: "+ clazz.getName() + e);
@@ -121,14 +122,41 @@ public class RemoteTasks {
 		}
 	}
 	
-	private static TreeMap<String, Constructor<? extends RemoteTask>> collectAsTreeMap(Map<String, Constructor<? extends RemoteTask>> map) {
-		TreeMap<String, Constructor<? extends RemoteTask>> m = new TreeMap<>();
+	private static RemoteTaskInfo createRTI(Class<? extends RemoteTask> clazz, String name) throws NoSuchMethodException, SecurityException {
+		Constructor<? extends RemoteTask> constructor = clazz.getDeclaredConstructor(CONSTRUCTOR_ARGS);
+		String description = getTaskDescription(clazz);
+		Vec<RemoteTaskParameter> params = getParams(clazz);
+		return new RemoteTaskInfo(name, constructor, description, params);		
+	}
+
+	private static String getTaskDescription(Class<?> clazz) {
+		if(clazz.isAnnotationPresent(Description.class)) {
+			return clazz.getAnnotation(Description.class).value();
+		} else {
+			return "";
+		}
+	}
+	
+	private static Vec<RemoteTaskParameter> getParams(Class<?> clazz) {
+		log.info("getParams");
+		Vec<RemoteTaskParameter> params = new Vec<RemoteTaskParameter>();
+		Param[] ps = clazz.getAnnotationsByType(Param.class);
+		for(Param p:ps) {
+			RemoteTaskParameter param = RemoteTaskParameter.of(p);
+			log.info("add param");
+			params.add(param);
+		}
+		return params;
+	}
+
+	private static TreeMap<String, RemoteTaskInfo> collectAsTreeMap(Map<String, RemoteTaskInfo> map) {
+		TreeMap<String, RemoteTaskInfo> m = new TreeMap<>();
 		m.putAll(map);
 		return m;
 	}
-	
-	public static Map<String, TreeMap<String, Constructor<? extends RemoteTask>>> list() {
-		LinkedHashMap<String,TreeMap<String, Constructor<? extends RemoteTask>>> map = new LinkedHashMap<>();
+
+	public static Map<String, TreeMap<String, RemoteTaskInfo>> list() {
+		LinkedHashMap<String,TreeMap<String, RemoteTaskInfo>> map = new LinkedHashMap<>();
 		map.put("task_rasterdb", collectAsTreeMap(task_rasterdbMap));
 		map.put("task_pointdb", collectAsTreeMap(task_pointdbMap));
 		map.put("task_pointcloud", collectAsTreeMap(task_pointcloudMap));

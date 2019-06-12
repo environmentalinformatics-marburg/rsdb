@@ -2,11 +2,16 @@ package remotetask.rasterdb;
 
 import rasterdb.RasterDB;
 import remotetask.Context;
+import remotetask.Description;
+import remotetask.Param;
 import remotetask.RemoteTask;
 import util.JsonUtil;
 import util.TimeUtil;
 
 @task_rasterdb("remove_timestamps")
+@Description("Remove all pixel data of all bands at some timestamps")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer")
+@Param(name="timestamps", desc="array of integer timestamps")
 public class RemoveTimestampsRemoteTask extends RemoteTask {
 
 	//private final Broker broker;

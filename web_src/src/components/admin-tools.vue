@@ -1,15 +1,18 @@
 <template>
 <div class="tools-grid-container">
-<v-tabs color="grey" slider-color="yellow" show-arrows>
-  <v-tab to="/tools/info">Info</v-tab>
-  <v-tab to="/tools/status">Status</v-tab>
-  <v-tab to="/tools/task">Task</v-tab>  
+<v-tabs color="grey lighten-1" slider-color="yellow" show-arrows class="sub-tab-bar">
+  <v-tab to="/tools/info"><v-icon>view_compact</v-icon> Info</v-tab>
+  <v-tab to="/tools/status"><v-icon>schedule</v-icon> Status</v-tab>
+  <v-tab to="/tools/task"><v-icon>card_travel</v-icon> Task</v-tab>  
+  <v-tab to="/tools/accounts" v-if="isAdmin"><v-icon>contact_mail</v-icon> Accounts</v-tab> 
 </v-tabs>
 <router-view class="tools-grid-item-content" /> 
 </div>
 </template>
 
 <script>
+
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'admin-tools',
@@ -22,6 +25,9 @@ export default {
   methods: {
   },
   computed: {
+    ...mapGetters({
+      isAdmin: 'identity/isAdmin',
+    }),
   },
   mounted() {
   },
@@ -30,6 +36,12 @@ export default {
 </script>
 
 <style scoped>
+
+.sub-tab-bar {
+  border-bottom-color: #5e666b;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
 
 .tools-grid-container {
   display: grid;

@@ -3,12 +3,21 @@ package remotetask.rasterdb;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.acl.EmptyACL;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import remotetask.Context;
+import remotetask.Description;
+import remotetask.Param;
 import remotetask.RemoteTask;
 
 @task_rasterdb("create")
+@Description("create new rasterdb layer.")
+@Param(name="rasterdb", desc="ID of new RasterDB layer")
+@Param(name="pixel_size", desc="", required=false)
+@Param(name="offset", desc="", required=false)
+@Param(name="code", desc="", required=false)
+@Param(name="proj4", desc="", required=false)
 public class Task_create extends RemoteTask {
 	
 	private final Broker broker;
@@ -17,6 +26,7 @@ public class Task_create extends RemoteTask {
 	public Task_create(Context ctx) {
 		this.broker = ctx.broker;
 		this.task = ctx.task;
+		EmptyACL.ADMIN.check(ctx.userIdentity);
 	}
 
 	@Override

@@ -45,12 +45,12 @@ export default new Router({
     {path: '/explorer', component: adminExplorer},
     {path: '/viewer/:rasterdb?', component: adminViewer, props: (route) => ({ rasterdb: route.params.rasterdb,  timestamp: route.query.timestamp, product: route.query.product })},
     {path: '/upload', component: adminUpload}, 
-    {path: '/accounts', component: adminAccounts},
     {path: '/tools', component: adminTools,
       children: [
         {path: 'info', component: adminToolsInfo},
         {path: 'status', component: adminToolsStatus},
         {path: 'task', component: adminToolsTask},
+        {path: 'accounts', component: adminAccounts},
         {path: '*', redirect: 'info' },
         {path: '', redirect: 'info' },
       ],    

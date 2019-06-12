@@ -5,6 +5,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -23,7 +25,7 @@ import util.Web;
  *
  */
 public class APIHandler_accounts extends APIHandler {
-	//private static final Logger log = LogManager.getLogger();
+	private static final Logger log = LogManager.getLogger();
 	
 	public APIHandler_accounts(Broker broker) {
 		super(broker, "accounts");
@@ -39,7 +41,11 @@ public class APIHandler_accounts extends APIHandler {
 		json.key("accounts");
 		json.array();
 		DynamicPropertyUserStore userStore = broker.getUserStore();
+		try {
 		userStore.reloadAccounts();
+		} catch (Exception e) {
+			log.warn(e);
+		}
 		Map<String, UserIdentity> ui = broker.getUserStore().getKnownUserIdentities();
 		for(UserIdentity userIdentity:ui.values()) {
 			json.object();

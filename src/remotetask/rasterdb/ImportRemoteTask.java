@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import broker.Broker;
+import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.ProcessingFloat;
 import rasterdb.ProcessingShort;

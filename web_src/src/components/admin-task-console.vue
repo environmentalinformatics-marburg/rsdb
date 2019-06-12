@@ -12,6 +12,8 @@
                     <v-spacer></v-spacer>
                     <span v-if="status === 'error'">error {{setErrorMessage}} <v-btn class="green--text darken-1" flat="flat" @click.native="dialog = false">Close</v-btn></span>
                 </v-card-actions>
+                <span style="color: grey;"><v-icon>event_note</v-icon> Click outside of this box to close it. 
+                <br>Task continues to run and can be viewed on status view.</span>
             </v-card>
         </v-dialog>
         <v-snackbar v-model="setError" :top="true">
@@ -28,7 +30,7 @@ import axios from 'axios'
 
 export default {
     name: 'admin-task-console',
-    props: ['id'],
+    props: {'id': Number, 'closeOnDone': Boolean},
     data() {
         return {
             dialog: false,
@@ -68,7 +70,9 @@ export default {
                 } else {
                     if(self.remote_task.status === 'DONE') {
                         self.status = "done";
-                        self.dialog = false;
+                        if(self.closeOnDone) {
+                            self.dialog = false;
+                        }
                         self.$emit('done');
                     } else {
                         self.status = "error";

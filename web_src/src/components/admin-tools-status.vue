@@ -4,7 +4,7 @@
        <v-btn flat icon color="green" @click="refresh()" title="refresh status">
           <v-icon>refresh</v-icon>
         </v-btn>
-      <table>
+      <table class="table-status">
         <thead>
           <tr>
             <th>ID</th>
@@ -18,7 +18,13 @@
           <tr v-for="remote_task in data" :key="remote_task.id">
             <td>{{remote_task.id}}</td>
             <td>{{remote_task.name}}</td>
-            <td><v-icon v-if="remote_task.status === 'DONE'">done</v-icon>({{remote_task.status}})</td>
+            <td>
+              <v-icon v-if="remote_task.status === 'READY'" color="yellow">directions_walk</v-icon>
+              <v-icon v-if="remote_task.status === 'RUNNING'" color="black">directions_run</v-icon>
+              <v-icon v-if="remote_task.status === 'DONE'" color="green">done</v-icon>
+              <v-icon v-if="remote_task.status === 'ERROR'" color="red">error</v-icon>
+              {{remote_task.status}}
+            </td>
             <td>{{remote_task.message}}</td>
             <td>{{(remote_task.runtime / 1000).toFixed(3)}}s</td>
           </tr>
@@ -106,4 +112,48 @@ export default {
   padding: 0;
   overflow-y: auto;
 }
+
+.table-status th {
+  font-weight: bold;
+  color: #4c4d62;
+  font-size: 1.2em;
+  background-color: #e6e6e6;
+}
+
+.table-status td:nth-child(1) {
+  color: grey;
+  background-color: #d9e3f6;
+}
+
+.table-status td:nth-child(2) {
+  font-weight: bold;
+}
+
+.table-status td:nth-child(3) {
+  font-size: 0.8em;
+  background-color: #b4b16f2e;
+}
+
+.table-status td:nth-child(4) {
+  font-size: 1em;
+  background-color: #ffffffa6;
+}
+
+.table-status td:nth-child(5) {
+  font-size: 1em;
+  background-color: #b4b16f2e;
+  font-family: monospace;
+  text-align: right;
+}
+
+.table-status td {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.table-status tr:hover {
+  background-color: #0000003f;
+}
+
+
 </style>

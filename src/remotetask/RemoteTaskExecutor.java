@@ -1,6 +1,5 @@
 package remotetask;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
@@ -10,70 +9,58 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.UserIdentity;
-import org.json.JSONObject;
-
-import broker.Broker;
 
 public class RemoteTaskExecutor {
 	private static final Logger log = LogManager.getLogger();
 
 	private final static Map<Long, RemoteTask> executingTaskMap = new ConcurrentHashMap<>();
 	
+	public static RemoteTask createTask_RemoteTask(RemoteTaskInfo rti, Context ctx) {
+		try {
+			RemoteTask remoteTask = rti.constructor.newInstance(ctx);
+			return remoteTask;
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			if(cause == null) {
+				throw new RuntimeException(e);
+			} else {
+				throw new RuntimeException(cause);
+			}
+		}
+	}
+	
 	public static RemoteTask createTask_rasterdb(String name, Context ctx) {
-		Constructor<? extends RemoteTask> constructor = RemoteTasks.task_rasterdbMap.get(name);
-		if(constructor == null) {
+		RemoteTaskInfo rti = RemoteTasks.task_rasterdbMap.get(name);
+		if(rti == null) {
 			throw new RuntimeException("rasterdb_task not found: " + name);
 		}
-		try {
-			RemoteTask remoteTask = constructor.newInstance(ctx);
-			return remoteTask;
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
+		return createTask_RemoteTask(rti, ctx);
 	}
 	
 	public static RemoteTask createTask_pointdb(String name, Context ctx) {
-		Constructor<? extends RemoteTask> constructor = RemoteTasks.task_pointdbMap.get(name);
-		if(constructor == null) {
+		RemoteTaskInfo rti = RemoteTasks.task_pointdbMap.get(name);
+		if(rti == null) {
 			throw new RuntimeException("pointdb_task not found: " + name);
 		}
-		try {
-			RemoteTask remoteTask = constructor.newInstance(ctx);
-			return remoteTask;
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
+		return createTask_RemoteTask(rti, ctx);
 	}
 	
 	public static RemoteTask createTask_pointcloud(String name, Context ctx) {
-		Constructor<? extends RemoteTask> constructor = RemoteTasks.task_pointcloudMap.get(name);
-		if(constructor == null) {
+		RemoteTaskInfo rti = RemoteTasks.task_pointcloudMap.get(name);
+		if(rti == null) {
 			throw new RuntimeException("pointcloud_task not found: " + name);
 		}
-		try {
-			RemoteTask remoteTask = constructor.newInstance(ctx);
-			return remoteTask;
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
+		return createTask_RemoteTask(rti, ctx);
 	}
 
 	public static RemoteTask createTask_vectordb(String name, Context ctx) {
-		Constructor<? extends RemoteTask> constructor = RemoteTasks.task_vectordbMap.get(name);
-		if(constructor == null) {
+		RemoteTaskInfo rti = RemoteTasks.task_vectordbMap.get(name);
+		if(rti == null) {
 			throw new RuntimeException("vectordb_task not found: " + name);
 		}
-		try {
-			RemoteTask remoteTask = constructor.newInstance(ctx);
-			return remoteTask;
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
+		return createTask_RemoteTask(rti, ctx);
 	}
 
 	public static RemoteTask createTask(Context ctx) {
