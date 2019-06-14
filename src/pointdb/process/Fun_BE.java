@@ -369,14 +369,18 @@ public class Fun_BE {
 	}
 
 	@Tag("PR_strata")
-	@Description("Penetration rate of canopy vegetation layer (redirects to BE_RD_CAN) (based on point height above ground)")
+	@Description("Penetration rate (pass through rate) of canopy vegetation layer (based on point height above ground)")
 	static class Fun_BE_PR_CAN extends Fun_BE_RD_CAN {
 		public static final Fun_BE_PR_CAN DEFAULT = new Fun_BE_PR_CAN(); 
+		@Override
+		public double process(DataProvider2 provider) {
+			return 1d - super.process(provider);
+		}
 	}
 
 
 	@Tag("PR_strata")
-	@Description("Penetration rate of understory vegetation layer (based on point height above ground)")
+	@Description("Penetration rate (pass through rate) of understory vegetation layer (based on point height above ground)")
 	static class Fun_BE_PR_UND extends ProcessingFun {
 		public static final Fun_BE_PR_UND DEFAULT = new Fun_BE_PR_UND(); 
 		@Override
@@ -417,12 +421,12 @@ public class Fun_BE {
 			if(reach==0) {
 				return Double.NaN;
 			}
-			return cnt/reach;
+			return 1d - cnt/reach;
 		}
 	}
 
 	@Tag("PR_strata")
-	@Description("Penetration rate of regeneration vegetation layer (based on point height above ground)")
+	@Description("Penetration rate (pass through rate) of regeneration vegetation layer (based on point height above ground)")
 	static class Fun_BE_PR_REG extends ProcessingFun {
 		public static final Fun_BE_PR_REG DEFAULT = new Fun_BE_PR_REG(); 
 		@Override
@@ -455,7 +459,7 @@ public class Fun_BE {
 			if(reach==0) {
 				return Double.NaN;
 			}
-			return cnt/reach;
+			return 1d - cnt/reach;
 		}
 	}
 
@@ -503,7 +507,7 @@ public class Fun_BE {
 		private final double hsetMin;
 		private final double hsetMax;
 		public Fun_BE_PR_INTERVAL(int hsetMax) {
-			super("BE_PR_" + (hsetMax<=9 ? "0" : "") + hsetMax, "Penetration rate of "+hsetMax+" meter layer (based on point height above ground)");
+			super("BE_PR_" + (hsetMax<=9 ? "0" : "") + hsetMax, "Penetration rate (pass through rate) of "+hsetMax+" meter layer (based on point height above ground)");
 			this.hsetMin = hsetMax - 1;
 			this.hsetMax = hsetMax;
 		}
@@ -537,7 +541,7 @@ public class Fun_BE {
 			if(reach == 0) {
 				return Double.NaN;
 			}
-			return cnt/reach;
+			return 1d - cnt/reach;
 		}
 	}
 	
