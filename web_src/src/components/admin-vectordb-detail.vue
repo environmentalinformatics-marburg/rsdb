@@ -104,6 +104,7 @@
             <table>
                 <tr><td><b>Proj4:</b></td><td>{{meta.details.proj4}}</td></tr>
                 <tr><td><b>attributes:</b></td><td><span v-for="name in meta.details.attributes" :key="name"><span :class="name === meta.name_attribute ? 'name-attribute' : 'attributes'">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></td></tr>
+                <tr><td><b>structured access:</b></td><td v-if="!meta.structured_access.poi && !meta.structured_access.roi">none</td><td v-if="meta.structured_access.poi">POI-group</td><td v-if="meta.structured_access.roi">ROI-group</td></tr>
             </table>
             <admin-vectordb-dialog-data-table :meta="meta" @changed="refresh" v-if="modify" />
         </div>
@@ -114,9 +115,11 @@
                 Actions
             </h3>
             <div class="meta-content">
-                <admin-vectordb-upload :meta="meta" @changed="refresh" v-if="modify" />
+                <b>Manage:</b>
+                <admin-vectordb-upload :meta="meta" @changed="refresh" v-if="modify" />                
+                <admin-vectordb-attributes :meta="meta" @changed="refresh" v-if="modify" />                
+                <admin-vectordb-structured-access :meta="meta" @changed="refresh(); $store.dispatch('poi_groups/refresh'); $store.dispatch('roi_groups/refresh');" v-if="modify" />
                 <br>
-                <admin-vectordb-attributes :meta="meta" @changed="refresh" v-if="modify" />
                 <br>
                 <br>
                 <admin-vectordb-delete :meta="meta" @changed="refresh" v-if="modify" />
@@ -137,6 +140,7 @@ import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 import adminVectordbDelete from './admin-vectordb-delete'
 import adminVectordbUpload from './admin-vectordb-upload'
 import adminVectordbAttributes from './admin-vectordb-attributes'
+import adminVectordbStructuredAccess from './admin-vectordb-structured-access'
 import adminVectordbDialogSetInfo from './admin-vectordb-dialog-set-info.vue'
 import adminVectordbDialogSetAcl from './admin-vectordb-dialog-set-acl.vue'
 import adminVectordbDialogDataTable from './admin-vectordb-dialog-data-table.vue'
@@ -148,6 +152,7 @@ export default {
         'admin-vectordb-delete': adminVectordbDelete,
         'admin-vectordb-upload': adminVectordbUpload,
         'admin-vectordb-attributes': adminVectordbAttributes,
+        'admin-vectordb-structured-access': adminVectordbStructuredAccess,
         'admin-vectordb-dialog-set-info': adminVectordbDialogSetInfo,
         'admin-vectordb-dialog-set-acl': adminVectordbDialogSetAcl,
         'admin-vectordb-dialog-data-table': adminVectordbDialogDataTable,

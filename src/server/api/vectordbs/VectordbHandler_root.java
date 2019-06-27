@@ -81,6 +81,14 @@ public class VectordbHandler_root extends VectordbHandler {
 			json.key("name_attribute");
 			json.value(vectordb.getNameAttribute());
 			
+			json.key("structured_access");
+			json.object();
+			json.key("poi");
+			json.value(vectordb.getStructuredAccessPOI());
+			json.key("roi");
+			json.value(vectordb.getStructuredAccessROI());
+			json.endObject();
+			
 			/*Vec<Poi> pois = vectordb.getPOIs();
 			json.key("pois");
 			json.array();
@@ -123,7 +131,10 @@ public class VectordbHandler_root extends VectordbHandler {
 	}
 
 	private final static Set<String> POST_PROPS_MANDATORY = Util.of();
-	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "name_attribute");
+	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "name_attribute", "structured_access");
+
+	private final static Set<String> STRUCTURED_ACCESS_PROPS_MANDATORY = Util.of();
+	private final static Set<String> STRUCTURED_ACCESS_PROPS = Util.of("poi", "roi");
 
 	@Override
 	public void handlePOST(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
@@ -136,6 +147,8 @@ public class VectordbHandler_root extends VectordbHandler {
 			boolean writeMeta = false;
 			boolean updateCatalog = false;
 			boolean refreshDatatag = false;
+			boolean refreshPoiGroups = false;
+			boolean refreshRoiGroups = false;
 			while(it.hasNext()) {
 				String key = it.next();
 				switch(key) {
@@ -209,6 +222,23 @@ public class VectordbHandler_root extends VectordbHandler {
 					writeMeta = true;
 					break;
 				}
+				case "structured_access": {
+					JSONObject st = json.getJSONObject("structured_access");
+					Util.checkProps(STRUCTURED_ACCESS_PROPS_MANDATORY, STRUCTURED_ACCESS_PROPS, st);
+					if(st.has("poi")) {
+						vectordb.setStructuredAccessPOI(st.getBoolean("poi"));
+						writeMeta = true;
+						updateCatalog = true;
+						refreshPoiGroups = true;
+					}
+					if(st.has("roi")) {
+						vectordb.setStructuredAccessROI(st.getBoolean("roi"));
+						writeMeta = true;
+						updateCatalog = true;
+						refreshRoiGroups = true;
+					}
+					break;
+				}
 				default: 
 					throw new RuntimeException("unknown key: "+key);
 				}
@@ -222,7 +252,12 @@ public class VectordbHandler_root extends VectordbHandler {
 			if(updateCatalog) {
 				broker.catalog.update(vectordb, false);
 			}
-			
+			if(refreshPoiGroups) {
+				broker.refreshPoiGroupMap();
+			}
+			if(refreshRoiGroups) {
+				broker.refreshRoiGroupMap();
+			}			
 		} catch (Exception e) {
 			e.printStackTrace();
 			log.error(e);

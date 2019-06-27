@@ -22,6 +22,7 @@ import broker.acl.ACL;
 import broker.acl.DynamicPropertyUserStore;
 import broker.acl.EmptyACL;
 import broker.catalog.Catalog;
+import broker.catalog.CatalogKey;
 import broker.group.ExternalGroupConfig;
 import broker.group.Poi;
 import broker.group.PoiGroup;
@@ -53,7 +54,7 @@ public class Broker implements AutoCloseable {
 	private static final Path rasterdb_root = Paths.get("rasterdb");
 	private static final Path pointcloud_root = Paths.get("pointcloud");
 	private static final Path vectordb_root = Paths.get("vectordb");
-	
+
 	private static final Path REALM_PROPERTIES_PATH = Paths.get("realm.properties");
 
 	ConcurrentSkipListMap<String, RasterdbConfig> rasterdbConfigMap = new ConcurrentSkipListMap<String, RasterdbConfig>();
@@ -64,7 +65,7 @@ public class Broker implements AutoCloseable {
 	ConcurrentSkipListMap<String, RasterDB> rasterdbMap = new ConcurrentSkipListMap<String, RasterDB>();
 	ConcurrentSkipListMap<String, PointCloud> pointcloudMap = new ConcurrentSkipListMap<String, PointCloud>();
 	ConcurrentSkipListMap<String, VectorDB> vectordbMap = new ConcurrentSkipListMap<String, VectorDB>();
-	
+
 	TreeMap<String, PoiGroup> poiGroupMap = new TreeMap<String, PoiGroup>();
 	TreeMap<String, RoiGroup> roiGroupMap = new TreeMap<String, RoiGroup>(); 
 	public final Catalog catalog;
@@ -77,41 +78,72 @@ public class Broker implements AutoCloseable {
 			log.info("no config found: config.yaml file missing");
 			brokerConfig = new BrokerConfig(); // empty default config
 		}		
-		loadPoiGroupMap();
-		loadRoiGroupMap();
 		refreshRasterdbConfigs();
 		refreshPointcloudConfigs();
 		refreshVectordbConfigs();
 		this.catalog = new Catalog(this);
+		refreshPoiGroupMap();
+		refreshRoiGroupMap();
 	}
 
 	public Path getPointCloudRoot() {
 		return pointcloud_root;
 	}
 
-	private void loadPoiGroupMap() {
-		Map<String, ExternalGroupConfig> map = brokerConfig.poiGroupMap();
-		for(Entry<String, ExternalGroupConfig> entry:map.entrySet()) {
+	public synchronized void refreshPoiGroupMap() {
+		TreeMap<String, PoiGroup> map = new TreeMap<String, PoiGroup>();
+		Map<String, ExternalGroupConfig> configMap = brokerConfig.poiGroupMap();
+		for(Entry<String, ExternalGroupConfig> entry:configMap.entrySet()) {
 			try {
 				ExternalGroupConfig conf = entry.getValue();
-				poiGroupMap.put(conf.name, new PoiGroup(conf.name, conf.informal, conf.acl, Poi.readPoiCsv(conf.filename)));
+				map.put(conf.name, new PoiGroup(conf.name, conf.informal, conf.acl, Poi.readPoiCsv(conf.filename)));
 			} catch(Exception e) {
 				log.error(e);
 			}
 		}
+
+		catalog.getSorted(CatalogKey.TYPE_VECTORDB, null)
+		.filter(entry -> entry.structuredAccess != null && entry.structuredAccess.poi)
+		.forEachOrdered(entry -> {
+			try {
+				VectorDB vectordb = this.getVectorDB(entry.name);
+				Poi[] pois = vectordb.getPOIs().toArray(Poi[]::new);
+				PoiGroup poiGroup = new PoiGroup(vectordb.getName(), vectordb.informal(), vectordb.getACL(), pois);
+				map.put(poiGroup.name, poiGroup);
+			} catch(Exception e) {
+				log.warn(e);
+			}
+		});
+
+		poiGroupMap = map;
 	}
 
-	private void loadRoiGroupMap() {
-		Map<String, ExternalGroupConfig> map = brokerConfig.roiGroupMap();
-		for(Entry<String, ExternalGroupConfig> entry:map.entrySet()) {
+	public synchronized void refreshRoiGroupMap() {
+		TreeMap<String, RoiGroup> map = new TreeMap<String, RoiGroup>();
+		Map<String, ExternalGroupConfig> configMap = brokerConfig.roiGroupMap();
+		for(Entry<String, ExternalGroupConfig> entry:configMap.entrySet()) {
 			try {
 				ExternalGroupConfig conf = entry.getValue();
-				roiGroupMap.put(conf.name, new RoiGroup(conf.name, conf.informal, conf.acl, Roi.readRoiGeoJSON(Paths.get(conf.filename))));
+				map.put(conf.name, new RoiGroup(conf.name, conf.informal, conf.acl, Roi.readRoiGeoJSON(Paths.get(conf.filename))));
 			} catch(Exception e) {
 				log.error(e);
 			}
 		}
+		
+		catalog.getSorted(CatalogKey.TYPE_VECTORDB, null)
+		.filter(entry -> entry.structuredAccess != null && entry.structuredAccess.roi)
+		.forEachOrdered(entry -> {
+			try {
+				VectorDB vectordb = this.getVectorDB(entry.name);
+				Roi[] rois = vectordb.getROIs().toArray(Roi[]::new);
+				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), vectordb.getACL(), rois);
+				map.put(roiGroup.name, roiGroup);
+			} catch(Exception e) {
+				log.warn(e);
+			}
+		});
 
+		roiGroupMap = map;
 	}
 
 	public Collection<PoiGroup> getPoiGroups() {
@@ -292,7 +324,7 @@ public class Broker implements AutoCloseable {
 			log.error(e);
 		}
 	}
-	
+
 	public void refreshVectordbConfigs() {
 		if(!vectordb_root.toFile().exists()) {
 			log.info("no vectordb layers: vectordb folder missing");
@@ -322,7 +354,7 @@ public class Broker implements AutoCloseable {
 		}
 		return openRasterdb(name);
 	}
-	
+
 	public boolean hasRasterdb(String id) {
 		return rasterdbConfigMap.containsKey(id);
 	}
@@ -362,7 +394,7 @@ public class Broker implements AutoCloseable {
 		rasterdbConfigMap.put(rasterdbConfig.getName(), rasterdbConfig);
 		return getRasterdb(name);
 	}
-	
+
 	public static class RasterDBNotFoundExeption extends PdbException {
 		public RasterDBNotFoundExeption(String message) {
 			super(message);
@@ -381,7 +413,7 @@ public class Broker implements AutoCloseable {
 	public synchronized RasterDB createRasterdb(String name) {
 		return createRasterdb(name, true);
 	}
-	
+
 	public synchronized void closeRasterdb(String name) {
 		log.info("try close rasterdb " + name);
 		RasterDB rasterdb = rasterdbMap.get(name);
@@ -391,7 +423,7 @@ public class Broker implements AutoCloseable {
 			rasterdbMap.remove(name);
 		}
 	}
-	
+
 	public synchronized void closePointCloud(String name) {
 		log.info("try close pointcloud " + name);
 		PointCloud pointcloud = pointcloudMap.get(name);
@@ -401,7 +433,7 @@ public class Broker implements AutoCloseable {
 			pointcloudMap.remove(name);
 		}
 	}
-	
+
 	public synchronized void deleteRasterdb(String name) {
 		Util.checkStrictID(name);
 		log.info("check " + name + "   " + rasterdbMap.get(name));
@@ -430,7 +462,7 @@ public class Broker implements AutoCloseable {
 		refreshRasterdbConfigs();
 		catalog.updateCatalog();
 	}
-	
+
 	public synchronized void deletePointCloud(String name) {
 		log.info("check " + name + "   " + pointcloudMap.get(name));
 		closePointCloud(name);
@@ -551,7 +583,7 @@ public class Broker implements AutoCloseable {
 		DynamicPropertyUserStore us = userStore;
 		return us == null ? openUserStore() : us;
 	}
-	
+
 	private synchronized VectorDB openVectorDB(String name) { // guarantee to load each VectorDB once only
 		VectorDB vectordb = vectordbMap.get(name);
 		if(vectordb != null) {
@@ -572,7 +604,7 @@ public class Broker implements AutoCloseable {
 		}
 		return vectordb;
 	}
-	
+
 	public VectorDB getVectorDB(String name) {
 		VectorDB vectordb = vectordbMap.get(name);
 		if(vectordb != null) {
@@ -580,11 +612,11 @@ public class Broker implements AutoCloseable {
 		}
 		return openVectorDB(name);
 	}
-	
+
 	public NavigableSet<String> getVectordbNames() {
 		return vectordbConfigMap.keySet();
 	}
-	
+
 	public void createVectordb(String name) {
 		if(name == null || name.isEmpty()) {
 			throw new RuntimeException("no name");
@@ -603,7 +635,7 @@ public class Broker implements AutoCloseable {
 		if(!subPath.toFile().mkdir()) {
 			throw new RuntimeException("could not create path");
 		}
-		
+
 		Path dataPath = subPath.resolve("data");
 		if(dataPath.toFile().exists()) {
 			throw new RuntimeException("data path exists");
@@ -616,8 +648,8 @@ public class Broker implements AutoCloseable {
 		refreshVectordbConfigs();
 		catalog.updateCatalog();
 	}
-	
-	
+
+
 	public synchronized void closeVectordb(String name) {
 		VectorDB vectordb = vectordbMap.get(name);
 		if(vectordb != null) {

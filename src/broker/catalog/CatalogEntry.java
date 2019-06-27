@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import broker.Associated;
+import broker.StructuredAccess;
 import broker.acl.ACL;
 import util.JsonUtil;
 
@@ -22,9 +23,10 @@ public class CatalogEntry {
 	public final ACL acl_mod; // not null
 	public final String[] tags;  // not null
 	public final String title; // may be empty
+	public final StructuredAccess structuredAccess; // nullable
 
 	public CatalogEntry(String name, String type, String description, double[][] points, Associated associated,
-			ACL acl, ACL acl_mod, String[] tags, String title) {
+			ACL acl, ACL acl_mod, String[] tags, String title, StructuredAccess structuredAccess) {
 		this.name = name;
 		this.type = type;
 		this.description = description;
@@ -34,10 +36,11 @@ public class CatalogEntry {
 		this.acl_mod = Objects.requireNonNull(acl_mod);
 		this.tags = Objects.requireNonNull(tags);
 		this.title = Objects.requireNonNull(title);
+		this.structuredAccess = structuredAccess;
 	}
 
 	public static CatalogEntry of(CatalogEntry catalogEntry, double[][] points) {
-		return new CatalogEntry(catalogEntry.name, catalogEntry.type, catalogEntry.description, points, catalogEntry.associated, catalogEntry.acl, catalogEntry.acl_mod, catalogEntry.tags, catalogEntry.title);
+		return new CatalogEntry(catalogEntry.name, catalogEntry.type, catalogEntry.description, points, catalogEntry.associated, catalogEntry.acl, catalogEntry.acl_mod, catalogEntry.tags, catalogEntry.title, catalogEntry.structuredAccess);
 	}
 
 	public static CatalogEntry parseJSON(JSONObject json) {
@@ -63,7 +66,8 @@ public class CatalogEntry {
 		ACL acl_mod = ACL.of(JsonUtil.optStringList(json, "acl_mod"));
 		String[] tags = JsonUtil.optStringArray(json, "tags");
 		String title = json.optString("title", "");
-		return new CatalogEntry(name, type, description, points, associated, acl, acl_mod, tags, title);
+		StructuredAccess structuredAccess = json.has("structured_access") ? StructuredAccess.parseJSON(json.getJSONObject("structured_access")) : null;
+		return new CatalogEntry(name, type, description, points, associated, acl, acl_mod, tags, title, structuredAccess);
 	}
 
 	public void writeJSON(JSONWriter json, boolean withACL) {
@@ -101,6 +105,10 @@ public class CatalogEntry {
 			acl.writeJSON(json);
 			json.key("acl_mod");
 			acl_mod.writeJSON(json);
+		}
+		if (structuredAccess != null) {
+			json.key("structured_access");
+			structuredAccess.writeJSON(json);
 		}
 		json.endObject();
 	}
@@ -161,6 +169,11 @@ public class CatalogEntry {
 			if (other.type != null)
 				return false;
 		} else if (!type.equals(other.type))
+			return false;
+		if (structuredAccess == null) {
+			if (other.structuredAccess != null)
+				return false;
+		} else if (!structuredAccess.equals(other.structuredAccess))
 			return false;
 		return true;
 	}

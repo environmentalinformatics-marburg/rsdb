@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -28,14 +29,16 @@ import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
-import org.json.JSONObject;
 import org.json.JSONWriter;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Informal;
+import broker.StructuredAccess;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import broker.group.Poi;
+import broker.group.Roi;
+import pointdb.base.Point2d;
 import server.api.vectordbs.VectordbDetails;
 import util.Util;
 import util.collections.ReadonlyList;
@@ -62,6 +65,9 @@ public class VectorDB {
 	private String nameAttribute = "";
 
 	private String datatag = "";
+
+	private boolean structured_access_poi = false;
+	private boolean structured_access_roi = false;
 
 	public VectorDB(VectordbConfig config) {
 		this.config = config;		
@@ -132,6 +138,10 @@ public class VectorDB {
 		informal.writeYaml(map);
 		map.put("data_filename", dataFilename);
 		map.put("name_attribute", nameAttribute);
+		LinkedHashMap<String, Object> structuredAccessMap = new LinkedHashMap<String, Object>();
+		structuredAccessMap.put("poi", structured_access_poi);
+		structuredAccessMap.put("roi", structured_access_roi);
+		map.put("structured_access", structuredAccessMap);
 	}
 
 	private synchronized void yamlToMeta(YamlMap yamlMap) {
@@ -144,6 +154,9 @@ public class VectorDB {
 		informal = Informal.ofYaml(yamlMap);
 		dataFilename = yamlMap.optString("data_filename", "");
 		nameAttribute = yamlMap.optString("name_attribute", "");
+		YamlMap structuredAccessMap = yamlMap.optMap("structured_access");
+		structured_access_poi = structuredAccessMap.optBoolean("poi", false);
+		structured_access_roi = structuredAccessMap.optBoolean("roi", false);
 	}
 
 	public String getName() {
@@ -161,7 +174,7 @@ public class VectorDB {
 	static {
 		ogr.RegisterAll();
 	}
-	
+
 	public void writeTableJSON(JSONWriter json) {
 		VectordbDetails details = getDetails();
 		ReadonlyList<String> attributes = details.attributes;
@@ -237,14 +250,14 @@ public class VectorDB {
 					sb.append("{\"type\":\"Feature\",\"geometry\":");
 					sb.append(json);
 					String id = "" + cnt++;
-					
+
 					String name = id;
 					if(!getNameAttribute().isEmpty()) {
 						String featureName = feature.GetFieldAsString(getNameAttribute());
 						if(featureName != null) {
 							name = featureName;
 						}
-						
+
 					}
 					//int name = id;
 					sb.append(",\"id\":\"" + id +"\"");
@@ -555,6 +568,7 @@ public class VectorDB {
 		DataSource datasource = getDataSource();
 		try {
 			Vec<Poi> pois = new Vec<Poi>();
+			HashSet<String> poiNames = new HashSet<String>();
 			int layerCount = datasource.GetLayerCount();
 			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
@@ -566,7 +580,16 @@ public class VectorDB {
 						Feature feature = layer.GetNextFeature();
 						while(feature != null) {
 							if(feature.IsFieldSet(fieldIndex)) {
-								String name = feature.GetFieldAsString(fieldIndex);
+								String orgName = feature.GetFieldAsString(fieldIndex);
+								if(orgName.isEmpty()) {
+									orgName = "POI";
+								}
+								String name = orgName;
+								int nameIndex = 1;
+								while(poiNames.contains(name)) {
+									name = orgName + "_" + (++nameIndex);
+								}
+								poiNames.add(name);
 								Geometry geometry = feature.GetGeometryRef();
 								double x = geometry.GetX();
 								double y = geometry.GetY();
@@ -581,5 +604,96 @@ public class VectorDB {
 		} finally {
 			closeDataSource(datasource);
 		}
+	}
+
+	public Vec<Roi> getROIs() {
+		String nameAttr = getNameAttribute();
+		DataSource datasource = getDataSource();
+		try {
+			Vec<Roi> rois = new Vec<Roi>();
+			HashSet<String> poiNames = new HashSet<String>();
+			int layerCount = datasource.GetLayerCount();
+			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
+				Layer layer = datasource.GetLayerByIndex(layerIndex);
+				int geomType = layer.GetGeomType();
+				if(geomType == 3 || geomType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D
+					int fieldIndex = layer.FindFieldIndex(nameAttr, 1);
+					if(fieldIndex >= 0) {
+						layer.ResetReading();
+						Feature feature = layer.GetNextFeature();
+						featureLoop: while(feature != null) {
+							if(feature.IsFieldSet(fieldIndex)) {
+								String orgName = feature.GetFieldAsString(fieldIndex);
+								if(orgName.isEmpty()) {
+									orgName = "POI";
+								}
+								String name = orgName;
+								int nameIndex = 1;
+								while(poiNames.contains(name)) {
+									name = orgName + "_" + (++nameIndex);
+								}
+								poiNames.add(name);
+								Geometry geometry = feature.GetGeometryRef();
+
+								int geoCount = geometry.GetGeometryCount();
+								if(geoCount != 1) {
+									if(geoCount > 1) {
+										log.warn("just first sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+									} else {
+										log.warn("missing sub geometry in polygon: " + geoCount+" in " + getName() + " : " + name);
+										continue featureLoop;
+									}
+								}
+								Geometry subGeo = geometry.GetGeometryRef(0);
+								int subType = subGeo.GetGeometryType();
+								switch (subType) {
+								case 2: // 2  LINESTRING
+								case -2147483646: { // 0x80000002  LineString25D
+									Object[] polygonPoints = subGeo.GetPoints();
+									int pointsLen = polygonPoints.length;
+									Point2d[] points = new Point2d[pointsLen];									
+									int len = points.length;
+									int[] xs = new int[len];
+									int[] ys = new int[len];
+									for (int i = 0; i < pointsLen; i++) {
+										double[] p = (double[]) polygonPoints[i];
+										points[i] = new Point2d(p[0], p[1]);
+									}									
+									rois.add(new Roi(name, points));									
+									break;
+								}
+								default: 
+									log.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
+								}								
+							}
+							feature = layer.GetNextFeature();
+						}
+					}
+				}
+			}
+			return rois;
+		} finally {
+			closeDataSource(datasource);
+		}
+	}
+
+	public boolean getStructuredAccessPOI() {
+		return structured_access_poi;
+	}
+
+	public boolean getStructuredAccessROI() {
+		return structured_access_roi;
+	}
+
+	public void setStructuredAccessPOI(boolean poi) {
+		this.structured_access_poi = poi;
+	}
+
+	public void setStructuredAccessROI(boolean roi) {
+		this.structured_access_roi = roi;
+	}
+
+	public StructuredAccess getStructuredAccess() {
+		return new StructuredAccess(structured_access_poi, structured_access_roi);
 	}
 }

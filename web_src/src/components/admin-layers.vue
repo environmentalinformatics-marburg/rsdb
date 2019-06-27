@@ -152,7 +152,7 @@
             <v-icon>scatter_plot</v-icon>
           </v-list-tile-action>
           <v-list-tile-content>
-            <v-list-tile-title>{{ item.title !== undefined ? item.title : item.name }}</v-list-tile-title>
+            <v-list-tile-title>{{ item.title !== undefined && item.title !== '' ? item.title : item.name }}</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
       </v-list-group>
@@ -177,7 +177,7 @@
             <v-icon>widgets</v-icon>
           </v-list-tile-action>
           <v-list-tile-content>
-            <v-list-tile-title>{{ item.title !== undefined ? item.title : item.name }}</v-list-tile-title>
+            <v-list-tile-title>{{ item.title !== undefined  && item.title !== '' ? item.title : item.name }}</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
       </v-list-group>
@@ -202,9 +202,9 @@ import 'vue-multiselect/dist/vue-multiselect.min.css'
 import RingLoader from 'vue-spinner/src/RingLoader.vue'
 
 var layerComparator = function() {
-  var compare = new Intl.Collator().compare;
+  var compare = new Intl.Collator(undefined, {numeric: true}).compare;
   return function(a, b) {
-    return compare(a.title === undefined ? a.name : a.title, b.title === undefined ? b.name : b.title);
+    return compare(a.title === undefined || a.title === '' ? a.name : a.title, b.title === undefined || b.title === '' ? b.name : b.title);
   };
 }();
 

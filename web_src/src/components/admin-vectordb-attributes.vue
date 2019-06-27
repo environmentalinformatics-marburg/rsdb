@@ -1,8 +1,8 @@
 <template>
-    <span>
+    <span style="display: inline-block;">
         <v-dialog v-model="dialog" lazy absolute width="800px">
             <v-btn title="Set name attibute" slot="activator">
-                <v-icon left>folder_open</v-icon>Manage Attributes
+                <v-icon left>folder_open</v-icon>Attributes
             </v-btn>
             <v-card>
                 <v-card-title>

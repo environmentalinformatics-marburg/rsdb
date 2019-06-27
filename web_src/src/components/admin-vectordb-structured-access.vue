@@ -1,50 +1,42 @@
 <template>
     <span style="display: inline-block;">
-        <v-dialog v-model="dialog" lazy absolute width="800px">
-            <v-btn title="Upload new files or remove existing files" slot="activator">
-                <v-icon left>folder_open</v-icon>Files
+        <v-dialog v-model="dialog" lazy absolute width="800px" :persistent="blocked">
+            <v-btn title="Set name attibute" slot="activator">
+                <v-icon left>folder_open</v-icon>Structured Access
             </v-btn>
             <v-card>
                 <v-card-title>
-                    <div class="headline">Upload / Remove Files</div>
+                    <div class="headline">set structured access</div>
                 </v-card-title>
                 <v-card-text>
-                    <uploader :options="options" class="uploader-example" @file-success="fileFinished" ref="uploader">
-                    <uploader-unsupport></uploader-unsupport>
-                    <uploader-drop>
-                        <p><b>Upload</b> (possibly multiple files at once) - Drop files here or</p>
-                        <uploader-btn><v-icon>cloud_upload</v-icon>select files</uploader-btn>
-                    </uploader-drop>
-                    <uploader-list></uploader-list>
-                    </uploader>
                     <br>
                     <hr>
-                    <b>Files in layer:</b>
+                    <b>enable/disable access types:</b>
                     <br>
                     <br>
-                    <table v-if="meta.data_filenames.length > 0">
-                        <tr v-for="filename in meta.data_filenames" :key="filename">
-                            <td :class="filename === meta.data_filename ? 'data-filename-primary' : 'data-filename-other'">{{filename}}</td>
-                            <td v-if="filename === meta.data_filename"> &lt;--</td>
-                            <td v-else></td>
-                            <td v-if="filename === meta.data_filename"><b>(anchor)</b></td>
-                            <td v-else><button class="button-set-anchor" @click="setAnchorFile(filename)">set anchor</button></td>
-                            <td><button class="button-delete" @click="deleteFile(filename)">delete file</button></td>
+                    <table>
+                        <tr>
+                            <td><v-switch v-model="structured_access_poi" label="POI-group" /></td><td style="padding-left: 20px;"><i>view of named <b>points</b> (Points Of Interest)</i></td>
+                        </tr>
+                        <tr>
+                            <td><v-switch v-model="structured_access_roi" label="ROI-group" /></td><td style="padding-left: 20px;"><i>view of named <b>polygons</b> (Regions Of Interest)</i></td>
                         </tr>
                     </table>
-                    <div v-if="meta.data_filenames.length === 0">
-                        no data files
+                    <div v-if="meta.details.attributes.length === 0">
+                        no attributes
                     </div>
                     <hr>
                     <br>
-                    <i>"anchor" should point to the vector-file that should be visualised.
-                        <br>For shapefile format anchor needs to be set to the ".shp"-file.
-                        <br>".gpkg"-files (GeoPackage) are also supported.
-                    </i>
+                    <p><b>Name</b> of POI-group / ROI-group is identical to <b>vector layer name</b>.</p>
+                    <p><b>Names</b> for POIs and ROIs are determined by vector layer "<b>name attribute</b>" (may be set by "manage attributes" dialog).</p>
+                    <p>For <b>POIs</b> just <b>point vector features</b> are included in resulting POI collection. (Other geometry types will be ignored.)</p>
+                    <p>For <b>ROIs</b> just <b>polygon vector features</b> are included in resulting ROI collection. Multi-polygons and "holes" are not supported. (Other geometry types will be ignored.)</p>
+                    <p>Projection is identical to source vector layer projection.</p>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn class="grey--text darken-1" flat="flat" @click.native="dialog = false">Close</v-btn>
+                    <v-btn class="grey--text darken-1" flat="flat" @click.native="dialog = false" :disabled="blocked">Cancel</v-btn>
+                    <v-btn class="green--text darken-1" flat="flat" @click.native="apply" :disabled="blocked">Apply</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -66,7 +58,7 @@ import adminTaskConsole from './admin-task-console'
 Vue.use(uploader)
 
 export default {
-    name: 'admin-vectordb-upload',
+    name: 'admin-vectordb-structured-access',
     props: ['meta'],
     components: {
         'admin-task-console': adminTaskConsole,
@@ -78,22 +70,12 @@ export default {
             setErrorMessage: undefined,
             remote_task_id: undefined,
             need_refresh_catalog_entry: false,
-
-             options: {
-                // https://github.com/simple-uploader/Uploader/tree/develop/samples/Node.js
-                target: undefined,
-                testChunks: false,
-                chunkSize: 10*1024*1024,
-                simultaneousUploads: 1,
-            },
+            structured_access_poi: false,
+            structured_access_roi: false,
+            blocked: false,
         }
     },
-    methods: {
-        
-        refresh() {
-            this.options.target = this.$store.getters.apiUrl('vectordbs/' + this.meta.name + "/files");
-        },
-
+    methods: {        
         errorToText(error) {
             if(error === undefined) {
                 return "unknown error";
@@ -107,36 +89,12 @@ export default {
             return error.message + " - " + JSON.stringify(error.response.data);
         },
 
-        fileFinished() {
-            this.need_refresh_catalog_entry = true;
-            console.log("fileFinished");
-            this.$emit("changed");
-        },
-
-        deleteFile(filename) {
-            var self = this;
-            this.need_refresh_catalog_entry = true;
-            var url = this.$store.getters.apiUrl('vectordbs/' + self.meta.name + "/files/" + filename);
-            axios.delete(url
-            ).then(function(response) {
-                console.log(response);
-                self.$emit('changed');
-            }).catch(function(error) {
-                console.log(error);
-                console.log(self.errorToText(error));
-                self.setError = true;
-                self.setErrorMessage = "Error: " + self.errorToText(error);
-                console.log(error);
-                self.$emit('changed');
-            }); 
-        },
-
-        setAnchorFile(filename) {
+        setNameAttribute(attribute) {
             var self = this;
             this.need_refresh_catalog_entry = true;
             var url = this.$store.getters.apiUrl('vectordbs/' + self.meta.name);
             axios.post(url,{
-                data_filename: filename,
+                name_attribute: attribute,
             }).then(function(response) {
                 console.log(response);
                 self.$emit('changed');
@@ -148,6 +106,12 @@ export default {
                 console.log(error);
                 self.$emit('changed');
             });            
+        },
+
+        refresh(){
+            this.structured_access_poi = this.meta.structured_access.poi;
+            this.structured_access_roi = this.meta.structured_access.roi;
+            this.need_refresh_catalog_entry = false;
         },
 
         refreshCatalogEntry() {
@@ -169,6 +133,26 @@ export default {
                 self.setErrorMessage = "Error: " + self.errorToText(error);
                 console.log(error);
             });   
+        },
+
+        async apply() {
+            this.blocked = true;
+            try {
+                var url = this.$store.getters.apiUrl('vectordbs/' + this.meta.name);
+                var response = await axios.post(url,{
+                    structured_access: {poi: this.structured_access_poi, roi: this.structured_access_roi},
+                });
+                console.log(response);
+                this.dialog = false;
+            } catch(error) {
+                console.log(error);
+                console.log(this.errorToText(error));
+                this.setError = true;
+                this.setErrorMessage = "Error: " + this.errorToText(error);
+            } finally {
+                this.blocked = false;
+                this.$emit('changed');
+            }
         }
 
     },
@@ -185,12 +169,6 @@ export default {
                 if(this.need_refresh_catalog_entry) {
                     this.refreshCatalogEntry();
                     this.need_refresh_catalog_entry = false;
-                }
-            }
-            if(this.$refs.uploader !== undefined) {
-                var files = this.$refs.uploader.files.slice(0);
-                for(var i in files) {                    
-                    files[i].removeFile(files[i]);
                 }
             }
         }

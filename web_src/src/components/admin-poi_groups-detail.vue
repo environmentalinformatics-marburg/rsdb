@@ -57,7 +57,7 @@
                 <v-spacer></v-spacer>
                 <v-text-field v-model="search" append-icon="search" label="Search" single-line hide-details />
             </v-card-title>
-            <v-data-table :headers="headers" :items="meta.pois" hide-actions  :search="search" :custom-filter="filterFunc">
+            <v-data-table :headers="headers" :items="meta.pois" hide-actions  :search="search" :custom-filter="filterFunc" :custom-sort="sortFunc">
               <template slot="items" slot-scope="props">
                 <td>{{props.item.name}}</td>
                 <td>{{props.item.x}}, {{props.item.y}}</td>
@@ -91,7 +91,7 @@ export default {
 
             headers: [
                 {text: "name", value: "name"},
-                {text: "position", value: "x"},
+                {text: "position", value: "position"},
       
             ],
             search: undefined,
@@ -135,6 +135,28 @@ export default {
         },
         filterFunc(items, search) {
             return items.filter(function(item) {return item.name.search(new RegExp(search, "i")) >= 0;});
+        },
+        cmpFunc(index, isDescending) {
+            var compare = new Intl.Collator(undefined, {numeric: true}).compare;
+            console.log(index);
+            switch(index) {
+                case 'position': {
+                    return function(a, b) {
+                        var c = (a.x - b.x);
+                        var d = c === 0 ? (a.y - b.y) : c;
+                        return isDescending ? -d : d;
+                    };
+                }
+                default: {
+                    return function(a, b) {
+                    var c = compare(a.name, b.name);
+                        return isDescending ? -c : c;
+                    };
+                }
+            }
+        } ,       
+        sortFunc(items, index, isDescending) {            
+            return items.sort(this.cmpFunc(index, isDescending));
         },
     },
     computed: {
