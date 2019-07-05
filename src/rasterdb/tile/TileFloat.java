@@ -1,4 +1,4 @@
-package rasterdb;
+package rasterdb.tile;
 
 import java.io.IOException;
 

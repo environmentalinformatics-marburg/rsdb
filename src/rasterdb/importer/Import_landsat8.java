@@ -1,4 +1,4 @@
-package rasterdb;
+package rasterdb.importer;
 
 import java.nio.file.Path;
 import java.util.TreeMap;
@@ -7,6 +7,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import broker.Broker;
+import rasterdb.Band;
+import rasterdb.RasterDB;
+import rasterdb.tile.TilePixel;
 import util.Timer;
 import util.Util;
 

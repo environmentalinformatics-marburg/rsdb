@@ -1,9 +1,10 @@
-package rasterdb;
+package rasterdb.tile;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import rasterdb.Processing.Commiter;
+import rasterdb.Band;
+import rasterdb.tile.Processing.Commiter;
 import rasterunit.BandKey;
 import rasterunit.RasterUnit;
 import rasterunit.Tile;

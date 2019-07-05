@@ -2,7 +2,7 @@ package pointcloud;
 
 import com.googlecode.javaewah.datastructure.BitSet;
 
-import rasterdb.ProcessingDouble;
+import rasterdb.tile.ProcessingDouble;
 import util.collections.vec.Vec;
 
 public class PointRaster {

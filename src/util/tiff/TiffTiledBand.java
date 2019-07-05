@@ -1,5 +1,8 @@
 package util.tiff;
 
+import java.util.Iterator;
+import java.util.function.Supplier;
+
 public abstract class TiffTiledBand extends TiffBand {
 	
 	public final int tileWidth;
@@ -44,5 +47,23 @@ public abstract class TiffTiledBand extends TiffBand {
 			tileSizes[i] = sizePerTile;
 		}
 		return tileSizes;
+	}
+	
+	public static TiffTiledBandInt16 ofInt16Iterator(int width, int height, int tileWidth, int tileHeight, Supplier<Iterator<short[][]>> supplier) {
+		return new TiffTiledBandInt16(width, height, tileWidth, tileHeight) {
+			@Override
+			protected Iterator<short[][]> getTiles() {
+				return supplier.get();
+			}			
+		};
+	}
+	
+	public static TiffTiledBandFloat32 ofFloat32Iterator(int width, int height, int tileWidth, int tileHeight, Supplier<Iterator<float[][]>> supplier) {
+		return new TiffTiledBandFloat32(width, height, tileWidth, tileHeight) {
+			@Override
+			protected Iterator<float[][]> getTiles() {
+				return supplier.get();
+			}			
+		};
 	}
 }

@@ -70,15 +70,19 @@ public class FloatFrame {
 
 	public static FloatFrame ofShortsWithNA(ShortFrame source, short na) {
 		FloatFrame target = ofExtent(source);
-		for (int y = 0; y < source.height; y++) {
-			short[] s = source.data[y];
-			float[] t = target.data[y];
-			for (int x = 0; x < source.width; x++) {
+		shortToFloat(source.data, target.data, source.width, source.height, na);
+		return target;
+	}
+	
+	public static void shortToFloat(short[][] src, float[][] dst, int width, int height, short na) {
+		for (int y = 0; y < height; y++) {
+			short[] s = src[y];
+			float[] t = dst[y];
+			for (int x = 0; x < width; x++) {
 				short v = s[x];				
 				t[x] = v == na ? Float.NaN : v;
 			}
 		}
-		return target;
 	}
 
 	public static FloatFrame minus(FloatFrame a, FloatFrame b) {

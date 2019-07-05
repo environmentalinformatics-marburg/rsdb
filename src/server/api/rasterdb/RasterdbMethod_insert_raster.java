@@ -15,9 +15,9 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import rasterdb.Band;
-import rasterdb.ProcessingShort;
 import rasterdb.RasterDB;
-import rasterdb.TilePixel;
+import rasterdb.tile.ProcessingShort;
+import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
 import util.Serialisation;
 

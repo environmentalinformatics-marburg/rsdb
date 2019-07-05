@@ -11,7 +11,7 @@ import broker.Broker;
 import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.RasterDB;
-import rasterdb.RasterDBimporter;
+import rasterdb.importer.RasterDBimporter;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;

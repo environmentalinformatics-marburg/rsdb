@@ -1,8 +1,10 @@
-package rasterdb;
+package rasterdb.tile;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import rasterdb.Band;
+import rasterdb.RasterDB;
 import rasterunit.BandKey;
 import rasterunit.RasterUnit;
 

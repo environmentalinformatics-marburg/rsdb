@@ -131,7 +131,7 @@ export default {
       user_ymin: undefined,
       user_xmax: undefined,
       user_ymax: undefined,
-      outputTypes: ['GeoTIFF - data', 'rDAT - data', 'PNG - visualisation', 'JPEG - visualisation', 'GeoTIFF - visualisation'],
+      outputTypes: ['GeoTIFF - data', 'GeoTIFF - tiled data (experimental)', 'rDAT - data', 'PNG - visualisation', 'JPEG - visualisation', 'GeoTIFF - visualisation'],
       outputType: 'GeoTIFF - data',
       modes: [{id: 'direct_bands', title: 'raster-file'},
               {id: 'zip', title: 'zip-file'}],
@@ -242,6 +242,10 @@ export default {
         case 'GeoTIFF - data':
           method = 'raster.tiff';
           break;
+        case 'GeoTIFF - tiled data (experimental)':
+          method = 'raster.tiff';
+          parameters.format = 'tiff:banded:tiled';
+          break;          
         case 'GeoTIFF - visualisation':
           method = 'raster.tiff';
           parameters.visualisation = true;
@@ -275,6 +279,9 @@ export default {
         case 'GeoTIFF - data':
           ext = '.tiff';
           break;
+        case 'GeoTIFF - tiled data (experimental)':
+          ext = '.tiff';
+          break;          
         case 'GeoTIFF - visualisation':
           ext = '.tiff';
           break;

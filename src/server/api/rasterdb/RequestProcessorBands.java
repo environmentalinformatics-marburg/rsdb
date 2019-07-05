@@ -71,7 +71,7 @@ public class RequestProcessorBands {
 		
 	}
 
-	public static void processBands(TimeBandProcessor processor, Collection<TimeBand> processingBands, OutputProcessingType outputProcessingType, String format, Receiver resceiver) throws IOException {
+	public static void processBands(TimeBandProcessor processor, Collection<TimeBand> processingBands, OutputProcessingType outputProcessingType, String format, Receiver receiver) throws IOException {
 		Range2d reqRange2d = processor.getDstRange();
 		int reqWidth = reqRange2d.getWidth();
 		int reqHeight = reqRange2d.getHeight();
@@ -80,11 +80,15 @@ public class RequestProcessorBands {
 		case IDENTITY:
 			switch(format) {
 			case "rdat":
-				RequestProcessorBandsWriters.writeRdat(processor, processingBands, resceiver);					
+				RequestProcessorBandsWriters.writeRdat(processor, processingBands, receiver);					
 				break;
 			case "tiff":
-				RequestProcessorBandsWriters.writeTiff(processor, processingBands, resceiver);
-				break;			
+			case "tiff:banded":
+				RequestProcessorBandsWriters.writeTiff(processor, processingBands, receiver);
+				break;
+			case "tiff:banded:tiled":
+				RequestProcessorBandsWriters.writeTiffTiled(processor, processingBands, receiver);
+				break;					
 			default:
 				throw new RuntimeException("unknown format " + format);
 			}
@@ -98,7 +102,7 @@ public class RequestProcessorBands {
 				boolean syncBands = false;
 				Interruptor interruptor = null;
 				ImageBufferARGB image = Rasterizer.rasterizeRGB(processor, timebands, reqWidth, reqHeight, gamma, range, syncBands, interruptor);
-				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", resceiver);	
+				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", receiver);	
 			} else if(processingBands.size() >= 2) {
 				Iterator<TimeBand> it = processingBands.iterator();
 				TimeBand r = it.next();
@@ -109,14 +113,14 @@ public class RequestProcessorBands {
 				boolean syncBands = false;
 				Interruptor interruptor = null;
 				ImageBufferARGB image = Rasterizer.rasterizeRGB(processor, bands, reqWidth, reqHeight, gamma, range, syncBands, interruptor);
-				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", resceiver);						
+				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", receiver);						
 			} else if(processingBands.size() >= 1) {
 				TimeBand band = processingBands.iterator().next();
 				double gamma = Double.NaN;
 				double[] range = null;
 				Interruptor interruptor = null;
 				ImageBufferARGB image = Rasterizer.rasterizeGrey(processor, band, reqWidth, reqHeight, gamma, range, interruptor);
-				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", resceiver);	
+				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", receiver);	
 			} else {
 				throw new RuntimeException("no bands");
 			}					

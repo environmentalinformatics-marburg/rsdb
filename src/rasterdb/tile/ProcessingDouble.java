@@ -1,4 +1,4 @@
-package rasterdb;
+package rasterdb.tile;
 
 public class ProcessingDouble {
 	

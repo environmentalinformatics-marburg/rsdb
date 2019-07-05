@@ -13,9 +13,9 @@ import pointdb.processing.tile.TileProducer;
 import pointdb.processing.tilekey.StatisticsCollector;
 import pointdb.processing.tilemeta.StatisticsCreator.Statistics;
 import rasterdb.Band;
-import rasterdb.ProcessingFloat;
 import rasterdb.RasterDB;
-import rasterdb.TilePixel;
+import rasterdb.tile.ProcessingFloat;
+import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
 
 public class Rasterizer {

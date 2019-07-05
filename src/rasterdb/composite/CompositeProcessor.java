@@ -1,8 +1,8 @@
 package rasterdb.composite;
 
 import rasterdb.Band;
-import rasterdb.ProcessingDouble;
 import rasterdb.BandProcessor;
+import rasterdb.tile.ProcessingDouble;
 import util.Range2d;
 import util.frame.DoubleFrame;
 

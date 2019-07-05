@@ -10,9 +10,9 @@ import pointdb.process.DataProvider2;
 import pointdb.process.ProcessingFun;
 import pointdb.subsetdsl.Region;
 import rasterdb.Band;
-import rasterdb.ProcessingFloat;
 import rasterdb.RasterDB;
-import rasterdb.TilePixel;
+import rasterdb.tile.ProcessingFloat;
+import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
 
 public class IndexRasterizer {

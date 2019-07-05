@@ -45,7 +45,7 @@ import pointdb.PointDB;
 import pointdb.base.PdbConst;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
-import rasterdb.TilePixel;
+import rasterdb.tile.TilePixel;
 import rasterunit.TileKey;
 import util.Range2d;
 import util.Timer;

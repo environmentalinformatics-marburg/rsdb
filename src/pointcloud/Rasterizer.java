@@ -8,9 +8,9 @@ import org.apache.logging.log4j.Logger;
 import broker.Informal.Builder;
 import rasterdb.Band;
 import rasterdb.GeoReference;
-import rasterdb.ProcessingFloat;
 import rasterdb.RasterDB;
-import rasterdb.TilePixel;
+import rasterdb.tile.ProcessingFloat;
+import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
 import util.Range2d;
 

@@ -17,6 +17,20 @@
       <br>
       <br>
       <hr>
+      <h3 :class="{disabled: (outputType !== 'GeoTIFF - tiled data (experimental)')}">GeoTIFF - tiled data (experimental)</h3>
+      <br>
+      TIFF raster file format with projection information and tiled data (experimental).
+      <br>
+      As this format is intended for GIS-software general image-processing<br> applications may not be able to read that files.
+      <br>
+      <br>
+      For compatibility with TIFF readers (e.g. GDAL) all bands need to be of same data type, for output "biggest" data type is chosen. 
+      <br>
+      <br>
+      Experimental tiled output.
+      <br>
+      <br>
+      <hr>
       <h3 :class="{disabled: (outputType !== 'GeoTIFF - visualisation')}">GeoTIFF - visualisation</h3>
       <br>
       TIFF image file format with projection information (transparency as alpha channel, GeoTIFF)

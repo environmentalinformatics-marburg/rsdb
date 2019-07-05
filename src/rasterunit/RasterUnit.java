@@ -224,7 +224,7 @@ public class RasterUnit implements AutoCloseable {
 		return new TileCollection(rows, xmin, xmax);
 	}
 	
-	public Collection<Tile> getTilesReverseRows(int t, int b, int ymin, int ymax, int xmin, int xmax) {
+	public Collection<Tile> getTilesYReverse(int t, int b, int ymin, int ymax, int xmin, int xmax) {
 		Collection<RowKey> rows = getRowKeysReverse(t, b, ymin, ymax);
 		return new TileCollection(rows, xmin, xmax);
 	}

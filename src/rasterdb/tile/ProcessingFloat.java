@@ -1,4 +1,4 @@
-package rasterdb;
+package rasterdb.tile;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -6,7 +6,8 @@ import java.util.Collection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import rasterdb.Processing.Commiter;
+import rasterdb.Band;
+import rasterdb.tile.Processing.Commiter;
 import rasterunit.BandKey;
 import rasterunit.RasterUnit;
 import rasterunit.Tile;

@@ -7,6 +7,10 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import rasterdb.tile.ProcessingFloat;
+import rasterdb.tile.ProcessingQuery;
+import rasterdb.tile.ProcessingShort;
+import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
 import util.Range2d;
 import util.frame.BooleanFrame;

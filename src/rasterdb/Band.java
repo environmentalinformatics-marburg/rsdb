@@ -3,6 +3,7 @@ package rasterdb;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import rasterdb.tile.TilePixel;
 import util.yaml.YamlMap;
 
 public class Band {

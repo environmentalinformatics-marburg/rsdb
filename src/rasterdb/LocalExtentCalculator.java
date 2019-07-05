@@ -1,5 +1,8 @@
 package rasterdb;
 
+import rasterdb.tile.TileFloat;
+import rasterdb.tile.TilePixel;
+import rasterdb.tile.TileShort;
 import rasterunit.RasterUnit;
 import rasterunit.TileKey;
 import util.Range2d;

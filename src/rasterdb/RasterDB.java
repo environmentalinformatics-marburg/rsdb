@@ -24,6 +24,8 @@ import broker.Associated;
 import broker.Informal;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
+import rasterdb.tile.Processing;
+import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
 import util.Range2d;
 import util.yaml.YamlMap;

@@ -19,7 +19,7 @@ import org.json.JSONWriter;
 import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
-import rasterdb.TilePixel;
+import rasterdb.tile.TilePixel;
 import server.api.APIHandler;
 import server.api.main.ChunkedUploader.ChunkedUpload;
 import util.TimeUtil;

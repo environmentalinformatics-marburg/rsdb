@@ -3,13 +3,24 @@ package server.api.rasterdb;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.function.Supplier;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import rasterdb.GeoReference;
-import rasterdb.TilePixel;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
+import rasterdb.tile.NullFillTileYReverseIterator;
+import rasterdb.tile.TileFloatToFloatIterator;
+import rasterdb.tile.TileFloatToShortIterator;
+import rasterdb.tile.TilePixel;
+import rasterdb.tile.TileShortToFloatIterator;
+import rasterdb.tile.TileShortToShortIterator;
+import rasterunit.Tile;
 import server.api.rasterdb.RequestProcessor.RdatDataType;
 import server.api.rasterdb.RequestProcessor.TiffDataType;
 import server.api.rasterdb.RequestProcessorBands.Receiver;
@@ -19,10 +30,13 @@ import util.rdat.RdatBand;
 import util.rdat.RdatList;
 import util.rdat.RdatWriter;
 import util.tiff.TiffBand;
+import util.tiff.TiffTiledBand;
+import util.tiff.TiffTiledBandFloat32;
+import util.tiff.TiffTiledBandInt16;
 import util.tiff.TiffWriter;
 
 public class RequestProcessorBandsWriters {
-	//private static final Logger log = LogManager.getLogger();
+	private static final Logger log = LogManager.getLogger();
 
 	public static void writeRdat(TimeBandProcessor processor, Collection<TimeBand> processingBands, Receiver resceiver) throws IOException {
 		GeoReference ref = processor.rasterdb.ref();
@@ -113,8 +127,8 @@ public class RequestProcessorBandsWriters {
 		double dstGeoYmin = ref.pixelYdivToGeo(dstDiv, dstRange.ymin);
 		double dstPixelSizeX = ref.getPixelSizeXdiv(dstDiv);
 		double dstPixelSizeY = ref.getPixelSizeYdiv(dstDiv);
-		
-	
+
+
 		TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, dstGeoXmin, dstGeoYmin, dstPixelSizeX, dstPixelSizeY, (short)ref.getEPSG(0));
 		Short noDataValue = null;
 		TiffDataType tiffdataType = TiffDataType.INT16;
@@ -148,6 +162,114 @@ public class RequestProcessorBandsWriters {
 			case FLOAT64:
 				tiffWriter.addTiffBand(TiffBand.ofFloat64(dstWidth, dstHeight, ()->processor.getDoubleFrame(timeband).data));
 				break;
+			default:
+				throw new RuntimeException("unknown tiff data type");
+			}
+		}
+		tiffWriter.setNoDataValue(noDataValue);
+		resceiver.setStatus(HttpServletResponse.SC_OK);
+		resceiver.setContentType("image/tiff");
+		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));		
+	}
+
+	public static void writeTiffTiled(TimeBandProcessor queryProcessor, Collection<TimeBand> processingBands, Receiver resceiver) throws IOException {
+		GeoReference ref = queryProcessor.rasterdb.ref();
+		Range2d queryRange2d = queryProcessor.range2d;		
+		int tymin = TilePixel.pixelToTile(queryRange2d.ymin);
+		int tymax = TilePixel.pixelToTile(queryRange2d.ymax);
+		int txmin = TilePixel.pixelToTile(queryRange2d.xmin);
+		int txmax = TilePixel.pixelToTile(queryRange2d.xmax);
+		int ymin = TilePixel.tileToPixel(tymin);
+		int ymax = TilePixel.tileToPixelMax(tymax);
+		int xmin = TilePixel.tileToPixel(txmin);
+		int xmax = TilePixel.tileToPixelMax(txmax);
+		Range2d range2d = new Range2d(xmin, ymin, xmax, ymax);			
+		TimeBandProcessor processor = new TimeBandProcessor(queryProcessor.rasterdb, range2d, 1);		
+		Range2d dstRange = processor.getDstRange();
+		int dstWidth = dstRange.getWidth();
+		int dstHeight = dstRange.getHeight();
+		int dstDiv = processor.getScale();
+		double dstGeoXmin = ref.pixelXdivToGeo(dstDiv, dstRange.xmin);
+		double dstGeoYmin = ref.pixelYdivToGeo(dstDiv, dstRange.ymin);
+		double dstPixelSizeX = ref.getPixelSizeXdiv(dstDiv);
+		double dstPixelSizeY = ref.getPixelSizeYdiv(dstDiv);	
+		TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, dstGeoXmin, dstGeoYmin, dstPixelSizeX, dstPixelSizeY, (short)ref.getEPSG(0));
+		Short noDataValue = null;
+		TiffDataType tiffdataType = TiffDataType.INT16;
+		for(TimeBand timeband : processingBands) {
+			switch (timeband.band.type) {
+			case TilePixel.TYPE_SHORT:
+				// nothing
+				break;
+			case TilePixel.TYPE_FLOAT:
+				if(tiffdataType == TiffDataType.INT16) {
+					tiffdataType = TiffDataType.FLOAT32;
+				}
+				break;
+			default:
+				tiffdataType = TiffDataType.FLOAT64;
+				break;
+			}
+		}
+
+		for(TimeBand timeband : processingBands) {
+			Supplier<Iterator<Tile>> tileIterator = () -> {
+				Collection<Tile> tilesYReverse = processor.rasterdb.rasterUnit().getTilesYReverse(timeband.timestamp, timeband.band.index, tymin, tymax, txmin, txmax);
+				Iterator<Tile> tileYReverseIt = tilesYReverse.iterator();
+				return new NullFillTileYReverseIterator(tileYReverseIt, tymin, tymax, txmin, txmax);
+			};
+			switch(tiffdataType) { // all bands need same data type for tiff reader compatibility (e.g. GDAL)
+			case INT16:
+				switch (timeband.band.type) {
+				case TilePixel.TYPE_SHORT: {
+					TiffTiledBandInt16 tiffTiledBand = TiffTiledBand.ofInt16Iterator(dstWidth, dstHeight, 256, 256, () -> {						
+						short[][] empty = new short[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
+						return new TileShortToShortIterator(tileIterator.get(), empty);
+					});
+					tiffWriter.addTiffTiledBand(tiffTiledBand);					
+					break;
+				}
+				case TilePixel.TYPE_FLOAT: {
+					TiffTiledBandInt16 tiffTiledBand = TiffTiledBand.ofInt16Iterator(dstWidth, dstHeight, 256, 256, () -> {						
+						log.warn("downcast float to short");
+						short na_target = 0;
+						short[][] empty = new short[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
+						return new TileFloatToShortIterator(tileIterator.get(), empty, na_target);
+					});
+					tiffWriter.addTiffTiledBand(tiffTiledBand);					
+					break;
+				}
+				default:
+					throw new RuntimeException("unknown band type");
+				}				
+				if(noDataValue == null) {
+					noDataValue = timeband.band.getShortNA();
+				}
+				break;
+			case FLOAT32:
+				switch (timeband.band.type) {
+				case TilePixel.TYPE_SHORT: {
+					TiffTiledBandFloat32 tiffTiledBand = TiffTiledBand.ofFloat32Iterator(dstWidth, dstHeight, 256, 256, () -> {						
+						float[][] empty = new float[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
+						return new TileShortToFloatIterator(tileIterator.get(), empty, timeband.band.getShortNA());
+					});
+					tiffWriter.addTiffTiledBand(tiffTiledBand);
+					break;
+				}
+				case TilePixel.TYPE_FLOAT: {
+					TiffTiledBandFloat32 tiffTiledBand = TiffTiledBand.ofFloat32Iterator(dstWidth, dstHeight, 256, 256, () -> {						
+						float[][] empty = new float[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
+						return new TileFloatToFloatIterator(tileIterator.get(), empty);
+					});
+					tiffWriter.addTiffTiledBand(tiffTiledBand);
+					break;
+				}
+				default:
+					throw new RuntimeException("unknown band type");
+				}				
+				break;
+			case FLOAT64:
+				throw new RuntimeException("tiff data type FLOAT64 not implemented for tiled band");
 			default:
 				throw new RuntimeException("unknown tiff data type");
 			}

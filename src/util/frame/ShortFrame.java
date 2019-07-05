@@ -234,15 +234,19 @@ public class ShortFrame {
 
 	public static ShortFrame ofFloats(FloatFrame source, short na_target) {
 		ShortFrame target = ofExtent(source);
-		for (int y = 0; y < source.height; y++) {
-			float[] s = source.data[y];
-			short[] t = target.data[y];
-			for (int x = 0; x < source.width; x++) {
+		floatToShort(source.data, target.data, source.width, source.height, na_target);
+		return target;
+	}
+	
+	public static void floatToShort(float[][] src, short[][] dst, int width, int height, short na_target) {
+		for (int y = 0; y < height; y++) {
+			float[] s = src[y];
+			short[] t = dst[y];
+			for (int x = 0; x < width; x++) {
 				float v = s[x];				
 				t[x] = Float.isFinite(v) ? (short) v : na_target;
 			}
 		}
-		return target;
 	}
 	
 	public BooleanFrame toMask(short na) {

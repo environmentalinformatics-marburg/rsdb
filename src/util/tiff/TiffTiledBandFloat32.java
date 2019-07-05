@@ -7,31 +7,31 @@ import java.util.Iterator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class TiffTiledBandInt16 extends TiffTiledBand {	
+public abstract class TiffTiledBandFloat32 extends TiffTiledBand {	
 	private static final Logger log = LogManager.getLogger();
 
-	public TiffTiledBandInt16(int width, int height, int tileWidth, int tileHeight) {
+	public TiffTiledBandFloat32(int width, int height, int tileWidth, int tileHeight) {
 		super(width, height, tileWidth, tileHeight);
 	}
 
-	protected abstract Iterator<short[][]> getTiles();
+	protected abstract Iterator<float[][]> getTiles();
 
 	@Override
 	public short getBitsPerSample() {
-		return 16;
+		return 32;
 	}
 
 	@Override
 	public short getSampleFormat() {
-		return 2; // two’s complement signed integer data
+		return 3; // floating point data
 	}
 
 	@Override
 	public void writeData(DataOutput out) throws IOException {
-		Iterator<short[][]> it = getTiles();
+		Iterator<float[][]> it = getTiles();
 		while(it.hasNext()) {
-			short[][] data = it.next();
-			TiffBandInt16.writeData(out, data, tileWidth, tileHeight);
+			float[][] data = it.next();
+			TiffBandFloat32.writeData(out, data, tileWidth, tileHeight);
 		}
 	}
 

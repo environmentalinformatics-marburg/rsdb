@@ -1,4 +1,4 @@
-package rasterdb;
+package rasterdb.importer;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 
 import broker.Broker;
 import broker.Informal.Builder;
+import rasterdb.RasterDB;
 import util.TimeUtil;
 import util.Timer;
 import util.Util;
