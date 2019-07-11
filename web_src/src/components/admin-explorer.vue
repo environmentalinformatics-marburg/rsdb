@@ -165,6 +165,7 @@ export default {
       });
 
       this.catalogLayer.setSource(catalogSource);
+      this.zoomToEntries();
       },
 
       zoomToEntries() {
