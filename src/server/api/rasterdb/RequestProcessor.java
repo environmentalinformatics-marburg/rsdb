@@ -21,6 +21,7 @@ import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
 import rasterunit.RasterUnit;
 import util.Range2d;
+import util.ResponseReceiver;
 import util.TimeUtil;
 import util.Web;
 
@@ -86,12 +87,12 @@ public class RequestProcessor {
 					processingBands = processor.getTimeBands();
 				}
 
-				RequestProcessorBands.processBands(processor, processingBands, outputProcessingType, format, new RequestProcessorBands.ResponseReceiver(response));
+				RequestProcessorBands.processBands(processor, processingBands, outputProcessingType, format, new ResponseReceiver(response));
 			} else { // product processing
 				if (bandText != null) {
 					throw new RuntimeException("parameter band can not be used if parameter product is specified");
 				}
-				RequestProcessorProduct.processProduct(processor, productText, outputProcessingType, format, new RequestProcessorBands.ResponseReceiver(response));								
+				RequestProcessorProduct.processProduct(processor, productText, outputProcessingType, format, new ResponseReceiver(response));								
 			}
 		} catch (Exception e) {
 			log.error(e);

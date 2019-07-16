@@ -46,6 +46,27 @@ public class Tile {
 		}		
 	};
 	
+	public static final SerializerOldVersion SERIALIZER_OLD_VERSION = new SerializerOldVersion();
+	
+	public static final class SerializerOldVersion extends Serializer<Tile> {
+		public static final String version = "JavaFastPFORv0.1.11";
+		
+		private SerializerOldVersion() {}
+
+		@Override
+		public void serialize(DataOutput out, Tile tile) throws IOException {
+			TileMeta.SERIALIZER.serialize(out, tile.meta);
+			PointsSerializerLocalOldVersion.DEFAULT.serialize(out, tile.points);
+		}
+
+		@Override
+		public Tile deserialize(DataInput in, int available) throws IOException {
+			TileMeta meta = TileMeta.SERIALIZER.deserialize(in, -1);
+			Point[] points = PointsSerializerLocalOldVersion.DEFAULT.deserialize(in, -1);
+			return new Tile(meta,points);
+		}
+	}
+	
 	public static final Serializer<Tile> SERIALIZER_PLAIN = new Serializer<Tile>() {
 		@Override
 		public void serialize(DataOutput out, Tile tile) throws IOException {

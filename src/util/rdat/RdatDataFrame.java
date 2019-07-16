@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.mapdb.DataIO.DataOutputByteArray;
 
+import util.Receiver;
 import util.collections.vec.Vec;
 
 public class RdatDataFrame<T> {
@@ -176,15 +177,15 @@ public class RdatDataFrame<T> {
 		add(new StringColumn<T>(name, mapper));		
 	}
 
-	public void write(HttpServletResponse response, T... array) throws IOException {
-		write(response, Arrays.asList(array));
+	public void write(Receiver receiver, T... array) throws IOException {
+		write(receiver, Arrays.asList(array));
 	}
 
-	public void write(HttpServletResponse response, Collection<T> coll) throws IOException {
+	public void write(Receiver receiver, Collection<T> coll) throws IOException {
 		DataOutputByteArray out = new DataOutputByteArray();
 		write(out, coll);	
-		response.setContentType("application/octet-stream");
-		response.getOutputStream().write(out.buf,0,out.pos);
+		receiver.setContentType("application/octet-stream");
+		receiver.getOutputStream().write(out.buf,0,out.pos);
 	}
 
 	public void write(DataOutput out, Collection<T> coll) throws IOException {

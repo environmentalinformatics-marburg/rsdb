@@ -355,7 +355,7 @@ public class VectorDB {
 			throw new RuntimeException("no datasource in vector layer " + this.getName());
 		}
 		String fullFileName = config.dataPath.resolve(dataFilename).toString();
-		log.info(fullFileName);
+		//log.info(fullFileName);
 		DataSource datasource = ogr.Open(fullFileName, 0); // read only
 		if(datasource == null) {
 			throw new RuntimeException("could not open datasource: " + fullFileName);
@@ -625,7 +625,7 @@ public class VectorDB {
 							if(feature.IsFieldSet(fieldIndex)) {
 								String orgName = feature.GetFieldAsString(fieldIndex);
 								if(orgName.isEmpty()) {
-									orgName = "POI";
+									orgName = "ROI";
 								}
 								String name = orgName;
 								int nameIndex = 1;
@@ -646,6 +646,16 @@ public class VectorDB {
 								}
 								Geometry subGeo = geometry.GetGeometryRef(0);
 								int subType = subGeo.GetGeometryType();
+								//log.info("subgeomerty: " + subType + " in " + getName() + " : " + name);
+								if(subType == 3 || subType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D fix subType polygon
+									int subsubCount = subGeo.GetGeometryCount();
+									if(subsubCount > 1) {
+										log.warn("just first sub sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+									}
+									subGeo = subGeo.GetGeometryRef(0);
+									subType = subGeo.GetGeometryType();
+									//log.warn("fix subtype polygon -> subgeomerty: " + subType + " in " + getName() + " : " + name + "  " + subsubCount);
+								}
 								switch (subType) {
 								case 2: // 2  LINESTRING
 								case -2147483646: { // 0x80000002  LineString25D

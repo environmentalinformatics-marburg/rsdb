@@ -70,7 +70,7 @@ public class PointDB {
 		log.info("init PointDB open tile file ...");
 		db = createTileDB(file,config.isTransactions());
 		log.info("init PointDB open tile map ...");
-		tileMap = createTileMap(db);
+		tileMap = createTileMap(db, config.getStorageType());
 		log.info("init PointDB open meta file ...");
 		dbMeta = createTileMetaDB(fileMeta, config.isTransactions());
 		log.info("init PointDB open meta map ...");
@@ -200,13 +200,24 @@ public class PointDB {
 		return dbmaker.make();		
 	}
 
-	private static BTreeMap<TileKey, Tile> createTileMap(DB db) {
+	private static BTreeMap<TileKey, Tile> createTileMap(DB db, String storageType) {
+		if(storageType.isEmpty()) { // current version
 		return db.treeMapCreate("tileMap")
 				.keySerializer(TileKey.SERIALIZER, TileKey.COMPARATOR)
 				.valueSerializer(Tile.SERIALIZER)
 				.valuesOutsideNodesEnable() // !!
 				//.nodeSize(1024) // !!
 				.makeOrGet();		
+		} else if(Tile.SERIALIZER_OLD_VERSION.version.equals(storageType)){ // old Version
+			return db.treeMapCreate("tileMap")
+					.keySerializer(TileKey.SERIALIZER, TileKey.COMPARATOR)
+					.valueSerializer(Tile.SERIALIZER_OLD_VERSION)
+					.valuesOutsideNodesEnable() // !!
+					//.nodeSize(1024) // !!
+					.makeOrGet();			
+		} else {
+			throw new RuntimeException("unknown storage type in pointdb: " + storageType);
+		}
 	}
 
 	public TileKeyProducer tileKeyProducer(Rect rect) {

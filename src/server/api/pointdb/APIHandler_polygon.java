@@ -16,6 +16,7 @@ import pointdb.base.Rect;
 import pointdb.processing.geopoint.GeoPointProducer;
 import pointdb.processing.geopoint.Normalise;
 import pointdb.processing.tilepoint.PointFilter;
+import util.ResponseReceiver;
 import util.Util;
 import util.collections.vec.Vec;
 import util.rdat.RdatPointDataFrame;
@@ -82,6 +83,6 @@ public class APIHandler_polygon extends PointdbAPIHandler {
 		}
 		Vec<GeoPoint> result = normalise.optional_normalise(producer.toList());
 		log.info("points "+result.size());
-		RdatPointDataFrame.writePointList(pointdb, response,result,columns);
+		RdatPointDataFrame.writePointList(pointdb, new ResponseReceiver(response),result,columns);
 	}
 }

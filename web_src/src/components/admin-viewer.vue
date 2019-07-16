@@ -244,7 +244,7 @@ export default {
       if(this.meta.ref.proj4 !== undefined && this.meta.ref.proj4 !== '') {
         view_proj4 = this.meta.ref.proj4.trim();
       }
-      console.log(view_proj4);
+      //console.log(view_proj4);
 
       var alias = this.mapProj4ToAlias[view_proj4];
       if(alias === undefined) {
@@ -263,8 +263,10 @@ export default {
 
       this.olmousePosition.setProjection(alias);
 
+      var wmsUrl = this.$store.getters.apiUrl('rasterdb_wms');
+
       this.sourceWMS = new ol_source.ImageWMS({
-        url: '../../rasterdb_wms',
+        url: wmsUrl,
         params: this.wmsParams,
         imageLoadFunction: imageLoadFunctionWMS,
         projection: alias,
@@ -341,7 +343,7 @@ export default {
       this.interactionExtent.setExtent(this.meta.ref.extent);
     },
     refreshVectordbLayer() {
-      console.log("refreshVectordbLayer");
+      //console.log("refreshVectordbLayer");
       if(this.selectedVectordb !== undefined && this.epsgCode !== undefined) {
         this.loadGeojson();
       } else {
@@ -376,7 +378,7 @@ export default {
       });
 
       this.vectorLayer.setSource(vectorSource);
-      console.log("refreshVectorSource done");
+      //console.log("refreshVectorSource done");
     },
   },
   computed: {
@@ -483,9 +485,9 @@ export default {
       this.refreshWMS();
     },
     selectedRasterdb() {
-      console.log("selected");
-      console.log(this.selectedRasterdb);
-      console.log(this.selectedRasterdb.name);
+      //console.log("selected");
+      //console.log(this.selectedRasterdb);
+      //console.log(this.selectedRasterdb.name);
       
       this.refreshRoute();
     },
@@ -496,7 +498,7 @@ export default {
       this.refreshRoute();
     },
     selectedBackground() {
-      console.log(this.selectedBackground.name);
+      //console.log(this.selectedBackground.name);
       this.refreshLayers();
     },
     mouseModus() {
@@ -752,7 +754,7 @@ export default {
     document.getElementById('foot-end-1').innerHTML = '?';
     document.removeEventListener('keydown', this.globalEventListeners.keydown);
 		document.removeEventListener('keyup', this.globalEventListeners.keyup);
-    console.log("destroyed");
+    //console.log("destroyed");
   },
 }
 

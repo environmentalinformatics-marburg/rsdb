@@ -1,6 +1,7 @@
 package server.api.pointdb;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.servlet.ServletOutputStream;
 
@@ -10,12 +11,14 @@ import pointdb.PointDB;
 import pointdb.base.GeoPoint;
 import pointdb.processing.geopoint.RasterSubGrid;
 import util.ByteArrayOut;
+import util.Receiver;
+import util.ResponseReceiver;
 import util.collections.vec.Vec;
 
 public class JsWriter {
 	//private static final Logger log = LogManager.getLogger();
 
-	public static void writePoints(PointDB pointdb, Response response, Vec<GeoPoint> result, String[] columns) throws IOException {
+	public static void writePoints(PointDB pointdb, Receiver receiver, Vec<GeoPoint> result, String[] columns) throws IOException {
 
 		int n = result.size();
 		ByteArrayOut out = ByteArrayOut.of(4+n*3*4+n);
@@ -31,8 +34,8 @@ public class JsWriter {
 			out.putByteRaw(p.classification);
 		}
 
-		response.setContentType("application/octet-stream");
-		ServletOutputStream stream = response.getOutputStream();
+		receiver.setContentType("application/octet-stream");
+		OutputStream stream = receiver.getOutputStream();
 		out.flip(stream);
 	}
 

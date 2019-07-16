@@ -73,47 +73,63 @@ public class DataProvider2 {
 
 	public synchronized Vec<GeoPoint> get_bordered_bboxPoints() {
 		if(bordered_bboxPoints == null) {
-			if(pointcloud == null) {
-				bordered_bboxPoints = db.tilePointProducer(bordered_bbox_rect).toGeoPointProducer().toList();
-			} else {
-				double xmin = bordered_bbox_rect.getUTMd_min_x();
-				double ymin = bordered_bbox_rect.getUTMd_min_y();
-				double xmax = bordered_bbox_rect.getUTMd_max_x();
-				double ymax = bordered_bbox_rect.getUTMd_max_y();
-				Stream<PointTable> pointTables = pointcloud.getPointTables(xmin, ymin, xmax, ymax, GeoPointTransformer.FULL_GEOPOINT_SELECTOR);
-				bordered_bboxPoints = GeoPointTransformer.transform(pointTables);
-			}
+			bordered_bboxPoints = load_rect(bordered_bbox_rect);
 		}
 		return bordered_bboxPoints;
 	}
 
+	private synchronized Vec<GeoPoint> load_rect(Rect rect) {
+		if(pointcloud == null) {
+			return db.tilePointProducer(rect).toGeoPointProducer().toList();
+		} else {
+			double xmin = rect.getUTMd_min_x();
+			double ymin = rect.getUTMd_min_y();
+			double xmax = rect.getUTMd_max_x();
+			double ymax = rect.getUTMd_max_y();
+			Stream<PointTable> pointTables = pointcloud.getPointTables(xmin, ymin, xmax, ymax, GeoPointTransformer.FULL_GEOPOINT_SELECTOR);
+			return GeoPointTransformer.transform(pointTables);
+		}
+	}
+	
 	public synchronized Vec<GeoPoint> get_bboxPoints() {
+		return get_bboxPoints(true);
+	}
+
+	public synchronized Vec<GeoPoint> get_bboxPoints(boolean load_bordered_bbox) {
 		if(bboxPoints == null) {
-			Vec<GeoPoint> pointlist = new Vec<>();
-			double xmin = bbox_rect.getUTMd_min_x();
-			double xmax = bbox_rect.getUTMd_max_x();
-			double ymin = bbox_rect.getUTMd_min_y();
-			double ymax = bbox_rect.getUTMd_max_y();
-			for(GeoPoint p:get_bordered_bboxPoints()) {
-				double x = p.x;
-				double y = p.y;
-				if(xmin<=x && x<=xmax && ymin<=y && y<=ymax) {
-					pointlist.add(p);
+			if(load_bordered_bbox) {
+				Vec<GeoPoint> pointlist = new Vec<>();
+				double xmin = bbox_rect.getUTMd_min_x();
+				double xmax_exclusive = bbox_rect.getUTMd_max_x_exclusive();
+				double ymin = bbox_rect.getUTMd_min_y();
+				double ymax_exclusive = bbox_rect.getUTMd_max_y_exclusive();
+				for(GeoPoint p:get_bordered_bboxPoints()) {
+					double x = p.x;
+					double y = p.y;
+					if(xmin <= x && x < xmax_exclusive && ymin <= y && y < ymax_exclusive) {
+						pointlist.add(p);
+					}
 				}
+				bboxPoints = pointlist;
+			} else {
+				bboxPoints = load_rect(bbox_rect);
 			}
-			bboxPoints = pointlist;
 		}
 		return bboxPoints;
 	}
-
+	
 	public synchronized Vec<GeoPoint> get_regionPoints() {
+		return get_regionPoints(true);
+	}
+
+	public synchronized Vec<GeoPoint> get_regionPoints(boolean load_bordered_bbox) {
 		if(regionPoints == null) {
 			if(region.isBbox()) {
-				regionPoints = get_bboxPoints();
+				regionPoints = get_bboxPoints(load_bordered_bbox);
 			} else {
 				Vec<GeoPoint> pointlist = new Vec<>();
 				Point2d[] polygon = region.polygonPoints;
-				for(GeoPoint p:get_bboxPoints()) {					
+				for(GeoPoint p:get_bboxPoints(load_bordered_bbox)) {					
 					if(PolygonUtil.wn_PnPoly(p, polygon) != 0) {
 						pointlist.add(p);
 					}
@@ -195,7 +211,7 @@ public class DataProvider2 {
 		}
 		return sortedRegionHeightPoints;
 	}
-	
+
 	/**
 	 * all points, including ground
 	 * @return

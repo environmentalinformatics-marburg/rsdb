@@ -27,6 +27,8 @@ public abstract class RemoteTask implements Runnable {
 	private long tstart = -1;
 	private long tend = -1;
 	private String message = "init";
+	private long lastMessageTime = -1;
+	private final long messageDuration = 250;
 
 	public static enum Status {
 		READY,
@@ -67,8 +69,13 @@ public abstract class RemoteTask implements Runnable {
 	}
 	
 	protected final void setMessage(String message) {
+		lastMessageTime = System.currentTimeMillis();
 		log.info("message: " + message);
 		this.message = message;
+	}
+	
+	protected boolean isMessageTime() {
+		return lastMessageTime + messageDuration <= System.currentTimeMillis();
 	}
 	
 	public final String getMessage() {

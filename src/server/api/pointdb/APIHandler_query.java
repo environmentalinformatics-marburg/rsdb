@@ -2,6 +2,9 @@ package server.api.pointdb;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +21,10 @@ import pointdb.processing.geopoint.Normalise;
 import pointdb.subsetdsl.Region;
 import server.api.pointdb.LasWriter.LAS_HEADER;
 import server.api.pointdb.LasWriter.POINT_DATA_RECORD;
+import util.Receiver;
+import util.ResponseReceiver;
+import util.StreamReceiver;
+import util.Timer;
 import util.Util;
 import util.Web;
 import util.collections.vec.Vec;
@@ -32,6 +39,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
+		Timer.start("query points");
 		PointDB pointdb = getPointdb(request);
 
 		double[] ext = Web.getDoubles(request, "ext");
@@ -44,25 +52,27 @@ public class APIHandler_query extends PointdbAPIHandler {
 
 		String format = Web.getString(request, "format", "rdat");
 
-		GeoPointFilter filter = null;
+		GeoPointFilter filter0 = null;
 		String filterText = request.getParameter("filter");
 		if(filterText!=null) {
-			filter = GeoPointFilter.createFilter(filterText);
-			log.info("filter: "+filterText+" "+filter);
+			filter0 = GeoPointFilter.createFilter(filterText);
+			log.info("filter: "+filterText+" "+filter0);
 		}
-
-		String[] columns = null;
+		final GeoPointFilter filter = filter0;
+		
+		String[] columns0 = null;
 		String columnsText = request.getParameter("columns");
 		if(columnsText!=null) {
-			columns = Util.columnTextToColumns(columnsText);
-			log.info("columns: "+ Arrays.toString(columns));
+			columns0 = Util.columnTextToColumns(columnsText);
+			log.info("columns: "+ Arrays.toString(columns0));
 		}
+		final String[] columns = columns0;
 
-		boolean sort = false; // always sort if true else sort if needed for other processing (e.g. normalise extremes, ground)
+		boolean sort0 = false; // always sort if true else sort if needed for other processing (e.g. normalise extremes, ground)
 		switch(Web.getString(request, "sort", "no")) {
 		case "z":
 			log.info("sorting");
-			sort = true;
+			sort0 = true;
 			break;
 		case "no":
 			//nothing
@@ -70,7 +80,8 @@ public class APIHandler_query extends PointdbAPIHandler {
 		default:
 			log.warn("unknown sort parameter "+Web.getString(request, "sort", "no"));
 		}
-
+		final boolean sort = sort0;
+		
 		double x1 = ext[0];
 		double x2 = ext[1];
 		double y1 = ext[2];		
@@ -79,56 +90,31 @@ public class APIHandler_query extends PointdbAPIHandler {
 		double ymin = y1<y2?y1:y2;
 		double xmax = x1<x2?x2:x1;
 		double ymax = y1<y2?y2:y1;
-		Region region = Region.ofRect(Rect.of_UTM(xmin, ymin, xmax, ymax));
-		//log.info("query region " + region);
-		DataProvider2 dp2 = new DataProvider2(pointdb, region);
-
-
-		Vec<GeoPoint> points = null;
-
-		if(normalise.normalise_ground) {
-			points = dp2.get_sortedRegionHeightPoints();
-			log.info("query points " + points.size());
-			if(normalise.normalise_extremes) {
-				points = Normalise.no_extermes_of_sorted(points);
-			}
-			if(normalise.normalise_origin) {
-				points = Normalise.translate(points, -xmin, -ymin);
-			}
+		Rect rect = Rect.of_UTM(xmin, ymin, xmax, ymax);
+		
+		if(format.equals("zip")) {			
+			String tileFormat = "las";
+			response.setContentType("application/zip");
+			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
+			Receiver receiver = new StreamReceiver(zipOutputStream);
+			rect.tiles_utmm(1000_000, 1000_000, (xtile, ytile, tileRect) -> {
+				log.info(tileRect);
+				String tileFilename = "tile_" + xtile + "_" + ytile + ".las";
+				try {
+					zipOutputStream.putNextEntry(new ZipEntry(tileFilename));
+					PointProcessor.process(pointdb, tileRect, normalise, filter, sort, columns, tileFormat, -xmin, -ymin, receiver);
+					zipOutputStream.closeEntry();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}				
+			});			
+			zipOutputStream.finish();
+			zipOutputStream.flush();
 		} else {
-			points = dp2.get_regionPoints();
-			if(normalise.normalise_extremes) {
-				points.sort(GeoPoint.Z_COMPARATOR_SAFE);
-				points = Normalise.no_extermes_of_sorted(points);
-			} else {
-				if(sort) {
-					points.sort(GeoPoint.Z_COMPARATOR_SAFE);
-				}
-			}
-			if(normalise.normalise_origin) {
-				points = Normalise.translate(points, -xmin, -ymin);
-			}
+			Receiver receiver = new ResponseReceiver(response);
+			PointProcessor.process(pointdb, rect, normalise, filter, sort, columns, format, -xmin, -ymin, receiver);
 		}
-
-		if(filter != null) {
-			points = points.filter(filter);
-		}		
-
-		switch(format.trim().toLowerCase()) {
-		case "rdat":
-			RdatPointDataFrame.writePointList(pointdb, response, points, columns);
-			break;
-		case "js":
-			JsWriter.writePoints(pointdb, response, points, columns);
-			break;
-		case "xyz":
-			PointXyzWriter.writePoints(pointdb, response, points, columns);
-			break;
-		case "las":
-			LasWriter.writePoints(pointdb, response, points, columns, LAS_HEADER.V_1_2, POINT_DATA_RECORD.FORMAT_0);
-			break;
-		default:
-			throw new RuntimeException("unknown format "+format);
-		}
+		log.info(Timer.stop("query points"));
 	}
 }

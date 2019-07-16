@@ -35,6 +35,7 @@ public class PointdbConfig {
 	private ACL acl = EmptyACL.ADMIN;
 	private Informal informal = Informal.EMPTY;
 	private String rasterdb = "";
+	private String storageVersion = "";
 
 
 	public String name;
@@ -48,6 +49,7 @@ public class PointdbConfig {
 		String name = yamlMap.getString("name");
 		String db = yamlMap.getString("db");
 		PointdbConfig pc = new PointdbConfig(name, db);
+		yamlMap.optFunString("storage_version", s->pc.storageVersion = s);
 		for(String dir:yamlMap.optList("import").asStrings()) {
 			pc.importDirectories.add(Paths.get(dir));
 		}
@@ -177,5 +179,9 @@ public class PointdbConfig {
 	
 	public String getRasterDB() {
 		return rasterdb;
+	}
+
+	public String getStorageType() {
+		return storageVersion;
 	}
 }

@@ -31,6 +31,7 @@ import rasterdb.TimeBandProcessor;
 import server.api.rasterdb.RequestProcessor.OutputProcessingType;
 import util.JsonUtil;
 import util.Range2d;
+import util.StreamReceiver;
 import util.TimeUtil;
 import util.Web;
 
@@ -182,7 +183,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			for(int timestamp:spec.timestamps) {			
 				zipOutputStream.putNextEntry(new ZipEntry(name + "__" + TimeUtil.toFileText(timestamp) + ".tiff"));
 				List<TimeBand> timebands = TimeBand.of(timestamp, spec.bands);
-				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new RequestProcessorBands.StreamReceiver(zipOutputStream));			
+				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
 				zipOutputStream.closeEntry();			
 			}
 			break;
@@ -191,7 +192,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			for(Band band: spec.bands) {
 				zipOutputStream.putNextEntry(new ZipEntry(name + "__band_" + band.index + ".tiff"));
 				List<TimeBand> timebands = spec.timestamps.stream().map(timestamp -> new TimeBand(timestamp, band)).collect(Collectors.toList());
-				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new RequestProcessorBands.StreamReceiver(zipOutputStream));			
+				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
 				zipOutputStream.closeEntry();			
 			}
 			break;
@@ -202,7 +203,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 				for(Band band: spec.bands) {
 					zipOutputStream.putNextEntry(new ZipEntry(tfile + "__band_" + band.index + ".tiff"));
 					Set<TimeBand> timebands = java.util.Collections.singleton(new TimeBand(timestamp, band));
-					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new RequestProcessorBands.StreamReceiver(zipOutputStream));			
+					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
 					zipOutputStream.closeEntry();			
 				}
 			}
@@ -214,7 +215,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 				for(int timestamp:spec.timestamps) {			
 					zipOutputStream.putNextEntry(new ZipEntry(bfile + "__" + TimeUtil.toFileText(timestamp) + ".tiff"));
 					Set<TimeBand> timebands = java.util.Collections.singleton(new TimeBand(timestamp, band));
-					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new RequestProcessorBands.StreamReceiver(zipOutputStream));			
+					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
 					zipOutputStream.closeEntry();			
 				}
 			}

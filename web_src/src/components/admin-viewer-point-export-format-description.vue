@@ -3,7 +3,16 @@
     <v-expansion-panel-content>
       <div slot="header">format description</div>
       <hr>
-      <h3 :class="{disabled: (outputType !== 'LAS')}">LAS</h3>
+      <h3 :class="{disabled: (outputType.name !== 'zip')}">ZIP (experimantal)</h3>
+      <br>
+      ZIP file containing las files (described in section LAS)   
+      <br>
+      <br>Contained las files are tiles of 1x1km size. All tiles covering the requested extent are returned. 
+      <br>Currently tiles are not filtered by extend, so tiles on borders of extent do contain points outside of requested extent.
+      <br>     
+      <hr>      
+      <hr>
+      <h3 :class="{disabled: (outputType.name !== 'LAS')}">LAS</h3>
       <br>
       LAS point file format
       <br>
@@ -13,13 +22,13 @@
       <br>
       <br>     
       <hr>
-      <h3 :class="{disabled: (outputType !== 'xyz')}">xyz</h3>
+      <h3 :class="{disabled: (outputType.name !== 'xyz')}">xyz</h3>
       <br>
       xyz text based point format.
       <br>      
       <br>
       <hr>
-      <h3 :class="{disabled: (outputType !== 'rDAT')}">rDAT</h3>
+      <h3 :class="{disabled: (outputType.name !== 'rDAT')}">rDAT</h3>
       <br>
       rDAT file format is transfer format of rPointDB package. 
       <br>

@@ -20,7 +20,7 @@
       <br>
       <b>File-Format</b>
       <br>
-      <multiselect v-model="outputType" :options="outputTypes" :show-labels="false" :allowEmpty="false" placeholder="output format" />
+      <multiselect v-model="outputType" :options="outputTypes" :show-labels="false" :allowEmpty="false" placeholder="output format" track-by="name" label="title"/>
 
       <br>
       <a title="download points as file" style="padding: 9px; background-color: #f5f5f5; 
@@ -58,8 +58,13 @@ export default {
       user_ymin: undefined,
       user_xmax: undefined,
       user_ymax: undefined,
-      outputTypes: ['LAS', 'xyz', 'rDAT'],
-      outputType: 'LAS',
+      outputTypes: [
+        {name: 'LAS', title: '.las - binary file'}, 
+        {name: 'xyz', title: '.xyz - text file'}, 
+        {name: 'rDAT', title: '.rDAT - binary file'}, 
+        {name: 'zip', title: '.zip - containing tiled .las files (experimental)'}
+      ],
+      outputType: undefined,
     };
   },
   methods: {
@@ -109,7 +114,7 @@ export default {
         var ext_pointdb = [this.selectedExtent[0], this.selectedExtent[2], this.selectedExtent[1], this.selectedExtent[3]].join(',');
         var parameters_pointdb = { db: this.pointdb, ext: ext_pointdb };
 
-        switch(this.outputType) {
+        switch(this.outputType.name) {
           case 'LAS':
             method_pointdb = 'points.las';
             parameters_pointdb.format = 'las';
@@ -121,10 +126,14 @@ export default {
           case 'rDAT':
             method_pointdb = 'points.rdat';
             parameters_pointdb.format = 'rdat';
-            break;     
+            break;
+          case 'zip':
+            method_pointdb = 'points.zip';
+            parameters_pointdb.format = 'zip';
+            break;                  
           default:
             parameters_pointdb.format = 'unknown';
-            throw "unknown output type " + this.outputType;
+            throw "unknown output type " + this.outputType.name;
         }
 
         var link_pointdb = url_pointdb + '/' + method_pointdb + this.toQuery(parameters_pointdb);
@@ -136,7 +145,7 @@ export default {
         var ext_pointcloud = this.selectedExtent.join(' ');
         var parameters_pointcloud = { ext: ext_pointcloud };
 
-        switch(this.outputType) {
+        switch(this.outputType.name) {
           case 'LAS':
             method_pointcloud = 'points.las';
             break;
@@ -147,7 +156,7 @@ export default {
             method_pointcloud = 'points.rdat';
             break;     
           default:
-            throw "unknown output type " + this.outputType;
+            throw "unknown output type " + this.outputType.name;
         }
 
         var link_pointcloud = url_pointcloud + '/' + this.pointcloud + '/' + method_pointcloud + this.toQuery(parameters_pointcloud);
@@ -157,7 +166,7 @@ export default {
     },
     downloadFilename() {
       var ext = '';
-      switch(this.outputType) {
+      switch(this.outputType.name) {
         case 'LAS':
           ext = '.las';
           break;
@@ -166,9 +175,12 @@ export default {
           break;
         case 'rDAT':
           ext = '.rdat';
-          break;     
+          break;
+        case 'zip':
+          ext = '.zip';
+          break;               
         default:
-          throw "unknown output type " + this.outputType;
+          throw "unknown output type " + this.outputType.name;
       }
       var name = 'this.meta.name';
       return name + ext;
@@ -185,6 +197,7 @@ export default {
     },
   },
   mounted() {
+    this.outputType = this.outputTypes.find(o=>o.name === 'zip');
   },
 }
 

@@ -15,6 +15,7 @@ import pointdb.PointDB;
 import pointdb.process.DataProvider2;
 import pointdb.process.Functions;
 import pointdb.subsetdsl.Region;
+import util.ResponseReceiver;
 import util.Web;
 import util.collections.vec.Vec;
 import util.rdat.RdatDataFrame;
@@ -202,7 +203,7 @@ public class ProcessIndices {
 					df.addString("name", d->d.a);
 					df.addDouble(functions.get(i), d->d.b[pos]);
 				}
-				df.write(response, results);
+				df.write(new ResponseReceiver(response), results);
 			//}
 			break;
 		}

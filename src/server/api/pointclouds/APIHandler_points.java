@@ -23,6 +23,8 @@ import pointcloud.PointTable;
 import pointcloud.PointTable.FilterByPolygonFunc;
 import pointcloud.RdatWriter;
 import util.ByteArrayOut;
+import util.Receiver;
+import util.ResponseReceiver;
 
 public class APIHandler_points {
 	private static final Logger log = LogManager.getLogger();
@@ -93,21 +95,22 @@ public class APIHandler_points {
 			pointTables = pointTables.map(pointTable -> PointTable.applyMask(pointTable, filterByPolygonFunc.apply(pointTable)));
 		}
 
+		ResponseReceiver receiver = new ResponseReceiver(response);
 		switch(format) {
 		case "xyz": {
-			writeXYZ(pointTables, response);
+			writeXYZ(pointTables, receiver);
 			break;
 		}
 		case "las": {
-			writeLAS(pointTables.toArray(PointTable[]::new), response);
+			writeLAS(pointTables.toArray(PointTable[]::new), receiver);
 			break;
 		}
 		case "js": {
-			writeJS(pointTables.toArray(PointTable[]::new), request, response);
+			writeJS(pointTables.toArray(PointTable[]::new), request, receiver);
 			break;
 		}
 		case "rdat": {
-			writeRdat(pointTables.toArray(PointTable[]::new), response, selector);
+			writeRdat(pointTables.toArray(PointTable[]::new), receiver, selector);
 			break;
 		}
 		default:
@@ -115,9 +118,9 @@ public class APIHandler_points {
 		}
 	}
 
-	private void writeXYZ(Stream<PointTable> pointTables, HttpServletResponse response) throws IOException {
-		response.setContentType("application/octet-stream");
-		PrintWriter writer = response.getWriter();
+	private void writeXYZ(Stream<PointTable> pointTables, ResponseReceiver receiver) throws IOException {
+		receiver.setContentType("application/octet-stream");
+		PrintWriter writer = receiver.getWriter();
 		pointTables.sequential().forEach(p -> {
 			int len = p.rows;
 			double[] xs = p.x == null ? new double[len] : p.x;
@@ -153,11 +156,11 @@ public class APIHandler_points {
 		return sb.toString();
 	}
 
-	private void writeLAS(PointTable[] pointTables, HttpServletResponse response) throws IOException {
-		LasWriter.writePoints(pointTables, response, LAS_HEADER.V_1_2, POINT_DATA_RECORD.FORMAT_0);
+	private void writeLAS(PointTable[] pointTables, ResponseReceiver receiver) throws IOException {
+		LasWriter.writePoints(pointTables, receiver, LAS_HEADER.V_1_2, POINT_DATA_RECORD.FORMAT_0);
 	}
 
-	private void writeJS(PointTable[] pointTables, Request request, HttpServletResponse response) throws IOException {
+	private void writeJS(PointTable[] pointTables, Request request, Receiver receiver) throws IOException {
 		int maxPoints = 5_500_000;
 		int maxSamplePoints = 5_000_000;
 		String format = request.getParameter("format");
@@ -170,15 +173,15 @@ public class APIHandler_points {
 		}
 		boolean useAllPoints = pointCount <= maxPoints;
 		if(useAllPoints) {
-			writeAllPoints(pointTables, response, format, pointCount);
+			writeAllPoints(pointTables, receiver, format, pointCount);
 		} else {
 			double samplingFactor = ((double)pointCount) / maxSamplePoints;
 			log.info("sample " + maxSamplePoints + " of " + pointCount+ " sampling factor " + samplingFactor);
-			writeSamplePoints(pointTables, response, format, samplingFactor);
+			writeSamplePoints(pointTables, receiver, format, samplingFactor);
 		}		
 	}
 
-	private void writeSamplePoints(PointTable[] pointTables, HttpServletResponse response, String format, double samplingFactor) throws IOException {
+	private void writeSamplePoints(PointTable[] pointTables, Receiver receiver, String format, double samplingFactor) throws IOException {
 		int samplePointCount = 0;
 		{
 			double samplingPos = 0;
@@ -195,7 +198,7 @@ public class APIHandler_points {
 		}
 		log.info("samples "+samplePointCount);
 		int pointCount = samplePointCount;
-		response.setContentType("application/octet-stream");
+		receiver.setContentType("application/octet-stream");
 		switch(format) {
 		case "xzy": {
 			@SuppressWarnings("resource")
@@ -219,7 +222,7 @@ public class APIHandler_points {
 					samplingPos -= len;
 				}
 			}
-			byteOut.flip(response.getOutputStream());
+			byteOut.flip(receiver.getOutputStream());
 			break;
 		}
 		case "xzy_classification": {
@@ -262,7 +265,7 @@ public class APIHandler_points {
 					samplingPos -= len;
 				}
 			}
-			byteOut.flip(response.getOutputStream());
+			byteOut.flip(receiver.getOutputStream());
 			break;
 		}
 		case "xzy_rgb": {
@@ -305,7 +308,7 @@ public class APIHandler_points {
 					samplingPos -= len;
 				}
 			}
-			byteOut.flip(response.getOutputStream());
+			byteOut.flip(receiver.getOutputStream());
 			break;
 		}
 		default:
@@ -313,8 +316,8 @@ public class APIHandler_points {
 		}
 	}
 
-	private void writeAllPoints(PointTable[] pointTables, HttpServletResponse response, String format, int pointCount) throws IOException {
-		response.setContentType("application/octet-stream");
+	private void writeAllPoints(PointTable[] pointTables, Receiver receiver, String format, int pointCount) throws IOException {
+		receiver.setContentType("application/octet-stream");
 		switch(format) {
 		case "xzy": {
 			@SuppressWarnings("resource")
@@ -331,7 +334,7 @@ public class APIHandler_points {
 					byteOut.putFloatRaw((float) y[i]);
 				}
 			}
-			byteOut.flip(response.getOutputStream());
+			byteOut.flip(receiver.getOutputStream());
 			break;
 		}
 		case "xzy_classification": {
@@ -358,7 +361,7 @@ public class APIHandler_points {
 					byteOut.putBytesRaw(new byte[len]);
 				}
 			}
-			byteOut.flip(response.getOutputStream());
+			byteOut.flip(receiver.getOutputStream());
 			break;
 		}
 		case "xzy_rgb": {
@@ -387,7 +390,7 @@ public class APIHandler_points {
 					byteOut.putCharRaw(blue[i]);
 				}
 			}
-			byteOut.flip(response.getOutputStream());
+			byteOut.flip(receiver.getOutputStream());
 			break;
 		}
 		default:
@@ -401,9 +404,9 @@ public class APIHandler_points {
 		return a;
 	}
 
-	private void writeRdat(PointTable[] pointTables, HttpServletResponse response, AttributeSelector selector) throws IOException {
+	private void writeRdat(PointTable[] pointTables, ResponseReceiver receiver, AttributeSelector selector) throws IOException {
 		AttributeSelector rdatSelector = selector == null ? PointTable.getSelector(pointTables) : selector;
-		RdatWriter.writePoints(pointTables, rdatSelector, response);
+		RdatWriter.writePoints(pointTables, rdatSelector, receiver);
 	}
 
 }

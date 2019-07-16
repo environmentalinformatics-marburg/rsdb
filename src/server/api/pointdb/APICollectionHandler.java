@@ -24,7 +24,7 @@ public class APICollectionHandler extends AbstractHandler {
 	HashMap<String, PointdbAPIHandler> methodMap = new HashMap<String, PointdbAPIHandler>();
 
 	public APICollectionHandler(Broker broker) {
-		addMethodAndAliases(new APIHandler_query(broker), "points.rdat", "points.xyz", "points.las");
+		addMethodAndAliases(new APIHandler_query(broker), "points.rdat", "points.xyz", "points.las", "points.zip");
 		addMethodAndAliases(new APIHandler_query_raster(broker), "raster.rdat", "raster.tiff", "raster.png");
 		addMethodAndAliases(new APIHandler_info(broker), "info.json");
 		addMethod(new APIHandler_image(broker));

@@ -11,6 +11,7 @@ import broker.Broker;
 import pointdb.process.Functions;
 import pointdb.process.ProcessingFun;
 import util.JsonUtil;
+import util.ResponseReceiver;
 import util.Web;
 import util.rdat.RdatDataFrame;
 
@@ -57,7 +58,7 @@ public class APIHandler_process_functions extends PointdbAPIHandler {
 			RdatDataFrame<ProcessingFun> df = new RdatDataFrame<ProcessingFun>(Collection::size);
 			df.addString("name", ProcessingFun::getName);
 			df.addString("description", ProcessingFun::getDescription);
-			df.write(response, Functions.getFunctions());
+			df.write(new ResponseReceiver(response), Functions.getFunctions());
 			break;
 		}
 		default:

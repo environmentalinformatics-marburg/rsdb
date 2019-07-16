@@ -1,11 +1,8 @@
 package server.api.rasterdb;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Iterator;
-
-import org.eclipse.jetty.server.Response;
 
 import rasterdb.Rasterizer;
 import rasterdb.TimeBand;
@@ -13,63 +10,11 @@ import rasterdb.TimeBandProcessor;
 import server.api.rasterdb.RequestProcessor.OutputProcessingType;
 import server.api.rasterdb.WmsHandler.Interruptor;
 import util.Range2d;
+import util.Receiver;
 import util.image.ImageBufferARGB;
 
 public class RequestProcessorBands {
 	//private static final Logger log = LogManager.getLogger();
-
-	public static abstract class Receiver {
-		public abstract OutputStream getOutputStream() throws IOException;
-		public abstract void setStatus(int sc);
-		public abstract void setContentType(String contentType);
-	}
-
-	public static class ResponseReceiver extends Receiver {
-		private final Response response;
-		
-		public ResponseReceiver(Response response) {
-			this.response = response;
-		}
-
-		@Override
-		public OutputStream getOutputStream() throws IOException {
-			return response.getOutputStream();
-		}
-
-		@Override
-		public void setStatus(int sc) {
-			response.setStatus(sc);
-			
-		}
-
-		@Override
-		public void setContentType(String contentType) {
-			response.setContentType(contentType);			
-		}
-	}
-	
-	public static class StreamReceiver extends Receiver {
-		
-		private final OutputStream out;
-
-		public StreamReceiver(OutputStream out) {
-			this.out = out;
-		}
-
-		@Override
-		public OutputStream getOutputStream() throws IOException {
-			return out;
-		}
-
-		@Override
-		public void setStatus(int sc) {
-		}
-
-		@Override
-		public void setContentType(String contentType) {
-		}
-		
-	}
 
 	public static void processBands(TimeBandProcessor processor, Collection<TimeBand> processingBands, OutputProcessingType outputProcessingType, String format, Receiver receiver) throws IOException {
 		Range2d reqRange2d = processor.getDstRange();

@@ -148,7 +148,7 @@ public class RangerFloat {
 			max = min + 1;
 		}
 		if(med == Double.NEGATIVE_INFINITY) {
-			log.info("set med");
+			//log.info("set med");
 			med = (min + max) / 2;
 		}
 		return new double[] {min, max, med};

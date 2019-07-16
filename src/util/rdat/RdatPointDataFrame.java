@@ -13,6 +13,8 @@ import org.mapdb.DataIO.DataOutputByteArray;
 
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
+import util.Receiver;
+import util.ResponseReceiver;
 
 public class RdatPointDataFrame {
 
@@ -34,8 +36,8 @@ public class RdatPointDataFrame {
 	}};	
 	
 	
-	public static void writePointList(PointDB pointdb, Response response, Collection<GeoPoint> points, String[] columns) throws IOException {
-		RdatDataFrame_points.write(response, points, columns, pointdb);
+	public static void writePointList(PointDB pointdb, Receiver receiver, Collection<GeoPoint> points, String[] columns) throws IOException {
+		RdatDataFrame_points.write(receiver, points, columns, pointdb);
 	}
 
 	@Deprecated

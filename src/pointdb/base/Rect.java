@@ -1,7 +1,10 @@
 package pointdb.base;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 
 import util.Web;
@@ -12,6 +15,8 @@ import util.Web;
  *
  */
 public class Rect {
+	private static final Logger log = LogManager.getLogger();
+	
 	public final long utmm_min_x;
 	public final long utmm_min_y;
 	public final long utmm_max_x;
@@ -130,6 +135,20 @@ public class Rect {
 		return PdbConst.utmmToDouble(utmm_max_y);
 	}
 	
+	/**
+	 * upper bound excluding returned value
+	 */
+	public double getUTMd_max_x_exclusive() {
+		return PdbConst.utmmToDouble(utmm_max_x + 1);
+	}
+	
+	/**
+	 * upper bound excluding returned value
+	 */
+	public double getUTMd_max_y_exclusive() {
+		return PdbConst.utmmToDouble(utmm_max_y + 1);
+	}
+	
 	public int getInteger_UTM_min_x() {
 		return (int) (this.utmm_min_x/1000);
 	}
@@ -200,5 +219,25 @@ public class Rect {
 		long tx = (long) (x*1000d);
 		long ty = (long) (y*1000d);
 		return new Rect(this.utmm_min_x + tx, this.utmm_min_y + ty, this.utmm_max_x + tx, this.utmm_max_y + ty);
+	}
+	
+	@FunctionalInterface
+	public static interface TileRectConsumer {
+		void accept(long xtile, long ytile, Rect rect);
+	}
+
+	public void tiles_utmm(long xsize_utmm, long ysize_utmm, TileRectConsumer consumer) {
+		long xtilemin = (long) Math.floor(utmm_min_x / xsize_utmm);
+		long ytilemin = (long) Math.floor(utmm_min_y / ysize_utmm);
+		long xtilemax = (long) Math.floor(utmm_max_x / xsize_utmm);
+		long ytilemax = (long) Math.floor(utmm_max_y / ysize_utmm);
+		for(long ytile = ytilemin; ytile <= ytilemax;  ytile++) {
+			for(long xtile = xtilemin; xtile <= xtilemax;  xtile++) {
+				long x = xtile * xsize_utmm;
+				long y = ytile * ysize_utmm;
+				Rect rect = Rect.of_UTMM(x, y, x + xsize_utmm - 1, y + ysize_utmm - 1);
+				consumer.accept(xtile, ytile, rect);
+			}
+		}
 	}
 }

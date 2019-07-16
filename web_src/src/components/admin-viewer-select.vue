@@ -59,7 +59,7 @@
       <multiselect v-model="selectedGamma" :options="gammas" :show-labels="false" :allowEmpty="false" placeholder="gamma correction" />
     </div>
     
-    <div v-show="selectedProduct.name !== 'color'">
+    <div v-show="selectedProduct !== undefined && selectedProduct.name !== 'color'">
       <b>One Band Mapping</b>
       <multiselect v-model="selectedOneBandMapping" :options="oneBandMappings" :show-labels="false" :allowEmpty="false" placeholder="value to pixel mapping of one band" />
     </div>      
@@ -107,7 +107,7 @@ export default {
   },
   methods: {
     refreshSelectedRasterdb() {
-      console.log("refreshSelectedRasterdb");
+      //console.log("refreshSelectedRasterdb");
       if(this.rasterdbs === undefined || this.rasterdbs.length === 0) {
         this.selectedRasterdb = undefined;
       } else if(this.currentRasterdb === undefined) {
@@ -121,7 +121,7 @@ export default {
       }     
     },
     refreshSelectedTimestamp() {
-      console.log("refreshSelectedTimestamp");
+      //console.log("refreshSelectedTimestamp");
       if(this.meta === undefined || this.meta.timestamps.length === 0) {
         this.selectedTimestamp = undefined;
       } else if(this.currentTimestamp === undefined) {
@@ -141,7 +141,7 @@ export default {
       }     
     },
     refreshSelectedProduct() {
-      console.log("refreshSelectedProduct");
+      //console.log("refreshSelectedProduct");
       if(this.meta === undefined || this.meta.wms.styles.length === 0) {
         this.selectedProduct = undefined;
       } else if(this.currentProduct === undefined) {
@@ -218,7 +218,7 @@ export default {
     this.refreshSelectedRasterdb();
     this.refreshSelectedTimestamp();
     this.refreshSelectedProduct();
-    this.selectedBackground = this.backgroundOptions[0];
+    this.selectedBackground = this.backgroundOptions[2];
   },
 }
 

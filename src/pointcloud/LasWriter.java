@@ -8,6 +8,7 @@ import java.util.Arrays;
 import javax.servlet.http.HttpServletResponse;
 
 import util.LittleEndianDataOutputStream;
+import util.ResponseReceiver;
 
 public class LasWriter {
 	//private static final Logger log = LogManager.getLogger();
@@ -48,7 +49,7 @@ public class LasWriter {
 	private static final double SCALE_FACTOR = 0.001;
 
 	@SuppressWarnings("resource")
-	public static void writePoints(PointTable[] pointTables, HttpServletResponse response, LAS_HEADER header, POINT_DATA_RECORD pointDataRecord) throws IOException {
+	public static void writePoints(PointTable[] pointTables, ResponseReceiver receiver, LAS_HEADER header, POINT_DATA_RECORD pointDataRecord) throws IOException {
 		LocalDate date = LocalDate.now();
 
 		double xmin = Double.MAX_VALUE;
@@ -90,8 +91,8 @@ public class LasWriter {
 		double yoff = ((int)ymin);
 		double zoff = ((int)zmin);		
 
-		response.setContentType("application/octet-stream");		
-		LittleEndianDataOutputStream out = new LittleEndianDataOutputStream(response.getOutputStream());
+		receiver.setContentType("application/octet-stream");		
+		LittleEndianDataOutputStream out = new LittleEndianDataOutputStream(receiver.getOutputStream());
 
 
 

@@ -12,6 +12,8 @@ import org.eclipse.jetty.server.Response;
 
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
+import util.Receiver;
+import util.ResponseReceiver;
 import util.collections.vec.Vec;
 import util.rdat.RdatDataFrame.Column;
 import util.rdat.RdatDataFrame.DoubleColumn;
@@ -43,13 +45,13 @@ public class RdatDataFrame_points {
 
     /**
      * 
-     * @param response
+     * @param receiver
      * @param coll
      * @param columns nullable
      * @param pointdb
      * @throws IOException
      */
-	public static void write(Response response, Collection<GeoPoint> coll, String[] columns, PointDB pointdb) throws IOException {
+	public static void write(Receiver receiver, Collection<GeoPoint> coll, String[] columns, PointDB pointdb) throws IOException {
 
 		RdatDataFrame<GeoPoint> df = new RdatDataFrame<GeoPoint>(Collection::size);
 		df.meta.put("proj4", pointdb.config.getProj4());
@@ -72,7 +74,7 @@ public class RdatDataFrame_points {
 			}
 		}
 
-		df.write(response, coll);
+		df.write(receiver, coll);
 	}
 
 }

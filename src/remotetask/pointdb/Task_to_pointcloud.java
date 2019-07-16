@@ -21,11 +21,16 @@ import pointdb.base.TileKey;
 import pointdb.processing.tilekey.TileKeyIsEmptyCollector;
 import pointdb.processing.tilemeta.StatisticsCreator.Statistics;
 import remotetask.Context;
+import remotetask.Description;
+import remotetask.Param;
 import remotetask.RemoteTask;
 import util.Timer;
 import util.collections.vec.Vec;
 
 @task_pointdb("to_pointcloud")
+@Description("create pointcloud layer from pointdb layer")
+@Param(name="pointdb", desc="ID of PointDB layer (source)")
+@Param(name="pointcloud", desc="ID of new PointCloud layer (target) (if layer exists, delete)")
 public class Task_to_pointcloud extends RemoteTask{
 	private static final Logger log = LogManager.getLogger();
 
@@ -110,16 +115,20 @@ public class Task_to_pointcloud extends RemoteTask{
 			if(task.has("transactions")) {
 				transactions = task.getBoolean("transactions");
 			}
+			setMessage("prepare pointcloud layer");
 			broker.deletePointCloud(pointcloud_name);
 			PointCloud pointcloud = broker.createNewPointCloud(pointcloud_name, transactions);
 
+			setMessage("verify pointdb layer");
 			Statistics stat = pointdb.tileMetaProducer(null).toStatistics();
 			log.info(stat.tile_x_min+"  "+stat.tile_x_max+"          "+(stat.tile_x_max - stat.tile_x_min + PdbConst.UTM_TILE_SIZE));
 			log.info(stat.tile_y_min+"  "+stat.tile_y_max+"          "+(stat.tile_y_max - stat.tile_y_min + PdbConst.UTM_TILE_SIZE));
 			log.info("utmm tile size " + PdbConst.LOCAL_TILE_SIZE);
 			log.info("utm tile size " + PdbConst.UTM_TILE_SIZE);
+			log.info("tiles " + stat.tile_sum);
 
 
+			setMessage("set pointcloud parameters");
 			pointcloud.trySetCellsize(100);
 			double cellsize = pointcloud.getCellsize();
 			long utmm_cellsize = PdbConst.to_utmm(cellsize);
@@ -142,6 +151,9 @@ public class Task_to_pointcloud extends RemoteTask{
 
 			TreeSet<TileKey> cachedKeySet = new TreeSet<TileKey>(pointdb.tileMetaMap.keySet());
 
+			setMessage("start transfer points");
+			long sourceTileCount = 0;
+			long targetTileCount = 0;
 			try(Commiter commiter = new Commiter(pointcloud)) { 
 
 				long utmm_pos_y = utmm_min_y;		
@@ -164,6 +176,7 @@ public class Task_to_pointcloud extends RemoteTask{
 							double utm_cell_min_y = PdbConst.utmmToDouble(utmm_cell_min_y);
 							Timer.start("to_pointdb read");
 							Vec<Tile> tiles = pointdb.tileProducer(rect).toVec();
+							sourceTileCount += tiles.size();
 							log.info(Timer.stop("to_pointdb read"));
 							int len = tiles.elementSum(Tile::size);
 							log.info("tiles " + tiles.size()+"   "+len);
@@ -221,16 +234,21 @@ public class Task_to_pointcloud extends RemoteTask{
 							log.info(Timer.stop("to_pointdb create tile"));
 							Timer.start("to_pointdb write");
 							pointcloud.writeTile(tile);
+							targetTileCount++;
 							log.info(Timer.stop("to_pointdb write"));
 							//pointcloud.commit();
 							commiter.addOne();
 							log.info(Timer.stop("to_pointdb tile"));
+							if(isMessageTime()) {
+								setMessage(sourceTileCount + " of " + stat.tile_sum + " source tiles processed -> " + targetTileCount + " target tiles");
+							}
 						}
 						utmm_pos_x += utmm_cellsize;	
 					}
 					utmm_pos_y += utmm_cellsize;
 				}
 			}
+			setMessage("finished transfer " + sourceTileCount + " of " + stat.tile_sum + " source tiles -> " + targetTileCount + " target tiles");
 
 		} catch(RuntimeException e) {
 			throw e;

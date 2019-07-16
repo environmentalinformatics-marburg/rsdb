@@ -173,7 +173,7 @@ export default {
     },
     refreshVectorSource() {
       var features = this.geojson === undefined ? [] : (new GeoJSON()).readFeatures(this.geojson);
-      console.log(features);
+      //console.log(features);
 
       this.vectorSource = new ol_source.Vector({
         features: features,
@@ -362,7 +362,7 @@ export default {
 
     self.olmap.on('click', function(e) {
       var feature = self.vectorSource.getClosestFeatureToCoordinate(e.coordinate);
-      console.log("clicked " + feature.getId()+"  ");
+      //console.log("clicked " + feature.getId()+"  ");
       self.selectedFeatures = [feature];
       self.featureDetailsShow = true;
     });

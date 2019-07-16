@@ -13,6 +13,7 @@ import remotetask.pointcloud.Task_rasterize;
 import remotetask.pointcloud.task_pointcloud;
 import remotetask.pointdb.Task_index_raster;
 import remotetask.pointdb.Task_to_pointcloud;
+import remotetask.pointdb.Task_verify;
 import remotetask.pointdb.task_pointdb;
 import remotetask.rasterdb.RemoveTimestampsRemoteTask;
 import remotetask.rasterdb.Task_count_pixels;
@@ -51,6 +52,8 @@ public class RemoteTasks {
 		put(remotetask.pointdb.Task_rasterize.class);
 		put(Task_index_raster.class);
 		put(Task_to_pointcloud.class);
+		put(Task_verify.class);
+
 
 		//task_pointcloud
 		put(Task_rasterize.class);

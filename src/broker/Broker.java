@@ -309,7 +309,7 @@ public class Broker implements AutoCloseable {
 
 	public void refreshPointcloudConfigs() {
 		if(!pointcloud_root.toFile().exists()) {
-			log.info("no pointcloud layers: pointcloud folder missing");
+			log.trace("no pointcloud layers: pointcloud folder missing");
 			return;
 		}
 		try {
