@@ -18,6 +18,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -139,13 +140,23 @@ public class JWSAuthentication extends AbstractHandler {
 				handleJwsParameterRedirect(jwsParam, request, response);
 				return;
 			}
+			
+			HttpSession session = request.getSession(false);
+			if(session != null) {
+				Authentication authentication = (Authentication) session.getAttribute("authentication");
+				if(authentication == null) {
+					throw new RuntimeException("missing authentication");
+				}
+				request.setAuthentication(authentication);
+				return;
+			}
 
-			Cookie jwsCooky = getCooky(request, "jws");
+			/*Cookie jwsCooky = getCooky(request, "jws");
 			if(jwsCooky != null) {
 				log.info("handle jws cooky");
 				handleCooky(jwsCooky, request, response);
 				return;
-			}
+			}*/
 
 			hanndleAuthenticationRequired(request, response);
 		}
@@ -212,16 +223,27 @@ public class JWSAuthentication extends AbstractHandler {
 
 		try {
 			Jws<Claims> jws = Jwts.parser().setSigningKeyResolver(signingKeyResolver).setAllowedClockSkewSeconds(clock_skew).parseClaimsJws(compactJws);
-			Cookie cookie = new Cookie("jws", compactJws);
+			/*Cookie cookie = new Cookie("jws", compactJws);
 			cookie.setPath(COOKIE_PATH);
 			cookie.setHttpOnly(true);
 			//cookie.setSecure(true);
-			response.addCookie(cookie);
+			response.addCookie(cookie);*/
 
-
-			log.info("request.getRequestURI() " + request.getRequestURI());
-			log.info("request.getRequestURL() " + request.getRequestURL());
-
+			HttpSession session = request.getSession(false);
+			if(session != null) {
+				session.invalidate();
+			}
+			session = request.getSession(true);			
+			
+			session.setAttribute("jws", compactJws);
+			Claims claims = jws.getBody();
+			String userName = claims.getSubject();
+			JwsConfig jwsConfig = broker.brokerConfig.jws().first();
+			Subject subject = new Subject();
+			Principal principal = new AbstractLoginService.UserPrincipal(userName, null);
+			UserIdentity userIdentity = new DefaultUserIdentity(subject, principal, jwsConfig.roles);
+			Authentication authentication = new UserAuthentication("jws", userIdentity);
+			session.setAttribute("authentication", authentication);
 
 			response.setHeader(HttpHeader.LOCATION.asString(), redirect_target);
 			response.setStatus(HttpServletResponse.SC_FOUND);
@@ -229,10 +251,14 @@ public class JWSAuthentication extends AbstractHandler {
 			return;
 		} catch (Exception e) {
 			if(compactJws != null && compactJws.equals("logout")) {
-				Cookie cookie = new Cookie("jws", null);
+				/*Cookie cookie = new Cookie("jws", null);
 				cookie.setPath(COOKIE_PATH);
 				cookie.setMaxAge(0);
-				response.addCookie(cookie);
+				response.addCookie(cookie);*/
+				HttpSession session = request.getSession(false);
+				if(session != null) {
+					session.invalidate();
+				}
 				response.setHeader(HttpHeader.LOCATION.asString(), redirect_target);
 				response.setStatus(HttpServletResponse.SC_FOUND);
 				response.setContentLength(0);
@@ -240,10 +266,14 @@ public class JWSAuthentication extends AbstractHandler {
 			} else {
 				e.printStackTrace();
 				log.warn(e);
-				Cookie cookie = new Cookie("jws", null);
+				/*Cookie cookie = new Cookie("jws", null);
 				cookie.setPath(COOKIE_PATH);
 				cookie.setMaxAge(0);
-				response.addCookie(cookie);
+				response.addCookie(cookie);*/
+				HttpSession session = request.getSession(false);
+				if(session != null) {
+					session.invalidate();
+				}
 				response.setContentType("text/html;charset=utf-8");
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				PrintWriter out = response.getWriter();

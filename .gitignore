@@ -8,9 +8,11 @@
 /poi
 /pointcloud
 /pointdb
+/proxy
 /rasterdb
 /roi
 /src_testing
+/storage
 /temp
 /vectordb
 
@@ -19,3 +21,5 @@
 /.project
 /.Rproj.user
 /config.yaml
+/realm.properties
+/realm_ip.csv

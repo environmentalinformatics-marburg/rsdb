@@ -178,9 +178,9 @@ public class WmsHandler extends AbstractHandler {
 			String timeText = request.getParameter("TIME");
 			if(timeText == null) {
 				try {
-				timestamp = rasterdb.rasterUnit().timeKeysReadonly.last();
+				timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
 				} catch(Exception e) {
-					if(rasterdb.rasterUnit().timeKeysReadonly.isEmpty()) {
+					if(rasterdb.rasterUnit().timeKeysReadonly().isEmpty()) {
 						throw new RuntimeException("empty rasterdb layer");
 					} else {
 						throw e;

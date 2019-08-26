@@ -35,10 +35,12 @@ public class VectordbsHandler extends AbstractHandler {
 	HashMap<String, VectordbHandler> methodMap = new HashMap<String, VectordbHandler>();
 
 	private final Broker broker;
+	private final VectordbHandler_root vectordbHandler_root;
 
 	public VectordbsHandler(Broker broker) {
 		this.broker = broker;
-		addMethod(new VectordbHandler_root(broker));
+		vectordbHandler_root = new VectordbHandler_root(broker);
+		addMethod(vectordbHandler_root);
 		addMethod(new VectordbHandler_geometry(broker));
 		addMethod(new VectordbHandler_table(broker));
 		addMethod(new VectordbHandler_files(broker));
@@ -172,7 +174,7 @@ public class VectordbsHandler extends AbstractHandler {
 	}	
 
 	private final static Set<String> CREATE_VECTORDB_PROPS_MANDATORY = Util.of("name");
-	private final static Set<String> CREATE_VECTORDB_PROPS = Util.of(CREATE_VECTORDB_PROPS_MANDATORY);	
+	private final static Set<String> CREATE_VECTORDB_PROPS = Util.of(CREATE_VECTORDB_PROPS_MANDATORY, "acl", "acl_mod");	
 
 	public void handleRootPOST(Request request, Response response, UserIdentity userIdentity) throws IOException {
 		try {			
@@ -182,11 +184,12 @@ public class VectordbsHandler extends AbstractHandler {
 				String key = it.next();
 				switch(key) {
 				case "create_vectordb": {
-					EmptyACL.ADMIN.check(userIdentity);
+					//EmptyACL.ADMIN.check(userIdentity);
 					JSONObject props = json.getJSONObject(key);
 					Util.checkProps(CREATE_VECTORDB_PROPS_MANDATORY, CREATE_VECTORDB_PROPS, props);
 					String name = JsonUtil.getString(props, "name");
-					broker.createVectordb(name);
+					VectorDB vectordb = broker.createVectordb(name);
+					vectordbHandler_root.updateVectordbProps(vectordb, props, userIdentity, true);
 					break;
 				}
 				default: 

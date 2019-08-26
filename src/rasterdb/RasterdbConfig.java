@@ -3,16 +3,22 @@ package rasterdb;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import util.yaml.YamlMap;
 
 public class RasterdbConfig {
+	private static final Logger log = LogManager.getLogger();
 
 	private Path path;
 	private String name;
 	private boolean fast_unsafe_import;
+	public String preferredStorageType; // nullable if rasterdb is existing
 
 	private RasterdbConfig() {
 		fast_unsafe_import = false;
+		preferredStorageType = null;
 	}
 
 	public static RasterdbConfig ofYAML(YamlMap map) {
@@ -21,9 +27,10 @@ public class RasterdbConfig {
 		return config;
 	}
 	
-	public static RasterdbConfig ofPath(Path path) {
+	public static RasterdbConfig ofPath(Path path, String storageType) {
 		RasterdbConfig config = new RasterdbConfig();
-		config.setPath(path);		
+		config.setPath(path);
+		config.preferredStorageType = storageType;
 		return config;
 	}
 	
@@ -52,5 +59,4 @@ public class RasterdbConfig {
 	public boolean is_fast_unsafe_import() {
 		return fast_unsafe_import;
 	}
-
 }

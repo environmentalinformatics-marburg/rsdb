@@ -1,22 +1,19 @@
 package rasterunit;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.AbstractCollection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.SortedSet;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +34,7 @@ import util.Timer;
 import util.collections.ReadonlyNavigableSetView;
 
 
-public class RasterUnit implements AutoCloseable {
+public class RasterUnit implements RasterUnitStorage {
 	private static final Logger log = LogManager.getLogger();
 
 	private BTreeMap<TileKey,Tile> tileMap;
@@ -146,7 +143,7 @@ public class RasterUnit implements AutoCloseable {
 		tileMapDb.close();
 	}
 
-	public void refreshKeys() {
+	private void refreshKeys() {
 		tileKeys.clear();
 		for(TileKey key:tileMap.keySet()) {
 			tileKeys.add(key);
@@ -154,7 +151,7 @@ public class RasterUnit implements AutoCloseable {
 		refreshDerivedKeys();
 	}
 
-	public void refreshDerivedKeys() {
+	private void refreshDerivedKeys() {
 		rowKeys.clear();
 		bandKeys.clear();
 		timeKeys.clear();
@@ -169,7 +166,7 @@ public class RasterUnit implements AutoCloseable {
 		}
 	}
 
-	public void addKey(TileKey key) {
+	private void addKey(TileKey key) {
 		tileKeys.add(key);
 		rowKeys.add(new RowKey(key.t, key.b, key.y));
 		bandKeys.add(new BandKey(key.t, key.b));
@@ -188,7 +185,7 @@ public class RasterUnit implements AutoCloseable {
 		addKey(tileKey);
 	}
 
-	public void write(Tile tile) {
+	public void writeTile(Tile tile) {
 		write(new TileKey(tile.t, tile.b, tile.y, tile.x), tile);
 	}
 
@@ -211,173 +208,14 @@ public class RasterUnit implements AutoCloseable {
 	public NavigableSet<RowKey> getRowKeys(int t, int b, int ymin, int ymax) {
 		RowKey rowKeyYmin = new RowKey(t, b, ymin);
 		RowKey rowKeyYmax = new RowKey(t, b, ymax);
-		//log.info(rowKeyYmin+"  "+rowKeyYmax );
 		return rowKeys.subSet(rowKeyYmin, true, rowKeyYmax, true);
-	}
-	
-	public SortedSet<RowKey> getRowKeysReverse(int t, int b, int ymin, int ymax) {
-		return getRowKeys(t, b, ymin, ymax).descendingSet();
-	}
+	}	
 
-	public Collection<Tile> getTiles(int t, int b, int ymin, int ymax, int xmin, int xmax) {
+	public Collection<Tile> readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax) {
 		Collection<RowKey> rows = getRowKeys(t, b, ymin, ymax);
-		return new TileCollection(rows, xmin, xmax);
+		return new TileCollection(this, rows, xmin, xmax);
 	}
 	
-	public Collection<Tile> getTilesYReverse(int t, int b, int ymin, int ymax, int xmin, int xmax) {
-		Collection<RowKey> rows = getRowKeysReverse(t, b, ymin, ymax);
-		return new TileCollection(rows, xmin, xmax);
-	}
-
-	private class TileCollection extends AbstractCollection<Tile> {
-
-		private final int xmin;
-		private final int xmax;
-		private final Collection<RowKey> rowsKeys;
-		private int calculatedSize = -1;
-
-		public TileCollection(Collection<RowKey> rowsKeys, int xmin, int xmax) {
-			this.xmin = xmin;
-			this.xmax = xmax;
-			this.rowsKeys = rowsKeys;
-		}
-
-		@Override
-		public Iterator<Tile> iterator() {
-			return new TileIterator(rowsKeys.iterator(), xmin, xmax);
-		}
-
-		@Override
-		public int size() {
-			if(this.calculatedSize == -1) {
-				int size = 0;
-				for(RowKey rowKey:rowsKeys) {
-					NavigableSet<TileKey> rowtileKeys = getTileKeys(rowKey.t, rowKey.b, rowKey.y, xmin, xmax);
-					//log.info("y "+rowKey.y+"   "+rowtileKeys.size());
-					size += rowtileKeys.size();
-				}
-				this.calculatedSize = size;
-			}
-			return this.calculatedSize;
-		}
-
-		@Override
-		public Spliterator<Tile> spliterator() {
-			return new TileSpliterator(rowsKeys.iterator(), xmin, xmax, size());
-		}		
-	}
-
-	private static final Iterator<Tile> EMPTY_TILE_ITERATOR = new Iterator<Tile>() {
-		@Override
-		public boolean hasNext() {
-			return false;
-		}
-		@Override
-		public Tile next() {
-			return null;
-		}			
-	};
-
-	private class TileIterator implements Iterator<Tile> {
-
-		private final int xmin;
-		private final int xmax;
-		private final Iterator<RowKey> rowKeyIt;
-		private Iterator<Tile> it = EMPTY_TILE_ITERATOR;
-
-		public TileIterator(Iterator<RowKey> rowKeyIt, int xmin, int xmax) {
-			this.xmin = xmin;
-			this.xmax = xmax;
-			this.rowKeyIt = rowKeyIt;
-		}
-
-		@Override
-		public boolean hasNext() {			
-			while(!it.hasNext()) {
-				if(!rowKeyIt.hasNext()) {
-					return false;
-				}
-				RowKey rowKey = rowKeyIt.next();
-				NavigableSet<TileKey> rowTileKeys = getTileKeys(rowKey.t, rowKey.b, rowKey.y, xmin, xmax);
-				if(rowTileKeys.isEmpty()) {
-					it = EMPTY_TILE_ITERATOR;
-				} else {					
-					Collection<Tile> tiles = getTiles(rowTileKeys.first(), rowTileKeys.last());
-					it = tiles.iterator();
-				}
-			}
-			return true;
-		}
-
-		@Override
-		public Tile next() {
-			return it.next();
-		}
-
-		@Override
-		public void forEachRemaining(Consumer<? super Tile> action) {
-			while (hasNext()) {
-				action.accept(next());
-			}
-		}
-	}
-
-	private class TileSpliterator extends TileIterator implements Spliterator<Tile> {
-		static final int BATCH_UNIT = 16;
-		static final int MAX_BATCH = 16;
-		static final int CHARACTERISTICS = Spliterator.SIZED | Spliterator.SUBSIZED;
-		private int size;
-		private int batch;
-
-		public TileSpliterator(Iterator<RowKey> rowKeyIt, int xmin, int xmax, int size) {
-			super(rowKeyIt, xmin, xmax);
-			this.size = size;
-		}
-
-		@Override
-		public int characteristics() {
-			return CHARACTERISTICS;
-		}
-
-		@Override
-		public long estimateSize() {
-			return size;
-		}
-
-		@Override
-		public boolean tryAdvance(Consumer<? super Tile> action) {
-			if (hasNext()) {
-				action.accept(next());
-				return true;
-			}
-			return false;
-		}
-
-		@Override
-		public Spliterator<Tile> trySplit() {
-			int len = size;
-			if (len > 1 && hasNext()) {
-				int n = batch + BATCH_UNIT;
-				if (n > len) {
-					n = len;
-				}
-				if (n > MAX_BATCH) {
-					n = MAX_BATCH;
-				}
-				Object[] a = new Object[n];
-				int j = 0;
-				do { 
-					a[j] = next(); 
-				} while (++j < n && hasNext());
-				batch = j;
-				size -= j;
-				return Spliterators.spliterator(a, 0, j, CHARACTERISTICS);
-			}
-			return null;
-		}
-
-	}
-
 	public Range2d getTileRange() {
 		int xmin = Integer.MAX_VALUE;
 		int ymin = Integer.MAX_VALUE;
@@ -426,6 +264,7 @@ public class RasterUnit implements AutoCloseable {
 		return new Range2d(xmin, ymin, xmax, ymax);
 	}
 
+	@Override	
 	public Range2d getTileRange(BandKey bandKey) {
 		int xmin = Integer.MAX_VALUE;
 		int ymin = Integer.MAX_VALUE;
@@ -593,14 +432,15 @@ public class RasterUnit implements AutoCloseable {
 		return false;
 	}
 
-	public Tile getTile(int t, int b, int y, int x) {
-		return getTile(new TileKey(t, b, y, x));
+	public Tile readTile(int t, int b, int y, int x) {
+		return readTile(new TileKey(t, b, y, x));
 	}
 
-	public Tile getTile(TileKey tileKey) {
+	public Tile readTile(TileKey tileKey) {
 		return tileMap.get(tileKey);
 	}
 
+	@Override
 	public int getTileCount() {
 		return tileKeys.size();
 	}
@@ -609,7 +449,8 @@ public class RasterUnit implements AutoCloseable {
 		return tileMap.isEmpty();
 	}
 
-	public long removeTimestamp(int t) {
+	@Override
+	public long removeAllTilesOfTimestamp(int t) {
 		try {
 			long cnt = 0;
 			TileKey min = new TileKey(t, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
@@ -630,5 +471,24 @@ public class RasterUnit implements AutoCloseable {
 			log.info("commit");
 			commit();
 		}
+	}
+
+	@Override
+	public void flush() throws IOException {
+		commit();		
+	}
+	
+	public ReadonlyNavigableSetView<TileKey> tileKeysReadonly() {
+		return tileKeysReadonly;
+	}
+
+	@Override
+	public ReadonlyNavigableSetView<BandKey> bandKeysReadonly() {
+		return bandKeysReadonly;
+	}
+
+	@Override
+	public ReadonlyNavigableSetView<Integer> timeKeysReadonly() {
+		return timeKeysReadonly;
 	}
 }

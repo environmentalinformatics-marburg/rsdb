@@ -3,6 +3,7 @@ package rasterdb;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -27,6 +28,9 @@ import broker.acl.EmptyACL;
 import rasterdb.tile.Processing;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
+import rasterunit.TileStorage;
+import rasterunit.TileStorageConfig;
 import util.Range2d;
 import util.yaml.YamlMap;
 
@@ -37,11 +41,11 @@ public class RasterDB implements AutoCloseable {
 
 	public NavigableMap<Integer, Band> bandMap;
 
-	private RasterUnit rasterUnit = null;
-	private RasterUnit rasterPyr1Unit = null;
-	private RasterUnit rasterPyr2Unit = null;
-	private RasterUnit rasterPyr3Unit = null;
-	private RasterUnit rasterPyr4Unit = null;
+	private RasterUnitStorage rasterUnit = null;
+	private RasterUnitStorage rasterPyr1Unit = null;
+	private RasterUnitStorage rasterPyr2Unit = null;
+	private RasterUnitStorage rasterPyr3Unit = null;
+	private RasterUnitStorage rasterPyr4Unit = null;
 
 	private GeoReference ref = GeoReference.EMPTY_DEFAULT;
 	public Associated associated = new Associated();
@@ -57,6 +61,7 @@ public class RasterDB implements AutoCloseable {
 	public final RasterdbConfig config;
 
 	private final Path path;
+	private String storageType = "RasterUnit";
 
 	public RasterDB(RasterdbConfig config) {
 		this.config = config;
@@ -65,8 +70,8 @@ public class RasterDB implements AutoCloseable {
 		bandMap = new TreeMap<Integer, Band>();
 
 		this.metaPath = path.resolve("meta.yaml");
-		readMeta();
-
+		this.storageType = config.preferredStorageType == null ? "RasterUnit" : config.preferredStorageType;
+		readMeta(); // possibly overwrite storage_type from meta
 	}
 
 	public synchronized void commit() {
@@ -91,31 +96,36 @@ public class RasterDB implements AutoCloseable {
 	@Override
 	public synchronized void close() {
 		log.info("close rasterdb " + config.getName()+" ...");
-		if (rasterUnit != null) {
-			//log.info("close rasterUnit");
-			rasterUnit.close();
-			rasterUnit = null;
-		}
-		if (rasterPyr1Unit != null) {
-			rasterPyr1Unit.close();
-			rasterPyr1Unit = null;
-		}
-		if (rasterPyr2Unit != null) {
-			rasterPyr2Unit.close();
-			rasterPyr2Unit = null;
-		}
-		if (rasterPyr3Unit != null) {
-			rasterPyr3Unit.close();
-			rasterPyr3Unit = null;
-		}
-		if (rasterPyr4Unit != null) {
-			rasterPyr4Unit.close();
-			rasterPyr4Unit = null;
+		try {
+			if (rasterUnit != null) {
+				//log.info("close rasterUnit");
+				rasterUnit.close();
+				rasterUnit = null;
+			}
+			if (rasterPyr1Unit != null) {
+				rasterPyr1Unit.close();
+				rasterPyr1Unit = null;
+			}
+			if (rasterPyr2Unit != null) {
+				rasterPyr2Unit.close();
+				rasterPyr2Unit = null;
+			}
+			if (rasterPyr3Unit != null) {
+				rasterPyr3Unit.close();
+				rasterPyr3Unit = null;
+			}
+			if (rasterPyr4Unit != null) {
+				rasterPyr4Unit.close();
+				rasterPyr4Unit = null;
+			}
+		} catch(IOException e) {
+			throw new RuntimeException(e);
 		}
 		writeMeta();
 	}
 
-	public void rebuildPyramid() {
+	public void rebuildPyramid() throws IOException {
+		getLocalRange(true);
 		log.info("build map 1:4");
 		long c1 = Processing.writeRasterUnitDiv4(this, rasterUnit(), rasterPyr1Unit());
 		log.info("tiles written " + c1);
@@ -152,6 +162,7 @@ public class RasterDB implements AutoCloseable {
 			if(local_extent != null) {
 				map.put("local_extent", local_extent.toYaml());
 			}
+			map.put("storage_type", storageType);
 			Yaml yaml = new Yaml();
 			Path writepath = Paths.get(metaPath.toString()+"_temp");
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(writepath.toFile())));
@@ -201,7 +212,7 @@ public class RasterDB implements AutoCloseable {
 				} else {
 					local_extent = null;
 				}
-						
+				storageType = yamlMap.optString("storage_type", "RasterUnit");
 			}
 			//log.info("*** ref *** " + ref + "    of   " + metaPath);
 		} catch (Exception e) {
@@ -343,63 +354,78 @@ public class RasterDB implements AutoCloseable {
 		acl_mod.check(userIdentity);
 	}
 
-	public RasterUnit rasterUnit() {
-		RasterUnit r = rasterUnit;
+	public RasterUnitStorage rasterUnit() {
+		RasterUnitStorage r = rasterUnit;
 		return r == null ? loadRasterUnit() : r;
 	}
 
-	public RasterUnit rasterPyr1Unit() {
-		RasterUnit r = rasterPyr1Unit;
+	public RasterUnitStorage rasterPyr1Unit() {
+		RasterUnitStorage r = rasterPyr1Unit;
 		return r == null ? loadRasterPyr1Unit() : r;
 	}
 
-	public RasterUnit rasterPyr2Unit() {
-		RasterUnit r = rasterPyr2Unit;
+	public RasterUnitStorage rasterPyr2Unit() {
+		RasterUnitStorage r = rasterPyr2Unit;
 		return r == null ? loadRasterPyr2Unit() : r;
 	}
 
-	public RasterUnit rasterPyr3Unit() {
-		RasterUnit r = rasterPyr3Unit;
+	public RasterUnitStorage rasterPyr3Unit() {
+		RasterUnitStorage r = rasterPyr3Unit;
 		return r == null ? loadRasterPyr3Unit() : r;
 	}
 
-	public RasterUnit rasterPyr4Unit() {
-		RasterUnit r = rasterPyr4Unit;
+	public RasterUnitStorage rasterPyr4Unit() {
+		RasterUnitStorage r = rasterPyr4Unit;
 		return r == null ? loadRasterPyr4Unit() : r;
 	}
 
-	private synchronized RasterUnit loadRasterUnit() {
+	private RasterUnitStorage openStorage(String name) {
+		switch(storageType) {
+		case "RasterUnit":
+			return new RasterUnit(path, name, config.is_fast_unsafe_import()); // 4^0 = 1
+		case "TileStorage":
+			TileStorageConfig tileStorageConfig = new TileStorageConfig(path, name);
+			try {
+				return new TileStorage(tileStorageConfig);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		default:
+			throw new RuntimeException("unknown storage_type");
+		}		
+	}
+
+	private synchronized RasterUnitStorage loadRasterUnit() {
 		if (rasterUnit == null) {
-			//log.info("open rasterUnit of " + config.getName());
-			rasterUnit = new RasterUnit(path, "raster", config.is_fast_unsafe_import()); // 4^0 = 1
+			rasterUnit = openStorage("raster"); // 4^0 = 1			
 		}
 		return rasterUnit;
 	}
 
-	private synchronized RasterUnit loadRasterPyr1Unit() {
+	private synchronized RasterUnitStorage loadRasterPyr1Unit() {
 		if (rasterPyr1Unit == null) {
-			rasterPyr1Unit = new RasterUnit(path, "raster1", config.is_fast_unsafe_import()); // 4^1 = 4
+			rasterPyr1Unit = openStorage("raster1"); // 4^1 = 4
 		}
 		return rasterPyr1Unit;
 	}
 
-	private synchronized RasterUnit loadRasterPyr2Unit() {
+	private synchronized RasterUnitStorage loadRasterPyr2Unit() {
 		if (rasterPyr2Unit == null) {
-			rasterPyr2Unit = new RasterUnit(path, "raster2", config.is_fast_unsafe_import()); // 4^2 = 16
+			rasterPyr2Unit = openStorage("raster2"); // 4^2 = 16
 		}
 		return rasterPyr2Unit;
 	}
 
-	private synchronized RasterUnit loadRasterPyr3Unit() {
+	private synchronized RasterUnitStorage loadRasterPyr3Unit() {
 		if (rasterPyr3Unit == null) {
-			rasterPyr3Unit = new RasterUnit(path, "raster3", config.is_fast_unsafe_import()); // 4^3 = 64
+			rasterPyr3Unit = openStorage("raster3"); // 4^3 = 64
 		}
 		return rasterPyr3Unit;
 	}
 
-	private synchronized RasterUnit loadRasterPyr4Unit() {
+	private synchronized RasterUnitStorage loadRasterPyr4Unit() {
 		if (rasterPyr4Unit == null) {
-			rasterPyr4Unit = new RasterUnit(path, "raster4", config.is_fast_unsafe_import()); // 4^4 = 256
+			rasterPyr4Unit = openStorage("raster4"); // 4^4 = 256
 		}
 		return rasterPyr4Unit;
 	}

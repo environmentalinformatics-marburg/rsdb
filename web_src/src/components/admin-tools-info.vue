@@ -17,15 +17,18 @@
               <div><b>authentication</b>: {{identity.auth_method}}</div>                
               
               <div v-if="identity !== undefined && (identity.auth_method === 'DIGEST' || identity.auth_method === 'BASIC')">
-                <br><a :href="logout_url"><v-icon>call_end</v-icon> logout</a>
+                <br><a :href="logout_url"><v-icon>call_end</v-icon> logout</a> 
+                <span v-if="identity.auth_method === 'DIGEST'" style="font-size: 0.8em">(HTTP {{identity.auth_method}} authentication)</span>
+                <span v-if="identity.auth_method === 'BASIC'" style="font-size: 0.8em">(HTTPS {{identity.auth_method}} authentication)</span>
               </div>
 
               <div v-if="identity !== undefined && (identity.auth_method === 'jws')">
-                <br><a :href="logout_jws_url"><v-icon>call_end</v-icon> logout</a>
+                <br><a :href="logout_jws_url"><v-icon>call_end</v-icon> logout</a> <span style="font-size: 0.8em">(JWS authentication)</span>
               </div>
 
               <div v-if="identity !== undefined && identity.http_port !== undefined && identity.auth_method !== 'DIGEST'">
-                <br><a :href="http_url"><v-icon>http</v-icon><b>switch to <span style="font-size: 1.2em">HTTP (digest authentication)</span></b> {{http_url}}</a>
+                <br><a :href="http_url"><v-icon>http</v-icon><b>switch to <span style="font-size: 1.2em">HTTP (digest authentication)</span></b> {{http_url}}</a> 
+                <br><span v-if="identity.auth_method === 'BASIC' || (identity.auth_method === 'jws' && identity.jws_protocol === 'https:')" style="font-size: 0.8em">(Your browser may not allow to downgrade connection from HTTPS to HTTP.)</span>
               </div>
               
               <div v-if="identity !== undefined && identity.https_port !== undefined && identity.auth_method !== 'BASIC'">
@@ -33,8 +36,13 @@
                 <br>(You may need to add an exception in your browser to allow a self signed certificate.)
               </div>
 
-              <div v-if="identity !== undefined && identity.jws_port !== undefined && identity.auth_method !== 'jws'">
+              <div v-if="identity !== undefined && identity.jws_port !== undefined && identity.jws_protocol === 'http:' && identity.auth_method !== 'jws'">
                 <br><a :href="jws_url"><v-icon>vpn_key</v-icon><b>switch to <span style="font-size: 1.2em">HTTP (JWS authentication)</span></b> {{jws_url}}</a>
+              </div>
+
+              <div v-if="identity !== undefined && identity.jws_port !== undefined && identity.jws_protocol === 'https:' && identity.auth_method !== 'jws'">
+                <br><a :href="jws_url"><v-icon>vpn_key</v-icon><b>switch to <span style="font-size: 1.2em">HTTPS (JWS authentication)</span></b> {{jws_url}}</a>
+                <br>(You may need to add an exception in your browser to allow a self signed certificate.)
               </div>
 
             </div>
@@ -96,7 +104,6 @@ export default {
         path = path.substring(0, path.length - 1);
       }       
       url += path;
-
       return url;
     },
 
@@ -123,6 +130,8 @@ export default {
     },
     
     jws_url() {
+      //var protocol = window.location.protocol;
+      var protocol = this.identity.jws_protocol;
       var port = this.identity.jws_port;      
       var host = window.location.host;
       var pIndex = host.indexOf(':');
@@ -130,13 +139,15 @@ export default {
         host = host.slice(0, pIndex);
       }
       host = host + ':' + port;	
-      return 'http://' + host + window.location.pathname;
+      return protocol + '//' + host + window.location.pathname;
     },
 
     logout_jws_url() {
-      var url = this.jws_url;
-      url += '?jws=logout';
-      return url;
+      var protocol = window.location.protocol;
+      var host = window.location.host;
+      var path = window.location.pathname;
+      var search = '?jws=logout';	
+      return protocol + '//' + host + path + search;
     },
   },
   mounted() {

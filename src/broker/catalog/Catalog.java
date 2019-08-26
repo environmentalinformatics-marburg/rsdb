@@ -103,7 +103,7 @@ public class Catalog {
 				final int hullType = polygon; 
 				switch(hullType) {
 				case polygon: {
-					Set<TileKey> keys = rasterdb.rasterUnit().tileKeysReadonly;
+					Set<TileKey> keys = rasterdb.rasterUnit().tileKeysReadonly();
 					Coordinate[] coordinates = new Coordinate[keys.size() * 4];
 					int i = 0;
 					for(TileKey key:keys) {

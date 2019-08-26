@@ -17,7 +17,7 @@ import run.RunImport;
 @task_pointdb("import")
 @Description("import directory with LAS/LAZ files (recursive)")
 @Param(name="pointdb", desc="ID of PointDB layer")
-@Param(name="source", desc="source directory of files")
+@Param(name="source", desc="source directory of files (located on server)")
 public class Task_import extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 
@@ -37,6 +37,7 @@ public class Task_import extends RemoteTask {
 		Path path = Paths.get(source);
 		PointDB pointdb = broker.getPointdb(name, true);
 		RunImport runImport = new RunImport(pointdb);
+		setMessage("import");
 		runImport.loadDirectory(path);
 	}
 }

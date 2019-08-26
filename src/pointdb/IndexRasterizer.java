@@ -1,5 +1,7 @@
 package pointdb;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,13 +16,14 @@ import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 
 public class IndexRasterizer {
 	private static final Logger log = LogManager.getLogger();
 
 	private final PointDB pointdb;
 	private final RasterDB rasterdb;
-	private final RasterUnit rasterUnit;
+	private final RasterUnitStorage rasterUnit;
 
 	private final Rect processingRect;
 	private long processing_pixel_size;
@@ -42,7 +45,7 @@ public class IndexRasterizer {
 		this.processingRect = processingRect;
 	}
 
-	public void process(ProcessingFun processingFun) {		
+	public void process(ProcessingFun processingFun) throws IOException {		
 
 		long xmin = processingRect.utmm_min_x;
 		long ymin = processingRect.utmm_min_y;

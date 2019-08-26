@@ -51,6 +51,36 @@
                 </template>
               </multiselect>
             </td>
+            <td v-else-if="param.type === 'pointdb'">
+              <multiselect v-model="param.value" :options="pointdbs" :searchable="true" :show-labels="false" placeholder="pick a pointdb" :allowEmpty="false" style="min-width: 600px;">
+                <template slot="singleLabel" slot-scope="{option}">
+                  {{option}}
+                </template>
+                <template slot="option" slot-scope="{option}">
+                  {{option}}
+                </template>
+              </multiselect>
+            </td>
+            <td v-else-if="param.type === 'pointcloud'">
+              <multiselect v-model="param.value" :options="pointclouds" :searchable="true" :show-labels="false" placeholder="pick a pointcloud" :allowEmpty="false" style="min-width: 600px;">
+                <template slot="singleLabel" slot-scope="{option}">
+                  {{option}}
+                </template>
+                <template slot="option" slot-scope="{option}">
+                  {{option}}
+                </template>
+              </multiselect>
+            </td>
+            <td v-else-if="param.type === 'vectordb'">
+              <multiselect v-model="param.value" :options="vectordbs" :searchable="true" :show-labels="false" placeholder="pick a vectordb" :allowEmpty="false" style="min-width: 600px;">
+                <template slot="singleLabel" slot-scope="{option}">
+                  {{option}}
+                </template>
+                <template slot="option" slot-scope="{option}">
+                  {{option}}
+                </template>
+              </multiselect>
+            </td>
             <td v-else-if="param.type === 'string'">
               <input v-model="param.value" placeholder="(empty)" :class="[param.required && (param.value === undefined || param.value === '') ? 'param-required-missing' : '']" />
             </td>
@@ -135,7 +165,10 @@ export default {
               self.message = self.interpretError(error);
               self.messageActive = true;
             });
-      this.$store.dispatch('rasterdbs/init');      
+      this.$store.dispatch('rasterdbs/init'); 
+      this.$store.dispatch('pointdbs/init');      
+      this.$store.dispatch('pointclouds/init'); 
+      this.$store.dispatch('vectordbs/init'); 
     },
     interpretError(error) {
       if (error.response) {
@@ -162,6 +195,7 @@ export default {
     },
     submit_task() {
       var self = this;
+      self.remote_task_id = undefined;
       var url = this.$store.getters.apiUrl('api/remote_tasks');
       axios.post(url, {
           remote_task: self.taskJSON,
@@ -209,6 +243,27 @@ export default {
         return [];
       }
       var r = this.$store.state.rasterdbs.data.map(e => e.name);
+      return r === undefined ? [] : r.slice().sort(function(a, b) { return a.localeCompare(b);});
+    },
+    pointdbs() {
+      if(this.$store.state.pointdbs.data === undefined) {
+        return [];
+      }
+      var r = this.$store.state.pointdbs.data.map(e => e.name);
+      return r === undefined ? [] : r.slice().sort(function(a, b) { return a.localeCompare(b);});
+    },
+    pointclouds() {
+      if(this.$store.state.pointclouds.data === undefined) {
+        return [];
+      }
+      var r = this.$store.state.pointclouds.data.map(e => e.name);
+      return r === undefined ? [] : r.slice().sort(function(a, b) { return a.localeCompare(b);});
+    },
+    vectordbs() {
+      if(this.$store.state.vectordbs.data === undefined) {
+        return [];
+      }
+      var r = this.$store.state.vectordbs.data.map(e => e.name);
       return r === undefined ? [] : r.slice().sort(function(a, b) { return a.localeCompare(b);});
     },
   },

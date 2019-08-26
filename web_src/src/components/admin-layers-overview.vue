@@ -35,7 +35,7 @@
           <v-flex xs12>
             <v-card>
               <v-card-title primary-title><h3 class="headline mb-0"><v-icon style="font-size: 1em;">category</v-icon>&nbsp;VectorDB</h3> 
-              <admin-vectordb-create v-if="isAdmin" @created_vectordb="$router.push({path: '/layers/vectordbs/' + $event});" />
+              <admin-vectordb-create @created_vectordb="$router.push({path: '/layers/vectordbs/' + $event});" />
               </v-card-title>
               <v-card-text>
                 Layers of this type store spatial <b>general vector data</b>.                

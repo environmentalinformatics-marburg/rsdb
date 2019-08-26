@@ -14,6 +14,7 @@ import rasterdb.tile.TilePixel;
 import rasterdb.tile.TileShort;
 import rasterunit.BandKey;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
 import rasterunit.TileKey;
 import remotetask.Context;
@@ -41,8 +42,8 @@ public class Task_count_pixels extends RemoteTask {
 
 	@Override
 	protected void process() throws Exception {		
-		RasterUnit rasterunit = rasterdb.rasterUnit();
-		BandKey bandKey = rasterunit.bandKeysReadonly.first();
+		RasterUnitStorage rasterunit = rasterdb.rasterUnit();
+		BandKey bandKey = rasterunit.bandKeysReadonly().first();
 
 		Band band = rasterdb.bandMap.get(bandKey.b);
 

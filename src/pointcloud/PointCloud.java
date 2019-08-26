@@ -63,7 +63,7 @@ public class PointCloud implements AutoCloseable {
 
 	public PointCloud(PointCloudConfig config) {
 		this.config = config;
-		griddb = new GridDB(config.path, "pointcloud", new ExtendedMetaHook(), config.transaction);
+		griddb = new GridDB(config.path, "pointcloud", new ExtendedMetaHook(), config.preferredStorageType, config.transaction);
 		griddb.readMeta();
 		loadAttributes();
 		griddb.writeMeta();
@@ -278,7 +278,7 @@ public class PointCloud implements AutoCloseable {
 		}	
 	}
 
-	public void writeTile(Tile tile) {
+	public void writeTile(Tile tile) throws IOException {
 		griddb.writeTile(tile);		
 	}
 
@@ -288,7 +288,11 @@ public class PointCloud implements AutoCloseable {
 
 	@Override
 	public void close() {
-		griddb.close();		
+		try {
+			griddb.close();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}		
 	}
 
 	public double getCellscale() {
@@ -349,6 +353,7 @@ public class PointCloud implements AutoCloseable {
 			int xcellmax = (int) (Math.floor(xmax / cellsize) - xcelloffset);
 			int ycellmin = (int) (Math.floor(ymin / cellsize) - ycelloffset);
 			int ycellmax = (int) (Math.floor(ymax / cellsize) - ycelloffset);
+			//log.info(xcellmin + " " + ycellmin + " " + xcellmax + " " + ycellmax);
 			Stream<Cell> cells = griddb.getCells(xcellmin, ycellmin, xcellmax, ycellmax);		
 			return cells;
 		}
@@ -691,6 +696,10 @@ public class PointCloud implements AutoCloseable {
 	
 	public void setAssociatedRasterDB(String name) {
 		associated.setRasterDB(name);
+		griddb.writeMeta();
+	}
+	
+	public void commitMeta() {
 		griddb.writeMeta();
 	}
 }

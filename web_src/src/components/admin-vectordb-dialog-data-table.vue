@@ -86,14 +86,20 @@ export default {
     },
     watch: {
         meta() {
-            this.refresh();
+            if(this.dialog) {
+                this.refresh();
+            }
         },
         dialog() {
-            this.refresh();
+            if(this.dialog) {
+                this.refresh();
+            }
         }
     },
     mounted() {
-        this.refresh();
+        if(this.dialog) {
+            this.refresh();
+        }
     },
 }
 

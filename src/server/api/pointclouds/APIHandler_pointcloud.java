@@ -167,12 +167,12 @@ public class APIHandler_pointcloud {
 		json.endArray();
 		json.key("modify");
 		json.value(pointcloud.isAllowedMod(userIdentity));
-		if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
+		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
 			json.key("acl");
 			pointcloud.getACL().writeJSON(json);
 			json.key("acl_mod");
 			pointcloud.getACL_mod().writeJSON(json);
-		}
+		//}
 		json.key("attributes");
 		json.value(pointcloud.getSelector().toArray());
 		json.key("associated");

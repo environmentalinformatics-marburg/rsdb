@@ -52,7 +52,7 @@ public class RasterdbsHandler extends AbstractHandler {
 			json.object();
 			json.key("rasterdbs");
 			json.array();			
-			for (String name : broker.getRasterdbNames()) {
+			for (String name : broker.getRasterdbNames()) {				
 				RasterDB rasterdb = broker.getRasterdb(name);
 				if (rasterdb.isAllowed(Web.getUserIdentity(request))) {
 					json.object();

@@ -80,10 +80,10 @@ public class APIHandler_info extends PointdbAPIHandler {
 		json.value(db.config.isClassified_vegetation());
 		json.key("raster_processing_types");		
 		RasterQueryProcessor.writeProcessingTypesJSON(json);
-		if(EmptyACL.ADMIN.isAllowed(Web.getUserIdentity(request))) {
+		//if(EmptyACL.ADMIN.isAllowed(Web.getUserIdentity(request))) {
 			json.key("acl");
 			db.config.getAcl().writeJSON(json);
-		}
+		//}
 		json.key("associated");
 		json.object();
 		JsonUtil.writeOptList(json, "poi_groups", db.config.getPoiGroupNames());

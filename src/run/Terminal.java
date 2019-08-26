@@ -26,7 +26,7 @@ import pointcloud.AttributeSelector;
 import pointcloud.CellTable;
 import pointcloud.Importer;
 import pointcloud.PointCloud;
-import pointcloud.Recompress;
+import pointcloud.Rebuild;
 import pointdb.IndexRasterizer;
 import pointdb.PointDB;
 import pointdb.Rasterizer;
@@ -725,8 +725,9 @@ public class Terminal {
 		if(args.length >= 3) {
 			try(Broker broker = new Broker()) {
 				String name = args[1];
+				String storage_type = "RasterUnit";
 				String source = args[2];	
-				PointCloud pointcloud = broker.createNewPointCloud(name, false);
+				PointCloud pointcloud = broker.createNewPointCloud(name, storage_type, false);
 				for (int i = 3; i < args.length; i++) {
 					String arg = args[i];
 					String argCellSize = "-cellsize=";
@@ -820,9 +821,12 @@ public class Terminal {
 		if(args.length == 2) {
 			try(Broker broker = new Broker()) {
 				PointCloud pointcloud = broker.getPointCloud(args[1]);
+				String stroage_type = "RasterUnit";
+				boolean recompress = true;
+				int comression_level = 100;
 				Timer.start("recompress");
-				Recompress recompress = new Recompress(pointcloud, broker.getPointCloudRoot());
-				recompress.run();
+				Rebuild rebuild = new Rebuild(pointcloud, broker.getPointCloudRoot(), stroage_type, recompress, comression_level);
+				rebuild.run();
 				log.info(Timer.stop("recompress"));
 			} catch (Exception e) {
 				e.printStackTrace();

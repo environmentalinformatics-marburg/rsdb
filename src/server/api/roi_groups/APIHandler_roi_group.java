@@ -97,10 +97,10 @@ public class APIHandler_roi_group {
 			json.endObject();			
 		}
 		json.endArray();
-		if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
+		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
 			json.key("acl");
 			roiGroup.acl.writeJSON(json);
-		}
+		//}
 		json.endObject(); // roi_group
 		json.endObject(); // JSON
 	}

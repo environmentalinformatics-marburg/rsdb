@@ -1,5 +1,7 @@
 package remotetask.pointdb;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -21,6 +23,7 @@ import rasterdb.TimeBandProcessor;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
@@ -33,7 +36,7 @@ import util.frame.BooleanFrame;
 
 @task_pointdb("index_raster")
 @Description("create raster of pointcloud with index metrics calculations. Existing target RasterDB layer is needed.")
-@Param(name="pointdb", desc="ID of PointDB layer (source)")
+@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)")
 @Param(name="rasterdb", type="rasterdb", desc="existing ID of RasterDB layer (target)")
 @Param(name="indices",  desc="list of indices")
 @Param(name="rect",  desc="extent to process")
@@ -55,7 +58,7 @@ public class Task_index_raster extends RemoteTask{
 	}
 
 	@Override
-	public void process() {
+	public void process() throws IOException {
 		String rasterdb_name = task.getString("rasterdb");
 		RasterDB rasterdb = broker.getRasterdb(rasterdb_name);		
 		JSONArray indices_text = task.getJSONArray("indices");
@@ -110,7 +113,7 @@ public class Task_index_raster extends RemoteTask{
 
 	private static long MAX_RASTER_BYTES = 268_435_456;
 
-	public long process_rect(PointDB pointdb, RasterDB rasterdb, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, Band maskBand) {
+	public long process_rect(PointDB pointdb, RasterDB rasterdb, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, Band maskBand) throws IOException {
 		long processed_pixel = 0;
 		long xsize = raster_xmax - raster_xmin + 1;
 		long ysize = raster_ymax - raster_ymin + 1;
@@ -142,7 +145,7 @@ public class Task_index_raster extends RemoteTask{
 		return processed_pixel;
 	}
 
-	public long run_rect(PointDB pointdb, RasterUnit rasterUnit, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, boolean[][] mask) {
+	public long run_rect(PointDB pointdb, RasterUnitStorage rasterUnitStorage, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, boolean[][] mask) throws IOException {
 		BlokingTaskSubmitter blokingTaskSubmitter = new BlokingTaskSubmitter();
 
 		int indices_len = indices.length;
@@ -186,9 +189,9 @@ public class Task_index_raster extends RemoteTask{
 
 		log.info("raster write "+raster_xmin + " " + raster_ymin + "      " + ref.pixelXToGeo(raster_xmin) + " " + ref.pixelYToGeo(raster_ymin)  );
 		for (int i = 0; i < indices_len; i++) {
-			ProcessingFloat.writeMerge(rasterUnit, 0, bands[i], pixels[i], raster_ymin, raster_xmin);
+			ProcessingFloat.writeMerge(rasterUnitStorage, 0, bands[i], pixels[i], raster_ymin, raster_xmin);
 		}
-		rasterUnit.commit();
+		rasterUnitStorage.commit();
 		return processed_pixel;
 	}
 

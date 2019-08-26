@@ -89,7 +89,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			json.endObject();
 			json.key("timestamps");
 			json.array();
-			for(int timestamp:rasterdb.rasterUnit().timeKeysReadonly) {
+			for(int timestamp:rasterdb.rasterUnit().timeKeysReadonly()) {
 				json.object();
 				json.key("timestamp");
 				json.value(timestamp);
@@ -147,17 +147,16 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			rasterdb.associated.writeJSON(json);			
 			json.key("modify");
 			json.value(rasterdb.isAllowedMod(userIdentity));
-			if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
+			//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
 				json.key("acl");
 				rasterdb.getACL().writeJSON(json);
 				json.key("acl_mod");
 				rasterdb.getACL_mod().writeJSON(json);
-			}
-			
+			//}			
 			if(request.getParameter("tilekeys") != null) {
 				json.key("tilekeys");
 				json.array();
-				for(TileKey key:rasterdb.rasterUnit().tileKeysReadonly) {
+				for(TileKey key:rasterdb.rasterUnit().tileKeysReadonly()) {
 					json.value(key.t + ", " + key.b + ", " + key.y + ", " + key.x);
 				}
 				json.endArray();

@@ -74,33 +74,6 @@
                 </table>          
             </div>
 
-            <div v-if="isAdmin">
-              <v-divider class="meta-divider"></v-divider>  
-                <h3 class="subheading mb-0"> 
-                    <admin-rasterdb-dialog-set-acl :meta="meta" @changed="refresh"></admin-rasterdb-dialog-set-acl>
-                    Access control
-                </h3>
-                <div class="meta-content">
-                <table>
-                    <tr>
-                        <td><b>access roles:</b></td>
-                        <td>
-                            <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-                    
-                    <tr>
-                        <td><b>modify roles:</b></td>
-                        <td>
-                             <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="meta.acl_mod.length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-                </table>
-                </div>
-            </div>
-
             <div v-if="Object.keys(meta.associated).length !== 0">
                 <v-divider class="meta-divider"></v-divider> 
                 <h3 class="subheading mb-0"> 
@@ -186,6 +159,31 @@
                         <td v-else>none</td> 
                     </tr>                    
                 </tbody>
+            </table>
+            </div>
+
+            <v-divider class="meta-divider"></v-divider>  
+            <h3 class="subheading mb-0"> 
+                <admin-rasterdb-dialog-set-acl :meta="meta" @changed="refresh" v-if="isAdmin"></admin-rasterdb-dialog-set-acl>
+                Access control
+            </h3>
+            <div class="meta-content">
+            <table>
+                <tr>
+                    <td><b>access roles:</b></td>
+                    <td>
+                        <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                        <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td><b>modify roles:</b></td>
+                    <td>
+                            <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                        <span v-if="meta.acl_mod.length === 0" style="color: grey;">(none)</span>
+                    </td>
+                </tr>
             </table>
             </div>
 

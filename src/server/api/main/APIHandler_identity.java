@@ -3,6 +3,7 @@ package server.api.main;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
+import javax.print.attribute.standard.Severity;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
@@ -38,7 +39,7 @@ public class APIHandler_identity extends APIHandler {
 	public APIHandler_identity(Broker broker) {
 		super(broker, "identity");
 	}
-	
+
 	public static String[] getRoles(UserIdentity userIdentity) {
 		if(userIdentity == null) {
 			return new String[] {"admin"};
@@ -103,15 +104,22 @@ public class APIHandler_identity extends APIHandler {
 		json.value(APIHandler_session.createSession());
 		/*json.key("https_port");
 		json.value(broker.brokerConfig.server().secure_port);*/
-		
-		
+
+
 		if(request.getHttpChannel() != null && request.getHttpChannel().getServer() != null) {
 			Server server = request.getHttpChannel().getServer();
 			JsonUtil.optPutString(json, "http_port", server.getAttribute("digest-http-connector"));
 			JsonUtil.optPutString(json, "https_port", server.getAttribute("basic-https-connector"));
-			JsonUtil.optPutString(json, "jws_port", server.getAttribute("jws-http-connector"));
+			if(server.getAttribute("jws-http-connector") != null) {
+				JsonUtil.optPutString(json, "jws_protocol", "http:");
+				JsonUtil.optPutString(json, "jws_port", server.getAttribute("jws-http-connector"));
+			}
+			if(server.getAttribute("jws-https-connector") != null) {
+				JsonUtil.optPutString(json, "jws_protocol", "https:");
+				JsonUtil.optPutString(json, "jws_port", server.getAttribute("jws-https-connector"));
+			}
 		}	
-		
+
 		json.endObject();		
 	}
 }

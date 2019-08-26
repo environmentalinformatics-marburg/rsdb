@@ -1,5 +1,7 @@
 package pointdb;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,13 +19,14 @@ import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 
 public class Rasterizer {
 	private static final Logger log = LogManager.getLogger();
 
 	protected final PointDB pointdb;
 	protected final RasterDB rasterdb;
-	protected final RasterUnit rasterUnit;
+	protected final RasterUnitStorage rasterUnit;
 	public final Band bandIntensity;
 	public final Band bandElevation;
 
@@ -121,7 +124,7 @@ public class Rasterizer {
 			}
 		}
 
-		public void write() {
+		public void write() throws IOException {
 			if(pointdbTileReadCount > 0) {
 				log.info("read");
 				fill(pixels);
@@ -133,7 +136,7 @@ public class Rasterizer {
 		}
 	}
 
-	public void run(Band band) {
+	public void run(Band band) throws IOException {
 		Statistics stat = pointdb.tileMetaProducer(null).toStatistics();
 		log.info(stat.tile_x_min+"  "+stat.tile_x_max+"          "+(stat.tile_x_max - stat.tile_x_min + PdbConst.UTM_TILE_SIZE));
 		log.info(stat.tile_y_min+"  "+stat.tile_y_max+"          "+(stat.tile_y_max - stat.tile_y_min + PdbConst.UTM_TILE_SIZE));

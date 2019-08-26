@@ -18,6 +18,7 @@ import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import util.TimeUtil;
 import util.Timer;
 import util.Util;
@@ -33,7 +34,7 @@ public class RasterDBimporter {
 	}};
 
 	private final RasterDB rasterdb;
-	private final RasterUnit rasterUnit;
+	private final RasterUnitStorage rasterUnit;
 
 	public RasterDBimporter(RasterDB rasterdb) {
 		this.rasterdb = rasterdb;

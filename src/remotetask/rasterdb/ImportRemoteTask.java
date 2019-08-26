@@ -14,6 +14,7 @@ import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import remotetask.RemoteTask;
 import server.api.main.APIHandler_import.BandSpec;
 import util.Range2d;
@@ -127,7 +128,7 @@ public class ImportRemoteTask extends RemoteTask {
 		if(gdalRasterDataType != bandSpec.gdal_raster_data_type) {
 			throw new RuntimeException("wrong rasterdb_band_data_type");
 		}
-		RasterUnit rasterUnit = rasterdb.rasterUnit();
+		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
 		switch(bandSpec.rastedb_band_data_type) {
 		case TilePixel.TYPE_SHORT: {
 			short[][] dataShort = null;

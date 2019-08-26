@@ -5,6 +5,17 @@
                 <v-card-title>
                     <div class="headline">Task Console</div>
                 </v-card-title>
+                <v-icon v-if="remote_task.status === 'READY'" color="yellow">directions_walk</v-icon>
+                <v-icon v-if="remote_task.status === 'RUNNING'" color="black">directions_run</v-icon>
+                <v-icon v-if="remote_task.status === 'DONE'" color="green">done</v-icon>
+                <v-icon v-if="remote_task.status === 'ERROR'" color="red">error</v-icon>
+                {{remote_task.status}}
+                <span style="padding-left: 50px;">
+                <span v-if="(remote_task.status === 'READY' || remote_task.status === 'RUNNING') && !remote_task.canceled && remote_task.cancelable"><v-btn icon @click="cancel(remote_task.id)"><v-icon>cancel</v-icon> cancel</v-btn></span>
+                <span v-if="!remote_task.canceled && !remote_task.cancelable">---</span>
+                <span v-if="remote_task.canceled">cancel requested</span>
+                </span>
+                <br>
                 id: {{id}}, time {{(remote_task.runtime/1000).toFixed()}} s
                 <br>
                 {{remote_task.message}}
@@ -89,6 +100,19 @@ export default {
                 }
             });            
         },
+
+        async cancel(id) {
+        try {
+            console.log(id);
+            var url = this.$store.getters.apiUrl('api/remote_tasks/' + id + '/cancel');
+            await axios.post(url);
+            this.refresh();
+        } catch(error) {
+            console.log(error);
+        } finally {
+            //this.refresh();
+        }      
+    },
 
     },
     computed: {

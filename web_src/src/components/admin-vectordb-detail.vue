@@ -47,35 +47,7 @@
                     </tr>
                 </table>
             </div>
-
             
-            <div v-if="isAdmin">
-              <v-divider class="meta-divider"></v-divider>  
-                <h3 class="subheading mb-0"> 
-                    <admin-vectordb-dialog-set-acl :meta="meta" @changed="refresh" />
-                    Access control
-                </h3>
-                <div class="meta-content">
-                <table>
-                    <tr>
-                        <td><b>access roles:</b></td>
-                        <td>
-                            <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-                    
-                    <tr>
-                        <td><b>modify roles:</b></td>
-                        <td>
-                             <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="meta.acl_mod.length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-                </table>
-                </div>
-            </div>
-
             <v-divider class="meta-divider"></v-divider>
 
             <h3 class="subheading mb-0"> 
@@ -106,7 +78,32 @@
                 <tr><td><b>attributes:</b></td><td><span v-for="name in meta.details.attributes" :key="name"><span :class="name === meta.name_attribute ? 'name-attribute' : 'attributes'">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></td></tr>
                 <tr><td><b>structured access:</b></td><td v-if="!meta.structured_access.poi && !meta.structured_access.roi">none</td><td v-if="meta.structured_access.poi">POI-group</td><td v-if="meta.structured_access.roi">ROI-group</td></tr>
             </table>
-            <admin-vectordb-dialog-data-table :meta="meta" @changed="refresh" v-if="modify" />
+            <admin-vectordb-dialog-data-table :meta="meta" @changed="refresh" />
+        </div>
+
+        <v-divider class="meta-divider"></v-divider>  
+        <h3 class="subheading mb-0"> 
+            <admin-vectordb-dialog-set-acl v-if="isAdmin" :meta="meta" @changed="refresh" />
+            Access control
+        </h3>
+        <div class="meta-content">
+        <table>
+            <tr>
+                <td><b>access roles:</b></td>
+                <td>
+                    <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                    <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
+                </td>
+            </tr>
+            
+            <tr>
+                <td><b>modify roles:</b></td>
+                <td>
+                    <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                    <span v-if="meta.acl_mod.length === 0" style="color: grey;">(none)</span>
+                </td>
+            </tr>
+        </table>
         </div>
 
         <div v-if="modify">

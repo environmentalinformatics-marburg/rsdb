@@ -12,6 +12,7 @@ import rasterdb.tile.ProcessingQuery;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import util.Range2d;
 import util.frame.BooleanFrame;
 import util.frame.DoubleFrame;
@@ -25,7 +26,7 @@ public class TimeBandProcessor {
 	public final Range2d range2d;
 	private final int scale;
 	
-	private RasterUnit pyramid_rasterUnit;
+	private RasterUnitStorage pyramid_rasterUnit;
 	private Range2d pyramid_srcRange;
 	private Range2d pyramid_dstRange;
 	int pyramidDiv;

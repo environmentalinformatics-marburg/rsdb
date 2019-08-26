@@ -20,6 +20,7 @@ import rasterdb.RasterDB;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import util.Range2d;
 import util.ResponseReceiver;
 import util.TimeUtil;
@@ -106,14 +107,14 @@ public class RequestProcessor {
 		}
 	}
 
-	private static int getTimestamp(Request request, RasterUnit rasterUnit) {
+	private static int getTimestamp(Request request, RasterUnitStorage rasterUnitStorage) {
 		int timestamp = -1;
 		String timestampText = request.getParameter("timestamp");
 		if (timestampText == null) {
-			if(rasterUnit.timeKeysReadonly.isEmpty()) {
+			if(rasterUnitStorage.timeKeysReadonly().isEmpty()) {
 				throw new RuntimeException("no data in layer");
 			} else {
-				timestamp = rasterUnit.timeKeysReadonly.last();
+				timestamp = rasterUnitStorage.timeKeysReadonly().last();
 			}
 		} else {
 			if(timestampText.equals("0")) {
@@ -126,7 +127,7 @@ public class RequestProcessor {
 				if(timestampRange == null) {
 					throw new RuntimeException("could not parse timestamp parameter: " + timestampText);
 				} else {
-					NavigableSet<Integer> timestampSubset = rasterUnit.timeKeysReadonly.subSet(timestampRange[0], true, timestampRange[1], true);
+					NavigableSet<Integer> timestampSubset = rasterUnitStorage.timeKeysReadonly().subSet(timestampRange[0], true, timestampRange[1], true);
 					if(timestampSubset.isEmpty()) {
 						if(timestampRange[0] == timestampRange[1]) {
 							throw new RuntimeException("no data in layer for time: " + TimeUtil.toPrettyText(timestampRange[0]));	

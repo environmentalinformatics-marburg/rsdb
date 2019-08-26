@@ -118,7 +118,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			if(meta.has("timestamps")) {
 				spec.timestamps = JsonUtil.getIntegerVec(meta, "timestamps");
 			} else {
-				spec.timestamps = rasterdb.rasterUnit().timeKeysReadonly;
+				spec.timestamps = rasterdb.rasterUnit().timeKeysReadonly();
 			}
 
 			if(meta.has("compression")) {

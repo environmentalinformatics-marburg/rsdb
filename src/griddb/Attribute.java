@@ -1,6 +1,7 @@
 package griddb;
 
 import java.util.LinkedHashMap;
+import java.util.Objects;
 
 import util.yaml.YamlMap;
 
@@ -26,6 +27,23 @@ public class Attribute {
 		int encoding = yamlmap.getInt("encoding");
 		String name = yamlmap.getString("name");
 		return new Attribute((byte) id, encoding, name);	
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(encoding, id, name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Attribute other = (Attribute) obj;
+		return encoding == other.encoding && id == other.id && Objects.equals(name, other.name);
 	}
 
 }

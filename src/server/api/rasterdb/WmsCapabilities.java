@@ -216,7 +216,7 @@ public class WmsCapabilities {
 	}
 
 	public static void addTime(Element root, RasterDB rasterdb) {
-		ReadonlyNavigableSetView<Integer> timeKeys = rasterdb.rasterUnit().timeKeysReadonly;
+		ReadonlyNavigableSetView<Integer> timeKeys = rasterdb.rasterUnit().timeKeysReadonly();
 		if (timeKeys.isEmpty()) {
 			return;
 		}

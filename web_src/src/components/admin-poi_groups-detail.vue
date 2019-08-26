@@ -33,23 +33,23 @@
                     </tr>
                 </table>
                 </div>
-            <div v-if="isAdmin">
-              <v-divider class="meta-divider" />  
-                <h3 class="subheading mb-0"> 
-                    Access control
-                </h3>                        
-                <div class="meta-content">
-                <table>
-                    <tr>
-                        <td><b>access roles:</b></td>
-                        <td>
-                            <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-                </table>
-                </div>
+
+            <v-divider class="meta-divider" />  
+            <h3 class="subheading mb-0"> 
+                Access control
+            </h3>                        
+            <div class="meta-content">
+            <table>
+                <tr>
+                    <td><b>access roles:</b></td>
+                    <td>
+                        <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                        <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
+                    </td>
+                </tr>
+            </table>
             </div>
+
             <v-divider class="meta-divider" />   
             <v-card-title>
                 {{meta.pois.length}} POIs

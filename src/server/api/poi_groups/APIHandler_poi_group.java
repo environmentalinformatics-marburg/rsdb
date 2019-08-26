@@ -87,10 +87,10 @@ public class APIHandler_poi_group {
 			
 		}
 		json.endArray();
-		if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
+		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
 			json.key("acl");
 			poiGroup.acl.writeJSON(json);
-		}
+		//}
 		json.endObject(); // poi_group
 		json.endObject(); // JSON
 	}

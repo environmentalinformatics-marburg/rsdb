@@ -22,6 +22,7 @@ public class MainAPICollectionHandler extends APICollectionHandler {
 		addMethod(new APIHandler_import(broker, upload.chunkedUploader));
 		addMethod(new APIHandler_remote_tasks(broker));
 		addMethod(new APIHandler_remote_task_entries(broker));
+		addMethod(new APIHandler_proxy(broker));
 	}
 
 }

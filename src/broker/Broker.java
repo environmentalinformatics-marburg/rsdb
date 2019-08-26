@@ -89,6 +89,10 @@ public class Broker implements AutoCloseable {
 	public Path getPointCloudRoot() {
 		return pointcloud_root;
 	}
+	
+	public Path getRasterDBRoot() {
+		return rasterdb_root;
+	}	
 
 	public synchronized void refreshPoiGroupMap() {
 		TreeMap<String, PoiGroup> map = new TreeMap<String, PoiGroup>();
@@ -298,7 +302,7 @@ public class Broker implements AutoCloseable {
 			ConcurrentSkipListMap<String, RasterdbConfig> map = new ConcurrentSkipListMap<String, RasterdbConfig>();			
 			Path[] paths = Util.getPaths(rasterdb_root);
 			for(Path path:paths) {
-				RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(path);
+				RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(path, null);
 				map.put(rasterdbConfig.getName(), rasterdbConfig);
 			}
 			rasterdbConfigMap = map;
@@ -316,7 +320,7 @@ public class Broker implements AutoCloseable {
 			ConcurrentSkipListMap<String, PointCloudConfig> map = new ConcurrentSkipListMap<String, PointCloudConfig>();
 			Path[] paths = Util.getPaths(pointcloud_root);
 			for(Path path:paths) {
-				PointCloudConfig config = PointCloudConfig.ofPath(path, true);
+				PointCloudConfig config = PointCloudConfig.ofPath(path, null, true);
 				map.put(config.name, config);
 			}
 			pointcloudConfigMap = map;
@@ -387,7 +391,7 @@ public class Broker implements AutoCloseable {
 
 	public synchronized RasterDB createOrGetRasterdb(String name, boolean transaction) {
 		Util.checkStrictID(name);
-		RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(rasterdb_root.resolve(name));
+		RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(rasterdb_root.resolve(name), "RasterUnit");
 		if(!transaction) {
 			rasterdbConfig.set_fast_unsafe_import(true);
 		}
@@ -528,17 +532,17 @@ public class Broker implements AutoCloseable {
 		return pointcloud;
 	}
 
-	public synchronized PointCloud getOrCreatePointCloud(String name, boolean transactions) {
-		PointCloudConfig config = PointCloudConfig.ofPath(pointcloud_root.resolve(name), transactions);
+	public synchronized PointCloud getOrCreatePointCloud(String name, String storageType, boolean transactions) {
+		PointCloudConfig config = PointCloudConfig.ofPath(pointcloud_root.resolve(name), storageType, transactions);
 		pointcloudConfigMap.put(config.name, config);
 		return getPointCloud(name);
 	}
 
-	public synchronized PointCloud createNewPointCloud(String name, boolean transactions) {
+	public synchronized PointCloud createNewPointCloud(String name, String storageType, boolean transactions) {
 		if(pointcloudConfigMap.containsKey(name)) {
 			throw new RuntimeException("PointCloud already exist: "+name);
 		}
-		return getOrCreatePointCloud(name, transactions);
+		return getOrCreatePointCloud(name, storageType, transactions);
 	}
 
 	public ACL getPointCloudACL(String name) {
@@ -617,7 +621,7 @@ public class Broker implements AutoCloseable {
 		return vectordbConfigMap.keySet();
 	}
 
-	public void createVectordb(String name) {
+	public VectorDB createVectordb(String name) {
 		if(name == null || name.isEmpty()) {
 			throw new RuntimeException("no name");
 		}
@@ -647,6 +651,7 @@ public class Broker implements AutoCloseable {
 		vectordb.writeMeta();
 		refreshVectordbConfigs();
 		catalog.updateCatalog();
+		return vectordb;
 	}
 
 

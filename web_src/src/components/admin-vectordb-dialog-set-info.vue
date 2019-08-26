@@ -78,7 +78,7 @@ export default {
     },
     computed: {
         ...mapState({
-            availableTags: state => state.layer_tags.data,
+            availableTags: state => state.layer_tags.data === undefined ? [] : state.layer_tags.data,
         }),        
         layer_tags() {
             return this.availableTags.concat(this.createdTags);

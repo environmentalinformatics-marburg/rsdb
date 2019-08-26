@@ -28,7 +28,7 @@ public abstract class RemoteTask implements Runnable {
 	private long tend = -1;
 	private String message = "init";
 	private long lastMessageTime = -1;
-	private final long messageDuration = 250;
+	private final long messageDuration = 1000;
 
 	public static enum Status {
 		READY,
@@ -101,5 +101,17 @@ public abstract class RemoteTask implements Runnable {
 			return "vectordb/" + clazz.getAnnotation(task_vectordb.class).value();
 		}		
 		return clazz.getSimpleName();
+	}
+	
+	public boolean isCancelable() {
+		return false;
+	}
+	
+	public void cancel() {
+		log.info("cancel not supported");
+	}
+	
+	public boolean isCanceled() {
+		return false;
 	}
 }

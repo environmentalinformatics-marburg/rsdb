@@ -20,6 +20,7 @@ import remotetask.rasterdb.Task_count_pixels;
 import remotetask.rasterdb.Task_create;
 import remotetask.rasterdb.Task_create_band;
 import remotetask.rasterdb.Task_import;
+import remotetask.rasterdb.Task_rebuild;
 import remotetask.rasterdb.Task_rebuild_pyramid;
 import remotetask.rasterdb.Task_refresh_extent;
 import remotetask.rasterdb.task_rasterdb;
@@ -43,9 +44,10 @@ public class RemoteTasks {
 		put(Task_create.class);
 		put(Task_create_band.class);
 		put(Task_import.class);
+		put(Task_rebuild.class);
 		put(Task_rebuild_pyramid.class);
 		put(Task_count_pixels.class);
-		put(Task_refresh_extent.class);
+		put(Task_refresh_extent.class);		
 
 		//task_pointdb
 		put(remotetask.pointdb.Task_import.class);
@@ -56,7 +58,10 @@ public class RemoteTasks {
 
 
 		//task_pointcloud
+		put(remotetask.pointcloud.Task_import.class);
 		put(Task_rasterize.class);
+		put(remotetask.pointcloud.Task_verify.class);
+		put(remotetask.pointcloud.Task_rebuild.class);
 
 		//task_vectordb
 		put(RefreshCatalogEntryRemoteTask.class);

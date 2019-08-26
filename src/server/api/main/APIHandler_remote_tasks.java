@@ -33,12 +33,14 @@ public class APIHandler_remote_tasks extends APIHandler {
 		} else {
 			log.info("target [" + target + "]");
 			String idText = target;
-			int i = idText.indexOf('/');
-			if(i>=0) {
-				idText = idText.substring(0, i);
+			String subTarget = "";
+			int idEndIndex = target.indexOf('/');
+			if(idEndIndex>=0) {
+				idText = target.substring(0, idEndIndex);
+				subTarget = target.substring(idEndIndex + 1);
 			}			
 			long id = Long.parseLong(idText);
-			handleId(id, request, response);
+			handleId(id, subTarget, request, response);
 		}		
 	}
 
@@ -73,6 +75,10 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.value(remoteTask.getRuntimeMillis());
 			res.key("message");
 			res.value(remoteTask.getMessage());
+			res.key("cancelable");
+			res.value(remoteTask.isCancelable());
+			res.key("canceled");
+			res.value(remoteTask.isCanceled());
 			res.endObject();
 		}
 		res.endArray();
@@ -87,8 +93,8 @@ public class APIHandler_remote_tasks extends APIHandler {
 		Context ctx = new Context(broker, args, userIdentity);
 		RemoteTask remoteTask = RemoteTaskExecutor.createTask(ctx);
 		RemoteTaskExecutor.insertToExecute(remoteTask);
-		
-		
+
+
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		JSONWriter res = new JSONWriter(response.getWriter());
@@ -101,13 +107,55 @@ public class APIHandler_remote_tasks extends APIHandler {
 		res.endObject();	
 	}
 
-	private void handleId(long id, Request request, Response response) throws IOException {
+	private void handleId(long id, String target, Request request, Response response) throws IOException {
+		log.info(id + "   "+ target);
+		if(target.isEmpty()) {
+			handleIdRoot(id, request, response);
+		} else {
+			switch(request.getMethod()) {
+			case "POST":
+				handleIdCancel(id, request, response);
+				break;
+			default:
+				throw new RuntimeException("invalid HTTP method: " + request.getMethod());
+			}
+		}
+	}
+
+	private void handleIdRoot(long id, Request request, Response response) throws IOException {
 		switch(request.getMethod()) {
 		case "GET":
 			handleIdGET(id, request, response);
 			break;
 		default:
 			throw new RuntimeException("invalid HTTP method: " + request.getMethod());
+		}
+	}
+	
+	private void handleIdCancel(long id, Request request, Response response) throws IOException {
+		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
+		if(remoteTask == null) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.setContentType(MIME_JSON);
+			JSONWriter res = new JSONWriter(response.getWriter());
+			res.object();
+			res.key("error");
+			res.object();	
+			res.key("unknown remote_task");
+			res.value(id);
+			res.endObject();
+			res.endObject();
+		} else {
+			remoteTask.cancel();
+			response.setContentType(MIME_JSON);
+			JSONWriter res = new JSONWriter(response.getWriter());
+			res.object();
+			res.key("message");
+			res.object();	
+			res.key("remote_task cancel requested");
+			res.value(id);
+			res.endObject();
+			res.endObject();
 		}
 	}
 
@@ -142,6 +190,10 @@ public class APIHandler_remote_tasks extends APIHandler {
 		res.value(remoteTask.getRuntimeMillis());
 		res.key("message");
 		res.value(remoteTask.getMessage());
+		res.key("cancelable");
+		res.value(remoteTask.isCancelable());
+		res.key("canceled");
+		res.value(remoteTask.isCanceled());
 		res.endObject();
 		res.endObject();		
 	}

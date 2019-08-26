@@ -9,6 +9,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.SessionCookieConfig;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -37,6 +39,8 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
+import org.eclipse.jetty.server.session.DefaultSessionIdManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.gdal.gdal.gdal;
@@ -205,12 +209,22 @@ public class PointDBServer {
 			}
 
 		}
+		
+		DefaultSessionIdManager sessionIdManager = new DefaultSessionIdManager(server);
+		sessionIdManager.setWorkerName(null);
+		SessionHandler sessionHandler = new SessionHandler();
+		sessionHandler.setSessionIdManager(sessionIdManager);
+		sessionHandler.setHttpOnly(true);
+		sessionHandler.setSessionCookie("session");
+		SessionCookieConfig sessionCokkieConfig = sessionHandler.getSessionCookieConfig();
+		sessionCokkieConfig.setPath("/");
 
 		ContextHandlerCollection contextCollection = new ContextHandlerCollection();
 		contextCollection.setHandlers(createContextHanlders(broker));
 
 
 		HandlerList handlerList = new HandlerList();
+		handlerList.addHandler(sessionHandler);
 		handlerList.addHandler(new InjectHandler());
 
 		if(broker.brokerConfig.server().login) {

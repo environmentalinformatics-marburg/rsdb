@@ -74,33 +74,6 @@
                 </table>          
             </div>
 
-            <div v-if="isAdmin">
-              <v-divider class="meta-divider"></v-divider>  
-                <h3 class="subheading mb-0"> 
-                    <!-- <admin-pointdb-dialog-set-acl :meta="meta" @changed="refresh" /> -->
-                    Access control
-                </h3>                        
-                <div class="meta-content">
-                <table>
-                    <tr>
-                        <td><b>access roles:</b></td>
-                        <td>
-                            <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-                    
-                    <!-- <tr>
-                        <td><b>modify roles:</b></td>
-                        <td>
-                             <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="meta.acl_mod.length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr> -->
-                </table>
-                </div>
-            </div>
-
             <v-divider class="meta-divider"></v-divider> 
             <h3 class="subheading mb-0"> 
                 Associated
@@ -145,6 +118,31 @@
                 <tr><td><b>vegetation classified:</b></td><td>{{meta.classified_vegetation}}</td></tr>
                 <tr><td><b>tile size:</b></td><td>{{meta.tile_size}}</td></tr>
                 </table>
+            </div>
+
+            <v-divider class="meta-divider"></v-divider>  
+            <h3 class="subheading mb-0"> 
+                <!-- <admin-pointdb-dialog-set-acl :meta="meta" @changed="refresh" v-if="isAdmin" /> -->
+                Access control
+            </h3>                        
+            <div class="meta-content">
+            <table>
+                <tr>
+                    <td><b>access roles:</b></td>
+                    <td>
+                        <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                        <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
+                    </td>
+                </tr>
+                
+                <!-- <tr>
+                    <td><b>modify roles:</b></td>
+                    <td>
+                            <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                        <span v-if="meta.acl_mod.length === 0" style="color: grey;">(none)</span>
+                    </td>
+                </tr> -->
+            </table>
             </div>
 
             <v-divider class="meta-divider"></v-divider> 

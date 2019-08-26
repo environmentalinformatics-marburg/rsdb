@@ -1,5 +1,7 @@
 package remotetask.rasterdb;
 
+import java.io.IOException;
+
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -29,7 +31,7 @@ public class Task_rebuild_pyramid extends RemoteTask {
 	}
 
 	@Override
-	public void process() {
+	public void process() throws IOException {
 		rasterdb.rebuildPyramid();		
 	}
 

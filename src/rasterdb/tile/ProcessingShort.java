@@ -1,5 +1,6 @@
 package rasterdb.tile;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -7,6 +8,7 @@ import rasterdb.Band;
 import rasterdb.tile.Processing.Commiter;
 import rasterunit.BandKey;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
 import rasterunit.TileKey;
 import util.Range2d;
@@ -14,36 +16,36 @@ import util.Range2d;
 public class ProcessingShort {
 	//private static final Logger log = LogManager.getLogger();
 
-	public static short[][] readPixels(int div, RasterUnit rasterUnit, int t, Band band, Range2d pixelRange) {
+	public static short[][] readPixels(int div, RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange) {
 		switch(div) {
 		case 1:
-			return readPixels(rasterUnit, t, band, pixelRange);
+			return readPixels(pyramid_rasterUnit, t, band, pixelRange);
 		case 2:
-			return readPixelsDiv2(rasterUnit, t, band, pixelRange);
+			return readPixelsDiv2(pyramid_rasterUnit, t, band, pixelRange);
 		case 4:
-			return readPixelsDiv4(rasterUnit, t, band, pixelRange);
+			return readPixelsDiv4(pyramid_rasterUnit, t, band, pixelRange);
 		case 8:
 		case 16:
 		case 32:
 		case 64:
 		case 128:
 		case 256:
-			return readPixelsDiv(rasterUnit, t, band, pixelRange, div);
+			return readPixelsDiv(pyramid_rasterUnit, t, band, pixelRange, div);
 			default:
 				throw new RuntimeException("unknown div " + div);
 		}
 	}
 
-	public static short[][] readPixels(RasterUnit rasterUnit, int t, Band band, Range2d pixelRange) {
-		return readPixels(rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax);
+	public static short[][] readPixels(RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange) {
+		return readPixels(pyramid_rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax);
 	}
 
-	public static short[][] readPixels(RasterUnit rasterUnit, int t, Band band, int pymin, int pymax, int pxmin, int pxmax) {
+	public static short[][] readPixels(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int pymin, int pymax, int pxmin, int pxmax) {
 		int ymin = TilePixel.pixelToTile(pymin);
 		int ymax = TilePixel.pixelToTile(pymax);
 		int xmin = TilePixel.pixelToTile(pxmin); 
 		int xmax = TilePixel.pixelToTile(pxmax);
-		short[][] data = readTiles(rasterUnit, t, band, ymin, ymax, xmin, xmax);
+		short[][] data = readTiles(pyramid_rasterUnit, t, band, ymin, ymax, xmin, xmax);
 		int yloff = TilePixel.pixelToTileOffset(pymin);
 		int xloff = TilePixel.pixelToTileOffset(pxmin);
 		int yroff = TilePixel.tileToPixel(ymax - ymin) + TilePixel.pixelToTileOffset(pymax);
@@ -51,16 +53,16 @@ public class ProcessingShort {
 		return copy(data, yloff, yroff, xloff, xroff);
 	}
 
-	public static short[][] readPixelsDiv2(RasterUnit rasterUnit, int t, Band band, Range2d pixelRange) {
-		return readPixelsDiv2(rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax);
+	public static short[][] readPixelsDiv2(RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange) {
+		return readPixelsDiv2(pyramid_rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax);
 	}
 
-	public static short[][] readPixelsDiv2(RasterUnit rasterUnit, int t, Band band, int pymin, int pymax, int pxmin, int pxmax) {
+	public static short[][] readPixelsDiv2(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int pymin, int pymax, int pxmin, int pxmax) {
 		int ymin = TilePixel.pixelToTile(pymin);
 		int ymax = TilePixel.pixelToTile(pymax);
 		int xmin = TilePixel.pixelToTile(pxmin); 
 		int xmax = TilePixel.pixelToTile(pxmax);
-		short[][] data = readTilesDiv2(rasterUnit, t, band, ymin, ymax, xmin, xmax);
+		short[][] data = readTilesDiv2(pyramid_rasterUnit, t, band, ymin, ymax, xmin, xmax);
 		int yloff = TilePixel.pixelToTileDiv2Offset(pymin);
 		int xloff = TilePixel.pixelToTileDiv2Offset(pxmin);
 		int yroff = TilePixel.tileDiv2ToPixel(ymax - ymin) + TilePixel.pixelToTileDiv2Offset(pymax);
@@ -68,20 +70,20 @@ public class ProcessingShort {
 		return copy(data, yloff, yroff, xloff, xroff);
 	}
 
-	public static short[][] readPixelsDiv4(RasterUnit rasterUnit, int t, Band band, Range2d pixelRange) {
-		return readPixelsDiv4(rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax);
+	public static short[][] readPixelsDiv4(RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange) {
+		return readPixelsDiv4(pyramid_rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax);
 	}
 
-	public static short[][] readPixelsDiv(RasterUnit rasterUnit, int t, Band band, Range2d pixelRange, int div) {
-		return readPixelsDiv(rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax, div);
+	public static short[][] readPixelsDiv(RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange, int div) {
+		return readPixelsDiv(pyramid_rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax, div);
 	}
 
-	public static short[][] readPixelsDiv4(RasterUnit rasterUnit, int t, Band band, int pymin, int pymax, int pxmin, int pxmax) {
+	public static short[][] readPixelsDiv4(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int pymin, int pymax, int pxmin, int pxmax) {
 		int ymin = TilePixel.pixelToTile(pymin);
 		int ymax = TilePixel.pixelToTile(pymax);
 		int xmin = TilePixel.pixelToTile(pxmin); 
 		int xmax = TilePixel.pixelToTile(pxmax);
-		short[][] data = readTilesDiv4(rasterUnit, t, band, ymin, ymax, xmin, xmax);
+		short[][] data = readTilesDiv4(pyramid_rasterUnit, t, band, ymin, ymax, xmin, xmax);
 		int yloff = TilePixel.pixelToTileDiv4Offset(pymin);
 		int xloff = TilePixel.pixelToTileDiv4Offset(pxmin);
 		int yroff = TilePixel.tileDiv4ToPixel(ymax - ymin) + TilePixel.pixelToTileDiv4Offset(pymax);
@@ -89,12 +91,12 @@ public class ProcessingShort {
 		return copy(data, yloff, yroff, xloff, xroff);
 	}
 
-	public static short[][] readPixelsDiv(RasterUnit rasterUnit, int t, Band band, int pymin, int pymax, int pxmin, int pxmax, int div) {
+	public static short[][] readPixelsDiv(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int pymin, int pymax, int pxmin, int pxmax, int div) {
 		int ymin = TilePixel.pixelToTile(pymin);
 		int ymax = TilePixel.pixelToTile(pymax);
 		int xmin = TilePixel.pixelToTile(pxmin); 
 		int xmax = TilePixel.pixelToTile(pxmax);
-		short[][] data = readTilesDiv(rasterUnit, t, band, ymin, ymax, xmin, xmax, div);
+		short[][] data = readTilesDiv(pyramid_rasterUnit, t, band, ymin, ymax, xmin, xmax, div);
 		int yloff = TilePixel.pixelToTileDivOffset(pymin, div);
 		int xloff = TilePixel.pixelToTileDivOffset(pxmin, div);
 		int yroff = TilePixel.tileDivToPixel(ymax - ymin, div) + TilePixel.pixelToTileDivOffset(pymax, div);
@@ -245,12 +247,12 @@ public class ProcessingShort {
 		return readTiles(rasterUnit, t, band, range2d.ymin, range2d.ymax, range2d.xmin, range2d.xmax);
 	}
 
-	public static short[][] readTiles(RasterUnit rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
+	public static short[][] readTiles(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
 		int rxlen = TilePixel.tileToPixel(xmax - xmin + 1);
 		int rylen = TilePixel.tileToPixel(ymax - ymin + 1);
 		short na = band.getShortNA();
 		short[][] data = createEmpty(rxlen, rylen, na); // na fill: not all pixels may be written
-		Collection<Tile> tiles = rasterUnit.getTiles(t, band.index, ymin, ymax, xmin, xmax);
+		Collection<Tile> tiles = pyramid_rasterUnit.readTiles(t, band.index, ymin, ymax, xmin, xmax);
 		if(!parallel) {
 			for(Tile tile:tiles) {
 				int x = TilePixel.tileToPixel(tile.x - xmin);
@@ -272,12 +274,12 @@ public class ProcessingShort {
 		return readTilesDiv2(rasterUnit, t, band, range2d.ymin, range2d.ymax, range2d.xmin, range2d.xmax);
 	}
 
-	public static short[][] readTilesDiv2(RasterUnit rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
+	public static short[][] readTilesDiv2(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
 		int rxlen = TilePixel.tileDiv2ToPixel(xmax - xmin + 1);
 		int rylen = TilePixel.tileDiv2ToPixel(ymax - ymin + 1);
 		short na = band.getShortNA();
 		short[][] data = createEmpty(rxlen, rylen, na); // na fill: not all pixels may be written
-		Collection<Tile> tiles = rasterUnit.getTiles(t, band.index, ymin, ymax, xmin, xmax);
+		Collection<Tile> tiles = pyramid_rasterUnit.readTiles(t, band.index, ymin, ymax, xmin, xmax);
 		if(!parallel) {
 			for(Tile tile:tiles) {
 				int x = TilePixel.tileDiv2ToPixel(tile.x - xmin);
@@ -305,12 +307,12 @@ public class ProcessingShort {
 		return readTilesDiv(rasterUnit, t, band, range2d.ymin, range2d.ymax, range2d.xmin, range2d.xmax, div);
 	}
 
-	public static short[][] readTilesDiv4(RasterUnit rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
+	public static short[][] readTilesDiv4(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
 		int rxlen = TilePixel.tileDiv4ToPixel(xmax - xmin + 1);
 		int rylen = TilePixel.tileDiv4ToPixel(ymax - ymin + 1);
 		short na = band.getShortNA();
 		short[][] data = createEmpty(rxlen, rylen, na); // na fill: not all pixels may be written
-		Collection<Tile> tiles = rasterUnit.getTiles(t, band.index, ymin, ymax, xmin, xmax);
+		Collection<Tile> tiles = pyramid_rasterUnit.readTiles(t, band.index, ymin, ymax, xmin, xmax);
 		if(!parallel) {
 			for(Tile tile:tiles) {
 				int x = TilePixel.tileDiv4ToPixel(tile.x - xmin);
@@ -330,12 +332,12 @@ public class ProcessingShort {
 		return data;
 	}
 
-	public static short[][] readTilesDiv(RasterUnit rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax, int div) {
+	public static short[][] readTilesDiv(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax, int div) {
 		int rxlen = TilePixel.tileDivToPixel(xmax - xmin + 1, div);
 		int rylen = TilePixel.tileDivToPixel(ymax - ymin + 1, div);
 		short na = band.getShortNA();
 		short[][] data = createEmpty(rxlen, rylen, na); // na fill: not all pixels may be written
-		Collection<Tile> tiles = rasterUnit.getTiles(t, band.index, ymin, ymax, xmin, xmax);
+		Collection<Tile> tiles = pyramid_rasterUnit.readTiles(t, band.index, ymin, ymax, xmin, xmax);
 		if(!parallel) {
 			for(Tile tile:tiles) {
 				int x = TilePixel.tileDivToPixel(tile.x - xmin, div);
@@ -355,7 +357,7 @@ public class ProcessingShort {
 		return data;
 	}
 
-	public static int writeMerge(RasterUnit rasterUnit, int t, Band band, short[][] pixels, int pixelYmin, int pixelXmin) {
+	public static int writeMerge(RasterUnitStorage rasterUnit, int t, Band band, short[][] pixels, int pixelYmin, int pixelXmin) throws IOException {
 		int tileWriteCount = 0;
 		int xlen = pixels[0].length;
 		int ylen = pixels.length;
@@ -403,24 +405,24 @@ public class ProcessingShort {
 		return tileWriteCount;
 	}
 
-	public static boolean writeTileMerge(RasterUnit rasterUnit, int t, Band band, int y, int x, short[][] tilePixels) {
+	public static boolean writeTileMerge(RasterUnitStorage rasterUnit, int t, Band band, int y, int x, short[][] tilePixels) throws IOException {
 		short na = band.getShortNA();
 		if(TileShort.isNotAllNa(tilePixels, na)) {
 			TileKey tileKey = new TileKey(t, band.index, y, x);
-			Tile tile = rasterUnit.getTile(tileKey);
+			Tile tile = rasterUnit.readTile(tileKey);
 			if(tile != null) {
 				TileShort.decodeMerge(tile.data, tilePixels, na);
 			}		
 			byte[] data = TileShort.encode(tilePixels);
-			rasterUnit.write(tileKey, new Tile(tileKey, TilePixel.TYPE_SHORT, data));
+			rasterUnit.writeTile(new Tile(tileKey, TilePixel.TYPE_SHORT, data));
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	public static void writeRasterUnitBandDiv4(RasterUnit sourceUnit, RasterUnit targetUnit, BandKey bandKey, Band band, Commiter counter) {
-		Range2d range = sourceUnit.getTileRange(bandKey);
+	public static void writeRasterUnitBandDiv4(RasterUnitStorage rasterUnitStorage, RasterUnitStorage targetUnit, BandKey bandKey, Band band, Commiter counter) throws IOException {
+		Range2d range = rasterUnitStorage.getTileRange(bandKey);
 
 		int xmin = Math.floorDiv(range.xmin, 4);
 		int ymin = Math.floorDiv(range.ymin, 4);
@@ -441,7 +443,7 @@ public class ProcessingShort {
 				short[][][] target = new short[batch_size][][];
 				int txmin = 4*x;
 				int txmax = txmin + 4*batch_size - 1;
-				Collection<Tile> tiles = sourceUnit.getTiles(bandKey.t, bandKey.b, tymin, tymax, txmin, txmax);
+				Collection<Tile> tiles = rasterUnitStorage.readTiles(bandKey.t, bandKey.b, tymin, tymax, txmin, txmax);
 				for(Tile tile:tiles) {
 					int targetIndex = Math.floorDiv(tile.x - txmin, 4);
 					if(target[targetIndex] == null) {
@@ -456,7 +458,7 @@ public class ProcessingShort {
 					if(target[targetIndex] != null) {
 						TileKey tileKey = bandKey.toTileKey(y, x + targetIndex);
 						byte[] data = TileShort.encode(target[targetIndex]);
-						targetUnit.write(tileKey, new Tile(tileKey, TilePixel.TYPE_SHORT, data));
+						targetUnit.writeTile(new Tile(tileKey, TilePixel.TYPE_SHORT, data));
 						tilesWrittenInRow++;
 					}
 				}

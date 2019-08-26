@@ -63,4 +63,8 @@ public class Tile {
 	public String toString() {
 		return t+" "+b+" "+y+" "+x+" "+type+" "+data.length;
 	}
+	
+	public TileKey toTileKey() {
+		return new TileKey(t, b, y, x);
+	}
 }

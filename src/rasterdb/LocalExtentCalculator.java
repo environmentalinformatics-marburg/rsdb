@@ -1,15 +1,18 @@
 package rasterdb;
 
+import java.io.IOException;
+
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterdb.tile.TileShort;
-import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import rasterunit.TileKey;
 import util.Range2d;
 
 public class LocalExtentCalculator {
 
 	public static Range2d calc(RasterDB rasterdb) {
+		try {
 		int bandMaxIndex = rasterdb.bandMap.keySet().stream().mapToInt(i->i).max().getAsInt();
 		int[] bandTypes = new int[bandMaxIndex + 1];
 		short[] bandShortNAs = new short[bandMaxIndex + 1];
@@ -18,21 +21,21 @@ public class LocalExtentCalculator {
 			bandShortNAs[band.index] = band.getShortNA();
 		}
 		
-		RasterUnit rasterUnit = rasterdb.rasterUnit();
+		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
 		Range2d tileRange = rasterUnit.getTileRange();
 		int lxmin = TilePixel.PIXELS_PER_ROW_1;
 		int lymin = TilePixel.PIXELS_PER_ROW_1;
 		int lxmax = 0;
 		int lymax = 0;
 		
-		for(TileKey tileKey:rasterUnit.tileKeysReadonly) {
+		for(TileKey tileKey:rasterUnit.tileKeysReadonly()) {
 			switch(bandTypes[tileKey.b]) {
 			case TilePixel.TYPE_SHORT: {
 				short na = (short) bandShortNAs[tileKey.b];
 				short[][] pixels = null;
 				if(lxmin > 0 && tileRange.xmin == tileKey.x) {
 					if(pixels == null) {
-						pixels = TileShort.decode(rasterUnit.getTile(tileKey).data);
+						pixels = TileShort.decode(rasterUnit.readTile(tileKey).data);
 					}
 					int cxmin = getXmin(pixels, na);
 					if(cxmin < lxmin) {
@@ -41,7 +44,7 @@ public class LocalExtentCalculator {
 				}
 				if(lymin > 0 && tileRange.ymin == tileKey.y) {
 					if(pixels == null) {
-						pixels = TileShort.decode(rasterUnit.getTile(tileKey).data);
+						pixels = TileShort.decode(rasterUnit.readTile(tileKey).data);
 					}
 					int cymin = getYmin(pixels, na);
 					if(cymin < lymin) {
@@ -50,7 +53,7 @@ public class LocalExtentCalculator {
 				}
 				if(lxmax < TilePixel.PIXELS_PER_ROW_1 && tileRange.xmax == tileKey.x) {
 					if(pixels == null) {
-						pixels = TileShort.decode(rasterUnit.getTile(tileKey).data);
+						pixels = TileShort.decode(rasterUnit.readTile(tileKey).data);
 					}
 					int cxmax = getXmax(pixels, na);
 					if(cxmax > lxmax) {
@@ -59,7 +62,7 @@ public class LocalExtentCalculator {
 				}
 				if(lymax < TilePixel.PIXELS_PER_ROW_1 && tileRange.ymax == tileKey.y) {
 					if(pixels == null) {
-						pixels = TileShort.decode(rasterUnit.getTile(tileKey).data);
+						pixels = TileShort.decode(rasterUnit.readTile(tileKey).data);
 					}
 					int cymax = getYmax(pixels, na);
 					if(cymax > lymax) {
@@ -72,7 +75,7 @@ public class LocalExtentCalculator {
 				float[][] pixels = null;
 				if(lxmin > 0 && tileRange.xmin == tileKey.x) {
 					if(pixels == null) {
-						pixels = TileFloat.decode(rasterUnit.getTile(tileKey).data);
+						pixels = TileFloat.decode(rasterUnit.readTile(tileKey).data);
 					}
 					int cxmin = getXmin(pixels);
 					if(cxmin < lxmin) {
@@ -81,7 +84,7 @@ public class LocalExtentCalculator {
 				}
 				if(lymin > 0 && tileRange.ymin == tileKey.y) {
 					if(pixels == null) {
-						pixels = TileFloat.decode(rasterUnit.getTile(tileKey).data);
+						pixels = TileFloat.decode(rasterUnit.readTile(tileKey).data);
 					}
 					int cymin = getYmin(pixels);
 					if(cymin < lymin) {
@@ -90,7 +93,7 @@ public class LocalExtentCalculator {
 				}
 				if(lxmax < TilePixel.PIXELS_PER_ROW_1 && tileRange.xmax == tileKey.x) {
 					if(pixels == null) {
-						pixels = TileFloat.decode(rasterUnit.getTile(tileKey).data);
+						pixels = TileFloat.decode(rasterUnit.readTile(tileKey).data);
 					}
 					int cxmax = getXmax(pixels);
 					if(cxmax > lxmax) {
@@ -99,7 +102,7 @@ public class LocalExtentCalculator {
 				}
 				if(lymax < TilePixel.PIXELS_PER_ROW_1 && tileRange.ymax == tileKey.y) {
 					if(pixels == null) {
-						pixels = TileFloat.decode(rasterUnit.getTile(tileKey).data);
+						pixels = TileFloat.decode(rasterUnit.readTile(tileKey).data);
 					}
 					int cymax = getYmax(pixels);
 					if(cymax > lymax) {
@@ -113,6 +116,9 @@ public class LocalExtentCalculator {
 			}
 		}		
 		return tileRange.mul(TilePixel.PIXELS_PER_ROW).add(lxmin, lymin, lxmax, lymax);
+		} catch(IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public static int getXmin(short[][] pixels, short na) { // no check for all na

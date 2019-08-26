@@ -86,7 +86,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 
 		String[] lparam = layers.split("/");
 		String bandText = lparam[0];
-		int timestamp = lparam.length > 1 ? Integer.parseInt(lparam[1]) : rasterdb.rasterUnit().timeKeysReadonly.isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly.last();
+		int timestamp = lparam.length > 1 ? Integer.parseInt(lparam[1]) : rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");
 		String[] bbox = request.getParameter("BBOX").split(",");
@@ -193,7 +193,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			eBoundingBox.setAttribute("maxy", "" + ref.pixelYToGeo(localRange.ymax));
 		}
 
-		ReadonlyNavigableSetView<Integer> timekeys = rasterdb.rasterUnit().timeKeysReadonly;
+		ReadonlyNavigableSetView<Integer> timekeys = rasterdb.rasterUnit().timeKeysReadonly();
 		for(Integer timeKey:timekeys) {
 			if(timeKey > 0) {
 				Element eTimeLayer = addElement(eRootLayer, "Layer");

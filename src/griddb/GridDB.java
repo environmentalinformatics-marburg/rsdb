@@ -22,8 +22,11 @@ import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
 import rasterunit.TileKey;
+import rasterunit.TileStorage;
+import rasterunit.TileStorageConfig;
 import util.Range2d;
 import util.collections.ReadonlyNavigableSetView;
 import util.collections.vec.ReadonlyVecView;
@@ -36,9 +39,11 @@ public class GridDB implements AutoCloseable {
 	private static final int TILE_TYPE_CELL = 0;
 
 	private final Vec<Attribute> attributes = new Vec<>();
+	private String storageType = null;
 
-	private RasterUnit rasterUnit = null;
+	private RasterUnitStorage storage = null;
 
+	private final String name;
 	private final Path path;
 	private final Path metaPath;
 	public final File metaFile;
@@ -56,8 +61,11 @@ public class GridDB implements AutoCloseable {
 		public void write(LinkedHashMap<String, Object> map);
 	}
 
-	public GridDB(Path path, String name, ExtendedMeta extendedMeta, boolean transaction) {		
+	public GridDB(Path path, String name, ExtendedMeta extendedMeta, String preferredStorageType, boolean transaction) {		
 		this.path = path;
+		this.name = name;
+		this.storageType = preferredStorageType; // will be overwritten if yaml file exists
+		log.info("preferredStorageType (" + path + "   "+ name + ") " + preferredStorageType);
 		this.transaction =  transaction;
 		path.toFile().mkdirs();
 		this.extendedMeta = extendedMeta;
@@ -70,16 +78,31 @@ public class GridDB implements AutoCloseable {
 		metaFileTemp = metaPathTemp.toFile();
 	}
 
-	private RasterUnit rasterUnit() {
-		RasterUnit r = rasterUnit;
-		return r == null ? loadRasterUnit() : r;
+	private RasterUnitStorage storage() {
+		RasterUnitStorage s = storage;
+		return s == null ? loadStorage() : s;
 	}
 
-	private synchronized RasterUnit loadRasterUnit() {
-		if (rasterUnit == null) {
-			rasterUnit = new RasterUnit(path, fileDataName, fileDataCache, !transaction);
+	private synchronized RasterUnitStorage loadStorage() {
+		if (storage == null) {
+			switch(storageType) {
+			case "RasterUnit":
+				storage = new RasterUnit(path, fileDataName, fileDataCache, !transaction);
+				break;
+			case "TileStorage":
+				TileStorageConfig config = new TileStorageConfig(path, name);
+				try {
+					storage = new TileStorage(config);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				break;
+			default:
+				throw new RuntimeException("unknown storage_type");
+			}
+
 		}
-		return rasterUnit;
+		return storage;
 	}
 
 	public void setExtendedMeta(ExtendedMeta extendedMeta) {
@@ -98,26 +121,26 @@ public class GridDB implements AutoCloseable {
 		return new Tile(0, 0, cy, cx, TILE_TYPE_CELL, cellData);		
 	}
 
-	public void writeTile(Tile tile) {
-		rasterUnit().write(tile);
+	public void writeTile(Tile tile) throws IOException {
+		storage().writeTile(tile);
 	}
 
 	public synchronized void commit() {
-		if (rasterUnit != null) {
-			rasterUnit.commit();
+		if (storage != null) {
+			storage.commit();
 		}
 	}
 
 	@Override
-	public synchronized void close() {
-		if (rasterUnit != null) {
-			rasterUnit.close();
-			rasterUnit = null;
+	public synchronized void close() throws IOException {
+		if (storage != null) {
+			storage.close();
+			storage = null;
 		}
 	}
 
-	private Tile getTile(int tx, int ty) {
-		return rasterUnit().getTile(0, 0, ty, tx);		
+	private Tile getTile(int tx, int ty) throws IOException {
+		return storage().readTile(0, 0, ty, tx);		
 	}
 
 	public Cell getCell(int x, int y) throws IOException {
@@ -126,7 +149,7 @@ public class GridDB implements AutoCloseable {
 	}
 
 	public Collection<Tile> getTiles(int xcellmin, int ycellmin, int xcellmax, int ycellmax) {
-		return rasterUnit().getTiles(0, 0, ycellmin, ycellmax, xcellmin, xcellmax);
+		return storage().readTiles(0, 0, ycellmin, ycellmax, xcellmin, xcellmax);
 	}
 
 	public Stream<Cell> getCells(int xcellmin, int ycellmin, int xcellmax, int ycellmax) {
@@ -178,6 +201,7 @@ public class GridDB implements AutoCloseable {
 			attrMap.put((int) attr.id, attr.toYamlWithoutId());
 		}
 		map.put("attributes", attrMap);
+		map.put("storage_type", storageType);
 		if(extendedMeta != null) {
 			extendedMeta.write(map);
 		}
@@ -186,6 +210,7 @@ public class GridDB implements AutoCloseable {
 
 	public synchronized void writeMeta() {
 		try {
+			log.info("write meta " + metaPath);
 			LinkedHashMap<String, Object> map = metaToYaml();
 			Yaml yaml = new Yaml();
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(metaFileTemp)));
@@ -208,6 +233,7 @@ public class GridDB implements AutoCloseable {
 				attributes.add(attribute);
 			}
 		}
+		storageType = map.optString("storage_type", "RasterUnit");
 		if(extendedMeta != null) {
 			extendedMeta.read(map);
 		}
@@ -216,6 +242,7 @@ public class GridDB implements AutoCloseable {
 	public synchronized void readMeta() { // throws if read error
 		try {
 			if (metaPath.toFile().exists()) {
+				log.info("read meta exists " + metaPath);
 				YamlMap map;
 				try(InputStream in = new FileInputStream(metaFile)) {
 					map = YamlMap.ofObject(new Yaml().load(in));
@@ -230,18 +257,22 @@ public class GridDB implements AutoCloseable {
 	}
 
 	public boolean isEmpty() {
-		return rasterUnit().isEmpty();
+		return storage().isEmpty();
 	}
 
 	public Range2d getTileRange() {
-		return rasterUnit().getTileRange();
+		return storage().getTileRange();
 	}
 
 	public ReadonlyNavigableSetView<TileKey> getTileKeys() {
-		return rasterUnit().tileKeysReadonly;
+		return storage().tileKeysReadonly();
 	}
 
 	public ReadonlyVecView<Attribute> getAttributes() {
 		return attributes.readonlyView();
+	}
+	
+	public String getStorageType() {
+		return storageType;
 	}
 }

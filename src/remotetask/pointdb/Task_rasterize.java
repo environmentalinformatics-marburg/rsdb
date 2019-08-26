@@ -1,5 +1,7 @@
 package remotetask.pointdb;
 
+import java.io.IOException;
+
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -14,7 +16,7 @@ import remotetask.RemoteTask;
 
 @task_pointdb("rasterize")
 @Description("create visualisation raster of PointDB layer")
-@Param(name="pointdb", desc="ID of PointDB layer (source)")
+@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)")
 @Param(name="rasterdb", desc="ID of new RasterDB layer (target)")
 @Param(name="transactions", desc="use power failer safe (and) slow RasterDB operation mode (default)", required=false)
 public class Task_rasterize extends RemoteTask {
@@ -34,7 +36,7 @@ public class Task_rasterize extends RemoteTask {
 	}
 
 	@Override
-	public void process() {
+	public void process() throws IOException {
 		String rasterdb_name = task.getString("rasterdb");
 		boolean transactions = true;
 		if(task.has("transactions")) {

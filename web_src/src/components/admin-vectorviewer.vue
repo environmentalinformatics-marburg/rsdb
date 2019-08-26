@@ -335,11 +335,17 @@ export default {
       renderMode: 'image',
     });
 
+    //var OsmUrl = this.$store.getters.apiUrl('api/proxy/{z}/{x}/{y}.png');
+
+    var backgroundSource = new ol_source.OSM({
+      //url: OsmUrl,
+    });  
+
     self.olmap = new ol_Map({
         target: 'olmap-vectorviewer',
         layers: [
           new ol_layer.Tile({
-            source: new ol_source.OSM(),
+            source: backgroundSource,
           }),
           this.vectorLayer,
           this.vectorLabelLayer,

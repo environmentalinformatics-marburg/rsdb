@@ -20,16 +20,18 @@ public class PointCloudConfig {
 	public final String name;
 	public final Path path;
 	public final boolean transaction;
+	public final String preferredStorageType; // nullable if pointcloud is existing
 
-	public PointCloudConfig(String name, Path path, boolean transaction) {
+	public PointCloudConfig(String name, Path path, String storageType, boolean transaction) {
 		this.name = name;
 		this.path = path;
 		this.transaction = transaction;
+		this.preferredStorageType = storageType;
 	}
 	
-	public static PointCloudConfig ofPath(Path path, boolean transaction) {
+	public static PointCloudConfig ofPath(Path path, String storageType, boolean transaction) {
 		String name = pathToName(path);
-		return new PointCloudConfig(name, path, transaction);
+		return new PointCloudConfig(name, path, storageType, transaction);
 	}
 	
 	private static String pathToName(Path path) {

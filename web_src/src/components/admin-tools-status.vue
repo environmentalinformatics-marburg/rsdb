@@ -1,9 +1,10 @@
 <template>
 <div class="innergrid-container">
     <div class="innergrid-item-main">
-       <v-btn flat icon color="green" @click="refresh()" title="refresh status">
-          <v-icon>refresh</v-icon>
-        </v-btn>
+      <v-btn :disabled="autoRefresh" flat icon color="green" @click="refresh()" title="refresh status" style="display: inline-block;">
+        <v-icon>refresh</v-icon>
+      </v-btn>
+      <v-switch v-model="autoRefresh" label="auto refresh" style="display: inline-block;" />
       <table class="table-status">
         <thead>
           <tr>
@@ -12,6 +13,7 @@
             <th>Status</th>
             <th>Message</th>
             <th>Runtime</th>
+            <th>Cancel</th>
           </tr>
         </thead>
         <tbody>
@@ -27,14 +29,19 @@
             </td>
             <td>{{remote_task.message}}</td>
             <td>{{(remote_task.runtime / 1000).toFixed(3)}}s</td>
+            <td v-if="(remote_task.status === 'READY' || remote_task.status === 'RUNNING') && !remote_task.canceled && remote_task.cancelable"><v-btn icon @click="cancel(remote_task.id)"><v-icon>cancel</v-icon></v-btn></td>
+            <td v-if="!remote_task.canceled && !remote_task.cancelable">---</td>
+            <td v-if="remote_task.canceled">cancel requested</td>
           </tr>
         </tbody>
       </table>
   
-     <div v-if="mode === 'init' || mode === 'load'">
-      <ring-loader color="#000000" size="20px" style="display: inline-block;" />
-      loading...
-    </div>
+     <transition name="fade">
+      <div v-if="mode === 'init' || mode === 'load'">
+        <ring-loader color="#000000" size="20px" style="display: inline-block;" />
+        loading...
+      </div>
+     </transition>
     <div v-if="mode === 'error'">
       <v-icon>error</v-icon>
       {{message}}
@@ -62,6 +69,8 @@ export default {
       mode: 'init',
       message: '',
       messageActive: false,
+      autoRefresh: false,
+      autoRefreshTimer: undefined,
     }
   },
   methods: {
@@ -88,12 +97,41 @@ export default {
       } else {
         return error.message ? error.message : error;
       }
-    }
+    },
+    async cancel(id) {
+      try {
+        console.log(id);
+        var url = this.$store.getters.apiUrl('api/remote_tasks/' + id + '/cancel');
+        await axios.post(url);
+        this.refresh();
+      } catch(error) {
+        this.mode = 'error';
+        this.message = this.interpretError(error);
+        this.messageActive = true;
+      } finally {
+        //this.refresh();
+      }      
+    },
+    updateAutoRefresh() {
+      if(this.autoRefreshTimer !== undefined) {
+        window.clearInterval(this.autoRefreshTimer);
+        this.autoRefreshTimer = undefined;
+      }
+      if(this.autoRefresh) {
+        this.autoRefreshTimer = window.setInterval(() => {this.refresh();}, 1000)
+      }
+    },
   },
   computed: {
   },
+  watch: {
+    autoRefresh() {
+      this.updateAutoRefresh();
+    },
+  },
   mounted() {
     this.refresh();
+    this.updateAutoRefresh();
   },
 }
 
@@ -154,6 +192,25 @@ export default {
 .table-status tr:hover {
   background-color: #0000003f;
 }
+
+.fade-enter-active {
+  transition-property: opacity;
+  transition-duration: 2s;
+}
+
+.fade-leave-active {
+  transition-property: opacity;
+  transition-duration: 0s;
+}
+
+.fade-enter-active {
+  transition-delay: 0s;
+}
+
+.fade-enter, .fade-leave-active {
+  opacity: 0;
+}
+
 
 
 </style>

@@ -1,5 +1,6 @@
 package pointcloud;
 
+import java.io.IOException;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -12,6 +13,7 @@ import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import util.Range2d;
 
 public class Rasterizer {
@@ -19,7 +21,7 @@ public class Rasterizer {
 
 	protected final PointCloud pointcloud;
 	protected final RasterDB rasterdb;
-	protected final RasterUnit rasterUnit;
+	protected final RasterUnitStorage rasterUnit;
 	private Band bandIntensity;
 	private  Band bandElevation;
 
@@ -57,7 +59,7 @@ public class Rasterizer {
 		selectorIntensity.intensity = true;
 	}
 
-	public void run() {
+	public void run() throws IOException {
 		AttributeSelector selector = pointcloud.getSelector();
 		if(selector.red) {
 			Band bandRed = rasterdb.createBand(TilePixel.TYPE_FLOAT, "red", null);
@@ -87,7 +89,7 @@ public class Rasterizer {
 	}
 
 
-	private void run(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing) {
+	private void run(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing) throws IOException {
 		Range2d cellrange = pointcloud.getCellRange();
 		DoublePoint celloffset = pointcloud.getCelloffset();
 		double cellsize = pointcloud.getCellsize();

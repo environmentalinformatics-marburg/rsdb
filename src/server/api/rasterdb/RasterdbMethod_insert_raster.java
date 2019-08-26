@@ -19,6 +19,7 @@ import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
+import rasterunit.RasterUnitStorage;
 import util.Serialisation;
 
 public class RasterdbMethod_insert_raster extends RasterdbMethod {
@@ -32,7 +33,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		log.info("!!! inser_raster !!!"+request);
 		request.setHandled(true);
-		RasterUnit rasterUnit = rasterdb.rasterUnit();
+		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
 		try {
 			String[] extText = (request.getParameter("ext").split(" "));
 			log.info("ext "+Arrays.toString(extText));

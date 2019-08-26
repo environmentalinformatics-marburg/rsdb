@@ -29,8 +29,10 @@ import util.collections.vec.Vec;
 
 @task_pointdb("to_pointcloud")
 @Description("create pointcloud layer from pointdb layer")
-@Param(name="pointdb", desc="ID of PointDB layer (source)")
+@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)")
 @Param(name="pointcloud", desc="ID of new PointCloud layer (target) (if layer exists, delete)")
+@Param(name="transactions", desc="use power failer safe (and) slow PointCloud operation mode (default false)", required=false)
+@Param(name="storage_type", desc="RasterUnit (default) or TileStorage", required=false)
 public class Task_to_pointcloud extends RemoteTask{
 	private static final Logger log = LogManager.getLogger();
 
@@ -111,13 +113,11 @@ public class Task_to_pointcloud extends RemoteTask{
 				throw new RuntimeException("missing parameter 'pointcloud'");
 			}
 			String pointcloud_name = task.getString("pointcloud");
-			boolean transactions = true;
-			if(task.has("transactions")) {
-				transactions = task.getBoolean("transactions");
-			}
+			String storage_type = task.optString("storage_type", "RasterUnit");
+			boolean transactions = task.optBoolean("transactions", false);
 			setMessage("prepare pointcloud layer");
 			broker.deletePointCloud(pointcloud_name);
-			PointCloud pointcloud = broker.createNewPointCloud(pointcloud_name, transactions);
+			PointCloud pointcloud = broker.createNewPointCloud(pointcloud_name, storage_type, transactions);
 
 			setMessage("verify pointdb layer");
 			Statistics stat = pointdb.tileMetaProducer(null).toStatistics();
@@ -149,6 +149,7 @@ public class Task_to_pointcloud extends RemoteTask{
 
 			double LOCAL_SCALE = PdbConst.LOCAL_SCALE_FACTOR;
 
+			setMessage("load pointdb tile keys");
 			TreeSet<TileKey> cachedKeySet = new TreeSet<TileKey>(pointdb.tileMetaMap.keySet());
 
 			setMessage("start transfer points");

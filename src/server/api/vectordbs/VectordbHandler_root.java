@@ -43,16 +43,16 @@ public class VectordbHandler_root extends VectordbHandler {
 			json.key("vectordb");
 			json.object();
 			JsonUtil.put(json, "name", vectordb.getName());
-			
+
 			json.key("modify");
 			json.value(vectordb.isAllowedMod(userIdentity));
-			if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
-				json.key("acl");
-				vectordb.getACL().writeJSON(json);
-				json.key("acl_mod");
-				vectordb.getACL_mod().writeJSON(json);
-			}
-			
+			//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
+			json.key("acl");
+			vectordb.getACL().writeJSON(json);
+			json.key("acl_mod");
+			vectordb.getACL_mod().writeJSON(json);
+			//}
+
 			vectordb.informal().writeJson(json);
 
 			json.key("data_filename");
@@ -65,10 +65,10 @@ public class VectordbHandler_root extends VectordbHandler {
 				files.stream().map(Path::toString).sorted(String.CASE_INSENSITIVE_ORDER).forEach(json::value);
 			}
 			json.endArray();
-			
+
 			json.key("datatag");
 			json.value(vectordb.getDatatag());
-			
+
 			VectordbDetails details = vectordb.getDetails();
 			json.key("details");
 			json.object();
@@ -77,10 +77,10 @@ public class VectordbHandler_root extends VectordbHandler {
 			json.key("attributes");
 			json.value(details.attributes);
 			json.endObject();
-			
+
 			json.key("name_attribute");
 			json.value(vectordb.getNameAttribute());
-			
+
 			json.key("structured_access");
 			json.object();
 			json.key("poi");
@@ -88,7 +88,7 @@ public class VectordbHandler_root extends VectordbHandler {
 			json.key("roi");
 			json.value(vectordb.getStructuredAccessROI());
 			json.endObject();
-			
+
 			/*Vec<Poi> pois = vectordb.getPOIs();
 			json.key("pois");
 			json.array();
@@ -101,7 +101,7 @@ public class VectordbHandler_root extends VectordbHandler {
 				json.key("y");
 				json.value(p.y);
 				json.endObject();
-				
+
 			}
 			json.endArray();*/
 
@@ -131,7 +131,7 @@ public class VectordbHandler_root extends VectordbHandler {
 	}
 
 	private final static Set<String> POST_PROPS_MANDATORY = Util.of();
-	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "name_attribute", "structured_access");
+	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "name_attribute", "structured_access", "name");
 
 	private final static Set<String> STRUCTURED_ACCESS_PROPS_MANDATORY = Util.of();
 	private final static Set<String> STRUCTURED_ACCESS_PROPS = Util.of("poi", "roi");
@@ -142,127 +142,142 @@ public class VectordbHandler_root extends VectordbHandler {
 			response.setContentType("text/plain;charset=utf-8");
 			response.setStatus(HttpServletResponse.SC_OK);
 			JSONObject json = new JSONObject(Web.requestContentToString(request));
-			Iterator<String> it = json.keys();
 			Util.checkProps(POST_PROPS_MANDATORY, POST_PROPS, json);
-			boolean writeMeta = false;
-			boolean updateCatalog = false;
-			boolean refreshDatatag = false;
-			boolean refreshPoiGroups = false;
-			boolean refreshRoiGroups = false;
-			while(it.hasNext()) {
-				String key = it.next();
-				switch(key) {
-				case "data_filename": {
-					vectordb.checkMod(userIdentity);
-					String name = JsonUtil.getString(json, "data_filename");
-					vectordb.setDataFilename(name);
-					writeMeta = true;
-					refreshDatatag = true;
-					break;
-				}
-				case "name_attribute": {
-					vectordb.checkMod(userIdentity);
-					String name = JsonUtil.getString(json, "name_attribute");
-					vectordb.setNameAttribute(name);
-					writeMeta = true;
-					break;
-				}
-				case "title": {
-					vectordb.checkMod(userIdentity);
-					String title = json.getString("title");
-					Builder informal = vectordb.informal().toBuilder();
-					informal.title = title.trim();
-					vectordb.setInformal(informal.build());
-					updateCatalog = true;
-					writeMeta = true;
-					break;
-				}
-				case "description": {
-					vectordb.checkMod(userIdentity);
-					String description = json.getString("description");
-					Builder informal = vectordb.informal().toBuilder();
-					informal.description = description.trim();
-					vectordb.setInformal(informal.build());
-					updateCatalog = true;
-					writeMeta = true;
-					break;
-				}
-				case "corresponding_contact": {
-					vectordb.checkMod(userIdentity);
-					String corresponding_contact = json.getString("corresponding_contact");
-					Builder informal = vectordb.informal().toBuilder();
-					informal.corresponding_contact = corresponding_contact.trim();
-					vectordb.setInformal(informal.build());
-					updateCatalog = true;
-					writeMeta = true;
-					break;
-				}
-				case "tags": {
-					vectordb.checkMod(userIdentity);
-					Builder informal = vectordb.informal().toBuilder();
-					informal.setTags(JsonUtil.optStringTrimmedArray(json, "tags"));
-					vectordb.setInformal(informal.build());
-					updateCatalog = true;
-					writeMeta = true;
-					break;
-				}
-				case "acl": {
-					EmptyACL.ADMIN.check(userIdentity);	
-					ACL acl = ACL.of(JsonUtil.optStringTrimmedList(json, "acl"));
-					vectordb.setACL(acl);
-					updateCatalog = true;
-					writeMeta = true;
-					break;
-				}
-				case "acl_mod": {
-					EmptyACL.ADMIN.check(userIdentity);	
-					ACL acl_mod = ACL.of(JsonUtil.optStringTrimmedList(json, "acl_mod"));
-					vectordb.setACL_mod(acl_mod);
-					updateCatalog = true;
-					writeMeta = true;
-					break;
-				}
-				case "structured_access": {
-					JSONObject st = json.getJSONObject("structured_access");
-					Util.checkProps(STRUCTURED_ACCESS_PROPS_MANDATORY, STRUCTURED_ACCESS_PROPS, st);
-					if(st.has("poi")) {
-						vectordb.setStructuredAccessPOI(st.getBoolean("poi"));
-						writeMeta = true;
-						updateCatalog = true;
-						refreshPoiGroups = true;
-					}
-					if(st.has("roi")) {
-						vectordb.setStructuredAccessROI(st.getBoolean("roi"));
-						writeMeta = true;
-						updateCatalog = true;
-						refreshRoiGroups = true;
-					}
-					break;
-				}
-				default: 
-					throw new RuntimeException("unknown key: "+key);
-				}
-			}
-			if(writeMeta) {
-				vectordb.writeMeta();
-			}
-			if(refreshDatatag) {
-				vectordb.refreshDatatag();
-			}
-			if(updateCatalog) {
-				broker.catalog.update(vectordb, false);
-			}
-			if(refreshPoiGroups) {
-				broker.refreshPoiGroupMap();
-			}
-			if(refreshRoiGroups) {
-				broker.refreshRoiGroupMap();
-			}			
+			updateVectordbProps(vectordb, json, userIdentity, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 			log.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}
+	}
+
+	public void updateVectordbProps(VectorDB vectordb, JSONObject json,  UserIdentity userIdentity, boolean isNewCreated) {
+		boolean writeMeta = false;
+		boolean updateCatalog = false;
+		boolean refreshDatatag = false;
+		boolean refreshPoiGroups = false;
+		boolean refreshRoiGroups = false;
+		Iterator<String> it = json.keys();
+		while(it.hasNext()) {
+			String key = it.next();
+			switch(key) {
+			case "name": {
+				String name = JsonUtil.getString(json, "name");
+				if(!vectordb.getName().equals(name)) {
+					throw new RuntimeException("vectordb name can not change");
+				}
+				break;
+			}
+			case "data_filename": {
+				vectordb.checkMod(userIdentity);
+				String name = JsonUtil.getString(json, "data_filename");
+				vectordb.setDataFilename(name);
+				writeMeta = true;
+				refreshDatatag = true;
+				break;
+			}
+			case "name_attribute": {
+				vectordb.checkMod(userIdentity);
+				String name = JsonUtil.getString(json, "name_attribute");
+				vectordb.setNameAttribute(name);
+				writeMeta = true;
+				break;
+			}
+			case "title": {
+				vectordb.checkMod(userIdentity);
+				String title = json.getString("title");
+				Builder informal = vectordb.informal().toBuilder();
+				informal.title = title.trim();
+				vectordb.setInformal(informal.build());
+				updateCatalog = true;
+				writeMeta = true;
+				break;
+			}
+			case "description": {
+				vectordb.checkMod(userIdentity);
+				String description = json.getString("description");
+				Builder informal = vectordb.informal().toBuilder();
+				informal.description = description.trim();
+				vectordb.setInformal(informal.build());
+				updateCatalog = true;
+				writeMeta = true;
+				break;
+			}
+			case "corresponding_contact": {
+				vectordb.checkMod(userIdentity);
+				String corresponding_contact = json.getString("corresponding_contact");
+				Builder informal = vectordb.informal().toBuilder();
+				informal.corresponding_contact = corresponding_contact.trim();
+				vectordb.setInformal(informal.build());
+				updateCatalog = true;
+				writeMeta = true;
+				break;
+			}
+			case "tags": {
+				vectordb.checkMod(userIdentity);
+				Builder informal = vectordb.informal().toBuilder();
+				informal.setTags(JsonUtil.optStringTrimmedArray(json, "tags"));
+				vectordb.setInformal(informal.build());
+				updateCatalog = true;
+				writeMeta = true;
+				break;
+			}
+			case "acl": {
+				if(!isNewCreated) {
+					EmptyACL.ADMIN.check(userIdentity);
+				}
+				ACL acl = ACL.of(JsonUtil.optStringTrimmedList(json, "acl"));
+				vectordb.setACL(acl);
+				updateCatalog = true;
+				writeMeta = true;
+				break;
+			}
+			case "acl_mod": {
+				if(!isNewCreated) {
+					EmptyACL.ADMIN.check(userIdentity);
+				}
+				ACL acl_mod = ACL.of(JsonUtil.optStringTrimmedList(json, "acl_mod"));
+				vectordb.setACL_mod(acl_mod);
+				updateCatalog = true;
+				writeMeta = true;
+				break;
+			}
+			case "structured_access": {
+				JSONObject st = json.getJSONObject("structured_access");
+				Util.checkProps(STRUCTURED_ACCESS_PROPS_MANDATORY, STRUCTURED_ACCESS_PROPS, st);
+				if(st.has("poi")) {
+					vectordb.setStructuredAccessPOI(st.getBoolean("poi"));
+					writeMeta = true;
+					updateCatalog = true;
+					refreshPoiGroups = true;
+				}
+				if(st.has("roi")) {
+					vectordb.setStructuredAccessROI(st.getBoolean("roi"));
+					writeMeta = true;
+					updateCatalog = true;
+					refreshRoiGroups = true;
+				}
+				break;
+			}
+			default: 
+				throw new RuntimeException("unknown key: "+key);
+			}
+		}
+		if(writeMeta) {
+			vectordb.writeMeta();
+		}
+		if(refreshDatatag) {
+			vectordb.refreshDatatag();
+		}
+		if(updateCatalog) {
+			broker.catalog.update(vectordb, false);
+		}
+		if(refreshPoiGroups) {
+			broker.refreshPoiGroupMap();
+		}
+		if(refreshRoiGroups) {
+			broker.refreshRoiGroupMap();
+		}					
 	}
 }
