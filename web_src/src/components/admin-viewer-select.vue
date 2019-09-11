@@ -1,17 +1,7 @@
 <template>
 <div>
 
-  <b>Background</b>
-  <multiselect v-model="selectedBackground" :options="backgroundOptions" :searchable="true" :show-labels="false" placeholder="pick a background" :allowEmpty="false">
-    <template slot="singleLabel" slot-scope="{option}">
-      {{option.title}}
-    </template>
-    <template slot="option" slot-scope="{option}">
-      {{option.title}}
-    </template>
-  </multiselect>
-
-  <div v-if="rasterdbs !== undefined">
+   <div v-if="rasterdbs !== undefined">
     <v-icon style="font-size: 1em;">collections</v-icon><b>Layer</b>
     <multiselect v-model="selectedRasterdb" :options="rasterdbs" :searchable="true" :show-labels="false" placeholder="pick a layer" :allowEmpty="false">
       <template slot="singleLabel" slot-scope="{option}">
@@ -88,16 +78,6 @@ export default {
       selectedTimestamp: undefined,
       selectedLayerWMS_opacity: 1,     
 
-      backgroundOptions: [
-        {name: "checkerboard", title: "checkerboard"},
-        {name: "osm", title: "OpenStreetMap"},
-        {name: "OpenTopoMap", title: "OpenTopoMap"},
-        {name: "StamenTerrain", title: "Stamen Terrain"},        
-        {name: "black", title: "black"},
-        {name: "grey", title: "grey"},
-        {name: "white", title: "white"},
-      ],
-      selectedBackground: undefined,
       gammas: ["auto", "0.1", "0.2", "0.5", "1.0", "1.5", "2.0", "2.5", "3.0"],
       selectedGamma: "auto",
       syncBands: false,
@@ -191,9 +171,6 @@ export default {
     selectedProduct() {
       this.$emit('selected-product', this.selectedProduct);
     },
-    selectedBackground() {
-      this.$emit('selected-background', this.selectedBackground);
-    },
     currentLayerWMS_opacity() {
       this.selectedLayerWMS_opacity = this.currentLayerWMS_opacity;
     },
@@ -218,7 +195,6 @@ export default {
     this.refreshSelectedRasterdb();
     this.refreshSelectedTimestamp();
     this.refreshSelectedProduct();
-    this.selectedBackground = this.backgroundOptions[2];
   },
 }
 

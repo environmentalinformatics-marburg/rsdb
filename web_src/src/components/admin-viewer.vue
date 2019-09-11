@@ -8,7 +8,7 @@
 					<img src="images/busy.svg" /> Processing ... {{transactionRunCount > 1 ? '(' + transactionRunCount + ' queued)' : ''}}
 					<b>{{transactionRunCount > 1 ? 'Please wait until processing finished.' : ''}}</b>
 		</div>
-    
+
     <!--<div id="top" style="display: inline-block; white-space: nowrap;">
       <v-toolbar>
             Mouse<br>Modus
@@ -43,6 +43,28 @@
                 <v-icon>settings_overscan</v-icon>select
               </v-btn>
             </v-btn-toggle>
+
+            <v-dialog v-model="settingsDialog" width="500">
+              <template v-slot:activator="{ on }">
+                <v-btn fab title="change viewer settings" v-on="on"><v-icon>settings_applications</v-icon></v-btn>
+              </template>
+              <v-card>
+                <v-card-title class="headline grey lighten-2" primary-title>
+                  Viewer Settings              
+                </v-card-title>
+                <v-card-text style="min-height: 500px;">
+                  <admin-viewer-settings        
+                  @selected-background="selectedBackground = $event"  
+                  @selected-format="selectedFormat = $event"       
+                  />
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="primary" flat @click="settingsDialog = false">close</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
       </v-toolbar>
       <admin-viewer-select 
         :currentLayerWMS_opacity="layerWMS_opacity" 
@@ -53,7 +75,6 @@
         @selected-rasterdb="selectedRasterdb = $event" 
         @selected-timestamp="selectedTimestamp = $event" 
         @selected-product="selectedProduct = $event" 
-        @selected-background="selectedBackground = $event" 
         @selected-layerwms-opacity="layerWMS_opacity = $event" 
         @selected-gamma="selectedGamma = $event" 
         @sync-bands="syncBands = $event" 
@@ -111,6 +132,7 @@ import adminViewerSelect from './admin-viewer-select.vue'
 import adminViewerTools from './admin-viewer-tools.vue'
 import adminViewerRasterExport from './admin-viewer-raster-export.vue'
 import adminViewerPointExport from './admin-viewer-point-export.vue'
+import adminViewerSettings from './admin-viewer-settings.vue'
 
 import Vue from 'vue'
 
@@ -142,6 +164,7 @@ export default {
         'admin-viewer-tools': adminViewerTools,
         'admin-viewer-raster-export': adminViewerRasterExport,
         'admin-viewer-point-export': adminViewerPointExport,
+        'admin-viewer-settings': adminViewerSettings,
         RingLoader,
         Multiselect,
   },
@@ -158,6 +181,7 @@ export default {
       layerBackgroundOSM: undefined,
       layerBackgroundOpenTopoMap: undefined,
       layerBackgroundStamenTerrain: undefined,
+      selectedFormat: undefined,
       vectorLayer: undefined,
       sourceWMS: undefined,
       layerWMS: undefined,
@@ -180,6 +204,8 @@ export default {
       toolRasterExportShow: false,
       toolPointExportShow: false,
       selectedVectordb: undefined,
+
+      settingsDialog: false,
 
       mouseModus: undefined,
       interactionExtent: undefined,
@@ -436,7 +462,14 @@ export default {
 
       if(this.session != undefined) {
         p.session = this.session;
-      }      
+      }
+
+      //p.FORMAT = "image/png";
+      //p.FORMAT = "image/png:0";      
+      //p.FORMAT = "image/jpeg";
+      if(this.selectedFormat !== undefined) {
+        p.FORMAT = this.selectedFormat.name;
+      }
 
       return p;
     },
@@ -779,7 +812,7 @@ export default {
   background-color: #e4e5e5;
   padding-right: 0px;
   overflow-y: auto;
-  width: 300px;
+  width: 310px;
   border-right-color: #0000001a;
   border-right-width: 1px;
   border-right-style: solid;

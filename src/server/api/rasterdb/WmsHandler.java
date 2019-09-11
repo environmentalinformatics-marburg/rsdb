@@ -164,6 +164,11 @@ public class WmsHandler extends AbstractHandler {
 				}
 			}
 
+			String format = request.getParameter("FORMAT");
+			if(format == null) {
+				format = "image/png";
+			}
+
 			String layer = request.getParameter("LAYERS");
 			log.info("layer "+layer);
 			RasterDB rasterdb = broker.getRasterdb(layer);
@@ -178,7 +183,7 @@ public class WmsHandler extends AbstractHandler {
 			String timeText = request.getParameter("TIME");
 			if(timeText == null) {
 				try {
-				timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
+					timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
 				} catch(Exception e) {
 					if(rasterdb.rasterUnit().timeKeysReadonly().isEmpty()) {
 						throw new RuntimeException("empty rasterdb layer");
@@ -302,10 +307,63 @@ public class WmsHandler extends AbstractHandler {
 				log.info("****************************************** interrupted (pre sent)*******************************************");
 				return;
 			}
-			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("image/png");
 			Timer.start("compress/transfer");
-			image.writePngCompressed(response.getOutputStream());
+			log.info("");
+			response.setStatus(HttpServletResponse.SC_OK);
+			switch(format) {
+			case "image/jpeg": {
+				response.setContentType("image/jpeg");
+				image.writeJpg(response.getOutputStream(), 0.7f);
+				break;
+			}
+			case "image/png": {
+				response.setContentType("image/png");
+				image.writePngCompressed(response.getOutputStream());
+				break;
+			}
+			default: {
+				if(format.startsWith("image/png:")) {
+					response.setContentType("image/png");
+					switch(format) {
+					case "image/png:0":
+						image.writePng(response.getOutputStream(), 0);
+						break;
+					case "image/png:1":
+						image.writePng(response.getOutputStream(), 1);
+						break;
+					case "image/png:2": 
+						image.writePng(response.getOutputStream(), 2);
+						break;
+					case "image/png:3": 
+						image.writePng(response.getOutputStream(), 3);
+						break;	
+					case "image/png:4": 
+						image.writePng(response.getOutputStream(), 4);
+						break;
+					case "image/png:5": 
+						image.writePng(response.getOutputStream(), 5);
+						break;
+					case "image/png:6": 
+						image.writePng(response.getOutputStream(), 6);
+						break;
+					case "image/png:7": 
+						image.writePng(response.getOutputStream(), 7);
+						break;
+					case "image/png:8": 
+						image.writePng(response.getOutputStream(), 8);
+						break;
+					case "image/png:9": 
+						image.writePng(response.getOutputStream(), 9);
+						break;
+					default: 
+						image.writePngCompressed(response.getOutputStream());
+					}
+				} else {
+					response.setContentType("image/png");
+					image.writePngCompressed(response.getOutputStream());
+				}
+			}
+			}
 			log.info(Timer.stop("compress/transfer"));
 			log.info(Timer.stop("full request"));
 			if(Interruptor.isInterrupted(currentInterruptor)) {
