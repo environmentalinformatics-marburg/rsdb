@@ -135,7 +135,7 @@ export default {
       outputType: 'GeoTIFF - data',
       modes: [{id: 'direct_bands', title: 'raster-file'},
               {id: 'zip', title: 'zip-file'}],
-      mode: {id: 'direct_bands', title: 'raster-file'},
+      mode: {id: 'zip', title: 'zip-file'},
       zip_arrangements: [{id: 'multiband', title: 'multiband: one raster-file per timestamp'},
                         {id: 'timeseries', title: 'timeseries: one raster-file per band (files with multiple timestamps as file-bands)'},
                         {id: 'separate_timestamp_band', title: 'separate: raster-files for each timestamp and band (one band raster-files)'},

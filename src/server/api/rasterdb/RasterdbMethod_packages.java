@@ -124,11 +124,11 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			if(meta.has("compression")) {
 				spec.compression = JsonUtil.getInt(meta, "compression");
 			}
-			
+
 			if(meta.has("arrangement")) {
 				spec.arrangement  = JsonUtil.getString(meta, "arrangement");
 			}
-			
+
 			if(meta.has("div")) {
 				spec.div = JsonUtil.getInt(meta, "div");
 			}
@@ -160,10 +160,12 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			json.endObject();
 		} 			
 	}
-	
-	private void get(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {		
+
+	private void get(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {	
+		String name = rasterdb.config.getName();
 		long id = Long.parseLong(target.replace(".zip", ""));
 		Spec spec = specMap.get(id);
+		Range2d range2d = rasterdb.ref().bboxToRange2d(spec.ext);
 		ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 		/*if(spec.compression == 0) {
 			zipOutputStream.setMethod(ZipOutputStream.STORED); //not valid: size and crc32 of entry needs to be known
@@ -171,10 +173,27 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			zipOutputStream.setMethod(ZipOutputStream.DEFLATED);
 		}*/
 		zipOutputStream.setLevel(spec.compression);
-		Range2d range2d = rasterdb.ref().bboxToRange2d(spec.ext);
-		String name = rasterdb.config.getName();
-		
-		TimeBandProcessor processor = new TimeBandProcessor(rasterdb, range2d, spec.div);
+		boolean tiled = true;
+		if(tiled) {
+			int tileSize = 4096 * spec.div;
+			range2d.tiled(tileSize, tileSize, (int xtile, int ytile, Range2d tile_range2d) -> {
+				String tile_name = name + "__" + xtile + "_" + ytile;
+				TimeBandProcessor processor = new TimeBandProcessor(rasterdb, tile_range2d, spec.div);
+				try {
+					process(tile_name, spec, processor, zipOutputStream);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			});
+		} else {
+			TimeBandProcessor processor = new TimeBandProcessor(rasterdb, range2d, spec.div);
+			process(name, spec, processor, zipOutputStream);
+		}
+		zipOutputStream.finish();
+		zipOutputStream.flush();
+	}
+
+	private void process(String name, Spec spec, TimeBandProcessor processor, ZipOutputStream zipOutputStream) throws IOException {		
 		OutputProcessingType outputProcessingType = OutputProcessingType.IDENTITY;
 		String format = "tiff";
 
@@ -223,12 +242,6 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		}
 		default:
 			throw new RuntimeException("unknown arrangement: "+spec.arrangement);
-		}
-		
-		
-
-
-		zipOutputStream.finish();
-		zipOutputStream.flush();
+		}		
 	}
 }

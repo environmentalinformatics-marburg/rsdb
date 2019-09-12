@@ -7,6 +7,7 @@ import org.eclipse.jetty.server.Response;
 import org.mapdb.DataIO.DataOutputByteArray;
 
 import pointdb.processing.geopoint.RasterSubGrid;
+import util.Receiver;
 import util.Serialisation;
 
 public class RdatRaster {
@@ -78,17 +79,17 @@ public class RdatRaster {
 		}
 	}
 	
-	public static void write_RDAT_RASTER(Response response, RasterSubGrid[] rasterGrids, String proj4) throws IOException {
+	public static void write_RDAT_RASTER(Receiver receiver, RasterSubGrid[] rasterGrids, String proj4) throws IOException {
 		DataOutputByteArray out = new DataOutputByteArray();
 		write_RDAT_RASTER(out, rasterGrids, proj4);		
-		response.setContentType("application/octet-stream");
-		response.getOutputStream().write(out.buf,0,out.pos);	
+		receiver.setContentType("application/octet-stream");
+		receiver.getOutputStream().write(out.buf,0,out.pos);	
 	}
 
-	public static void write_RDAT_RASTER(Response response, RasterSubGrid rasterGrid, String proj4) throws IOException {
+	public static void write_RDAT_RASTER(Receiver receiver, RasterSubGrid rasterGrid, String proj4) throws IOException {
 		DataOutputByteArray out = new DataOutputByteArray();
 		write_RDAT_RASTER(out, rasterGrid, proj4);		
-		response.setContentType("application/octet-stream");
-		response.getOutputStream().write(out.buf,0,out.pos);		
+		receiver.setContentType("application/octet-stream");
+		receiver.getOutputStream().write(out.buf,0,out.pos);		
 	}
 }

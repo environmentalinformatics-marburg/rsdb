@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import org.ehcache.impl.internal.loaderwriter.writebehind.operations.WriteAllOperation;
-
 public class StreamReceiver extends Receiver {
 	
 	private final OutputStream out;

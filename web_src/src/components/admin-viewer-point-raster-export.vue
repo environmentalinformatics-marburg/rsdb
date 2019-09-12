@@ -1,7 +1,7 @@
 <template>
 <div>
   <div class="point-export-container">
-    <h1>Export Point Data <v-btn flat icon color="indigo" @click="$emit('close')"  title="close box" style="maring: 0px;"><v-icon>close</v-icon></v-btn></h1>
+    <h1>Export Raster of processed point-cloud data<v-btn flat icon color="indigo" @click="$emit('close')"  title="close box" style="maring: 0px;"><v-icon>close</v-icon></v-btn></h1>
     <div style="display: inline-block; white-space: nowrap; padding-top: 20px;" v-if="selectedExtent !== undefined">
       <h3>selected extent</h3>
       <div>
@@ -18,6 +18,16 @@
       </div>
 
       <br>
+      <b>Point-cloud to raster processing type</b>
+      <br>
+      <span v-if="raster_processing_types != undefined">
+        <multiselect v-model="raster_processing_type" :options="raster_processing_types" :show-labels="false" :allowEmpty="false" placeholder="point-cloud to raster processing type" track-by="name" label="label"/>
+      </span>
+      <span v-if="metaMessage != undefined">
+        {{metaMessage}}
+      </span>
+
+      <br>
       <b>File-Format</b>
       <br>
       <multiselect v-model="outputType" :options="outputTypes" :show-labels="false" :allowEmpty="false" placeholder="output format" track-by="name" label="title"/>
@@ -29,7 +39,7 @@
       <br>
       <br>
       <br>
-      <admin-viewer-point-export-format-description :output-type="outputType" />
+      <admin-viewer-point-raster-export-format-description :output-type="outputType" />
     </div>
   </div>
 </div>  
@@ -37,19 +47,21 @@
 
 <script>
 
+import axios from 'axios';
+
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 
-import adminViewerPointExportFormatDescription from './admin-viewer-point-export-format-description.vue'
+import adminViewerPointRasterExportFormatDescription from './admin-viewer-point-raster-export-format-description.vue'
 
 export default {
-  name: 'admin-viewer-point-export',
+  name: 'admin-viewer-point-raster-export',
 
   props: ['pointdb', 'pointcloud', 'selectedExtent'],
 
   components: {
     Multiselect,
-    'admin-viewer-point-export-format-description': adminViewerPointExportFormatDescription,
+    'admin-viewer-point-raster-export-format-description': adminViewerPointRasterExportFormatDescription,
   },
 
   data() {
@@ -59,12 +71,16 @@ export default {
       user_xmax: undefined,
       user_ymax: undefined,
       outputTypes: [
-        {name: 'LAS', title: '.las - binary file'}, 
-        {name: 'xyz', title: '.xyz - text file'}, 
+        {name: 'tiff', title: '.tiff - GeoTIFF raster file'}, 
+        {name: 'png', title: '.png - PNG image file'}, 
         {name: 'rDAT', title: '.rDAT - binary file'}, 
-        {name: 'zip', title: '.zip - containing tiled .las files (experimental)'}
+        {name: 'zip', title: '.zip - containing tiled .tiff files (experimental)'}
       ],
       outputType: undefined,
+      valid_processing_types: ["basic_raster", "index_raster", "multi_raster"],
+      raster_processing_type: undefined,
+      meta: undefined,
+      metaMessage: 'init',
     };
   },
   methods: {
@@ -79,6 +95,28 @@ export default {
         query += p + "=" + parameters[p];
       }
       return query;
+    },
+    refreshMeta() {
+      if(this.pointdb !== undefined) {
+        this.meta = undefined;
+        this.metaMessage = "loading meta data of layer ...";
+        axios.get(this.urlPrefix + '../../pointdb/info.json' + '?db=' + this.pointdb + '&statistics=false') 
+        .then(response => {
+          this.meta = response.data;
+          this.metaMessage = undefined;
+        })
+        .catch(e => {
+          this.meta = undefined;
+          this.metaMessage = 'ERROR loading meta data of layer ' + e;
+        });        
+      } else if(this.pointcloud !== undefined) {
+        this.meta = undefined;
+        this.metaMessage = 'error in meta: no load function for meta of pointcloud';
+      } else { 
+        this.meta = undefined;
+        this.metaMessage = 'error in meta';
+        return;
+      }        
     },
   },
   computed: {
@@ -108,29 +146,29 @@ export default {
       return this.$store.state.identity.urlPrefix;
     },
     downloadLink() {
-      if(this.pointdb !== undefined) {
+      if(this.pointdb !== undefined && this.outputType !== undefined && this.raster_processing_type !== undefined) {
         var url_pointdb = this.urlPrefix + '../../pointdb';
         var method_pointdb = 'unknown';
         var ext_pointdb = [this.selectedExtent[0], this.selectedExtent[2], this.selectedExtent[1], this.selectedExtent[3]].join(',');
-        var parameters_pointdb = { db: this.pointdb, ext: ext_pointdb };
+        var parameters_pointdb = { db: this.pointdb, ext: ext_pointdb, type: this.raster_processing_type.name };
 
         switch(this.outputType.name) {
-          case 'LAS':
-            method_pointdb = 'points.las';
-            parameters_pointdb.format = 'las';
+          case 'tiff':
+            method_pointdb = 'raster.tiff';
+            parameters_pointdb.format = 'tiff';
             break;
-          case 'xyz':
-            method_pointdb = 'points.xyz';
-            parameters_pointdb.format = 'xyz';
-            break;
+          case 'png':
+            method_pointdb = 'raster.png';
+            parameters_pointdb.format = 'png';
+            break;          
           case 'rDAT':
-            method_pointdb = 'points.rdat';
-            parameters_pointdb.format = 'rdat';
-            break;
+            method_pointdb = 'raster.rDAT';
+            parameters_pointdb.format = 'rDAT';
+            break;          
           case 'zip':
-            method_pointdb = 'points.zip';
+            method_pointdb = 'raster.zip';
             parameters_pointdb.format = 'zip';
-            break;                  
+            break;        
           default:
             parameters_pointdb.format = 'unknown';
             throw "unknown output type " + this.outputType.name;
@@ -139,23 +177,31 @@ export default {
         var link_pointdb = url_pointdb + '/' + method_pointdb + this.toQuery(parameters_pointdb);
         return link_pointdb;
       }
-      if(this.pointcloud !== undefined) {
+      if(this.pointcloud !== undefined && this.outputType !== undefined && this.raster_processing_type !== undefined) {
         var url_pointcloud = this.urlPrefix + '../../pointclouds';
         var method_pointcloud = 'unknown';
         var ext_pointcloud = this.selectedExtent.join(' ');
-        var parameters_pointcloud = { ext: ext_pointcloud };
+        var parameters_pointcloud = { ext: ext_pointcloud, type: this.raster_processing_type.name };
 
         switch(this.outputType.name) {
-          case 'LAS':
-            method_pointcloud = 'points.las';
+          case 'tiff':
+            method_pointcloud = 'raster.tiff';
+            parameters_pointcloud.format = 'tiff';
             break;
-          case 'xyz':
-            method_pointcloud = 'points.xyz';
-            break;
+          case 'png':
+            method_pointcloud = 'raster.png';
+            parameters_pointcloud.format = 'png';
+            break;          
           case 'rDAT':
-            method_pointcloud = 'points.rdat';
-            break;     
+            method_pointcloud = 'raster.rDAT';
+            parameters_pointcloud.format = 'rDAT';
+            break;          
+          case 'zip':
+            method_pointcloud = 'raster.zip';
+            parameters_pointcloud.format = 'zip';
+            break;        
           default:
+            parameters_pointcloud.format = 'unknown';
             throw "unknown output type " + this.outputType.name;
         }
 
@@ -167,11 +213,11 @@ export default {
     downloadFilename() {
       var ext = '';
       switch(this.outputType.name) {
-        case 'LAS':
-          ext = '.las';
+        case 'tiff':
+          ext = '.tiff';
           break;
-        case 'xyz':
-          ext = '.xyz';
+        case 'png':
+          ext = '.png';
           break;
         case 'rDAT':
           ext = '.rdat';
@@ -185,6 +231,14 @@ export default {
       var name = this.pointdb !== undefined ? this.pointdb : this.pointcloud !== undefined ? this.pointcloud : 'raster';
       return name + ext;
     },
+    raster_processing_types() {
+        if(this.meta === undefined || this.meta.raster_processing_types === undefined) {
+          return undefined;
+        }
+        return this.meta.raster_processing_types
+          .filter(t => this.valid_processing_types.indexOf(t.data_type) >= 0)
+          .map(t => {return {name: t.name, label : t.name + ' - ' + t.title};});
+    },
   },
   watch: {
     selectedExtent() {
@@ -195,9 +249,19 @@ export default {
         this.user_ymax = this.selectedExtent[3];
       }
     },
+    pointdb() {
+      this.refreshMeta();
+    },
+    pointcloud() {
+      this.refreshMeta();
+    },
+    raster_processing_types() {
+      this.raster_processing_type = this.raster_processing_types !== undefined && this.raster_processing_types.length !== 0 ? this.raster_processing_types[0] : undefined;
+    }
   },
   mounted() {
     this.outputType = this.outputTypes.find(o=>o.name === 'zip');
+    this.refreshMeta();
   },
 }
 

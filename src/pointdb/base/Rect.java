@@ -235,7 +235,15 @@ public class Rect {
 			for(long xtile = xtilemin; xtile <= xtilemax;  xtile++) {
 				long x = xtile * xsize_utmm;
 				long y = ytile * ysize_utmm;
-				Rect rect = Rect.of_UTMM(x, y, x + xsize_utmm - 1, y + ysize_utmm - 1);
+				long xtmin = x;
+				long ytmin = y;
+				long xtmax = x + xsize_utmm - 1;
+				long ytmax = y + ysize_utmm - 1;
+				xtmin = xtmin < utmm_min_x ? utmm_min_x : xtmin;
+				ytmin = ytmin < utmm_min_y ? utmm_min_y : ytmin;
+				xtmax = utmm_max_x < xtmax ? utmm_max_x : xtmax;
+				ytmax = utmm_max_y < ytmax ? utmm_max_y : ytmax;
+				Rect rect = Rect.of_UTMM(xtmin, ytmin, xtmax, ytmax);
 				consumer.accept(xtile, ytile, rect);
 			}
 		}

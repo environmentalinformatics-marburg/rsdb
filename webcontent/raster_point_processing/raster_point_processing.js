@@ -44,7 +44,7 @@ function init() {
         valid_processing_types: ["basic_raster", "index_raster", "multi_raster"],
         raster_processing_type: "DTM",
 
-        fileFormats: { tiff: "GeoTIFF", png: "PNG", rdat: "rDAT" },
+        fileFormats: { tiff: "GeoTIFF", png: "PNG", rdat: "rDAT", zip: "zip" },
         fileFormat: "tiff",
       };
     },

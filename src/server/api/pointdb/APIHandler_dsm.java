@@ -14,6 +14,7 @@ import pointdb.base.Rect;
 import pointdb.processing.geopoint.PointGrid;
 import pointdb.processing.geopoint.RasterGrid;
 import pointdb.processing.tilepoint.PointFilter;
+import util.ResponseReceiver;
 import util.collections.vec.Vec;
 import util.rdat.RdatRaster;
 
@@ -49,7 +50,7 @@ public class APIHandler_dsm extends PointdbAPIHandler {
 		
 		
 		rasterGrid_DSM.meta.put("name", "dsm");
-		RdatRaster.write_RDAT_RASTER(response, rasterGrid_DSM, pointdb.config.getProj4());
+		RdatRaster.write_RDAT_RASTER(new ResponseReceiver(response), rasterGrid_DSM, pointdb.config.getProj4());
 
 	}
 }

@@ -82,7 +82,7 @@
         @close="selectShow = false" 
         v-show="selectShow"
       />
-      <admin-viewer-tools @tool-raster-export-show="toolRasterExportShow = true;" @tool-point-export-show="toolPointExportShow = true;" :selectedExtent="selectedExtent" :meta="meta" :epsgCode="epsgCode" @selected-vectordb="selectedVectordb = $event" />
+      <admin-viewer-tools @tool-raster-export-show="toolRasterExportShow = true;" @tool-point-export-show="toolPointExportShow = true;" @tool-point-raster-export-show="toolPointRasterExportShow = true;" :selectedExtent="selectedExtent" :meta="meta" :epsgCode="epsgCode" @selected-vectordb="selectedVectordb = $event" />
       </v-list>
       <!--<div id="olmap-viewer" innergrid-item-main />-->
     </div>
@@ -102,6 +102,14 @@
     <admin-viewer-point-export v-if="meta !== undefined" 
       v-show="toolPointExportShow" 
       @close="toolPointExportShow = false" 
+      :pointdb="meta.associated.PointDB" 
+      :pointcloud="meta.associated.pointcloud" 
+      :selectedExtent="selectedExtent"
+    />
+
+    <admin-viewer-point-raster-export v-if="meta !== undefined" 
+      v-show="toolPointRasterExportShow" 
+      @close="toolPointRasterExportShow = false" 
       :pointdb="meta.associated.PointDB" 
       :pointcloud="meta.associated.pointcloud" 
       :selectedExtent="selectedExtent"
@@ -132,6 +140,7 @@ import adminViewerSelect from './admin-viewer-select.vue'
 import adminViewerTools from './admin-viewer-tools.vue'
 import adminViewerRasterExport from './admin-viewer-raster-export.vue'
 import adminViewerPointExport from './admin-viewer-point-export.vue'
+import adminViewerPointRasterExport from './admin-viewer-point-raster-export.vue'
 import adminViewerSettings from './admin-viewer-settings.vue'
 
 import Vue from 'vue'
@@ -164,6 +173,7 @@ export default {
         'admin-viewer-tools': adminViewerTools,
         'admin-viewer-raster-export': adminViewerRasterExport,
         'admin-viewer-point-export': adminViewerPointExport,
+        'admin-viewer-point-raster-export': adminViewerPointRasterExport,
         'admin-viewer-settings': adminViewerSettings,
         RingLoader,
         Multiselect,
@@ -203,6 +213,7 @@ export default {
       toolsShow: true,
       toolRasterExportShow: false,
       toolPointExportShow: false,
+      toolPointRasterExportShow: false,
       selectedVectordb: undefined,
 
       settingsDialog: false,

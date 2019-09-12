@@ -38,9 +38,14 @@
       <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
       <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
       <br>
-      <v-btn @click="exportSurfacePointdb" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
+      <!--<v-btn @click="exportSurfacePointdb" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
       <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
       <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
+      <br>-->
+      <v-btn @click="$emit('tool-point-raster-export-show')" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
+      <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
+      <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
+      <br>
     </div>
 
     <div v-if="meta !== undefined && meta.associated !== undefined && meta.associated.pointcloud !== undefined">

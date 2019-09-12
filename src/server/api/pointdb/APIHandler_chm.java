@@ -15,6 +15,7 @@ import pointdb.base.Rect;
 import pointdb.processing.geopoint.PointGrid;
 import pointdb.processing.geopoint.RasterGrid;
 import pointdb.processing.tilepoint.PointFilter;
+import util.ResponseReceiver;
 import util.Util;
 import util.collections.vec.Vec;
 import util.rdat.RdatRaster;
@@ -58,7 +59,7 @@ public class APIHandler_chm extends PointdbAPIHandler {
 		RasterGrid rasterGrid_CHM = rasterGrid_DSM;		
 		rasterGrid_CHM.minus_zero(rasterGrid_DTM);		
 		rasterGrid_CHM.meta.put("name", "chm");		
-		RdatRaster.write_RDAT_RASTER(response, rasterGrid_CHM, pointdb.config.getProj4());
+		RdatRaster.write_RDAT_RASTER(new ResponseReceiver(response), rasterGrid_CHM, pointdb.config.getProj4());
 
 	}
 }

@@ -3,6 +3,9 @@ package server.api.pointdb;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -15,6 +18,9 @@ import broker.Broker;
 import pointdb.PointDB;
 import pointdb.base.Rect;
 import pointdb.processing.geopoint.RasterSubGrid;
+import util.Receiver;
+import util.ResponseReceiver;
+import util.StreamReceiver;
 import util.Timer;
 import util.Web;
 import util.frame.DoubleFrame;
@@ -47,16 +53,41 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 		}		
 		String processingType = processingTypes[0].toLowerCase();
 
+		if(format.equals("zip")) {
+			String tileFormat = "tiff";
+			response.setContentType("application/zip");
+			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
+			Receiver receiver = new StreamReceiver(zipOutputStream);
+			requestRect.tiles_utmm(1000_000, 1000_000, (xtile, ytile, tileRect) -> {
+				log.info(tileRect);
+				String tileFilename = "tile_" + xtile + "_" + ytile + ".tiff";
+				try {
+					zipOutputStream.putNextEntry(new ZipEntry(tileFilename));					
+					processRaster(pointdb, tileRect, processingType, tileFormat, receiver);					
+					zipOutputStream.closeEntry();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}				
+			});			
+			zipOutputStream.finish();
+			zipOutputStream.flush();
+		} else {
+			processRaster(pointdb, requestRect, processingType, format, new ResponseReceiver(response));
+		}
+		log.info(Timer.stop("query_raster"));
+	}
 
+	private void processRaster(PointDB pointdb, Rect requestRect, String processingType, String format, Receiver receiver) throws IOException {
 		RasterSubGrid[] rasterSubGrids = new RasterQueryProcessor(pointdb).process(requestRect, processingType);		
 
 		switch(format) {
 		case "rdat": {
-			RdatRaster.write_RDAT_RASTER(response, rasterSubGrids, pointdb.config.getProj4());
+			RdatRaster.write_RDAT_RASTER(receiver, rasterSubGrids, pointdb.config.getProj4());
 			break;
 		}
 		case "js": {
-			JsWriter.writeRaster(response, rasterSubGrids[0]);
+			JsWriter.writeRaster(receiver, rasterSubGrids[0]);
 			break;
 		}
 		case "tiff": {
@@ -71,24 +102,23 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 				log.info(rasterSubGrid);
 				tiffWriter.addTiffBand(TiffBand.ofFloat64(rasterSubGrid.start_x, rasterSubGrid.start_y, rasterSubGrid.range_x, rasterSubGrid.range_y, rasterSubGrid.data));
 			}
-			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("image/tiff");
+			receiver.setStatus(HttpServletResponse.SC_OK);
+			receiver.setContentType("image/tiff");
 			//tiffWriter.writeTIFF(new DataOutputStream(response.getOutputStream()));
-			tiffWriter.writeAuto(new DataOutputStream(response.getOutputStream()));
+			tiffWriter.writeAuto(new DataOutputStream(receiver.getOutputStream()));
 			break;
 		}
 		case "png": {
 			RasterSubGrid r = rasterSubGrids[0];
 			DoubleFrame frame = new DoubleFrame(r.copySubData(), 0, 0, 0, 0);
 			ImageBufferARGB image = Renderer.renderGreyDouble(frame , frame.width, frame.height, Double.NaN, null);
-			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("image/png");
-			image.writePngCompressed(response.getOutputStream());
+			receiver.setStatus(HttpServletResponse.SC_OK);
+			receiver.setContentType("image/png");
+			image.writePngCompressed(receiver.getOutputStream());
 			break;
 		}
 		default:
 			throw new RuntimeException("unknown format "+format);
-		}
-		log.info(Timer.stop("query_raster"));
+		}		
 	}
 }

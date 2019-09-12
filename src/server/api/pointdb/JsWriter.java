@@ -39,7 +39,7 @@ public class JsWriter {
 		out.flip(stream);
 	}
 
-	public static void writeRaster(Response response, RasterSubGrid rasterGrid) throws IOException {
+	public static void writeRaster(Receiver receiver, RasterSubGrid rasterGrid) throws IOException {
 		double[][] data = rasterGrid.data;
 		int xStart = rasterGrid.start_x;
 		int yStart = rasterGrid.start_y;
@@ -58,8 +58,8 @@ public class JsWriter {
 			//	out.writeFloatRaw(row[x]);
 			//}
 		}*/
-		response.setContentType("application/octet-stream");
-		ServletOutputStream stream = response.getOutputStream();
+		receiver.setContentType("application/octet-stream");
+		OutputStream stream = receiver.getOutputStream();
 		out.flip(stream);
 	}
 

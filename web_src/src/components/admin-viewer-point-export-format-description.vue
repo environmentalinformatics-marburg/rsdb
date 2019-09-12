@@ -8,7 +8,7 @@
       ZIP file containing las files (described in section LAS)   
       <br>
       <br>Contained las files are tiles of 1x1km size. All tiles covering the requested extent are returned. 
-      <br>Currently tiles are not filtered by extend, so tiles on borders of extent do contain points outside of requested extent.
+      <br>Tiles are cropped by extend, so parts of tiles outside of extend are empty.
       <br>     
       <hr>      
       <hr>

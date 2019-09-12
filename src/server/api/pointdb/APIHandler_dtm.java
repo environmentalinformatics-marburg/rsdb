@@ -14,6 +14,7 @@ import pointdb.base.Rect;
 import pointdb.processing.geopoint.PointGrid;
 import pointdb.processing.geopoint.RasterGrid;
 import pointdb.processing.tilepoint.PointFilter;
+import util.ResponseReceiver;
 import util.Timer;
 import util.collections.vec.Vec;
 import util.rdat.RdatRaster;
@@ -48,7 +49,7 @@ public class APIHandler_dtm extends PointdbAPIHandler {
 		//}
 		log.info(Timer.stop("dtm"));
 		rasterGrid.meta.put("name", "dtm");
-		RdatRaster.write_RDAT_RASTER(response, rasterGrid, pointdb.config.getProj4());
+		RdatRaster.write_RDAT_RASTER(new ResponseReceiver(response), rasterGrid, pointdb.config.getProj4());
 
 	}
 }
