@@ -18,7 +18,8 @@ import remotetask.RemoteTask;
 @Description("create visualisation raster of PointDB layer")
 @Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)")
 @Param(name="rasterdb", desc="ID of new RasterDB layer (target)")
-@Param(name="transactions", desc="use power failer safe (and) slow RasterDB operation mode (default)", required=false)
+@Param(name="transactions", desc="use power failer safe (and) slow RasterDB operation mode (default) (obsolete for TileStorage)", required=false)
+@Param(name="storage_type", desc="storage type of new RasterDB: RasterUnit (default) or TileStorage", required=false)
 public class Task_rasterize extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 
@@ -41,12 +42,18 @@ public class Task_rasterize extends RemoteTask {
 		boolean transactions = true;
 		if(task.has("transactions")) {
 			transactions = task.getBoolean("transactions");
+		}	
+		RasterDB rasterdb;
+		if(task.has("storage_type")) {
+			String storage_type = task.getString("storage_type");
+			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions, storage_type);
+		} else {
+			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
 		}		
-		RasterDB rasterdb = broker.createRasterdb(rasterdb_name, transactions);		
 		Rasterizer rasterizer = new Rasterizer(pointdb, rasterdb);
 		rasterizer.run(rasterizer.bandIntensity);
 		rasterizer.run(rasterizer.bandElevation);
-		rasterdb.commit();
+		rasterdb.flush();
 		rasterdb.rebuildPyramid();
 	}
 }

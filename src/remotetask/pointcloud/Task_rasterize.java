@@ -12,13 +12,13 @@ import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
 import remotetask.RemoteTask;
-import remotetask.pointdb.task_pointdb;
 
 @task_pointcloud("rasterize")
 @Description("create visualisation raster of PointCloud layer")
 @Param(name="pointcloud", type="pointcloud", desc="ID of PointCloud layer (source)")
-@Param(name="rasterdb", desc="ID of new RasterDB layer (target)")
-@Param(name="transactions", desc="use power failer safe (and) slow RasterDB operation mode (default)", required=false)
+@Param(name="rasterdb", desc="ID of new RasterDB layer (target, default: [pointcloud]_rasterized) ", required=false)
+@Param(name="transactions", desc="use power failer safe (and) slow RasterDB operation mode (default) (obsolete for TileStorage)", required=false)
+@Param(name="storage_type", desc="storage type of new RasterDB: RasterUnit (default) or TileStorage", required=false)
 public class Task_rasterize extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 
@@ -37,15 +37,21 @@ public class Task_rasterize extends RemoteTask {
 
 	@Override
 	public void process() throws IOException {		
-		String rasterdb_name = task.getString("rasterdb");
+		String rasterdb_name = task.optString("rasterdb", pointcloud.getName() + "_rasterized");
 		boolean transactions = true;
 		if(task.has("transactions")) {
 			transactions = task.getBoolean("transactions");
 		}
-		RasterDB rasterdb = broker.createRasterdb(rasterdb_name, transactions);		
+		RasterDB rasterdb;
+		if(task.has("storage_type")) {
+			String storage_type = task.getString("storage_type");
+			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions, storage_type);
+		} else {
+			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
+		}
 		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb);
 		rasterizer.run();
-		rasterdb.commit();
 		rasterdb.rebuildPyramid();
+		rasterdb.flush();
 	}
 }

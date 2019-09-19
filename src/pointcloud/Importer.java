@@ -80,54 +80,55 @@ public class Importer {
 		}
 	}
 
-	public void importFile(Path filename) throws IOException {
+	private void importFile(Path filename) throws IOException {
 		log.info("import " + filename);
 		Timer.start("import");
 		
 		Las las = null;
 		Laz laz = null;
 		boolean isLas = true;
+		int fileEPSG = 0;
 		if(filename.toString().toLowerCase().endsWith("las")) {
 			las = new Las(filename);
-			log.info(las);
-			
-			int lasEPSG = las.readEPSG();
-			log.info("lasEpsg " + lasEPSG);
-			if(lasEPSG != 0) {
-				if(pointcloud.hasCode()) {
-					//TODO
-				} else {
-					pointcloud.setCodeEPSG(lasEPSG);
-					if(!pointcloud.hasProj4()) {
-						String url = "https://epsg.io/"+lasEPSG+".proj4";
-						log.warn("request proj4 of epsg: " + lasEPSG + "     " + url);
-						OkHttpClient client = new OkHttpClient.Builder()
-						        .connectTimeout(15, TimeUnit.SECONDS)
-						        .writeTimeout(15, TimeUnit.SECONDS)
-						        .readTimeout(15, TimeUnit.SECONDS)
-						        .build();
-						Request request = new Request.Builder().url(url).build();
-						try(Response response = client.newCall(request).execute()) {
-							if(response.isSuccessful()) {
-								String proj4 = response.body().string();
-								pointcloud.setProj4(proj4);
-								log.info("received proj4: "+proj4);							
-							} else {
-								log.warn("could not request proj4 of epsg");
-							}
-						} catch(Exception e) {
-							log.warn("could not request proj4 of epsg: " + e);
-						}
-					}
-				}
-			}
-			
+			log.info(las);			
+			fileEPSG = las.readEPSG();			
 		} else if(filename.toString().toLowerCase().endsWith("laz")) {
 			laz = new Laz(filename);
 			isLas = false;
 			log.info(laz);
+			fileEPSG = laz.readEPSG();
 		} else {
 			throw new RuntimeException("unknown extension");
+		}
+		
+		if(fileEPSG != 0) {
+			log.info("fileEpsg " + fileEPSG);
+			if(pointcloud.hasCode()) {
+				//TODO
+			} else {
+				pointcloud.setCodeEPSG(fileEPSG);
+				if(!pointcloud.hasProj4()) {
+					String url = "https://epsg.io/"+fileEPSG+".proj4";
+					log.warn("request proj4 of epsg: " + fileEPSG + "     " + url);
+					OkHttpClient client = new OkHttpClient.Builder()
+					        .connectTimeout(15, TimeUnit.SECONDS)
+					        .writeTimeout(15, TimeUnit.SECONDS)
+					        .readTimeout(15, TimeUnit.SECONDS)
+					        .build();
+					Request request = new Request.Builder().url(url).build();
+					try(Response response = client.newCall(request).execute()) {
+						if(response.isSuccessful()) {
+							String proj4 = response.body().string();
+							pointcloud.setProj4(proj4);
+							log.info("received proj4: "+proj4);							
+						} else {
+							log.warn("could not request proj4 of epsg");
+						}
+					} catch(Exception e) {
+						log.warn("could not request proj4 of epsg: " + e);
+					}
+				}
+			}
 		}
 		
 		double[] las_scale_factor = isLas ? las.scale_factor : laz.scale_factor;

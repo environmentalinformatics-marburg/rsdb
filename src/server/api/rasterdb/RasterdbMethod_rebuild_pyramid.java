@@ -26,7 +26,7 @@ public class RasterdbMethod_rebuild_pyramid extends RasterdbMethod {
 		request.setHandled(true);
 		try {
 			rasterdb.rebuildPyramid();
-			rasterdb.commit();
+			rasterdb.flush();
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentType(MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());

@@ -126,7 +126,7 @@ public class Las {
 		//System.out.println("offset_to_point_data "+offset_to_point_data);
 
 		number_of_Variable_Length_Records = mappedByteBuffer.getInt();
-		log.info("number_of_Variable_Length_Records "+number_of_Variable_Length_Records);
+		//log.info("number_of_Variable_Length_Records "+number_of_Variable_Length_Records);
 
 		point_data_record_format = Byte.toUnsignedInt(mappedByteBuffer.get());
 		//System.out.println("point_data_record_format "+point_data_record_format);
@@ -204,7 +204,7 @@ public class Las {
 	private final static int GeogInvFlatteningGeoKey   = 2059;
 	private final static int GeogAzimuthUnitsGeoKey    = 2060;
 	private final static int GeogPrimeMeridianLongGeoKey   = 2061;	
-	private final static int ProjectedCSTypeGeoKey   = 3072;
+	public final static int ProjectedCSTypeGeoKey   = 3072;
 	private final static int PCSCitationGeoKey   = 3073;
 	private final static int ProjectionGeoKey   = 3074;
 	private final static int ProjCoordTransGeoKey   = 3075;
@@ -275,6 +275,22 @@ public class Las {
 		}
 	}
 
+	public static int getEPSGfromProjectedCSTypeGeoKey(int epsgRaw) {
+		if(epsgRaw == 0) {
+			log.warn("no epsg: " + epsgRaw + " -> undefined");
+			return 0;
+		}
+		if(epsgRaw == 32767) {
+			log.warn("no epsg: " + epsgRaw + " -> user-defined");
+			return 0;
+		}
+		if(epsgRaw >= 32768) {
+			log.warn("no epsg: " + epsgRaw + " -> private user implementations");
+			return 0;
+		}
+		return epsgRaw;
+	}
+
 
 	public int readEPSG() throws IOException {
 		int epsg = 0;
@@ -303,19 +319,19 @@ public class Las {
 				byte[] descriptionBytes = new byte[32];
 				vlrHeaderBuffer.get(descriptionBytes);
 				String description = new String(descriptionBytes, StandardCharsets.US_ASCII);
-				log.info("VLR " + vlrIndex);
-				log.info("reserved " + reserved);
-				log.info("userID " + userID);
-				log.info("recordID " + recordID);
-				log.info("recordLengthAfterHeader " + recordLengthAfterHeader);
-				log.info("description " + description);
+				//log.info("VLR " + vlrIndex);
+				//log.info("reserved " + reserved);
+				//log.info("userID " + userID);
+				//log.info("recordID " + recordID);
+				//log.info("recordLengthAfterHeader " + recordLengthAfterHeader);
+				//log.info("description " + description);
 				ByteBuffer vlrContentBuffer = ByteBuffer.allocateDirect(recordLengthAfterHeader).order(ByteOrder.LITTLE_ENDIAN);
 				filechannel.read(vlrContentBuffer);
 				vlrContentBuffer.rewind();
 
 				switch(recordID) {
 				case 34735: {
-					log.info("GeoKeyDirectoryTag Record");
+					//log.info("GeoKeyDirectoryTag Record");
 					int wKeyDirectoryVersion = (int) vlrContentBuffer.getChar();
 					if(wKeyDirectoryVersion != 1) {
 						throw new RuntimeException("error in GeoKeyDirectoryTag wKeyDirectoryVersion is not 1: " + wKeyDirectoryVersion);
@@ -329,7 +345,7 @@ public class Las {
 						throw new RuntimeException("error in GeoKeyDirectoryTag wMinorRevision is not 0: " + wMinorRevision);
 					}
 					int wNumberOfKeys = (int) vlrContentBuffer.getChar();
-					log.info("wNumberOfKeys " + wNumberOfKeys);
+					//log.info("wNumberOfKeys " + wNumberOfKeys);
 					geoKeyTags = new GeoKeyTag[wNumberOfKeys];
 					for (int keyIndex = 0; keyIndex < wNumberOfKeys; keyIndex++) {
 						int wKeyID = (int) vlrContentBuffer.getChar();
@@ -341,21 +357,21 @@ public class Las {
 					break;
 				}
 				case 34736: {
-					log.info("GeoDoubleParamsTag Record");
+					//log.info("GeoDoubleParamsTag Record");
 					doubles = new double[recordLengthAfterHeader / 8];
 					vlrContentBuffer.asDoubleBuffer().get(doubles);
-					log.info(Arrays.toString(doubles));
+					//log.info(Arrays.toString(doubles));
 					break;
 				}
 				case 34737: {
-					log.info("GeoAsciiParamsTag Record");
+					//log.info("GeoAsciiParamsTag Record");
 					asciiBytes = new byte[recordLengthAfterHeader];
 					vlrContentBuffer.get(asciiBytes);
-					log.info(new String(asciiBytes, StandardCharsets.US_ASCII));
+					//log.info(new String(asciiBytes, StandardCharsets.US_ASCII));
 					break;
 				}
 				default:
-					log.info("unknown recordID "+recordID);
+					//log.info("unknown recordID "+recordID);
 				}
 			}
 
@@ -363,94 +379,85 @@ public class Las {
 				try {
 					switch(geoKeyTag.wKeyID) {
 					case GTModelTypeGeoKey:
-						log.info("GTModelTypeGeoKey " + geoKeyTag.getInt());
+						//log.info("GTModelTypeGeoKey " + geoKeyTag.getInt());
 						break;
 					case GTRasterTypeGeoKey:
-						log.info("GTRasterTypeGeoKey " + geoKeyTag.getInt());
+						//log.info("GTRasterTypeGeoKey " + geoKeyTag.getInt());
 						break;
 					case GTCitationGeoKey:
-						log.info("GTCitationGeoKey " + geoKeyTag.getString(asciiBytes));
+						//log.info("GTCitationGeoKey " + geoKeyTag.getString(asciiBytes));
 						break;
 					case GeographicTypeGeoKey:
-						log.info("GeographicTypeGeoKey " + geoKeyTag.getInt());
+						//log.info("GeographicTypeGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogCitationGeoKey:
-						log.info("GeogCitationGeoKey " + geoKeyTag.getString(asciiBytes));
+						//log.info("GeogCitationGeoKey " + geoKeyTag.getString(asciiBytes));
 						break;
 					case GeogGeodeticDatumGeoKey:
-						log.info("GeogGeodeticDatumGeoKey " + geoKeyTag.getInt());
+						//log.info("GeogGeodeticDatumGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogPrimeMeridianGeoKey:
-						log.info("GeogPrimeMeridianGeoKey " + geoKeyTag.getInt());
+						//log.info("GeogPrimeMeridianGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogLinearUnitsGeoKey:
-						log.info("GeogLinearUnitsGeoKey " + geoKeyTag.getInt());
+						//log.info("GeogLinearUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogAngularUnitsGeoKey:
-						log.info("GeogAngularUnitsGeoKey " + geoKeyTag.getInt());
+						//log.info("GeogAngularUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogEllipsoidGeoKey:
-						log.info("GeogEllipsoidGeoKey " + geoKeyTag.getInt());
+						//log.info("GeogEllipsoidGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogSemiMajorAxisGeoKey:
-						log.info("GeogSemiMajorAxisGeoKey " + geoKeyTag.getDouble(doubles));
+						//log.info("GeogSemiMajorAxisGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case GeogInvFlatteningGeoKey:
-						log.info("GeogInvFlatteningGeoKey " + geoKeyTag.getDouble(doubles));
+						//log.info("GeogInvFlatteningGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case GeogAzimuthUnitsGeoKey:
-						log.info("GeogAzimuthUnitsGeoKey " + geoKeyTag.getInt());
+						//log.info("GeogAzimuthUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogPrimeMeridianLongGeoKey:
-						log.info("GeogPrimeMeridianLongGeoKey " + geoKeyTag.getDouble(doubles));
+						//log.info("GeogPrimeMeridianLongGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
-					case ProjectedCSTypeGeoKey:
-						epsg = geoKeyTag.getInt();
-						if(epsg == 0) {
-							log.warn("no epsg: " + epsg + " -> undefined");
-						}
-						if(epsg == 32767) {
-							log.warn("no epsg: " + epsg + " -> user-defined");
-							epsg = 0;
-						}
-						if(epsg >= 32768) {
-							log.warn("no epsg: " + epsg + " -> private user implementations");
-							epsg = 0;
-						}
-						log.info("ProjectedCSTypeGeoKey " + epsg);
+					case ProjectedCSTypeGeoKey: {
+						int epsgRaw = geoKeyTag.getInt();
+						epsg = getEPSGfromProjectedCSTypeGeoKey(epsgRaw);
+						//log.info("ProjectedCSTypeGeoKey " + epsg);
 						break;
+					}
 					case PCSCitationGeoKey:
-						log.info("PCSCitationGeoKey " + geoKeyTag.getString(asciiBytes));
+						//log.info("PCSCitationGeoKey " + geoKeyTag.getString(asciiBytes));
 						break;
 					case ProjectionGeoKey:
-						log.info("ProjectionGeoKey " + geoKeyTag.getInt());
+						//log.info("ProjectionGeoKey " + geoKeyTag.getInt());
 						break;
 					case ProjCoordTransGeoKey:
-						log.info("GProjCoordTransGeoKey " + geoKeyTag.getInt());
+						//log.info("GProjCoordTransGeoKey " + geoKeyTag.getInt());
 						break;
 					case ProjLinearUnitsGeoKey:
-						log.info("ProjLinearUnitsGeoKey " + geoKeyTag.getInt());
+						//log.info("ProjLinearUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					case ProjNatOriginLongGeoKey:
-						log.info("ProjNatOriginLongGeoKey " + geoKeyTag.getDouble(doubles));
+						//log.info("ProjNatOriginLongGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjNatOriginLatGeoKey:
-						log.info("ProjNatOriginLatGeoKey " + geoKeyTag.getDouble(doubles));
+						//log.info("ProjNatOriginLatGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjFalseEastingGeoKey:
-						log.info("ProjFalseEastingGeoKey " + geoKeyTag.getDouble(doubles));
+						//log.info("ProjFalseEastingGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjFalseNorthingGeoKey:
-						log.info("ProjFalseNorthingGeoKey " + geoKeyTag.getDouble(doubles));
+						//log.info("ProjFalseNorthingGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjScaleAtNatOriginGeoKey:
-						log.info("ProjScaleAtNatOriginGeoKey " + geoKeyTag.getDouble(doubles));
+						//log.info("ProjScaleAtNatOriginGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case VerticalUnitsGeoKey:
-						log.info("VerticalUnitsGeoKey " + geoKeyTag.getInt());
+						//log.info("VerticalUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					default:
-						log.info("wKeyID " + geoKeyTag.wKeyID);
+						//log.info("wKeyID " + geoKeyTag.wKeyID);
 					}
 				} catch(Exception e) {
 					log.warn(e);
@@ -471,6 +478,10 @@ public class Las {
 	 * @throws IOException
 	 */
 	public Point[] read(long record_start, int record_count, int[] intDiffs, int[] intFactors) throws IOException {
+		log.info("las offset "+ Arrays.toString(offset));
+		log.info("las offset "+ Arrays.toString(scale_factor));
+		log.info("las intDiffs "+ Arrays.toString(intDiffs));
+		log.info("las intFactors "+ Arrays.toString(intFactors));
 		switch(point_data_record_format) {
 		case LAS_RECORD_TYPE_0:
 			return read_record_format_0(record_start, record_count, intDiffs, intFactors);

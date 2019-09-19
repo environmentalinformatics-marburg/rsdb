@@ -74,21 +74,21 @@ public class RasterDB implements AutoCloseable {
 		readMeta(); // possibly overwrite storage_type from meta
 	}
 
-	public synchronized void commit() {
+	public synchronized void flush() throws IOException {
 		if (rasterUnit != null) {
-			rasterUnit.commit();
+			rasterUnit.flush();
 		}
 		if (rasterPyr1Unit != null) {
-			rasterPyr1Unit.commit();
+			rasterPyr1Unit.flush();
 		}
 		if (rasterPyr2Unit != null) {
-			rasterPyr2Unit.commit();
+			rasterPyr2Unit.flush();
 		}
 		if (rasterPyr3Unit != null) {
-			rasterPyr3Unit.commit();
+			rasterPyr3Unit.flush();
 		}
 		if (rasterPyr4Unit != null) {
-			rasterPyr4Unit.commit();
+			rasterPyr4Unit.flush();
 		}
 		writeMeta();
 	}

@@ -21,7 +21,7 @@ import remotetask.RemoteTask;
 @Description("import directory of files into new PointCloud layer")
 @Param(name="pointcloud", desc="ID of new PointCloud layer (target)")
 @Param(name="source", desc="folder with *.las / *.laz files to import (located on server) (recursive)")
-@Param(name="transactions", desc="use power failer safe (and slow) PointCloud operation mode (default false)", required=false)
+@Param(name="transactions", desc="use power failer safe (and slow) PointCloud operation mode (default false) (obsolete for TileStorage)", required=false)
 @Param(name="cellsize", desc="cell size (default: 100 -> 100 meter)", required=false)
 @Param(name="cellscale", desc="cell size (default: 100 -> resolution of points 0.01 meter)", required=false)
 @Param(name="storage_type", desc="RasterUnit (default) or TileStorage", required=false)
@@ -52,5 +52,7 @@ public class Task_import extends RemoteTask {
 		Path root = Paths.get(source);
 		setMessage("start import");
 		imprter.importDirectory(root);
+		pointcloud.getGriddb().getStorage().flush();
+		setMessage("finished import");
 	}
 }

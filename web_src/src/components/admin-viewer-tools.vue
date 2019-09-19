@@ -6,6 +6,7 @@
   </span>
   <div v-show="epsgCode !== undefined">
     <br>
+    <hr>
     <v-icon style="font-size: 1em;">category</v-icon><b>Overlay (Vector Layer)</b>
     <multiselect v-if="vectordbs !== undefined" 
           v-model="selectedVectordb" 
@@ -19,48 +20,52 @@
           @open="filter_focus = true;" 
           @close="filter_focus = false;" />
     <a v-if="selectedVectordb !== undefined && selectedVectordb !== null" :href="urlPrefix + '../../vectordbs/' + selectedVectordb.name + '/package.zip'" :download="selectedVectordb.name + '.zip'" title="download as ZIP-file"><v-icon color="blue">cloud_download</v-icon>(download vector layer)</a>
-
-    <div v-if="meta !== undefined && meta.associated !== undefined && meta.associated.PointDB !== undefined">
-      <br>
-      <hr>
-      <v-icon style="font-size: 1em;">blur_on</v-icon><b>Associated PointDB</b>
-      <br>
-      <v-btn @click="viewPointsPointdb" :disabled="selectedExtent === undefined"><v-icon>3d_rotation</v-icon>&nbsp;&nbsp;view points</v-btn>
-      <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
-      <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>
-      <br>
-      <v-btn @click="viewSurfacePointdb" :disabled="selectedExtent === undefined"><v-icon>360</v-icon>&nbsp;&nbsp;view surface</v-btn>
-      <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
-      <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>
-      <br>
-      <!--<v-btn @click="exportPointsPointdb" :disabled="selectedExtent === undefined"><v-icon>save_alt</v-icon>&nbsp;&nbsp;export points</v-btn>-->
-      <v-btn @click="$emit('tool-point-export-show')" :disabled="selectedExtent === undefined"><v-icon>save_alt</v-icon>&nbsp;&nbsp;export points</v-btn>
-      <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
-      <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
-      <br>
-      <!--<v-btn @click="exportSurfacePointdb" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
-      <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
-      <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
-      <br>-->
-      <v-btn @click="$emit('tool-point-raster-export-show')" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
-      <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
-      <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
-      <br>
-    </div>
-
-    <div v-if="meta !== undefined && meta.associated !== undefined && meta.associated.pointcloud !== undefined">
-      <br>
-      <hr>
-      <v-icon style="font-size: 1em;">grain</v-icon><b>Associated PointCloud</b>
-      <br>
-      <v-btn @click="viewPointsPointcloud" :disabled="selectedExtent === undefined"><v-icon>3d_rotation</v-icon>&nbsp;&nbsp;view points</v-btn>
-      <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
-      <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>
-      <v-btn @click="$emit('tool-point-export-show')" :disabled="selectedExtent === undefined"><v-icon>save_alt</v-icon>&nbsp;&nbsp;export points</v-btn>
-      <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
-      <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
-    </div>    
   </div>
+  <div v-show="epsgCode === undefined" style="color: #db4c11; padding: 10px; background-color: #0000000d;" title="Set an EPSG-code for this raster-layer to enable feature 'vector overlay'!">
+    ! missing EPSG-code !
+  </div>
+
+  <div v-if="meta !== undefined && meta.associated !== undefined && meta.associated.PointDB !== undefined">
+    <br>
+    <hr>
+    <v-icon style="font-size: 1em;">blur_on</v-icon><b>Associated PointDB</b>
+    <br>
+    <v-btn @click="viewPointsPointdb" :disabled="selectedExtent === undefined"><v-icon>3d_rotation</v-icon>&nbsp;&nbsp;view points</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>
+    <br>
+    <v-btn @click="viewSurfacePointdb" :disabled="selectedExtent === undefined"><v-icon>360</v-icon>&nbsp;&nbsp;view surface</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>
+    <br>
+    <!--<v-btn @click="exportPointsPointdb" :disabled="selectedExtent === undefined"><v-icon>save_alt</v-icon>&nbsp;&nbsp;export points</v-btn>-->
+    <v-btn @click="$emit('tool-point-export-show')" :disabled="selectedExtent === undefined"><v-icon>save_alt</v-icon>&nbsp;&nbsp;export points</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
+    <br>
+    <!--<v-btn @click="exportSurfacePointdb" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
+    <br>-->
+    <v-btn @click="$emit('tool-point-raster-export-show')" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
+    <br>
+  </div>
+
+  <div v-if="meta !== undefined && meta.associated !== undefined && meta.associated.pointcloud !== undefined">
+    <br>
+    <hr>
+    <v-icon style="font-size: 1em;">grain</v-icon><b>Associated PointCloud</b>
+    <br>
+    <v-btn @click="viewPointsPointcloud" :disabled="selectedExtent === undefined"><v-icon>3d_rotation</v-icon>&nbsp;&nbsp;view points</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>
+    <v-btn @click="$emit('tool-point-export-show')" :disabled="selectedExtent === undefined"><v-icon>save_alt</v-icon>&nbsp;&nbsp;export points</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
+  </div>    
+
 </div>
 
 </template>

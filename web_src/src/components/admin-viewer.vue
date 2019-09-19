@@ -44,6 +44,8 @@
               </v-btn>
             </v-btn-toggle>
 
+            <div style="padding-right: 10px;"></div>
+
             <v-dialog v-model="settingsDialog" width="500">
               <template v-slot:activator="{ on }">
                 <v-btn fab title="change viewer settings" v-on="on"><v-icon>settings_applications</v-icon></v-btn>
@@ -55,7 +57,10 @@
                 <v-card-text style="min-height: 500px;">
                   <admin-viewer-settings        
                   @selected-background="selectedBackground = $event"  
-                  @selected-format="selectedFormat = $event"       
+                  @selected-format="selectedFormat = $event"
+                  @selected-gamma="selectedGamma = $event" 
+                  @sync-bands="syncBands = $event" 
+                  @selected-mapping="selectedOneBandMapping = $event"        
                   />
                 </v-card-text>
                 <v-divider></v-divider>
@@ -75,10 +80,7 @@
         @selected-rasterdb="selectedRasterdb = $event" 
         @selected-timestamp="selectedTimestamp = $event" 
         @selected-product="selectedProduct = $event" 
-        @selected-layerwms-opacity="layerWMS_opacity = $event" 
-        @selected-gamma="selectedGamma = $event" 
-        @sync-bands="syncBands = $event" 
-        @selected-mapping="selectedOneBandMapping = $event" 
+        @selected-layerwms-opacity="layerWMS_opacity = $event"        
         @close="selectShow = false" 
         v-show="selectShow"
       />
@@ -939,6 +941,13 @@ export default {
 
 .olmap-viewer-mouseModus-select-on {
   cursor: move;
+}
+
+.v-toolbar__content {
+  padding-left: 5px;
+  padding-right: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 </style>

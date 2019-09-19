@@ -67,7 +67,7 @@ public class Task_create extends RemoteTask {
 			}
 		}
 		
-		RasterDB rasterdb = broker.createRasterdb(name);
+		RasterDB rasterdb = broker.createNewRasterdb(name);
 		rasterdb.setPixelSize(pixel_size_x, pixel_size_y, offset_x, offset_y);
 		
 		String code = task.optString("code");

@@ -388,10 +388,14 @@ public class Broker implements AutoCloseable {
 	public synchronized RasterDB createOrGetRasterdb(String name) {
 		return createOrGetRasterdb(name, true);
 	}
-
+	
 	public synchronized RasterDB createOrGetRasterdb(String name, boolean transaction) {
+		return createOrGetRasterdb(name, transaction, "RasterUnit");
+	}
+
+	public synchronized RasterDB createOrGetRasterdb(String name, boolean transaction, String storage_type) {
 		Util.checkStrictID(name);
-		RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(rasterdb_root.resolve(name), "RasterUnit");
+		RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(rasterdb_root.resolve(name), storage_type);
 		if(!transaction) {
 			rasterdbConfig.set_fast_unsafe_import(true);
 		}
@@ -414,8 +418,8 @@ public class Broker implements AutoCloseable {
 	 * @param transaction
 	 * @return
 	 */
-	public synchronized RasterDB createRasterdb(String name) {
-		return createRasterdb(name, true);
+	public synchronized RasterDB createNewRasterdb(String name) {
+		return createNewRasterdb(name, true);
 	}
 
 	public synchronized void closeRasterdb(String name) {
@@ -486,6 +490,11 @@ public class Broker implements AutoCloseable {
 		refreshPointcloudConfigs();
 		catalog.updateCatalog();
 	}
+	
+	public synchronized RasterDB createNewRasterdb(String name, boolean transaction, String storage_type) {
+		deleteRasterdb(name);
+		return createOrGetRasterdb(name, transaction, storage_type);
+	}
 
 	/**
 	 * create new rasterdb 
@@ -494,7 +503,7 @@ public class Broker implements AutoCloseable {
 	 * @param transaction
 	 * @return
 	 */
-	public synchronized RasterDB createRasterdb(String name, boolean transaction) {
+	public synchronized RasterDB createNewRasterdb(String name, boolean transaction) {
 		deleteRasterdb(name);
 		return createOrGetRasterdb(name, transaction);
 	}

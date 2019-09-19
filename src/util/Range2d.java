@@ -3,8 +3,6 @@ package util;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import pointdb.base.Rect;
-import pointdb.base.Rect.TileRectConsumer;
 import util.yaml.YamlMap;
 
 public class Range2d {
@@ -154,30 +152,6 @@ public class Range2d {
 				ytmax = ymax < ytmax ? ymax : ytmax;
 				Range2d tile_range2d = new Range2d(xtmin, ytmin, xtmax, ytmax);
 				consumer.accept(xtile, ytile, tile_range2d);
-			}
-		}
-	}	
-	
-	
-	public void tiled1(int xsize, int ysize, TileRange2dConsumer consumer) {
-		int xtilemin = (int) Math.floor(xmin / xsize);
-		int ytilemin = (int) Math.floor(ymin / ysize);
-		int xtilemax = (int) Math.floor(xmax / xsize);
-		int ytilemax = (int) Math.floor(ymax / ysize);
-		for(int ytile = ytilemin; ytile <= ytilemax;  ytile++) {
-			for(int xtile = xtilemin; xtile <= xtilemax;  xtile++) {
-				int x = xtile * xsize;
-				int y = ytile * ysize;
-				int xtmin = x;
-				int ytmin = y;
-				int xtmax = x + xsize - 1;
-				int ytmax = y + ysize - 1;
-				xtmin = xtmin < xmin ? xmin : xtmin;
-				ytmin = ytmin < ymin ? ymin : ytmin;
-				xtmax = xmax < xtmax ? xmax : xtmax;
-				ytmax = ymax < ytmax ? ymax : ytmax;
-				Range2d tile_range2d = new Range2d(xtmin, ytmin, xtmax, ytmax);
-				consumer.accept(xtile - xtilemin, ytile - ytilemin, tile_range2d);
 			}
 		}
 	}	

@@ -1,6 +1,7 @@
 package pointdb.las;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 
@@ -10,6 +11,11 @@ import org.apache.logging.log4j.Logger;
 import com.github.mreutegg.laszip4j.LASHeader;
 import com.github.mreutegg.laszip4j.LASPoint;
 import com.github.mreutegg.laszip4j.LASReader;
+import com.github.mreutegg.laszip4j.laslib.LASheader;
+import com.github.mreutegg.laszip4j.laslib.LASreadOpener;
+import com.github.mreutegg.laszip4j.laslib.LASreader;
+import com.github.mreutegg.laszip4j.laslib.LASvlr_key_entry;
+import com.github.mreutegg.laszip4j.laszip.LASpoint;
 
 import pointcloud.CellTable;
 import pointdb.base.Point;
@@ -30,6 +36,9 @@ public class Laz {
 
 	private Iterator<LASPoint> lasPointIterator;
 	private long lasPointIteratorPos;
+
+	private LASreader internalReader;
+	private long internalReaderPos;
 
 	public Laz(Path filename) {
 		this.filename = filename;		
@@ -61,6 +70,51 @@ public class Laz {
 	}
 
 	public Point[] read(long record_start, int record_count, int[] intDiffs, int[] intFactors) {
+		log.info("laz offset "+ Arrays.toString(offset));
+		log.info("laz offset "+ Arrays.toString(scale_factor));
+		log.info("laz intDiffs "+ Arrays.toString(intDiffs));
+		log.info("laz intFactors "+ Arrays.toString(intFactors));
+		if(internalReader == null) {			
+			internalReader = new LASreadOpener().open(filename.toFile().getAbsolutePath());
+			internalReaderPos = 0;
+		}
+		if(record_start != internalReaderPos) {
+			throw new RuntimeException("can not read not in sequence " + internalReaderPos + "  " + record_start);
+		}
+
+		int xd = intDiffs==null?0:intDiffs[0];
+		int yd = intDiffs==null?0:intDiffs[1];
+		int zd = intDiffs==null?0:intDiffs[2];
+		int xf = intFactors==null?1:intFactors[0];
+		int yf = intFactors==null?1:intFactors[1];
+		int zf = intFactors==null?1:intFactors[2];
+
+		Point[] points = new Point[record_count];
+		int cnt = 0;
+		LASpoint mutablePoint = internalReader.point;
+		while(cnt < record_count) {
+			if(!internalReader.read_point()) {
+				throw new RuntimeException("not all points read "+ cnt + "  " + record_count + "    "  + number_of_point_records + " file points");
+			}
+			points[cnt] = mutablePointToPoint(mutablePoint, xd, yd, zd, xf, yf, zf);
+			cnt++;
+		}
+		internalReaderPos += cnt;
+		if(number_of_point_records == internalReaderPos || cnt < record_count) {
+			log.info("close internal reader");
+			internalReader.close();
+			internalReader = null;
+		}
+		return points;
+	}
+
+
+
+	public Point[] readwithInternalIterator(long record_start, int record_count, int[] intDiffs, int[] intFactors) {
+		log.info("laz offset "+ Arrays.toString(offset));
+		log.info("laz offset "+ Arrays.toString(scale_factor));
+		log.info("laz intDiffs "+ Arrays.toString(intDiffs));
+		log.info("laz intFactors "+ Arrays.toString(intFactors));
 		if(lasPointIterator == null) {
 			lasPointIterator = reader.getPoints().iterator();
 			lasPointIteratorPos = 0;
@@ -105,9 +159,9 @@ public class Laz {
 	}
 
 	public static Point lasPointToPoint(LASPoint lasPoint, int xd, int yd, int zd, int xf, int yf, int zf) {
-		int x = (lasPoint.getX() - xd) + xf;
-		int y = (lasPoint.getY() - yd) + yf;
-		int z = (lasPoint.getZ() - zd) + zf;
+		int x = (lasPoint.getX() - xd) * xf;
+		int y = (lasPoint.getY() - yd) * yf;
+		int z = (lasPoint.getZ() - zd) * zf;
 		char intensity = lasPoint.getIntensity();
 		byte returnNumber = lasPoint.getReturnNumber();
 		byte returns = lasPoint.getNumberOfReturns();
@@ -117,7 +171,84 @@ public class Laz {
 		return new Point(x, y, z, intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
 	}
 
+	private static Point mutablePointToPoint(LASpoint lasPoint, int xd, int yd, int zd, int xf, int yf, int zf) {
+		int x = (lasPoint.getX() - xd) * xf;
+		int y = (lasPoint.getY() - yd) * yf;
+		int z = (lasPoint.getZ() - zd) * zf;
+		char intensity = lasPoint.getIntensity();
+		byte returnNumber = lasPoint.getReturn_number();
+		byte returns = lasPoint.getNumber_of_returns();
+		byte scanAngleRank = lasPoint.getScan_angle_rank();
+		byte classification = lasPoint.getClassification();
+		byte classificationFlags = 0; // TODO
+		return new Point(x, y, z, intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
+	}
+
 	public CellTable getRecords(long record_start, int record_count) {
+		if(internalReader == null) {			
+			internalReader = new LASreadOpener().open(filename.toFile().getAbsolutePath());
+			internalReaderPos = 0;
+		}
+		if(record_start != internalReaderPos) {
+			throw new RuntimeException("can not read not in sequence " + internalReaderPos + "  " + record_start);
+		}
+
+		int[] xs = new int[record_count];
+		int[] ys = new int[record_count];
+		int[] zs = new int[record_count];
+		char[] intensity = new char[record_count];
+		byte[] returnNumber = new byte[record_count];
+		byte[] returns = new byte[record_count];
+		BitSet scanDirectionFlag = new BitSet(record_count);
+		BitSet edgeOfFlightLine = new BitSet(record_count);
+		byte[] classification = new byte[record_count];
+		byte[] scanAngleRank = new byte[record_count];
+
+		int cnt = 0;
+		LASpoint mutablePoint = internalReader.point;
+		while(cnt < record_count) {
+			if(!internalReader.read_point()) {
+				throw new RuntimeException("not all points read "+ cnt + "  " + record_count + "    "  + number_of_point_records + " file points");
+			}
+			xs[cnt] = mutablePoint.getX();
+			ys[cnt] = mutablePoint.getY();
+			zs[cnt] = mutablePoint.getZ();
+			intensity[cnt] = mutablePoint.getIntensity();
+			returnNumber[cnt] = mutablePoint.getReturn_number();
+			returns[cnt] = mutablePoint.getNumber_of_returns();
+			if(mutablePoint.getScan_direction_flag() != 0) {
+				scanDirectionFlag.set(cnt);
+			}
+			if(mutablePoint.getEdge_of_flight_line() != 0) {
+				edgeOfFlightLine.set(cnt);
+			}
+			classification[cnt] = mutablePoint.getClassification();
+			scanAngleRank[cnt] = mutablePoint.getScan_angle_rank();
+
+			cnt++;
+		}
+		internalReaderPos += cnt;
+		if(number_of_point_records == internalReaderPos || cnt < record_count) {
+			log.info("close internal reader");
+			internalReader.close();
+			internalReader = null;
+		}
+
+		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		recordTable.intensity = intensity;
+		recordTable.returnNumber = returnNumber;
+		recordTable.returns = returns;
+		recordTable.scanDirectionFlag = scanDirectionFlag;
+		recordTable.edgeOfFlightLine = edgeOfFlightLine;
+		recordTable.classification = classification;
+		recordTable.scanAngleRank = scanAngleRank;
+
+		recordTable.cleanup();
+
+		return recordTable;
+	}
+
+	public CellTable getRecordsInternalIterator(long record_start, int record_count) {
 		if(lasPointIterator == null) {
 			lasPointIterator = reader.getPoints().iterator();
 			lasPointIteratorPos = 0;
@@ -176,5 +307,33 @@ public class Laz {
 		recordTable.cleanup();
 
 		return recordTable;
+	}
+
+	public int readEPSG() {		
+		LASreader r = new LASreadOpener().open(filename.toFile().getAbsolutePath());
+		try {
+			LASheader h = r.header;
+			return readEPSGByHeader(h);
+		} catch(Exception e) {
+			log.warn(e);
+			return 0;
+		} finally {
+			r.close();
+		}
+	}
+
+	public int readEPSGByHeader(LASheader h) {
+		int epsg = 0;
+		for(LASvlr_key_entry e:h.vlr_geo_key_entries) {			
+			switch(e.key_id) {
+			case Las.ProjectedCSTypeGeoKey: {
+				int epsgRaw = e.value_offset;
+				epsg = Las.getEPSGfromProjectedCSTypeGeoKey(epsgRaw);
+				break;
+			}			
+			}			
+			log.info("len re " + ((int)e.key_id) + "   " + ((int)e.count) + "   " + ((int)e.tiff_tag_location) + "  " + ((int) e.value_offset));
+		}
+		return epsg;
 	}
 }

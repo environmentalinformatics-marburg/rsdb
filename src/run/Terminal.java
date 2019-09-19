@@ -709,7 +709,7 @@ public class Terminal {
 				Rasterizer rasterizer = new Rasterizer(pointdb, rasterdb);
 				rasterizer.run(rasterizer.bandIntensity);
 				rasterizer.run(rasterizer.bandElevation);
-				rasterdb.commit();
+				rasterdb.flush();
 				rasterdb.rebuildPyramid();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -751,6 +751,7 @@ public class Terminal {
 				Importer importer = new Importer(pointcloud);
 				Timer.start("total import");
 				importer.importDirectory(root);
+				pointcloud.getGriddb().getStorage().flush();
 				log.info(Timer.stop("total import"));
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -802,10 +803,10 @@ public class Terminal {
 			}
 			try(Broker broker = new Broker()) {
 				PointCloud pointdb = broker.getPointCloud(args[1]);
-				RasterDB rasterdb = broker.createRasterdb(args[2], false);
+				RasterDB rasterdb = broker.createNewRasterdb(args[2], false);
 				pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointdb, rasterdb);
 				rasterizer.run();
-				rasterdb.commit();
+				rasterdb.flush();
 				rasterdb.rebuildPyramid();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -870,7 +871,7 @@ public class Terminal {
 				IndexRasterizer rasterizer = new IndexRasterizer(pointdb, rasterdb, 5, rect);
 				ProcessingFun processingFun = new Fun_BE.Fun_BE_ELEV_MEAN();
 				rasterizer.process(processingFun);
-				rasterdb.commit();
+				rasterdb.flush();
 				rasterdb.rebuildPyramid();
 			} catch (Exception e) {
 				e.printStackTrace();

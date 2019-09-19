@@ -395,7 +395,7 @@ public class APIHandler_import extends APIHandler {
 
 		RasterDB rasterdb;
 		if(strategy.isCreate()) {
-			rasterdb = broker.createRasterdb(id);
+			rasterdb = broker.createNewRasterdb(id);
 			rasterdb.setPixelSize(pixel_size_x, pixel_size_y, rasterdb_geo_offset_x, rasterdb_geo_offset_y);
 			rasterdb.setCode(geo_code);
 			rasterdb.setProj4(proj4);

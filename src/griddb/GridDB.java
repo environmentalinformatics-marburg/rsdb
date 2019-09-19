@@ -275,4 +275,8 @@ public class GridDB implements AutoCloseable {
 	public String getStorageType() {
 		return storageType;
 	}
+
+	public RasterUnitStorage getStorage() {
+		return storage;		
+	}
 }
