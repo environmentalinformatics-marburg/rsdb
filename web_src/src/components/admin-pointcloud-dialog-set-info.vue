@@ -82,7 +82,7 @@ export default {
             availableTags: state => state.layer_tags.data,
         }),
         layer_tags() {
-            return this.availableTags.concat(this.createdTags);
+            return this.availableTags === undefined ? this.createdTags : this.availableTags.concat(this.createdTags);
         },
     }, 
     methods: {

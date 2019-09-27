@@ -427,6 +427,9 @@ public class ProcessingFloat {
 
 	public static void writeRasterUnitBandDiv4(RasterUnitStorage rasterUnitStorage, RasterUnitStorage targetUnit, BandKey bandKey, Band band, Commiter counter) throws IOException {
 		Range2d range = rasterUnitStorage.getTileRange(bandKey);
+		if(range == null) {
+			return;
+		}
 
 		int xmin = Math.floorDiv(range.xmin, 4);
 		int ymin = Math.floorDiv(range.ymin, 4);

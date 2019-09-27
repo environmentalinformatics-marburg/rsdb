@@ -103,88 +103,94 @@ public class Catalog {
 				final int hullType = polygon; 
 				switch(hullType) {
 				case polygon: {
-					Set<TileKey> keys = rasterdb.rasterUnit().tileKeysReadonly();
-					Coordinate[] coordinates = new Coordinate[keys.size() * 4];
-					int i = 0;
-					for(TileKey key:keys) {
-						double xmin = ref.pixelXToGeo(TilePixel.tileToPixel(key.x));
-						double ymin = ref.pixelYToGeo(TilePixel.tileToPixel(key.y));
-						double xmax = ref.pixelXToGeo(TilePixel.tileToPixelMax(key.x));
-						double ymax = ref.pixelYToGeo(TilePixel.tileToPixelMax(key.y));
-						Range2d localRange = rasterdb.getLocalRange(false);
+					Range2d localRange = rasterdb.getLocalRange(false);
+					if(localRange != null) {
 						double pxmin = ref.pixelXToGeo(localRange.xmin);
 						double pymin = ref.pixelYToGeo(localRange.ymin);
 						double pxmax = ref.pixelXToGeo(localRange.xmax);
 						double pymax = ref.pixelYToGeo(localRange.ymax);
-						if(xmin < pxmin) {
-							xmin = pxmin;
-						}
-						if(ymin < pymin) {
-							ymin = pymin;
-						}
-						if(xmax > pxmax) {
-							xmax = pxmax;
-						}
-						if(ymax > pymax) {
-							ymax = pymax;
-						}
+						Set<TileKey> keys = rasterdb.rasterUnit().tileKeysReadonly();
+						Coordinate[] coordinates = new Coordinate[keys.size() * 4];
+						int i = 0;
+						for(TileKey key:keys) {
+							double xmin = ref.pixelXToGeo(TilePixel.tileToPixel(key.x));
+							double ymin = ref.pixelYToGeo(TilePixel.tileToPixel(key.y));
+							double xmax = ref.pixelXToGeo(TilePixel.tileToPixelMax(key.x));
+							double ymax = ref.pixelYToGeo(TilePixel.tileToPixelMax(key.y));
+							if(xmin < pxmin) {
+								xmin = pxmin;
+							}
+							if(ymin < pymin) {
+								ymin = pymin;
+							}
+							if(xmax > pxmax) {
+								xmax = pxmax;
+							}
+							if(ymax > pymax) {
+								ymax = pymax;
+							}
 
-						coordinates[i++] = new Coordinate(xmin, ymin);
-						coordinates[i++] = new Coordinate(xmax, ymin);
-						coordinates[i++] = new Coordinate(xmin, ymax);
-						coordinates[i++] = new Coordinate(xmax, ymax);
+							coordinates[i++] = new Coordinate(xmin, ymin);
+							coordinates[i++] = new Coordinate(xmax, ymin);
+							coordinates[i++] = new Coordinate(xmin, ymax);
+							coordinates[i++] = new Coordinate(xmax, ymax);
+						}
+						points = generateConvexHullPoints(coordinates);
 					}
-					points = generateConvexHullPoints(coordinates);
 					break;
 				}
 				case fastPoly: {
 					Range2d localRange = rasterdb.getLocalRange(false);
-					double xmin = ref.pixelXToGeo(localRange.xmin);
-					double ymin = ref.pixelYToGeo(localRange.ymin);					
-					double xmax = ref.pixelXToGeo(localRange.xmax);
-					double ymax = ref.pixelYToGeo(localRange.ymax);
-					double xmid = (xmin + xmax) / 2;
-					double ymid = (ymin + ymax) / 2;					
-					double xq1 = (xmin + xmid) / 2;
-					double xq3 = (xmid + xmax) / 2;
-					double yq1 = (ymin + ymid) / 2;
-					double yq3 = (ymid + ymax) / 2;
-					points = new double[17][2];
-					points[0][0] = xmin; points[0][1] = ymin;
-					points[1][0] = xq1; points[1][1] = ymin;
-					points[2][0] = xmid; points[2][1] = ymin;
-					points[3][0] = xq3; points[3][1] = ymin;
-					points[4][0] = xmax; points[4][1] = ymin;
+					if(localRange != null) {
+						double xmin = ref.pixelXToGeo(localRange.xmin);
+						double ymin = ref.pixelYToGeo(localRange.ymin);					
+						double xmax = ref.pixelXToGeo(localRange.xmax);
+						double ymax = ref.pixelYToGeo(localRange.ymax);
+						double xmid = (xmin + xmax) / 2;
+						double ymid = (ymin + ymax) / 2;					
+						double xq1 = (xmin + xmid) / 2;
+						double xq3 = (xmid + xmax) / 2;
+						double yq1 = (ymin + ymid) / 2;
+						double yq3 = (ymid + ymax) / 2;
+						points = new double[17][2];
+						points[0][0] = xmin; points[0][1] = ymin;
+						points[1][0] = xq1; points[1][1] = ymin;
+						points[2][0] = xmid; points[2][1] = ymin;
+						points[3][0] = xq3; points[3][1] = ymin;
+						points[4][0] = xmax; points[4][1] = ymin;
 
-					points[5][0] = xmax; points[5][1] = yq1;
-					points[6][0] = xmax; points[6][1] = ymid;
-					points[7][0] = xmax; points[7][1] = yq3;
+						points[5][0] = xmax; points[5][1] = yq1;
+						points[6][0] = xmax; points[6][1] = ymid;
+						points[7][0] = xmax; points[7][1] = yq3;
 
-					points[8][0] = xmax; points[8][1] = ymax;
-					points[9][0] = xq3; points[9][1] = ymax;
-					points[10][0] = xmid; points[10][1] = ymax;
-					points[11][0] = xq1; points[11][1] = ymax;
-					points[12][0] = xmin; points[12][1] = ymax;
+						points[8][0] = xmax; points[8][1] = ymax;
+						points[9][0] = xq3; points[9][1] = ymax;
+						points[10][0] = xmid; points[10][1] = ymax;
+						points[11][0] = xq1; points[11][1] = ymax;
+						points[12][0] = xmin; points[12][1] = ymax;
 
-					points[13][0] = xmin; points[13][1] = yq3;
-					points[14][0] = xmin; points[14][1] = ymid;
-					points[15][0] = xmin; points[15][1] = yq1;
+						points[13][0] = xmin; points[13][1] = yq3;
+						points[14][0] = xmin; points[14][1] = ymid;
+						points[15][0] = xmin; points[15][1] = yq1;
 
-					points[16][0] = xmin; points[16][1] = ymin;
+						points[16][0] = xmin; points[16][1] = ymin;
+					}
 					break;
 				}
 				case rect: {
 					Range2d localRange = rasterdb.getLocalRange(false);
-					double xmin = ref.pixelXToGeo(localRange.xmin);
-					double ymin = ref.pixelYToGeo(localRange.ymin);					
-					double xmax = ref.pixelXToGeo(localRange.xmax);
-					double ymax = ref.pixelYToGeo(localRange.ymax);
-					points = new double[5][2];
-					points[0][0] = xmin; points[0][1] = ymin;
-					points[1][0] = xmax; points[1][1] = ymin;
-					points[2][0] = xmax; points[2][1] = ymax;
-					points[3][0] = xmin; points[3][1] = ymax;
-					points[4][0] = xmin; points[4][1] = ymin;
+					if(localRange != null) {
+						double xmin = ref.pixelXToGeo(localRange.xmin);
+						double ymin = ref.pixelYToGeo(localRange.ymin);					
+						double xmax = ref.pixelXToGeo(localRange.xmax);
+						double ymax = ref.pixelYToGeo(localRange.ymax);
+						points = new double[5][2];
+						points[0][0] = xmin; points[0][1] = ymin;
+						points[1][0] = xmax; points[1][1] = ymin;
+						points[2][0] = xmax; points[2][1] = ymax;
+						points[3][0] = xmin; points[3][1] = ymax;					
+						points[4][0] = xmin; points[4][1] = ymin;
+					}
 					break;
 				}
 				default:
@@ -689,7 +695,7 @@ public class Catalog {
 			update(genCatalogEntry);
 		}
 	}
-	
+
 	public void update(VectorDB vectordb, boolean updateHull) {
 		log.info("update catalog entry vecotrdb " + vectordb.informal());
 		CatalogKey catalogKey = new CatalogKey(vectordb.getName(), CatalogKey.TYPE_VECTORDB);

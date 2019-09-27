@@ -27,7 +27,7 @@
             </h3>
             <div class="meta-content" style="poisition: relative;">
                 <a :href="'#/vectorviewer/' + vectordb" target="_blank" title="open layer in viewer on new tab">
-                    <img :key="meta.name" :src="urlPrefix + '../../vectordbs/' + meta.name + '/raster.png?width=400&height=600&datatag=' + meta.datatag" alt="" class="thumbnail" /> 
+                    <img :key="meta.name" :src="$store.getters.apiUrl('vectordbs/' + meta.name + '/raster.png?width=400&height=600&datatag=' + meta.datatag)" alt="" class="thumbnail" /> 
                 </a>
                 <table style="padding-right: 420px;">
                     <tr>

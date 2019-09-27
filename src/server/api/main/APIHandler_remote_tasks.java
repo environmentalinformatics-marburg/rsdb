@@ -1,6 +1,7 @@
 package server.api.main;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -37,10 +38,41 @@ public class APIHandler_remote_tasks extends APIHandler {
 			int idEndIndex = target.indexOf('/');
 			if(idEndIndex>=0) {
 				idText = target.substring(0, idEndIndex);
+				long id = Long.parseLong(idText);
 				subTarget = target.substring(idEndIndex + 1);
-			}			
+				switch(subTarget) {
+				case "log": {
+					handleLog(id, request, response);
+					return;
+				}					
+				default:
+					throw new RuntimeException("unknown target: " + subTarget);
+				}
+			}
 			long id = Long.parseLong(idText);
 			handleId(id, subTarget, request, response);
+		}		
+	}
+
+	private void handleLog(long id, Request request, Response response) throws IOException {
+		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
+		if(remoteTask == null) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.setContentType(MIME_JSON);
+			JSONWriter res = new JSONWriter(response.getWriter());
+			res.object();
+			res.key("error");
+			res.object();	
+			res.key("unknown remote_task");
+			res.value(id);
+			res.endObject();
+			res.endObject();
+		}
+		
+		response.setContentType("text/plain");	
+		PrintWriter out = response.getWriter();
+		for(String line:remoteTask.getLog()) {
+			out.println(line);
 		}		
 	}
 
@@ -131,7 +163,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 			throw new RuntimeException("invalid HTTP method: " + request.getMethod());
 		}
 	}
-	
+
 	private void handleIdCancel(long id, Request request, Response response) throws IOException {
 		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
 		if(remoteTask == null) {
@@ -194,6 +226,8 @@ public class APIHandler_remote_tasks extends APIHandler {
 		res.value(remoteTask.isCancelable());
 		res.key("canceled");
 		res.value(remoteTask.isCanceled());
+		res.key("log");
+		res.value(remoteTask.getLog());
 		res.endObject();
 		res.endObject();		
 	}

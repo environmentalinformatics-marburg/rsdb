@@ -237,7 +237,8 @@ public class RasterUnit implements RasterUnitStorage {
 				ymax = y;
 			}			
 		}
-		return new Range2d(xmin, ymin, xmax, ymax);
+		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
+		return tileRange.isEmptyMarker() ? null : tileRange;
 	}
 
 	public Range2d getTileRange(int t) {
@@ -261,7 +262,8 @@ public class RasterUnit implements RasterUnitStorage {
 				ymax = y;
 			}				
 		}
-		return new Range2d(xmin, ymin, xmax, ymax);
+		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
+		return tileRange.isEmptyMarker() ? null : tileRange;
 	}
 
 	@Override	
@@ -290,7 +292,8 @@ public class RasterUnit implements RasterUnitStorage {
 				ymax = y;
 			}				
 		}
-		return new Range2d(xmin, ymin, xmax, ymax);
+		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
+		return tileRange.isEmptyMarker() ? null : tileRange;
 	}	
 
 

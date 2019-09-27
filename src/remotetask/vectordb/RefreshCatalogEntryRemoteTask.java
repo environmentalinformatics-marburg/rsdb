@@ -9,7 +9,7 @@ import vectordb.VectorDB;
 
 @task_vectordb("refresh_catalog_entry")
 @Description("update VectorDB layer catalog data")
-@Param(name="vectordb", type="vectordb", desc="ID of VectorDB layer")
+@Param(name="vectordb", type="vectordb", desc="ID of VectorDB layer", example="vectordb1")
 public class RefreshCatalogEntryRemoteTask extends RemoteTask {
 
 	private final Broker broker;

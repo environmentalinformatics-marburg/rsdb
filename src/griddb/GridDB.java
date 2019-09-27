@@ -260,6 +260,10 @@ public class GridDB implements AutoCloseable {
 		return storage().isEmpty();
 	}
 
+	/**
+	 * 
+	 * @return range or null
+	 */
 	public Range2d getTileRange() {
 		return storage().getTileRange();
 	}

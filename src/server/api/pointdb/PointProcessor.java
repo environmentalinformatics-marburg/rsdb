@@ -4,11 +4,9 @@ import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.Response;
 
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
-import pointdb.base.Rect;
 import pointdb.process.DataProvider2;
 import pointdb.processing.geopoint.GeoPointFilter;
 import pointdb.processing.geopoint.Normalise;
@@ -16,15 +14,13 @@ import pointdb.subsetdsl.Region;
 import server.api.pointdb.LasWriter.LAS_HEADER;
 import server.api.pointdb.LasWriter.POINT_DATA_RECORD;
 import util.Receiver;
-import util.ResponseReceiver;
 import util.collections.vec.Vec;
 import util.rdat.RdatPointDataFrame;
 
 public class PointProcessor {
 	private static final Logger log = LogManager.getLogger();
 	
-	public static void process(PointDB pointdb, Rect rect, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, Receiver receiver) throws IOException {
-		Region region = Region.ofRect(rect);
+	public static void process(PointDB pointdb, Region region, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, Receiver receiver) throws IOException {
 		log.info("query region " + region);
 		DataProvider2 dp2 = new DataProvider2(pointdb, region);
 

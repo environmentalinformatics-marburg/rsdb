@@ -90,7 +90,7 @@ public class DataProvider2 {
 			return GeoPointTransformer.transform(pointTables);
 		}
 	}
-	
+
 	public synchronized Vec<GeoPoint> get_bboxPoints() {
 		return get_bboxPoints(true);
 	}
@@ -117,7 +117,7 @@ public class DataProvider2 {
 		}
 		return bboxPoints;
 	}
-	
+
 	public synchronized Vec<GeoPoint> get_regionPoints() {
 		return get_regionPoints(true);
 	}
@@ -208,6 +208,9 @@ public class DataProvider2 {
 			//log.info(Timer.stop("get_sortedRegionHeightPoints sort"));
 			sortedRegionHeightPoints = zs;
 			//log.info("sorted");
+			if(zs.size() > 0) {
+				log.info("get_sortedRegionHeightPoints " + zs.size() + "  min " + zs.get(0) + "  max " + zs.get(zs.size()-1));
+			}
 		}
 		return sortedRegionHeightPoints;
 	}

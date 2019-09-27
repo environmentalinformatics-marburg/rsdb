@@ -56,22 +56,23 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				json.key("y");
 				json.value(ref.pixel_size_y);
 				json.endObject();
-				json.key("extent");
 				Range2d localRange = rasterdb.getLocalRange(false);
-				
-				json.array();
-				json.value(ref.pixelXToGeo(localRange.xmin));
-				json.value(ref.pixelYToGeo(localRange.ymin));
-				json.value(ref.pixelXToGeo(localRange.xmax));
-				json.value(ref.pixelYToGeo(localRange.ymax));
-				json.endArray();
-				json.key("internal_rasterdb_extent");
-				json.array();
-				json.value(localRange.xmin);
-				json.value(localRange.ymin);
-				json.value(localRange.xmax);
-				json.value(localRange.ymax);
-				json.endArray();
+				if(localRange != null) {
+					json.key("extent");				
+					json.array();
+					json.value(ref.pixelXToGeo(localRange.xmin));
+					json.value(ref.pixelYToGeo(localRange.ymin));
+					json.value(ref.pixelXToGeo(localRange.xmax));
+					json.value(ref.pixelYToGeo(localRange.ymax));
+					json.endArray();
+					json.key("internal_rasterdb_extent");
+					json.array();
+					json.value(localRange.xmin);
+					json.value(localRange.ymin);
+					json.value(localRange.xmax);
+					json.value(localRange.ymax);
+					json.endArray();
+				}
 			}
 			if(ref.has_code()) {
 				json.key("code");
@@ -148,10 +149,10 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			json.key("modify");
 			json.value(rasterdb.isAllowedMod(userIdentity));
 			//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
-				json.key("acl");
-				rasterdb.getACL().writeJSON(json);
-				json.key("acl_mod");
-				rasterdb.getACL_mod().writeJSON(json);
+			json.key("acl");
+			rasterdb.getACL().writeJSON(json);
+			json.key("acl_mod");
+			rasterdb.getACL_mod().writeJSON(json);
 			//}			
 			if(request.getParameter("tilekeys") != null) {
 				json.key("tilekeys");
@@ -161,7 +162,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				}
 				json.endArray();
 			}
-			
+
 			json.endObject(); // end full object
 		} catch(Exception e) {
 			e.printStackTrace();

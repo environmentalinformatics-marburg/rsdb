@@ -1,6 +1,10 @@
 <template>
-<div>
-
+<vue-draggable-resizable :x="boxX" :y="boxY">
+  <div class="box">
+    <div class="box-header">
+      Viewer Settings
+      <button class="close-button" @click="$emit('close');">x</button>
+    </div>
   <b>Background</b>
   <multiselect v-model="selectedBackground" :options="backgroundOptions" :searchable="true" :show-labels="false" placeholder="pick a background" :allowEmpty="false">
     <template slot="singleLabel" slot-scope="{option}">
@@ -37,8 +41,8 @@
       <multiselect v-model="selectedOneBandMapping" :options="oneBandMappings" :show-labels="false" :allowEmpty="false" placeholder="value to pixel mapping of one band" />
     </div>
   </div>
-  
-</div>
+  </div>
+</vue-draggable-resizable>
 
 </template>
 
@@ -46,6 +50,7 @@
 
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
+import VueDraggableResizable from 'vue-draggable-resizable'
 
 export default {
   name: 'admin-viewer-settings',
@@ -54,10 +59,14 @@ export default {
 
   components: {
     Multiselect,
+    VueDraggableResizable
   },
 
   data() {
     return {
+      boxX: 0,
+      boxY: 0,
+
       backgroundOptions: [
         {name: "checkerboard", title: "checkerboard"},
         {name: "osm", title: "OpenStreetMap"},
@@ -116,5 +125,32 @@ export default {
 </script>
 
 <style scoped>
+
+.box {
+  position: relative;
+  background-color: rgba(213, 213, 213, 0.91);
+  padding: 10px;
+  border: solid #0000006e 1px;
+  border-radius: 5px;
+  min-width: 500px;
+}
+
+.box-header {
+  text-align: center;
+  font-weight: bold;
+}
+
+.close-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  color: black;
+  color: #3e3e3e;
+  background-color: #ccc;
+  border: solid #0000006e 1px;
+  border-radius: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
 
 </style>

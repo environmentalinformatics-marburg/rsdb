@@ -25,6 +25,9 @@
                 </v-card-actions>
                 <span style="color: grey;"><v-icon>event_note</v-icon> Click outside of this box to close it. 
                 <br>Task continues to run and can be viewed on status view.</span>
+                <hr>
+                <b>Log Messages</b>
+                <div v-for="(line, i) in log" :key="i">{{line}}</div>
             </v-card>
         </v-dialog>
         <v-snackbar v-model="setError" :top="true">
@@ -49,6 +52,7 @@ export default {
             setErrorMessage: undefined,
             remote_task: {},
             status: 'init',
+            log: [],
         }
     },
     methods: {
@@ -70,6 +74,7 @@ export default {
         },
 
         query_remote_task() {
+            this.queryLog(this.id);
             var self = this;
             axios.get(this.urlPrefix + '../../api/remote_tasks/' + this.id)
             .then(function(response) {
@@ -100,20 +105,30 @@ export default {
                 }
             });            
         },
-
         async cancel(id) {
-        try {
-            console.log(id);
-            var url = this.$store.getters.apiUrl('api/remote_tasks/' + id + '/cancel');
-            await axios.post(url);
-            this.refresh();
-        } catch(error) {
-            console.log(error);
-        } finally {
-            //this.refresh();
-        }      
-    },
-
+            try {
+                console.log(id);
+                var url = this.$store.getters.apiUrl('api/remote_tasks/' + id + '/cancel');
+                await axios.post(url);
+                this.refresh();
+            } catch(error) {
+                console.log(error);
+            } finally {
+                //this.refresh();
+            }
+        },
+        async queryLog(id) {
+            try {
+                console.log(id);
+                var url = this.$store.getters.apiUrl('api/remote_tasks/' + id + '/log');
+                var response = await axios.get(url);
+                this.log = response.data.split('\n');
+            } catch(error) {
+                console.log(error);
+            } finally {
+                //this.refresh();
+            }
+        },
     },
     computed: {
         ...mapState({

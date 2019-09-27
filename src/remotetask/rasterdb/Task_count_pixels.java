@@ -24,7 +24,7 @@ import remotetask.RemoteTask;
 
 @task_rasterdb("count_pixels")
 @Description("Count all pixels that are not NA. Just pixels of first band are counted.")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="raster1")
 public class Task_count_pixels extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 

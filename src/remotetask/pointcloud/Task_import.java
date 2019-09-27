@@ -19,12 +19,12 @@ import remotetask.RemoteTask;
 
 @task_pointcloud("import")
 @Description("import directory of files into new PointCloud layer")
-@Param(name="pointcloud", desc="ID of new PointCloud layer (target)")
-@Param(name="source", desc="folder with *.las / *.laz files to import (located on server) (recursive)")
-@Param(name="transactions", desc="use power failer safe (and slow) PointCloud operation mode (default false) (obsolete for TileStorage)", required=false)
-@Param(name="cellsize", desc="cell size (default: 100 -> 100 meter)", required=false)
-@Param(name="cellscale", desc="cell size (default: 100 -> resolution of points 0.01 meter)", required=false)
-@Param(name="storage_type", desc="RasterUnit (default) or TileStorage", required=false)
+@Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer (target)", example="pointcloud1")
+@Param(name="source", format="path", desc="folder with *.las / *.laz files to import (located on server) (recursive)", example="las/folder1")
+@Param(name="transactions", type="boolean", desc="use power failer safe (and slow) PointCloud operation mode (default false) (obsolete for TileStorage)", example="false", required=false)
+@Param(name="cellsize", type="number", desc="size of cells (default: 100 -> 100 meter)", example="10", required=false)
+@Param(name="cellscale", type="number", desc="resolution of points (default: 100 -> resolution of points 1/100 = 0.01 meter)", example="1000", required=false)
+@Param(name="storage_type", desc="storage type of new PointCloud: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 

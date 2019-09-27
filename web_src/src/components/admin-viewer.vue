@@ -1,6 +1,6 @@
 <template>
   <div class="main" :class="selectedBackgroundClass">
-    <div id="olmap-viewer" style="width: 100%; height: 100%;" />
+    <div id="olmap-viewer" v-bind:style="{ height: '100%', paddingLeft: olmap_viewer_padding_left + 'px' }" />
     <div class="no_layer" v-show="meta === undefined">
       <b>no layer</b>
     </div>
@@ -32,7 +32,7 @@
     </div>-->
 
     <div class="innergrid-container">
-      <v-list dense class="innergrid-item-nav">
+      <v-list dense class="innergrid-item-nav" id="innergrid-item-nav">
          <v-toolbar>
             Mouse<br>Modus
             <v-btn-toggle v-model="mouseModus" mandatory style="border: 1px solid #8d8d88;">
@@ -45,8 +45,8 @@
             </v-btn-toggle>
 
             <div style="padding-right: 10px;"></div>
-
-            <v-dialog v-model="settingsDialog" width="500">
+            <v-btn fab title="change viewer settings" @click="onSettingsDialog"><v-icon>settings_applications</v-icon></v-btn>
+            <!--<v-dialog v-model="settingsDialog" width="500">
               <template v-slot:activator="{ on }">
                 <v-btn fab title="change viewer settings" v-on="on"><v-icon>settings_applications</v-icon></v-btn>
               </template>
@@ -69,7 +69,7 @@
                   <v-btn color="primary" flat @click="settingsDialog = false">close</v-btn>
                 </v-card-actions>
               </v-card>
-            </v-dialog>
+            </v-dialog>-->
       </v-toolbar>
       <admin-viewer-select 
         :currentLayerWMS_opacity="layerWMS_opacity" 
@@ -86,10 +86,18 @@
       />
       <admin-viewer-tools @tool-raster-export-show="toolRasterExportShow = true;" @tool-point-export-show="toolPointExportShow = true;" @tool-point-raster-export-show="toolPointRasterExportShow = true;" :selectedExtent="selectedExtent" :meta="meta" :epsgCode="epsgCode" @selected-vectordb="selectedVectordb = $event" />
       </v-list>
-      <!--<div id="olmap-viewer" innergrid-item-main />-->
+      <!--<div id="olmap-viewer" class="innergrid-item-main" />-->
+                  
     </div>
 
-
+ <admin-viewer-settings v-show="settingsDialog" ref="settingsDialog" 
+                  @close="settingsDialog = false"       
+                  @selected-background="selectedBackground = $event"  
+                  @selected-format="selectedFormat = $event"
+                  @selected-gamma="selectedGamma = $event" 
+                  @sync-bands="syncBands = $event" 
+                  @selected-mapping="selectedOneBandMapping = $event"        
+                  />
 
 
     <admin-viewer-raster-export v-if="meta !== undefined" 
@@ -225,6 +233,7 @@ export default {
       selectedExtent: undefined,
 
       globalEventListeners: {},
+      olmap_viewer_padding_left: 400,
     }
   },
   methods: {
@@ -419,6 +428,13 @@ export default {
       this.vectorLayer.setSource(vectorSource);
       //console.log("refreshVectorSource done");
     },
+    onSettingsDialog() {
+      this.settingsDialog = !this.settingsDialog;
+      var rect = document.getElementById("innergrid-item-nav").getBoundingClientRect();
+      //console.log(rect.right);
+      //console.log(this.$refs.settingsDialog);
+      this.$refs.settingsDialog.boxX = rect.right; // just inital x position
+    }
   },
   computed: {
     ...mapState({
@@ -582,6 +598,9 @@ export default {
 
     document.getElementById('foot-start-1').innerHTML = '?';
     document.getElementById('foot-end-1').innerHTML = '';
+
+    var rect = document.getElementById("innergrid-item-nav").getBoundingClientRect();
+    this.olmap_viewer_padding_left = rect.right;
 
     this.globalEventListeners.keydown = e => {
       if (e.keyCode == 17) { // ctrl-key

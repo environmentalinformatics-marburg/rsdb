@@ -8,7 +8,6 @@ import util.Range2d;
 import util.collections.ReadonlyNavigableSetView;
 
 public interface RasterUnitStorage extends AutoCloseable {
-	Range2d getTileRange();
 	ReadonlyNavigableSetView<TileKey> tileKeysReadonly();
 	ReadonlyNavigableSetView<BandKey> bandKeysReadonly();
 	ReadonlyNavigableSetView<Integer> timeKeysReadonly();
@@ -20,6 +19,17 @@ public interface RasterUnitStorage extends AutoCloseable {
 	NavigableSet<TileKey> getTileKeys(int t, int b, int y, int xmin, int xmax);
 	Collection<Tile> getTiles(TileKey keyXmin, TileKey keyXmax);
 	NavigableSet<RowKey> getRowKeys(int t, int b, int ymin, int ymax);
+
+	/**
+	 * 
+	 * @return range or null
+	 */
+	Range2d getTileRange();
+	
+	/**
+	 * 
+	 * @return range or null
+	 */	
 	Range2d getTileRange(BandKey bandKey);
 	
 	void writeTile(Tile tile) throws IOException;

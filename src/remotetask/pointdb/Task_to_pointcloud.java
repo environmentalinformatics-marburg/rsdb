@@ -29,10 +29,11 @@ import util.collections.vec.Vec;
 
 @task_pointdb("to_pointcloud")
 @Description("create pointcloud layer from pointdb layer")
-@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)")
-@Param(name="pointcloud", desc="ID of new PointCloud layer (target) (if layer exists, delete)")
-@Param(name="transactions", desc="use power failer safe (and) slow PointCloud operation mode (default false) (obsolete for TileStorage)", required=false)
-@Param(name="storage_type", desc="RasterUnit (default) or TileStorage", required=false)
+@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)", example="pointdb1")
+@Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer (target) (if layer exists, delete)", example="pointcloud1")
+@Param(name="transactions", type="boolean", desc="use power failer safe (and) slow PointCloud operation mode (default false) (obsolete for TileStorage)", example="false", required=false)
+@Param(name="storage_type", desc="storage type of new PointCloud: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+
 public class Task_to_pointcloud extends RemoteTask{
 	private static final Logger log = LogManager.getLogger();
 

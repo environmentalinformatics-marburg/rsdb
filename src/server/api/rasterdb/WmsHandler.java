@@ -186,7 +186,8 @@ public class WmsHandler extends AbstractHandler {
 					timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
 				} catch(Exception e) {
 					if(rasterdb.rasterUnit().timeKeysReadonly().isEmpty()) {
-						throw new RuntimeException("empty rasterdb layer");
+						log.warn("empty rasterdb layer");
+						return;
 					} else {
 						throw e;
 					}

@@ -144,6 +144,9 @@ public class WmsCapabilities {
 		Element eBoundingBox = addElement(eLayer, "BoundingBox");
 		eBoundingBox.setAttribute("CRS", code);
 		Range2d localRange = rasterdb.getLocalRange(false);
+		if(localRange == null) {
+			return;
+		}
 		GeoReference ref = rasterdb.ref();
 		/*
 		 * NumberFormat formatter = new DecimalFormat("########");

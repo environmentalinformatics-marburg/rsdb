@@ -14,6 +14,8 @@ public @interface Param {
 	String name();
 	String type() default "string";
 	String desc() default "";
+	String format() default "";
+	String example() default "";
 	boolean required() default true;
 	
 	@Retention(RUNTIME)

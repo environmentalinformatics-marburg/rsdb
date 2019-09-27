@@ -180,6 +180,9 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
 		eBoundingBox.setAttribute("CRS", code);
 		Range2d localRange = rasterdb.getLocalRange(false);
+		if(localRange == null) {
+			return;
+		}
 		GeoReference ref = rasterdb.ref();
 		if (ref.wms_transposed) {
 			eBoundingBox.setAttribute("minx", "" + ref.pixelYToGeo(localRange.ymin));

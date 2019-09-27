@@ -91,6 +91,9 @@ public class Rasterizer {
 
 	private void run(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing) throws IOException {
 		Range2d cellrange = pointcloud.getCellRange();
+		if(cellrange == null) {
+			return;
+		}
 		DoublePoint celloffset = pointcloud.getCelloffset();
 		double cellsize = pointcloud.getCellsize();
 		double cellscale1d = 1 / pointcloud.getCellscale();

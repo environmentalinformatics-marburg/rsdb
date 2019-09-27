@@ -14,7 +14,7 @@ import util.Range2d;
 
 @task_rasterdb("refresh_extent")
 @Description("Recalculate extent of RasterDB layer")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="rasterdb1")
 public class Task_refresh_extent extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 

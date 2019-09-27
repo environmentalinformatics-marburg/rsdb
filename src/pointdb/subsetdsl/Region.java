@@ -10,6 +10,11 @@ public class Region {
 	public final Rect bbox;
 	public final Point2d[] polygonPoints; //nullable if no polygon
 	
+	/**
+	 * 
+	 * @param bbox Bounding box
+	 * @param polygonPoints normally polygon is inside of bbox. In special cases bbox may be smaller than polygon to filter points in bbox with polygon borders.
+	 */
 	private Region(Rect bbox, Point2d[] polygonPoints) {
 		this.bbox = bbox;
 		this.polygonPoints = polygonPoints;
@@ -21,6 +26,10 @@ public class Region {
 	
 	public static Region ofPolygon(Point2d[] polygonPoints) {
 		return new Region(Rect.of_polygon(polygonPoints), polygonPoints);
+	}
+	
+	public static Region ofFilteredBbox(Rect bbox, Point2d[] polygonPoints) {
+		return new Region(bbox, polygonPoints);
 	}
 	
 	public boolean isBbox() {

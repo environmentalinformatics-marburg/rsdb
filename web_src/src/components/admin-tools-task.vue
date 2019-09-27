@@ -39,6 +39,13 @@
           <hr>
           <b>Task Parameters</b>
           <table>
+          <tr>
+          <th>Parameter</th>
+          <th>Value</th>
+          <th>Description</th>
+          <th>Format</th>
+          <th>Example</th>
+          </tr>
           <tr v-for="param in selectedRemoteTaskEntry.params" :key="param.name">
             <td :class="[param.required ? 'param-required' : 'param-optional', param.required && (param.value === undefined || param.value === '') ? 'param-required-missing' : '']">{{param.name}}{{param.required ? '*' : ''}}</td>
             <td v-if="param.type === 'rasterdb'">
@@ -84,10 +91,37 @@
             <td v-else-if="param.type === 'string'">
               <input v-model="param.value" placeholder="(empty)" :class="[param.required && (param.value === undefined || param.value === '') ? 'param-required-missing' : '']" />
             </td>
+            <td v-else-if="param.type === 'layer_id'">
+              <input v-model="param.value" placeholder="(empty)" :class="[param.required && (param.value === undefined || param.value === '') ? 'param-required-missing' : '']" />
+            </td>            
+            <td v-else-if="param.type === 'string_array'">
+              <input v-model="param.value" placeholder="(empty)" :class="[isParamRequiredOrNotEmpty(param) && !isStringArray(param.value) ? 'param-required-missing' : '']" />
+            </td>
+            <td v-else-if="param.type === 'number'">
+              <input v-model="param.value" placeholder="(empty)" :class="[isParamRequiredOrNotEmpty(param) && !isNumber(param.value) ? 'param-required-missing' : '']" />
+            </td> 
+            <td v-else-if="param.type === 'number_array'">
+              <input v-model="param.value" placeholder="(empty)" :class="[isParamRequiredOrNotEmpty(param) && !isNumberArray(param.value) ? 'param-required-missing' : '']" />
+            </td>
+            <td v-else-if="param.type === 'number_rect'">
+              <input v-model="param.value" placeholder="(empty)" :class="[isParamRequiredOrNotEmpty(param) && !isNumberRect(param.value) ? 'param-required-missing' : '']" />
+            </td>                                       
+            <td v-else-if="param.type === 'integer'">
+              <input v-model="param.value" placeholder="(empty)" :class="[isParamRequiredOrNotEmpty(param) && !isInteger(param.value) ? 'param-required-missing' : '']" />
+            </td>
+            <td v-else-if="param.type === 'integer_array'">
+              <input v-model="param.value" placeholder="(empty)" :class="[isParamRequiredOrNotEmpty(param) && !isIntegerArray(param.value) ? 'param-required-missing' : '']" />
+            </td>             
+            <td v-else-if="param.type === 'boolean'">
+              <input v-model="param.value" placeholder="(empty)" :class="[isParamRequiredOrNotEmpty(param) && !isBoolean(param.value) ? 'param-required-missing' : '']" />
+            </td>                 
             <td v-else>[{{param.type}}] unknown parameter type</td>
             <td class="param-desc">{{param.desc}}</td>
+            <td class="param-format">{{param.format}}</td>
+            <td class="param-example" v-if="param.example !== undefined && param.example !== ''">{{param.example}}</td>
           </tr>
           </table>
+          <span style="font-size: 0.8em; color: #6c6c6c;"><br><b>*</b> marked parameters are required. Red marked parameter values are not valid.</span>
           <hr>
         </div>
           <br>
@@ -98,7 +132,8 @@
         </div>
         <br>
         <div>
-          <v-btn @click="submit_task"><v-icon>input</v-icon> submit</v-btn>
+          <v-btn @click="submit_task" :disabled="!isValidTask"><v-icon>input</v-icon> submit</v-btn>
+          <span v-show="!isValidTask" style="color: #ff3f01e6;">some missing required parameters</span>
         </div>
       </div>
   
@@ -222,7 +257,66 @@ export default {
           return error.message;
       }
       return error.message + " - " + error.response.data;
-  },
+    },
+    isParamRequiredOrNotEmpty(param) {
+      return param.required || !this.isEmpty(param.value);
+    },
+    isEmpty(value) {
+      return value === undefined || value.trim() === '';
+    },
+    isNumber(v) {
+      return v !== undefined && v !== '' && !isNaN(v);
+    },
+    isInteger(v) {
+      return v !== undefined && v !== '' && !isNaN(v) && Number.isInteger(+v);
+    },
+    isBoolean(v) {
+      return v === 'true' || v == 'false';
+    },
+    isStringArray(v) {
+      return this.parseStringArray(v).length > 0;
+    },
+    isNumberArray(v) {
+      return this.parseNumberArray(v).length > 0;
+    },
+    isNumberRect(v) {
+      return this.parseNumberArray(v).length === 4;
+    },
+    parseNumber(v) {
+      return (+v);
+    },    
+    parseInteger(v) {
+      return Number.parseInt(v);
+    },
+    isIntegerArray(v) {
+      return this.parseIntegerArray(v).length > 0;
+    },
+    parseBoolean(v) {
+      return v === 'true' ? true : v == 'false' ? false : undefined;
+    },
+    parseStringArray(v) {
+      if(v === undefined || v === '') {
+        return [];
+      }
+      return v.split(',').map(s => s.trim()).filter(s => s !== '');
+    },
+    parseNumberArray(v) {
+      var a = this.parseStringArray(v);
+      if(!a.every(e => this.isNumber(e))) {
+        return [];
+      }
+      return a.map(e => this.parseNumber(e));
+    },
+    parseNumberRect(v) {
+      return this.parseNumberArray(v); 
+    },
+    parseIntegerArray(v) {
+      var a = this.parseStringArray(v);
+      if(!a.every(e => this.isInteger(e))) {
+        return [];
+      }
+      return a.map(e => this.parseInteger(e));
+    },  
   },
   computed: {
     taskJSON() {
@@ -232,11 +326,60 @@ export default {
       var t = {};
       t[this.selectedCategory.category] = this.selectedRemoteTaskEntry.name;
       this.selectedRemoteTaskEntry.params.forEach(param => {
-        if(param.value !== undefined) {
-          t[param.name] = param.value;
+        if(!this.isEmpty(param.value)) {
+          switch(param.type) {
+            case 'string_array': {
+              if(this.isStringArray(param.value)) {
+                t[param.name] = this.parseStringArray(param.value);
+              }
+              break;
+            }
+            case 'number': {
+              if(this.isNumber(param.value)) {
+                t[param.name] = this.parseNumber(param.value);
+              }
+              break;
+            }
+            case 'number_array': {
+              if(this.isNumberArray(param.value)) {
+                t[param.name] = this.parseNumberArray(param.value);
+              }
+              break;
+            }
+            case 'number_rect': {
+              if(this.isNumberRect(param.value)) {
+                t[param.name] = this.parseNumberRect(param.value);
+              }
+              break;
+            }              
+            case 'integer': {
+              if(this.isInteger(param.value)) {
+                t[param.name] = this.parseInteger(param.value);
+              }
+              break;
+            }
+            case 'integer_array': {
+              if(this.isIntegerArray(param.value)) {
+                t[param.name] = this.parseIntegerArray(param.value);
+              }
+              break;
+            }
+            case 'boolean': {
+              if(this.isBoolean(param.value)) {
+                t[param.name] = this.parseBoolean(param.value);
+              }
+              break;
+            }            
+            default: {
+               t[param.name] = param.value;
+             }
+          }
         }
       });
       return t;
+    },
+    isValidTask() {
+      return this.selectedRemoteTaskEntry.params.filter(e => e.required).every(e => this.taskJSON[e.name] !== undefined); 
     },
     rasterdbs() {
       if(this.$store.state.rasterdbs.data === undefined) {
@@ -318,6 +461,21 @@ hr {
 
 .param-desc {
   font-style: italic;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.param-format {
+  color: #0f385b8a;
+  background-color: #62161603;
+  padding-right: 10px;
+}
+
+.param-example {
+  background-color: #7777770f;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #5b69750d;
 }
 
 .param-required {

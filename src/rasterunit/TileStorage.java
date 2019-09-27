@@ -442,7 +442,8 @@ public class TileStorage implements RasterUnitStorage {
 				ymax = y;
 			}			
 		}
-		return new Range2d(xmin, ymin, xmax, ymax);
+		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
+		return tileRange.isEmptyMarker() ? null : tileRange;
 	}
 
 	@Override
@@ -567,7 +568,8 @@ public class TileStorage implements RasterUnitStorage {
 				ymax = y;
 			}				
 		}
-		return new Range2d(xmin, ymin, xmax, ymax);
+		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
+		return tileRange.isEmptyMarker() ? null : tileRange;
 	}
 
 	@Override
@@ -583,9 +585,11 @@ public class TileStorage implements RasterUnitStorage {
 			TileKey max = new TileKey(t, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
 			ConcurrentNavigableMap<TileKey, TileSlot> tmap = map.subMap(min, true, max, true);
 			long cnt = tmap.size();
-			tmap.clear(); // remove all tile entries of timestamp
-			close(); // write removed entries to file
-			open(); // regenerate free slot list
+			if(cnt > 0) {
+				tmap.clear(); // remove all tile entries of timestamp
+				flush(); // write removed entries to file
+				open(); // regenerate free slot list
+			}
 			return cnt;
 		} finally {
 			refreshDerivedKeys();

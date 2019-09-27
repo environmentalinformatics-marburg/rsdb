@@ -22,7 +22,6 @@ import rasterdb.RasterDB;
 import rasterdb.TimeBandProcessor;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import remotetask.Context;
 import remotetask.Description;
@@ -36,11 +35,11 @@ import util.frame.BooleanFrame;
 
 @task_pointdb("index_raster")
 @Description("create raster of pointcloud with index metrics calculations. Existing target RasterDB layer is needed.")
-@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)")
-@Param(name="rasterdb", type="rasterdb", desc="existing ID of RasterDB layer (target)")
-@Param(name="indices",  desc="list of indices")
-@Param(name="rect",  desc="extent to process")
-@Param(name="mask_band",  desc="band number of mask in RasterDB layer", required=false)
+@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)", example="pointdb1")
+@Param(name="rasterdb", type="rasterdb", desc="existing ID of RasterDB layer (target)", example="rasterdb1")
+@Param(name="indices", type="string_array", desc="list of indices", example="BE_H_MAX, LAI, point_density")
+@Param(name="rect", type="number_rect", desc="extent to process", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000, 5530100, 609094, 609200")
+@Param(name="mask_band",  type="integer", desc="band number of mask in RasterDB layer, no mask if left empty", example="1", required=false)
 public class Task_index_raster extends RemoteTask{
 	private static final Logger log = LogManager.getLogger();
 

@@ -26,7 +26,7 @@
             </h3>
             <div class="meta-content" style="poisition: relative;">
                 <a :href="'#/viewer/' + rasterdb" target="_blank" title="open layer in viewer on new tab">
-                    <img :key="meta.name" :src="'../../rasterdb/' + meta.name + '/raster.png?width=200'" alt="" class="thumbnail" /> 
+                    <img :key="meta.name" :src="$store.getters.apiUrl(urlPrefix + 'rasterdb/' + meta.name + '/raster.png?width=200')" alt="" class="thumbnail" /> 
                 </a>
                 <table style="padding-right: 420px;">
                     <tr>

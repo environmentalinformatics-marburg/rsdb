@@ -91,17 +91,21 @@ create visualization raster from points
 ### task_pointdb: **"index_raster"**
 
 Pixels of an existing rasterdb layer are filled with index metrics calculated from pointdb layer.
+rasterdb layer can be created with `task_rasterdb: "create"`, if it does not exist.
 
-| name | value |
+| name | value | format
 | ------------- | ------------- |
-| **pointdb** | source: pointdb layer name (needs to be existing)|
-| **rasterdb** | target: rasterdb layer name (needs to be existing) |
-| **indices** | list of index metrics to calculate  |
-| **rect** | specifies a rectangle in target rasterdb that should be processed |
-| **mask_band** | (optional) band number in target rasterdb. specifies which pixels should be calculated, if not specified all pixels will be calculated |
+| **pointdb** | source: pointdb layer name (needs to be existing)| "pointdbID" |
+| **rasterdb** | target: rasterdb layer name (needs to be existing) | "rasterdbID" |
+| **indices** | list of index metrics to calculate  | ["index1", "index2", "index3"] |
+| **rect** | specifies a rectangle in target rasterdb that should be processed | [xmin, ymin, xmax, ymax] |
+| **mask_band** | (optional) band number in target rasterdb. specifies which pixels should be calculated, if not specified all pixels will be calculated | bandIndex |
 
 ~~~json
-{task_pointdb: "index_raster", pointdb: "area", rasterdb: "indices", rect: [100, 100, 200, 200], mask_band: 1}
+{task_pointdb: "index_raster", pointdb: "myPointDB", "rasterdb": "myRasterDB", "indices": ["BE_H_MAX"], "rect": [608976, 5524981, 609094, 5525066]}
+{task_pointdb: "index_raster", pointdb: "myPointDB", "rasterdb": "myRasterDB", "indices": ["area", "BE_H_MAX"], "rect": [608976, 5524981, 609094, 5525066]}
+{task_pointdb: "index_raster", pointdb: "myPointDB", "rasterdb": "myRasterDB", "indices": ["area", "BE_H_MAX"], mask_band: 1}
+{task_pointdb: "index_raster", pointdb: "myPointDB", "rasterdb": "myRasterDB", "indices": ["area", "BE_H_MAX"], mask_band: 1, "rect": [608976, 5524981, 609094, 5525066]}
 ~~~
 
 ### task_pointdb: **"to_pointcloud"**

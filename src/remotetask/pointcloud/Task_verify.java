@@ -13,10 +13,6 @@ import broker.acl.EmptyACL;
 import pointcloud.AttributeSelector;
 import pointcloud.CellTable;
 import pointcloud.PointCloud;
-import pointdb.PointDB;
-import pointdb.base.Tile;
-import pointdb.processing.tile.TileConsumer;
-import pointdb.processing.tile.TileProducer;
 import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
@@ -24,7 +20,7 @@ import remotetask.Param;
 
 @task_pointcloud("verify")
 @Description("check point data")
-@Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer")
+@Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer", example="pointcloud1")
 public class Task_verify extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 

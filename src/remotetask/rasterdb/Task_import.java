@@ -19,9 +19,9 @@ import remotetask.RemoteTask;
 
 @task_rasterdb("import")
 @Description("import raster file data into rasterdb layer")
-@Param(name="rasterdb", desc="ID of RasterDB layer (new or existing)")
-@Param(name="file", desc="Raster file to import (located on server)")
-@Param(name="band", desc="existing band number as import target", required=false)
+@Param(name="rasterdb", type="layer_id", desc="ID of RasterDB layer (new or existing)", example="rasterdb1")
+@Param(name="file", format="path", desc="Raster file to import (located on server)", example="data/raster.tiff")
+@Param(name="band", type="integer", desc="existing band number as import target", example="1", required=false)
 public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 

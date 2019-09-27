@@ -57,7 +57,7 @@ public class RasterdbsHandler extends AbstractHandler {
 				if (rasterdb.isAllowed(Web.getUserIdentity(request))) {
 					json.object();
 					JsonUtil.put(json, "name", name);
-					
+
 					String title = rasterdb.informal().title;
 					if(title != null && !title.isEmpty()) {
 						JsonUtil.put(json, "title", title);
@@ -68,13 +68,13 @@ public class RasterdbsHandler extends AbstractHandler {
 					for(String tag:rasterdb.informal().tags) {
 						rasterdbTags.add(tag);
 					}
-					
+
 					if(includeInfo) {
 						JsonUtil.put(json, "description", rasterdb.informal().description);
 						JsonUtil.optPut(json, "acquisition_date", rasterdb.informal().acquisition_date);
 						JsonUtil.optPut(json, "corresponding_contact", rasterdb.informal().corresponding_contact);
 					}
-					
+
 					if(includeBands) {
 						json.key("bands");
 						json.array();
@@ -122,22 +122,23 @@ public class RasterdbsHandler extends AbstractHandler {
 							json.key("y");
 							json.value(ref.pixel_size_y);
 							json.endObject();
-							json.key("extent");
 							Range2d localRange = rasterdb.getLocalRange(false);
-
-							json.array();
-							json.value(ref.pixelXToGeo(localRange.xmin));
-							json.value(ref.pixelYToGeo(localRange.ymin));
-							json.value(ref.pixelXToGeo(localRange.xmax));
-							json.value(ref.pixelYToGeo(localRange.ymax));
-							json.endArray();
-							json.key("internal_rasterdb_extent");
-							json.array();
-							json.value(localRange.xmin);
-							json.value(localRange.ymin);
-							json.value(localRange.xmax);
-							json.value(localRange.ymax);
-							json.endArray();
+							if(localRange != null) {
+								json.key("extent");
+								json.array();
+								json.value(ref.pixelXToGeo(localRange.xmin));
+								json.value(ref.pixelYToGeo(localRange.ymin));
+								json.value(ref.pixelXToGeo(localRange.xmax));
+								json.value(ref.pixelYToGeo(localRange.ymax));
+								json.endArray();
+								json.key("internal_rasterdb_extent");
+								json.array();
+								json.value(localRange.xmin);
+								json.value(localRange.ymin);
+								json.value(localRange.xmax);
+								json.value(localRange.ymax);
+								json.endArray();
+							}
 						}
 						json.endObject();
 					}

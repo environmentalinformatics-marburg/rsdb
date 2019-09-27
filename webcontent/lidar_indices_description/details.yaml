@@ -1,5 +1,9 @@
 valid: true
 # details of processing functions
+AGB: |
+  reference: Getzin, S., Fischer, R., Knapp, N. et al.: Using airborne LiDAR to assess spatial heterogeneity in forest structure on Mount Kilimanjaro. Landscape Ecol (2017) 32: 1881. <a href="https://doi.org/10.1007/s10980-017-0550-7">https://doi.org/10.1007/s10980-017-0550-7</a>
+AGB_carbon: |
+  reference: Getzin, S., Fischer, R., Knapp, N. et al.: Using airborne LiDAR to assess spatial heterogeneity in forest structure on Mount Kilimanjaro. Landscape Ecol (2017) 32: 1881. <a href="https://doi.org/10.1007/s10980-017-0550-7">https://doi.org/10.1007/s10980-017-0550-7</a>
 area: |
   Area that is covered by query polygon resp. rectangle. (independent of LiDAR point data)
 bbox_area: |

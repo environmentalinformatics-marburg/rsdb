@@ -77,6 +77,10 @@ public class APIHandler_remote_task_entries extends APIHandler {
 					res.value(param.type);
 					res.key("desc");
 					res.value(param.desc);
+					res.key("format");
+					res.value(param.format);
+					res.key("example");
+					res.value(param.example);
 					res.key("required");
 					res.value(param.required);
 					res.endObject();

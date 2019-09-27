@@ -26,7 +26,7 @@
             </h3> 
             <div class="meta-content">
                 <a v-if="meta.associated.rasterdb !== undefined" :href="'#/viewer/' + meta.associated.rasterdb" target="_blank" title="open layer in viewer on new tab">
-                    <img :key="meta.associated.rasterdb" :src="'../../rasterdb/' + meta.associated.rasterdb + '/raster.png?width=200'" alt="" class="thumbnail" />
+                    <img :key="meta.associated.rasterdb" :src="$store.getters.apiUrl('rasterdb/' + meta.associated.rasterdb + '/raster.png?width=200')" alt="" class="thumbnail" />
                 </a>
                 <table style="padding-right: 420px;">
                     <tr>
@@ -217,7 +217,7 @@ export default {
             return [a];
         },
         app_lidar_indices() {
-            var url = this.urlPrefix + '../../web/lidar_indices/lidar_indices.html';
+            var url = this.$store.getters.apiUrl('web/lidar_indices/lidar_indices.html');
             window.open(url, '_blank');
         },
     },

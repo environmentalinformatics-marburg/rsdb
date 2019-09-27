@@ -14,7 +14,7 @@ import remotetask.RemoteTask;
 
 @task_rasterdb("rebuild_pyramid")
 @Description("Recreate pyramid of scaled down rasters for visualisation")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="rasterdb1")
 public class Task_rebuild_pyramid extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 	

@@ -10,8 +10,8 @@ import util.TimeUtil;
 
 @task_rasterdb("remove_timestamps")
 @Description("Remove all pixel data of all bands at some timestamps")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer")
-@Param(name="timestamps", desc="array of integer timestamps")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="rasterdb1")
+@Param(name="timestamps", type="integer_array", desc="array of integer timestamps", example="1, 2, 3")
 public class RemoveTimestampsRemoteTask extends RemoteTask {
 
 	//private final Broker broker;

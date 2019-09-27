@@ -44,7 +44,7 @@ function init() {
         ymax: 0,
 
 
-        fileFormats: { las: "LAS", xyz: "xyz", rdat: "rDAT", zip: "las file tiles in ZIP file },
+        fileFormats: { las: "LAS", xyz: "xyz", rdat: "rDAT", zip: "las file tiles in ZIP file" },
         fileFormat: "las",
       };
     },

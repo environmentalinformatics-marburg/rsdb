@@ -25,9 +25,9 @@ import remotetask.Param;
 
 @task_pointcloud("rebuild")
 @Description("create new pointcloud (with other storage type and/or high compressed data) form source pointcloud and with name [source]_rebuild")
-@Param(name="pointcloud", type="pointcloud", desc="ID of PointCloud layer (source)")
-@Param(name="storage_type", desc="storage type of new PointCloud RasterUnit (default) or TileStorage", required=false)
-@Param(name="compression_level", desc="level of compression (0 to 100) if missing no recompression is applied", required=false)
+@Param(name="pointcloud", type="pointcloud", desc="ID of PointCloud layer (source)", example="pointcloud1")
+@Param(name="storage_type", desc="storage type of new PointCloud: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Param(name="compression_level", type="integer", desc="level of compression (0 to 100) if missing no recompression is applied", example="1", required=false)
 public class Task_rebuild extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 

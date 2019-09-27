@@ -43,7 +43,10 @@ public class RequestProcessor {
 			int scaleDiv = Web.getInt(request, "div", 1);
 			int reqWidth = Web.getInt(request, "width", -1);
 			int reqHeight = Web.getInt(request, "height", -1);
-			Range2d range2d = getRange2d(rasterdb, request, rasterdb.ref(), reqWidth, reqHeight);		
+			Range2d range2d = getRange2d(rasterdb, request, rasterdb.ref(), reqWidth, reqHeight);
+			if(range2d == null) {
+				return;
+			}
 
 			int timestamp = getTimestamp(request, rasterdb.rasterUnit());
 
@@ -54,7 +57,12 @@ public class RequestProcessor {
 				scaleDiv = TimeBandProcessor.calcScale(range2d, reqWidth, reqHeight);
 			}
 			
-			BandProcessor processor = new BandProcessor(rasterdb, Web.getFlag(request, "clipped") ? range2d.clip(rasterdb.getLocalRange(false)) : range2d, timestamp, scaleDiv);
+			Range2d rasterLocalRange = rasterdb.getLocalRange(false);
+			if(Web.getFlag(request, "clipped") && rasterLocalRange == null) {
+				return;
+			}
+			
+			BandProcessor processor = new BandProcessor(rasterdb, Web.getFlag(request, "clipped") ? range2d.clip(rasterLocalRange) : range2d, timestamp, scaleDiv);
 
 			log.info("processor dstRange " + processor.getDstRange());
 			log.info("processor srcRange " + processor.getSrcRange());
@@ -153,6 +161,15 @@ public class RequestProcessor {
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param rasterdb
+	 * @param request
+	 * @param ref
+	 * @param reqWidth
+	 * @param reqHeight
+	 * @return range or null
+	 */
 	private static Range2d getRange2d(RasterDB rasterdb, Request request, GeoReference ref, int reqWidth, int reqHeight) {
 		String extText = request.getParameter("ext");
 		if(extText == null) {

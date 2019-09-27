@@ -573,13 +573,21 @@ public class PointCloud implements AutoCloseable {
 
 	public DoubleRect getRange() {
 		Range2d range2d = griddb.getTileRange();
-		double xmin = (celloffset.x + range2d.xmin) * cellsize;
-		double ymin = (celloffset.y + range2d.ymin) * cellsize;
-		double xmax = (celloffset.x + range2d.xmax + 1) * cellsize - (1 / cellscale);
-		double ymax = (celloffset.y + range2d.ymax + 1) * cellsize - (1 / cellscale);
-		return new DoubleRect(xmin, ymin, xmax, ymax);
+		if(range2d == null) {
+			return null;
+		} else {
+			double xmin = (celloffset.x + range2d.xmin) * cellsize;
+			double ymin = (celloffset.y + range2d.ymin) * cellsize;
+			double xmax = (celloffset.x + range2d.xmax + 1) * cellsize - (1 / cellscale);
+			double ymax = (celloffset.y + range2d.ymax + 1) * cellsize - (1 / cellscale);
+			return new DoubleRect(xmin, ymin, xmax, ymax);
+		}
 	}
 
+	/**
+	 * 
+	 * @return range or null
+	 */
 	public Range2d getCellRange() {
 		return griddb.getTileRange();
 	}
@@ -693,12 +701,12 @@ public class PointCloud implements AutoCloseable {
 		this.informal = informal;
 		griddb.writeMeta();
 	}
-	
+
 	public void setAssociatedRasterDB(String name) {
 		associated.setRasterDB(name);
 		griddb.writeMeta();
 	}
-	
+
 	public void commitMeta() {
 		griddb.writeMeta();
 	}

@@ -154,5 +154,9 @@ public class Range2d {
 				consumer.accept(xtile, ytile, tile_range2d);
 			}
 		}
-	}	
+	}
+	
+	public boolean isEmptyMarker() {
+		return xmin == Integer.MAX_VALUE && ymin == Integer.MAX_VALUE && xmax == Integer.MIN_VALUE && ymax == Integer.MAX_VALUE;
+	}
 }

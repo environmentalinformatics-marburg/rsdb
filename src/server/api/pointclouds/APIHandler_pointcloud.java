@@ -139,20 +139,24 @@ public class APIHandler_pointcloud {
 		json.key("cell_scale");
 		json.value(pointcloud.getCellscale());
 		if(requestExtent) {
-			json.key("extent");
-			json.array();
-			json.value(range.xmin);
-			json.value(range.ymin);
-			json.value(range.xmax);
-			json.value(range.ymax);
-			json.endArray();
-			json.key("cell_extent");
-			json.array();
-			json.value(cell_range.xmin);
-			json.value(cell_range.ymin);
-			json.value(cell_range.xmax);
-			json.value(cell_range.ymax);
-			json.endArray();
+			if(range != null) {
+				json.key("extent");
+				json.array();
+				json.value(range.xmin);
+				json.value(range.ymin);
+				json.value(range.xmax);
+				json.value(range.ymax);
+				json.endArray();
+			}
+			if(cell_range != null) {
+				json.key("cell_extent");
+				json.array();
+				json.value(cell_range.xmin);
+				json.value(cell_range.ymin);
+				json.value(cell_range.xmax);
+				json.value(cell_range.ymax);
+				json.endArray();
+			}
 		}
 		json.key("raster_types");
 		json.array();
@@ -168,10 +172,10 @@ public class APIHandler_pointcloud {
 		json.key("modify");
 		json.value(pointcloud.isAllowedMod(userIdentity));
 		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
-			json.key("acl");
-			pointcloud.getACL().writeJSON(json);
-			json.key("acl_mod");
-			pointcloud.getACL_mod().writeJSON(json);
+		json.key("acl");
+		pointcloud.getACL().writeJSON(json);
+		json.key("acl_mod");
+		pointcloud.getACL_mod().writeJSON(json);
 		//}
 		json.key("attributes");
 		json.value(pointcloud.getSelector().toArray());

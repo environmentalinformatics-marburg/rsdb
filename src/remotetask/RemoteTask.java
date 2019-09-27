@@ -1,6 +1,7 @@
 package remotetask;
 
 import java.util.Comparator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
@@ -13,6 +14,8 @@ import remotetask.vectordb.task_vectordb;
 
 public abstract class RemoteTask implements Runnable {
 	private static final Logger log = LogManager.getLogger();
+	
+	private ConcurrentLinkedQueue<String> logMessages = new ConcurrentLinkedQueue<String>();
 	
 	private static final AtomicLong cnt = new AtomicLong(0);
 	
@@ -70,8 +73,8 @@ public abstract class RemoteTask implements Runnable {
 	
 	protected final void setMessage(String message) {
 		lastMessageTime = System.currentTimeMillis();
-		log.info("message: " + message);
 		this.message = message;
+		log(message);
 	}
 	
 	protected boolean isMessageTime() {
@@ -113,5 +116,14 @@ public abstract class RemoteTask implements Runnable {
 	
 	public boolean isCanceled() {
 		return false;
+	}
+	
+	protected void log(String message) {
+		logMessages.add(message);
+		log.info(message);
+	}
+
+	public ConcurrentLinkedQueue<String> getLog() {
+		return logMessages;
 	}
 }

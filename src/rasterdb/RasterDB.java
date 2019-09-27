@@ -254,21 +254,39 @@ public class RasterDB implements AutoCloseable {
 		writeMeta();
 	}
 
+	/**
+	 * 
+	 * @param update
+	 * @return range or null
+	 */
 	public synchronized Range2d getLocalRange(boolean update) {
 		if(local_extent == null || update) {
 			synchronized(this) {
 				if(local_extent == null || update) {
 					if(calcExactLocalRange) {
 						Range2d localRangeUpdated = LocalExtentCalculator.calc(this);
-						if(!localRangeUpdated.equals(local_extent)) {
+						if(localRangeUpdated == null) {
+							if(local_extent != null) {
+								local_extent = null;
+								writeMeta();
+							}
+						} else if(!localRangeUpdated.equals(local_extent)) {
 							local_extent = localRangeUpdated;
 							writeMeta();
 						}
 					} else {
-						Range2d localRangeUpdated = rasterUnit().getTileRange().mul(TilePixel.PIXELS_PER_ROW).add(0, 0, TilePixel.PIXELS_PER_ROW_1, TilePixel.PIXELS_PER_ROW_1);
-						if(!localRangeUpdated.equals(local_extent)) {
-							local_extent = localRangeUpdated;
-							writeMeta();
+						Range2d tileRange = rasterUnit().getTileRange();
+						if(tileRange == null) {
+							if(local_extent != null) {
+								local_extent = null;
+								writeMeta();
+							}
+						} else {
+							Range2d localRangeUpdated = tileRange.mul(TilePixel.PIXELS_PER_ROW).add(0, 0, TilePixel.PIXELS_PER_ROW_1, TilePixel.PIXELS_PER_ROW_1);
+							if(!localRangeUpdated.equals(local_extent)) {
+								local_extent = localRangeUpdated;
+								writeMeta();
+							}
 						}
 					}
 				}
