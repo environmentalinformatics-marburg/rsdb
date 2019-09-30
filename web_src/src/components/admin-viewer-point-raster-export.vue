@@ -47,7 +47,7 @@
 
 <script>
 
-import axios from 'axios';
+import axios from 'axios'
 
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'

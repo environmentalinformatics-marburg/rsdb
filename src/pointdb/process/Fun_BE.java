@@ -507,8 +507,11 @@ public class Fun_BE {
 		private final double hsetMin;
 		private final double hsetMax;
 		public Fun_BE_PR_INTERVAL(int hsetMax) {
-			super("BE_PR_" + (hsetMax<=9 ? "0" : "") + hsetMax, "Penetration rate (pass through rate) of "+hsetMax+" meter layer (based on point height above ground)");
-			this.hsetMin = hsetMax - 1;
+			this(hsetMax - 1, hsetMax, "BE_PR_" + (hsetMax<=9 ? "0" : "") + hsetMax, "Penetration rate (pass through rate) of "+hsetMax+" meter layer (based on point height above ground)");
+		}
+		public Fun_BE_PR_INTERVAL(double hsetMin, double hsetMax, String name, String descrption) {
+			super(name, descrption);
+			this.hsetMin = hsetMin;
 			this.hsetMax = hsetMax;
 		}
 		@Override
@@ -550,11 +553,11 @@ public class Fun_BE {
 	static class Fun_BE_RD_INTERVAL extends ProcessingFun {
 		private final double hsetMin;
 		private final double hsetMax;
-		public Fun_BE_RD_INTERVAL(int hsetMax) {
-			super("BE_RD_" + (hsetMax<=9 ? "0" : "") + hsetMax, "Return density of "+hsetMax+" meter layer (based on point height above ground)");
-			this.hsetMin = hsetMax - 1;
+		public Fun_BE_RD_INTERVAL(double hsetMin, double hsetMax, String name, String description) {
+			super(name, description);
+			this.hsetMin = hsetMin;
 			this.hsetMax = hsetMax;
-		}
+		}		
 		@Override
 		public double process(DataProvider2 provider) {
 			double cnt = 0;

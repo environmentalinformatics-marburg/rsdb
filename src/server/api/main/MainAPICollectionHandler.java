@@ -23,6 +23,7 @@ public class MainAPICollectionHandler extends APICollectionHandler {
 		addMethod(new APIHandler_remote_tasks(broker));
 		addMethod(new APIHandler_remote_task_entries(broker));
 		addMethod(new APIHandler_proxy(broker));
+		addMethod(new APIHandler_connection_test(broker));
 	}
 
 }

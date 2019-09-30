@@ -15,7 +15,7 @@
     </template>
   </multiselect>
 
-  <b>Connection</b>
+  <b>Connection</b> <button @click="connection_test">conntection test</button>
   <multiselect v-model="selectedFormat" :options="formatOptions" :searchable="true" :show-labels="false" placeholder="pick a format" :allowEmpty="false">
     <template slot="singleLabel" slot-scope="{option}">
       {{option.title}}
@@ -48,6 +48,7 @@
 
 <script>
 
+import axios from 'axios'
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 import VueDraggableResizable from 'vue-draggable-resizable'
@@ -92,7 +93,20 @@ export default {
       selectedOneBandMapping: "grey",
     }
   },
-  methods: {   
+  methods: {
+    async connection_test() {
+      console.log("connection test start");
+      try {
+        var tstart = performance.now();
+        await axios.get(this.$store.getters.apiUrl('api/connection_test'), {responseType: 'arraybuffer'});
+        var tend = performance.now();
+        var tduration = tend - tstart;
+        var mbps = ((10 * 1000) / tduration).toFixed(0);
+        console.log("connection test end " + tduration + "    " + mbps +" MB/s");
+      } catch {
+        console.log("connection test error");
+      }
+    }   
   },
   computed: {
   },

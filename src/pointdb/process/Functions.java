@@ -42,8 +42,20 @@ public class Functions {
 		for (int i = 1; i <= 55; i++) {
         	Functions.add(new Fun_BE_PR_INTERVAL(i));			
 		}
-		for (int i = 1; i <= 55; i++) {
-        	Functions.add(new Fun_BE_RD_INTERVAL(i));			
+		
+		int LAYER_MAX = 55;
+		for (int i = 1; i <= LAYER_MAX; i++) {
+			double hsetMin = i == 1 ? Double.NEGATIVE_INFINITY : i - 1;
+			double hsetMax = i == LAYER_MAX ? Double.POSITIVE_INFINITY : i;
+			String name = "BE_RD_" + (i<=9 ? "0" : "") + i;
+			String description = "Return density of " + i + " meter layer (based on point height above ground)";
+			if(i == 1) {
+				description = "Return density of " + i + " meter layer (points below included) (based on point height above ground)";
+			}
+			if( i == LAYER_MAX) {
+				description = "Return density of " + i + " meter layer (points above included) (based on point height above ground)";
+			}
+        	Functions.add(new Fun_BE_RD_INTERVAL(hsetMin, hsetMax, name, description));			
 		}
 		
 		for(ProcessingFun fun:funMap.values()) {
