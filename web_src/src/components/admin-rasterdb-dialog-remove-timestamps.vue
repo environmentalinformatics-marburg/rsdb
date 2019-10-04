@@ -1,8 +1,8 @@
 <template>
-    <span>
+    <span  style="display: inline-block;">
         <v-dialog v-model="dialog" lazy absolute width="800px">
             <v-btn title="open dialog to select and remove timestamps of this rasterdb layer" slot="activator">
-                <v-icon left>folder_open</v-icon>remove (some) timestamps
+                <v-icon left>folder_open</v-icon>timestamps
             </v-btn>
             <v-card>
                 <v-card-title>

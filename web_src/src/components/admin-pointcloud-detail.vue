@@ -75,7 +75,8 @@
             </div>
 
             <v-divider class="meta-divider"></v-divider> 
-            <h3 class="subheading mb-0"> 
+            <h3 class="subheading mb-0">
+                <admin-pointcloud-dialog-set-associated :meta="meta" @changed="refresh" v-if="modify" /> 
                 Associated
             </h3>
             <div class="meta-content">
@@ -165,6 +166,7 @@ import { mapGetters } from 'vuex'
 import axios from 'axios'
 import adminPointcloudDialogSetInfo from './admin-pointcloud-dialog-set-info.vue'
 import adminPointcloudDialogSetProjection from './admin-pointcloud-dialog-set-projection.vue'
+import adminPointcloudDialogSetAssociated from './admin-pointcloud-dialog-set-associated.vue'
 import adminPointcloudDialogSetAcl from './admin-pointcloud-dialog-set-acl.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
@@ -174,6 +176,7 @@ export default {
     components: {
         'admin-pointcloud-dialog-set-info': adminPointcloudDialogSetInfo,
         'admin-pointcloud-dialog-set-projection': adminPointcloudDialogSetProjection,
+        'admin-pointcloud-dialog-set-associated': adminPointcloudDialogSetAssociated,
         'admin-pointcloud-dialog-set-acl': adminPointcloudDialogSetAcl,
         PulseLoader,        
     },

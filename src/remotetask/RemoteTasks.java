@@ -15,7 +15,6 @@ import remotetask.pointdb.Task_index_raster;
 import remotetask.pointdb.Task_to_pointcloud;
 import remotetask.pointdb.Task_verify;
 import remotetask.pointdb.task_pointdb;
-import remotetask.rasterdb.RemoveTimestampsRemoteTask;
 import remotetask.rasterdb.Task_count_pixels;
 import remotetask.rasterdb.Task_create;
 import remotetask.rasterdb.Task_create_band;
@@ -23,6 +22,8 @@ import remotetask.rasterdb.Task_import;
 import remotetask.rasterdb.Task_rebuild;
 import remotetask.rasterdb.Task_rebuild_pyramid;
 import remotetask.rasterdb.Task_refresh_extent;
+import remotetask.rasterdb.Task_remove_bands;
+import remotetask.rasterdb.Task_remove_timestamps;
 import remotetask.rasterdb.task_rasterdb;
 import remotetask.vectordb.RefreshCatalogEntryRemoteTask;
 import remotetask.vectordb.task_vectordb;
@@ -40,7 +41,8 @@ public class RemoteTasks {
 
 	static {
 		//task_rasterdb
-		put(RemoveTimestampsRemoteTask.class);
+		put(Task_remove_timestamps.class);
+		put(Task_remove_bands.class);
 		put(Task_create.class);
 		put(Task_create_band.class);
 		put(Task_import.class);

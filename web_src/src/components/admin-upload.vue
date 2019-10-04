@@ -3,6 +3,7 @@
     <div class="innergrid-item-main">
 
     <div v-if="uploadState === 'init'">
+      <h1 style="text-align: center;">Raster File Upload</h1>
 
     <uploader :options="options" class="uploader-example" @file-success="inspectFilename = $event.name; uploadState = 'done';">
       <uploader-unsupport></uploader-unsupport>

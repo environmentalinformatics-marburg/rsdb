@@ -15,8 +15,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.http.CompressedContentFormat;
 import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.http2.HTTP2Cipher;
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
@@ -27,6 +30,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConfiguration.Customizer;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.OptionalSslConnectionFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Response;
@@ -82,12 +86,89 @@ public class PointDBServer {
 	private static final String WEBFILES_PATH = "webfiles"; //static files for user download (with folder listing)
 	private static final String WEBFILES_CSS_FILE = WEBCONTENT_PATH+"/jetty-dir.css"; // stylesheet for webfiles directory listing
 
-	private static final File KEYSTORE_FILE = new File("keystore");	
+	private static final File KEYSTORE_FILE = new File("keystore");
+	
+	private static HttpConfiguration createBaseHttpConfiguration() {
+		HttpConfiguration httpConfiguration = new HttpConfiguration();
+		httpConfiguration.setSendServerVersion(false);
+		httpConfiguration.setSendDateHeader(false);
+		httpConfiguration.setSendXPoweredBy(false);
+		return httpConfiguration;
+	}
+	
+	private static HttpConfiguration createJwsHttpConfiguration() {
+		HttpConfiguration httpConfiguration = createBaseHttpConfiguration();
+		httpConfiguration.addCustomizer(new Customizer() {			
+			@Override
+			public void customize(Connector connector, HttpConfiguration channelConfig, Request request) {
+				request.setAttribute("JWS", "JWS");				
+			}
+		});
+		return httpConfiguration;
+	}
+	
+	private static HttpConfiguration createBaseHttpsConfiguration(int https_port) {
+		HttpConfiguration httpsConfiguration = createBaseHttpConfiguration();
+		httpsConfiguration.setSecureScheme("https");
+		httpsConfiguration.setSecurePort(https_port);
+		httpsConfiguration.setOutputBufferSize(32768);
+		SecureRequestCustomizer src = new SecureRequestCustomizer();
+		src.setStsMaxAge(2000);
+		src.setStsIncludeSubDomains(true);
+		httpsConfiguration.addCustomizer(src);
+		return httpsConfiguration;
+	}
+	
+	private static HttpConfiguration createJwsHttpsConfiguration(int https_port) {
+		HttpConfiguration httpsConfiguration = createBaseHttpsConfiguration(https_port);
+		httpsConfiguration.addCustomizer(new Customizer() {			
+			@Override
+			public void customize(Connector connector, HttpConfiguration channelConfig, Request request) {
+				request.setAttribute("JWS", "JWS");				
+			}
+		});
+		return httpsConfiguration;
+	}
+	
+	private static ServerConnector createHttpConnector(Server server, int http_port, HttpConfiguration httpConfiguration) {
+		HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfiguration);		
+		ServerConnector httpServerConnector = new ServerConnector(server, httpConnectionFactory);
+		httpServerConnector.setPort(http_port);
+		httpServerConnector.setIdleTimeout(DATA_TRANSFER_TIMEOUT_MILLISECONDS);
+		httpServerConnector.setAcceptQueueSize(0);
+		return httpServerConnector;
+	}
+	
+	private static ServerConnector createHttpsConnector(Server server, int https_port, String keystore_password, HttpConfiguration https_config) {
+		HTTP2ServerConnectionFactory https2ConnectionFactory = new HTTP2ServerConnectionFactory(https_config);
+		ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
+		alpn.setDefaultProtocol("h2");
+		
+		SslContextFactory sslContextFactory = new SslContextFactory.Server();
+		sslContextFactory.setKeyStorePath(KEYSTORE_FILE.getAbsolutePath());
+		sslContextFactory.setKeyStorePassword(keystore_password);
+		sslContextFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
+		
+		//SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString());
+		SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, alpn.getProtocol());
+		
+		OptionalSslConnectionFactory optionalSslConnectionFactory = new OptionalSslConnectionFactory(sslConnectionFactory, HttpVersion.HTTP_1_1.asString());
+		
+		HttpConnectionFactory httpsConnectionFactory = new HttpConnectionFactory(https_config);
+		
+		//ServerConnector httpsServerConnector = new ServerConnector(server, optionalSslConnectionFactory, sslConnectionFactory, httpsConnectionFactory);
+		ServerConnector httpsServerConnector = new ServerConnector(server, optionalSslConnectionFactory, sslConnectionFactory, alpn, https2ConnectionFactory, httpsConnectionFactory);
+		httpsServerConnector.setPort(https_port);
+		httpsServerConnector.setIdleTimeout(DATA_TRANSFER_TIMEOUT_MILLISECONDS);
+		httpsServerConnector.setAcceptQueueSize(0);
+		return httpsServerConnector;
+	}	
+
 
 	public static Server createServer(Broker broker) {
 
-		final int port = broker.brokerConfig.server().port;		
-		Util.checkPortNotListening(port);
+		final int http_port = broker.brokerConfig.server().port;		
+		Util.checkPortNotListening(http_port);
 
 		//Server server = new Server(new QueuedThreadPool(7)); //min 7
 		Server server = new Server();
@@ -101,94 +182,26 @@ public class PointDBServer {
 		};
 		server.setRequestLog(requestLog);
 
+		ServerConnector httpServerConnector = createHttpConnector(server, http_port, createBaseHttpConfiguration());		
 
-
-		HttpConfiguration httpConfiguration = new HttpConfiguration();
-		httpConfiguration.setSendServerVersion(false);
-		httpConfiguration.setSendDateHeader(false);
-		httpConfiguration.setSendXPoweredBy(false);
-		HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfiguration);		
-		ServerConnector httpServerConnector = new ServerConnector(server, httpConnectionFactory);
-		httpServerConnector.setPort(port);
-		httpServerConnector.setIdleTimeout(DATA_TRANSFER_TIMEOUT_MILLISECONDS);
-		httpServerConnector.setAcceptQueueSize(0);
-
-		
-
-		ServerConnector jswHttpServerConnector = null;
-		if(broker.brokerConfig.server().isJwsPort()) {
+		ServerConnector jwsServerConnector = null;
+		if(broker.brokerConfig.server().useJwsPort()) {
 			if(KEYSTORE_FILE.exists()) {
-				HttpConfiguration jwsHttpConfiguration = new HttpConfiguration();
-				jwsHttpConfiguration.setSendServerVersion(false);
-				jwsHttpConfiguration.setSendDateHeader(false);
-				jwsHttpConfiguration.setSendXPoweredBy(false);
-				jwsHttpConfiguration.addCustomizer(new Customizer() {			
-					@Override
-					public void customize(Connector connector, HttpConfiguration channelConfig, Request request) {
-						request.setAttribute("JWS", "JWS");				
-					}
-				});
-				jwsHttpConfiguration.setSecureScheme("https");
-				jwsHttpConfiguration.setSecurePort(broker.brokerConfig.server().jws_port);
-				jwsHttpConfiguration.setOutputBufferSize(32768);
-
-				SecureRequestCustomizer src = new SecureRequestCustomizer();
-				src.setStsMaxAge(2000);
-				src.setStsIncludeSubDomains(true);
-				jwsHttpConfiguration.addCustomizer(src);
-				SslContextFactory sslContextFactory = new SslContextFactory();
-				sslContextFactory.setKeyStorePath(KEYSTORE_FILE.getAbsolutePath());
-				sslContextFactory.setKeyStorePassword(broker.brokerConfig.server().keystore_password);
-				SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString());
-				jswHttpServerConnector = new ServerConnector(server, sslConnectionFactory, new HttpConnectionFactory(jwsHttpConfiguration));
-				jswHttpServerConnector.setPort(broker.brokerConfig.server().jws_port);
-				jswHttpServerConnector.setIdleTimeout(500000);				
-			} else {				
-				HttpConfiguration jwsHttpConfiguration = new HttpConfiguration();
-				jwsHttpConfiguration.setSendServerVersion(false);
-				jwsHttpConfiguration.setSendDateHeader(false);
-				jwsHttpConfiguration.setSendXPoweredBy(false);
-				jwsHttpConfiguration.addCustomizer(new Customizer() {			
-					@Override
-					public void customize(Connector connector, HttpConfiguration channelConfig, Request request) {
-						request.setAttribute("JWS", "JWS");				
-					}
-				});
-				
-				HttpConnectionFactory jswHttpConnectionFactory = new HttpConnectionFactory(jwsHttpConfiguration);
-				jswHttpServerConnector = new ServerConnector(server, jswHttpConnectionFactory);
-				jswHttpServerConnector.setPort(broker.brokerConfig.server().jws_port);
-				jswHttpServerConnector.setIdleTimeout(DATA_TRANSFER_TIMEOUT_MILLISECONDS);
-				jswHttpServerConnector.setAcceptQueueSize(0);
+				jwsServerConnector = createHttpsConnector(server, broker.brokerConfig.server().jws_port, broker.brokerConfig.server().keystore_password, createJwsHttpsConfiguration(broker.brokerConfig.server().jws_port));					
+			} else {
+				jwsServerConnector = createHttpConnector(server, broker.brokerConfig.server().jws_port, createJwsHttpConfiguration());				
 			}
 		}
 
 		if(KEYSTORE_FILE.exists()) {
-			HttpConfiguration https_config = new HttpConfiguration();
-			https_config.setSendServerVersion(false);
-			https_config.setSendDateHeader(false);
-			https_config.setSendXPoweredBy(false);
-			https_config.setSecureScheme("https");
-			https_config.setSecurePort(broker.brokerConfig.server().secure_port);
-			https_config.setOutputBufferSize(32768);
-			SecureRequestCustomizer src = new SecureRequestCustomizer();
-			src.setStsMaxAge(2000);
-			src.setStsIncludeSubDomains(true);
-			https_config.addCustomizer(src);
-			SslContextFactory sslContextFactory = new SslContextFactory();
-			sslContextFactory.setKeyStorePath(KEYSTORE_FILE.getAbsolutePath());
-			sslContextFactory.setKeyStorePassword(broker.brokerConfig.server().keystore_password);
-			SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString());
-			ServerConnector httpsServerConnector = new ServerConnector(server, sslConnectionFactory, new HttpConnectionFactory(https_config));
-			httpsServerConnector.setPort(broker.brokerConfig.server().secure_port);
-			httpsServerConnector.setIdleTimeout(500000);
-
-			if(broker.brokerConfig.server().isJwsPort()) {
-				Connector[] connectors = new Connector[]{httpServerConnector, httpsServerConnector, jswHttpServerConnector};
+			ServerConnector httpsServerConnector = createHttpsConnector(server, broker.brokerConfig.server().secure_port, broker.brokerConfig.server().keystore_password, createBaseHttpsConfiguration(broker.brokerConfig.server().secure_port));
+			
+			if(broker.brokerConfig.server().useJwsPort()) {
+				Connector[] connectors = new Connector[]{httpServerConnector, httpsServerConnector, jwsServerConnector};
 				server.setConnectors(connectors);
 				server.setAttribute("digest-http-connector", httpServerConnector.getPort());
 				server.setAttribute("basic-https-connector", httpsServerConnector.getPort());
-				server.setAttribute("jws-https-connector", jswHttpServerConnector.getPort());
+				server.setAttribute("jws-https-connector", jwsServerConnector.getPort());
 			} else {
 				Connector[] connectors = new Connector[]{httpServerConnector, httpsServerConnector};
 				server.setConnectors(connectors);
@@ -197,17 +210,16 @@ public class PointDBServer {
 			}
 
 		} else {
-			if(broker.brokerConfig.server().isJwsPort()) {
-				Connector[] connectors = new Connector[]{httpServerConnector, jswHttpServerConnector};
+			if(broker.brokerConfig.server().useJwsPort()) {
+				Connector[] connectors = new Connector[]{httpServerConnector, jwsServerConnector};
 				server.setConnectors(connectors);
 				server.setAttribute("digest-http-connector", httpServerConnector.getPort());
-				server.setAttribute("jws-http-connector", jswHttpServerConnector.getPort());
+				server.setAttribute("jws-http-connector", jwsServerConnector.getPort());
 			} else {				
 				Connector[] connectors = new Connector[]{httpServerConnector};
 				server.setConnectors(connectors);
 				server.setAttribute("digest-http-connector", httpServerConnector.getPort());
 			}
-
 		}
 		
 		DefaultSessionIdManager sessionIdManager = new DefaultSessionIdManager(server);
@@ -224,6 +236,7 @@ public class PointDBServer {
 
 
 		HandlerList handlerList = new HandlerList();
+		handlerList.addHandler(new OptionalSecuredRedirectHandler());
 		handlerList.addHandler(sessionHandler);
 		handlerList.addHandler(new InjectHandler());
 
@@ -353,7 +366,7 @@ public class PointDBServer {
 	private static Handler createWebcontentHandler() {
 		ResourceHandler resource_handler = new ResourceHandler();
 		resource_handler.setCacheControl("no-store,no-cache,must-revalidate"); // don't cache
-		resource_handler.setPrecompressedFormats(new CompressedContentFormat[]{CompressedContentFormat.GZIP});
+		resource_handler.setPrecompressedFormats(new CompressedContentFormat[]{CompressedContentFormat.BR, CompressedContentFormat.GZIP});
 		//MimeTypes mimeTypes = resource_handler.getMimeTypes();
 		//resource_handler.setMinMemoryMappedContentLength(-1); // not memory mapped to prevent file locking, removed in jetty 9.4
 		resource_handler.setDirectoriesListed(false); // don't show directory content

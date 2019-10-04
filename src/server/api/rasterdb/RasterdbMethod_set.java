@@ -161,6 +161,16 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					log.info(jsonBands);
 					break;
 				}
+				case "associated": {
+					rasterdb.checkMod(userIdentity);
+					updateCatalog = true;
+					JSONObject jsonAssociated = meta.getJSONObject("associated");
+					rasterdb.setAssociatedPointDB(jsonAssociated.optString("PointDB", ""));
+					rasterdb.setAssociatedPointCloud(jsonAssociated.optString("pointcloud", ""));
+					rasterdb.setAssociatedPoiGroups(JsonUtil.optStringTrimmedList(jsonAssociated, "poi_groups"));
+					rasterdb.setAssociatedRoiGroups(JsonUtil.optStringTrimmedList(jsonAssociated, "roi_groups"));					
+					break;
+				}
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}

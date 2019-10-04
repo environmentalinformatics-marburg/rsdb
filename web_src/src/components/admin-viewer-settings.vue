@@ -15,7 +15,7 @@
     </template>
   </multiselect>
 
-  <b>Connection</b> <button @click="connection_test">conntection test</button>
+  <b>Connection</b> <button @click="connection_test" class="button-connection-test">|conntection test|</button> {{connectionSpeedMessage}}
   <multiselect v-model="selectedFormat" :options="formatOptions" :searchable="true" :show-labels="false" placeholder="pick a format" :allowEmpty="false">
     <template slot="singleLabel" slot-scope="{option}">
       {{option.title}}
@@ -86,6 +86,8 @@ export default {
       ],
       selectedFormat: undefined,
 
+      connectionSpeedMessage: "(not measured)",
+
       gammas: ["auto", "0.1", "0.2", "0.5", "1.0", "1.5", "2.0", "2.5", "3.0"],
       selectedGamma: "auto",
       syncBands: false,
@@ -96,15 +98,18 @@ export default {
   methods: {
     async connection_test() {
       console.log("connection test start");
+      this.connectionSpeedMessage = "measuring...";
       try {
         var tstart = performance.now();
         await axios.get(this.$store.getters.apiUrl('api/connection_test'), {responseType: 'arraybuffer'});
         var tend = performance.now();
         var tduration = tend - tstart;
-        var mbps = ((10 * 1000) / tduration).toFixed(0);
-        console.log("connection test end " + tduration + "    " + mbps +" MB/s");
+        var mBps = ((20 * 1000) / tduration).toFixed(0);
+        var mbps = ((20 * 1000 * 8) / tduration).toFixed(0);
+        this.connectionSpeedMessage = "measured " + mbps +" Mbit/s (" + mBps + " MBytes/s)";
       } catch {
         console.log("connection test error");
+        this.connectionSpeedMessage = "measuring error";
       }
     }   
   },
@@ -165,6 +170,15 @@ export default {
   border-radius: 5px;
   padding-left: 5px;
   padding-right: 5px;
+}
+
+.button-connection-test {
+  background-color: #847c7375;
+  border-style: solid;
+  border-color: #00000038;
+  border-width: 1px;
+  margin: 5px;
+  border-radius: 5px;
 }
 
 </style>

@@ -310,6 +310,15 @@ public class APIHandler_pointcloud {
 					pointcloud.setInformal(informal.build());
 					break;
 				}
+				case "associated": {
+					pointcloud.checkMod(userIdentity);
+					updateCatalog = true;
+					JSONObject jsonAssociated = meta.getJSONObject("associated");
+					pointcloud.setAssociatedRasterDB(jsonAssociated.optString("rasterdb", ""));
+					pointcloud.setAssociatedPoiGroups(JsonUtil.optStringTrimmedList(jsonAssociated, "poi_groups"));
+					pointcloud.setAssociatedRoiGroups(JsonUtil.optStringTrimmedList(jsonAssociated, "roi_groups"));
+					break;
+				}
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}

@@ -1,8 +1,8 @@
 <template>
-    <span>
-        <v-dialog v-model="dialog" lazy absolute width="800px">
+    <span style="display: inline-block;">
+        <v-dialog v-model="dialog" lazy absolute min-width="800px">
             <v-btn title="open dialog to edit band infos of this rasterdb layer" slot="activator">
-                <v-icon left>folder_open</v-icon>manage bands
+                <v-icon left>folder_open</v-icon>bands
             </v-btn>
             <v-card>
                 <v-card-title>
@@ -10,14 +10,16 @@
                 </v-card-title>
                 <v-data-table v-bind:headers="bandTableHeaders" :items="bands" class="meta-content" hide-actions>
                     <template slot="items" slot-scope="props">
+                        <td><input type="checkbox" id="checkbox" v-model="props.item.remove" style="width: 40px;"/>remove band</td>
                         <td>{{props.item.index}}</td>
                         <td><input v-model="props.item.title" placeholder="title" /></td>
                         <td><input v-model="props.item.vis_min" placeholder="vis_min" /></td>
                         <td><input v-model="props.item.vis_max" placeholder="vis_max" /></td>
+                        <td :class="{remove: props.item.remove}">{{props.item.remove ? 'remove band' : '(keep band)'}}</td>
                     </template>
                 </v-data-table>
                 <v-card-text>
-                    Edit band titles by click on band title entry.
+                    Edit band titles by click on band title entry. Remove data of a band at all timestamp by checkbox.
                 </v-card-text>
                 <br>
                 <v-card-actions>
@@ -51,10 +53,12 @@ export default {
             dialog: false,
             setError: false,
             setErrorMessage: undefined,
-            bandTableHeaders: [{ text: "index", align: 'left', value: "index"},
+            bandTableHeaders: [{ text: "", align: 'left', sortable: false}, 
+                               { text: "index", align: 'left', value: "index"},
                                { text: "title", align: 'left', value: "title" },
                                { text: "vis_min", align: 'left', value: "vis_min"}, 
-                               { text: "vis_max", align: 'left', value: "vis_max"},],
+                               { text: "vis_max", align: 'left', value: "vis_max"},
+                               { text: "action", align: 'left', value: "remove"}],
             bands: [],
             remote_task_id: undefined,
         }
@@ -67,24 +71,55 @@ export default {
             });
         },
 
-        execute() {
-            var self = this;
-            var url = this.$store.getters.apiUrl('rasterdb/' + self.meta.name + '/set');
-            axios.post(url, {
-                meta: {
-                    bands: self.bands,
-                } 
-            }).then(function(response) {
+        async execute() {
+            var url = this.$store.getters.apiUrl('rasterdb/' + this.meta.name + '/set');
+            try {
+                var response = await axios.post(url, {
+                    meta: {
+                        bands: this.bands,
+                    } 
+                });
                 console.log(response);
-                self.$emit('changed');
-                self.dialog = false;
-            }).catch(function(error) {
-                self.setError = true;
-                self.setErrorMessage = "Error setting property";
+                if(this.bands.filter(b=>b.remove).length > 0) {
+                    this.execute_bands_remove();
+                } else {
+                    this.$emit('changed');
+                    this.dialog = false;
+                }
+            } catch(error) {
+                this.setError = true;
+                this.setErrorMessage = "Error setting property";
                 console.log(error);
-                self.$emit('changed');
-                self.dialog = false;
-            });                       
+                this.$emit('changed');
+                this.dialog = false;
+            }                       
+        },
+
+        async execute_bands_remove() {
+            var url = this.$store.getters.apiUrl('api/remote_tasks');
+            var bs = this.bands.filter(b=>b.remove).map(b=>b.index);
+            try {
+                var response = await axios.post(url, {
+                    remote_task: {
+                        task_rasterdb: "remove_bands",
+                        rasterdb: this.meta.name,
+                        bands: bs,
+                    }
+                });
+                console.log(response);
+                this.$emit('changed');
+                this.dialog = false;
+                var remote_task = response.data.remote_task;
+                this.remote_task_id = remote_task.id;
+            } catch(error) {
+                console.log(error);
+                console.log(this.errorToText(error));
+                this.setError = true;
+                this.setErrorMessage = "Error: " + this.errorToText(error);
+                console.log(error);
+                this.$emit('changed');
+                this.dialog = false;
+            }            
         },
 
         errorToText(error) {

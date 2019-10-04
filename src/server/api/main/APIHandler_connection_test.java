@@ -25,7 +25,7 @@ public class APIHandler_connection_test extends APIHandler {
 	protected void handle(String target, Request request, Response response) throws IOException {		
 		byte[] data = new byte[1024*1024];
 		response.setContentType("application");
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 20; i++) {
 			response.getOutputStream().write(data);				
 		}
 	}

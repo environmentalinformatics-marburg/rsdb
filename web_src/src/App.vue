@@ -46,7 +46,7 @@ export default {
       tabs.push({name: 'explorer', title: 'Explorer', icon: 'vpn_lock'});
       tabs.push({name: 'viewer', title: 'Viewer', icon: 'satellite'});
       tabs.push({name: 'vectorviewer', title: 'VectorViewer', icon: 'map'});
-      tabs.push({name: 'upload', title: 'Upload', icon: 'cloud_upload'});
+      /*tabs.push({name: 'upload', title: 'Upload', icon: 'cloud_upload'});*/
       tabs.push({name: 'files', title: 'Files', icon: 'attachment'});
       tabs.push({name: 'tools', title: 'Tools', icon: 'build'});
       return tabs;

@@ -8,6 +8,9 @@ const state = {
 }
 
 const getters = {
+    names(state) {
+        return state.data === undefined ? [] : state.data.map(item => item.name);
+    }
 }
 
 const actions = {

@@ -3,6 +3,7 @@ package pointcloud;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -704,6 +705,16 @@ public class PointCloud implements AutoCloseable {
 
 	public void setAssociatedRasterDB(String name) {
 		associated.setRasterDB(name);
+		griddb.writeMeta();
+	}
+	
+	public void setAssociatedPoiGroups(List<String> poi_groups) {
+		associated.setPoi_groups(poi_groups);
+		griddb.writeMeta();
+	}
+	
+	public void setAssociatedRoiGroups(List<String> roi_groups) {
+		associated.setRoi_groups(roi_groups);
 		griddb.writeMeta();
 	}
 

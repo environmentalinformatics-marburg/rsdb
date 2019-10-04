@@ -15,7 +15,24 @@ module.exports = {
 			maxAssetSize: 10000000,
 		},
 		plugins: [
-			new CompressionWebpackPlugin({}),
+			/*new CompressionWebpackPlugin({
+				filename: '[path].br[query]',
+				algorithm: 'brotliCompress',
+				test: /\.(js|css|html|svg)$/,
+				compressionOptions: { level: 11 },
+				threshold: 10240,
+				minRatio: 0.8,
+				deleteOriginalAssets: false
+			}),
+				new CompressionWebpackPlugin({
+				filename: '[path].gz[query]',
+				algorithm: 'gzip',
+				test: /\.(js|css|html|svg)$/,
+				compressionOptions: { level: 9 },
+				threshold: 10240,
+				minRatio: 0.8,
+				deleteOriginalAssets: false
+			}),*/
 		],		
 	},
 }

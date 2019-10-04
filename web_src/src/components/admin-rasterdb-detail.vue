@@ -74,9 +74,10 @@
                 </table>          
             </div>
 
-            <div v-if="Object.keys(meta.associated).length !== 0">
+            <div>
                 <v-divider class="meta-divider"></v-divider> 
-                <h3 class="subheading mb-0"> 
+                <h3 class="subheading mb-0">
+                    <admin-rasterdb-dialog-set-associated :meta="meta" @changed="refresh" v-if="modify" />  
                     Associated
                 </h3>
                 <div class="meta-content">
@@ -200,9 +201,11 @@
                 Actions
             </h3>            
             <div class="meta-content" v-if="modify">                
+                <b>Manage:</b>
                 <admin-rasterdb-bands :meta="meta" @changed="refresh" />
                 <admin-rasterdb-dialog-remove-timestamps :meta="meta" @changed="refresh" />
-                <br><admin-rasterdb-dialog-delete :meta="meta" @changed="refresh" />
+                <br><br>
+                <admin-rasterdb-dialog-delete :meta="meta" @changed="refresh" />
             </div>
  
         </div>
@@ -216,6 +219,7 @@ import { mapGetters } from 'vuex'
 import axios from 'axios'
 import adminRasterdbDialogSetInfo from './admin-rasterdb-dialog-set-info.vue'
 import adminRasterdbDialogSetProjection from './admin-rasterdb-dialog-set-projection.vue'
+import adminRasterdbDialogSetAssociated from './admin-rasterdb-dialog-set-associated.vue'
 import adminRasterdbDialogSetAcl from './admin-rasterdb-dialog-set-acl.vue'
 import adminRasterdbDialogDelete from './admin-rasterdb-dialog-delete'
 import adminRasterdbDialogRemoveTimestamps from './admin-rasterdb-dialog-remove-timestamps'
@@ -227,6 +231,7 @@ export default {
     components: {
         'admin-rasterdb-dialog-set-info': adminRasterdbDialogSetInfo,
         'admin-rasterdb-dialog-set-projection': adminRasterdbDialogSetProjection,
+        'admin-rasterdb-dialog-set-associated': adminRasterdbDialogSetAssociated,
         'admin-rasterdb-dialog-set-acl': adminRasterdbDialogSetAcl,
         'admin-rasterdb-dialog-delete': adminRasterdbDialogDelete,
         'admin-rasterdb-dialog-remove-timestamps': adminRasterdbDialogRemoveTimestamps,

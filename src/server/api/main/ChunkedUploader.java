@@ -114,7 +114,7 @@ public class ChunkedUploader {
 
 		//log.info(request.getContentType());
 		if (request.getContentType() != null && request.getContentType().startsWith("multipart/form-data")) {
-			request.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG);
+			request.setAttribute(Request.MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG);
 		}
 
 

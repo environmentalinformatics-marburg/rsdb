@@ -2,7 +2,7 @@
     <span>
         <v-dialog v-model="dialog" lazy absolute width="800px">
             <v-btn title="create new VectorDB layer" slot="activator">
-                <v-icon>add</v-icon> create layer
+                <v-icon>add</v-icon> create
             </v-btn>
             <v-card>
                 <v-card-title>

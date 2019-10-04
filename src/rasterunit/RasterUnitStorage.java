@@ -48,4 +48,5 @@ public interface RasterUnitStorage extends AutoCloseable {
 		return new TileCollection(this, rows, xmin, xmax);
 	}
 	long removeAllTilesOfTimestamp(int t) throws IOException;
+	long removeAllTilesOfBand(int b) throws IOException;
 }

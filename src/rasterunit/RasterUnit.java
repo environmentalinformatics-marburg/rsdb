@@ -475,6 +475,32 @@ public class RasterUnit implements RasterUnitStorage {
 			commit();
 		}
 	}
+	
+	@Override
+	public long removeAllTilesOfBand(int b) {
+		try {
+			long cnt = 0;
+			for(int t:this.timeKeys) {				
+				TileKey min = new TileKey(t, b, Integer.MIN_VALUE, Integer.MIN_VALUE);
+				TileKey max = new TileKey(t, b, Integer.MAX_VALUE, Integer.MAX_VALUE);
+				log.info("generate keys");
+				TreeSet<TileKey> keys = new TreeSet<TileKey>(tileKeys.subSet(min, true, max, true));
+				log.info("remove tiles");
+				for(TileKey key:keys) {
+					if(tileMap.remove(key) != null) {
+						cnt++;
+					}
+				}				
+			}			
+			return cnt;
+		} finally {
+			log.info("refresh keys");
+			refreshKeys();
+			tilesWritten = true;
+			log.info("commit");
+			commit();
+		}
+	}
 
 	@Override
 	public void flush() throws IOException {

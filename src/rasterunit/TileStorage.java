@@ -595,5 +595,31 @@ public class TileStorage implements RasterUnitStorage {
 			refreshDerivedKeys();
 			flushLock.writeLock().unlock();
 		}	
+	}
+
+	@Override
+	public long removeAllTilesOfBand(int b) throws IOException {
+		flushLock.writeLock().lock();
+		try {
+			long cnt = 0;
+			for(int t:this.timeKeys) {	
+				TileKey min = new TileKey(t, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+				TileKey max = new TileKey(t, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+				ConcurrentNavigableMap<TileKey, TileSlot> tmap = map.subMap(min, true, max, true);
+				int subSize = tmap.size();				
+				if(subSize > 0) {
+					tmap.clear(); // remove all tile entries of timestamp
+					cnt += subSize;
+				}
+			}
+			if(cnt > 0) {
+				flush(); // write removed entries to file
+				open(); // regenerate free slot list
+			}
+			return cnt;
+		} finally {
+			refreshDerivedKeys();
+			flushLock.writeLock().unlock();
+		}	
 	}	
 }

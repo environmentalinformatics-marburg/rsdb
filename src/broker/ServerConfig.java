@@ -36,7 +36,7 @@ public class ServerConfig {
 		return new ServerConfig(port, secure_port, login, jws_port, keystore_password);
 	}
 	
-	public boolean isJwsPort() {
+	public boolean useJwsPort() {
 		return jws_port > 0;
 	}
 }

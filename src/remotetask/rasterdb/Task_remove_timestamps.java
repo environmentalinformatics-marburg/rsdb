@@ -12,14 +12,14 @@ import util.TimeUtil;
 @Description("Remove all pixel data of all bands at some timestamps")
 @Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="rasterdb1")
 @Param(name="timestamps", type="integer_array", desc="array of integer timestamps", example="1, 2, 3")
-public class RemoveTimestampsRemoteTask extends RemoteTask {
+public class Task_remove_timestamps extends RemoteTask {
 
 	//private final Broker broker;
 	//private final JSONObject args;
 	private RasterDB rasterdb;
 	private int[] timestamps;
 
-	public RemoveTimestampsRemoteTask(Context ctx) {
+	public Task_remove_timestamps(Context ctx) {
 		//this.broker = broker;
 		//this.args = args;
 		String name = ctx.task.getString("rasterdb");

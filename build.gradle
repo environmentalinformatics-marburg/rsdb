@@ -55,9 +55,11 @@ dependencies {
   	
   	compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.7.2'
   	
-	compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.19.v20190610'
-	compile group: 'org.eclipse.jetty', name: 'jetty-security', version: '9.4.19.v20190610'
-	compile group: 'org.eclipse.jetty', name: 'jetty-client', version: '9.4.19.v20190610'
+	compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.20.v20190813'
+	compile group: 'org.eclipse.jetty', name: 'jetty-security', version: '9.4.20.v20190813'
+	compile group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '9.4.20.v20190813'
+	compile group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: '9.4.20.v20190813'
+	compile group: 'org.eclipse.jetty', name: 'jetty-client', version: '9.4.20.v20190813'
 	
 	compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.14.0'
 	

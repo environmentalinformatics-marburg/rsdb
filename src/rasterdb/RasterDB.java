@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -253,6 +254,12 @@ public class RasterDB implements AutoCloseable {
 		bandMap.put(band.index, band);
 		writeMeta();
 	}
+	
+	public Band removeBand(int band_number) {
+		Band removedBand = bandMap.remove(band_number);
+		writeMeta();
+		return removedBand; 
+	}
 
 	/**
 	 * 
@@ -303,6 +310,26 @@ public class RasterDB implements AutoCloseable {
 	public void setCode(String code) {
 		ref = ref.withCode(code, GeoReference.code_wms_transposed.contains(code));
 		log.info(ref + "   " + GeoReference.code_wms_transposed.contains(code));
+		writeMeta();
+	}
+	
+	public void setAssociatedPointDB(String pointdb) {
+		associated.setPointDB(pointdb);
+		writeMeta();
+	}
+	
+	public void setAssociatedPointCloud(String pointcloud) {
+		associated.setPointCloud(pointcloud);
+		writeMeta();
+	}
+	
+	public void setAssociatedPoiGroups(List<String> poi_groups) {
+		associated.setPoi_groups(poi_groups);
+		writeMeta();
+	}
+	
+	public void setAssociatedRoiGroups(List<String> roi_groups) {
+		associated.setRoi_groups(roi_groups);
 		writeMeta();
 	}
 
