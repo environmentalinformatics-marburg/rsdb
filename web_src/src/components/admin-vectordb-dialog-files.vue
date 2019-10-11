@@ -66,7 +66,7 @@ import adminTaskConsole from './admin-task-console'
 Vue.use(uploader)
 
 export default {
-    name: 'admin-vectordb-upload',
+    name: 'admin-vectordb-dialog-files',
     props: ['meta'],
     components: {
         'admin-task-console': adminTaskConsole,

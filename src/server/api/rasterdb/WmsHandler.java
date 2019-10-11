@@ -256,20 +256,7 @@ public class WmsHandler extends AbstractHandler {
 					log.warn(e);
 				}
 			}
-			int[] palette = null;
-			switch(palText) {
-			case "grey":
-				break;
-			case "color":
-				palette = MonoColor.colInferno;
-				//palette = MonoColor.colJet;
-				break;
-			case "inferno":
-				palette = MonoColor.colInferno;
-				break;
-			default:
-				log.warn("unknown palette: " + palText);
-			}
+			int[] palette = MonoColor.getPaletteDefaultNull(palText);
 			if(Interruptor.isInterrupted(currentInterruptor)) {
 				log.info("****************************************** interrupted (pre load)*******************************************");
 				return;

@@ -113,7 +113,7 @@
             </h3>
             <div class="meta-content">
                 <b>Manage:</b>
-                <admin-vectordb-upload :meta="meta" @changed="refresh" v-if="modify" />                
+                <admin-vectordb-dialog-files :meta="meta" @changed="refresh" v-if="modify" />                
                 <admin-vectordb-attributes :meta="meta" @changed="refresh" v-if="modify" />                
                 <admin-vectordb-structured-access :meta="meta" @changed="refresh(); $store.dispatch('poi_groups/refresh'); $store.dispatch('roi_groups/refresh');" v-if="modify" />
                 <br>
@@ -135,7 +135,7 @@ import axios from 'axios'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
 import adminVectordbDelete from './admin-vectordb-delete'
-import adminVectordbUpload from './admin-vectordb-upload'
+import adminVectordbDialogFiles from './admin-vectordb-dialog-files'
 import adminVectordbAttributes from './admin-vectordb-attributes'
 import adminVectordbStructuredAccess from './admin-vectordb-structured-access'
 import adminVectordbDialogSetInfo from './admin-vectordb-dialog-set-info.vue'
@@ -147,7 +147,7 @@ export default {
     components: {
         PulseLoader,
         'admin-vectordb-delete': adminVectordbDelete,
-        'admin-vectordb-upload': adminVectordbUpload,
+        'admin-vectordb-dialog-files': adminVectordbDialogFiles,
         'admin-vectordb-attributes': adminVectordbAttributes,
         'admin-vectordb-structured-access': adminVectordbStructuredAccess,
         'admin-vectordb-dialog-set-info': adminVectordbDialogSetInfo,

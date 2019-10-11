@@ -3,7 +3,7 @@
 
    <div v-if="rasterdbs !== undefined">
     <v-icon style="font-size: 1em;">collections</v-icon><b>Raster Layer</b>
-    <multiselect v-model="selectedRasterdb" :options="rasterdbs" :searchable="true" :show-labels="false" placeholder="pick a layer" :allowEmpty="false">
+    <multiselect v-model="selectedRasterdb" :options="rasterdbs" :searchable="true" :show-labels="false" placeholder="pick a layer" :allowEmpty="true">
       <template slot="singleLabel" slot-scope="{option}">
         {{option.title}}
       </template>
@@ -26,7 +26,7 @@
       <div v-if="meta.timestamps.length === 1">
         {{meta.timestamps[0].datetime}}
       </div>
-    </div>
+  </div>
 
     <div v-if="meta !== undefined && meta.wms.styles.length > 0">
       <b>Raster Visualisation</b>
@@ -70,55 +70,56 @@ export default {
     }
   },
   methods: {
-    refreshSelectedRasterdb() {
-      //console.log("refreshSelectedRasterdb");
-      if(this.rasterdbs === undefined || this.rasterdbs.length === 0) {
+      refreshSelectedRasterdb() {
+      if(this.rasterdbs === undefined) {
         this.selectedRasterdb = undefined;
-      } else if(this.currentRasterdb === undefined) {
-        this.selectedRasterdb = this.rasterdbs[0];
-      } else {
-        for (const rasterdb of this.rasterdbs) {
+        return;
+      }
+      if(this.currentRasterdb === undefined) {
+        this.selectedRasterdb = null;
+        return;
+      }
+      for (const rasterdb of this.rasterdbs) {
           if(rasterdb.name === this.currentRasterdb) {
             this.selectedRasterdb = rasterdb;
+            return;
           }
-        }
-      }     
+      }
+      this.selectedRasterdb = undefined;
     },
     refreshSelectedTimestamp() {
-      //console.log("refreshSelectedTimestamp");
-      if(this.meta === undefined || this.meta.timestamps.length === 0) {
+      if(this.selectedRasterdb === undefined || this.selectedRasterdb === null || this.meta === undefined || this.meta.name !== this.selectedRasterdb.name || this.meta.timestamps.length === 0) {
         this.selectedTimestamp = undefined;
-      } else if(this.currentTimestamp === undefined) {
-        this.selectedTimestamp = this.meta.timestamps[0];
-      } else {
-        var av = false;
-        for (const timestamp of this.meta.timestamps) {
+        return;
+      }
+      if(this.currentTimestamp === undefined) {
+        this.selectedTimestamp = null;
+        return;
+      }
+      for (const timestamp of this.meta.timestamps) {
           if(timestamp.timestamp === this.currentTimestamp) {
             this.selectedTimestamp = timestamp;
-            av = true;
-            break;
+            return;
           }
-        }
-        if(!av) {
-          this.selectedTimestamp = this.meta.timestamps[0];
-        }
-      }     
+      }
+      this.selectedTimestamp = undefined;     
     },
     refreshSelectedProduct() {
-      //console.log("refreshSelectedProduct");
-      if(this.meta === undefined || this.meta.wms.styles.length === 0) {
+      if(this.selectedRasterdb === undefined || this.selectedRasterdb === null || this.meta === undefined || this.meta.name !== this.selectedRasterdb.name || this.meta.wms.styles.length === 0) {
         this.selectedProduct = undefined;
-      } else if(this.currentProduct === undefined) {
-        this.selectedProduct = this.meta.wms.styles[0];
-      } else {
-        var selectedProduct = undefined;
-        for (const product of this.meta.wms.styles) {
-          if(product.name === this.currentProduct) {
-            selectedProduct = product;
-          }
+        return;
+      }
+      if(this.currentProduct === undefined) {
+        this.selectedProduct = null;
+        return;
+      }
+      for (const product of this.meta.wms.styles) {
+        if(product.name === this.currentProduct) {
+          this.selectedProduct = product;
+          return;
         }
-        this.selectedProduct = selectedProduct === undefined ? this.meta.wms.styles[0] : selectedProduct;
-      }     
+      }
+      this.selectedProduct = undefined;
     },
   },
   computed: {
@@ -131,26 +132,26 @@ export default {
     rasterdbs() {
       this.refreshSelectedRasterdb();
     },
-    meta() {
-      this.refreshSelectedTimestamp();
-      this.refreshSelectedProduct();
-    },
     currentRasterdb() {
       this.refreshSelectedRasterdb();
-    },
-    currentTimestamp() {
-      this.refreshSelectedTimestamp();
-    },
-    currentProduct() {
-      this.refreshSelectedProduct();
     },
     selectedRasterdb() {
       this.$emit('selected-rasterdb', this.selectedRasterdb);
       this.refreshSelectedTimestamp();
       this.refreshSelectedProduct();
+    },        
+    meta() {
+      this.refreshSelectedTimestamp();
+      this.refreshSelectedProduct();
+    },
+    currentTimestamp() {
+      this.refreshSelectedTimestamp();
     },
     selectedTimestamp() {
       this.$emit('selected-timestamp', this.selectedTimestamp);
+    },
+    currentProduct() {
+      this.refreshSelectedProduct();
     },
     selectedProduct() {
       this.$emit('selected-product', this.selectedProduct);

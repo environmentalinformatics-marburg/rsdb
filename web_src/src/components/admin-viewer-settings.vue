@@ -5,42 +5,52 @@
       Viewer Settings
       <button class="close-button" @click="$emit('close');">x</button>
     </div>
-  <b>Background</b>
-  <multiselect v-model="selectedBackground" :options="backgroundOptions" :searchable="true" :show-labels="false" placeholder="pick a background" :allowEmpty="false">
-    <template slot="singleLabel" slot-scope="{option}">
-      {{option.title}}
-    </template>
-    <template slot="option" slot-scope="{option}">
-      {{option.title}}
-    </template>
-  </multiselect>
+    <b>Background</b>
+    <multiselect v-model="selectedBackground" :options="backgroundOptions" :searchable="true" :show-labels="false" placeholder="pick a background" :allowEmpty="false">
+      <template slot="singleLabel" slot-scope="{option}">
+        {{option.title}}
+      </template>
+      <template slot="option" slot-scope="{option}">
+        {{option.title}}
+      </template>
+    </multiselect>
 
-  <b>Connection</b> <button @click="connection_test" class="button-connection-test">|conntection test|</button> {{connectionSpeedMessage}}
-  <multiselect v-model="selectedFormat" :options="formatOptions" :searchable="true" :show-labels="false" placeholder="pick a format" :allowEmpty="false">
-    <template slot="singleLabel" slot-scope="{option}">
-      {{option.title}}
-    </template>
-    <template slot="option" slot-scope="{option}">
-      {{option.description}}
-    </template>
-  </multiselect>
+    <b>Connection</b> <button @click="connection_test" class="button-connection-test">|conntection test|</button> {{connectionSpeedMessage}}
+    <multiselect v-model="selectedFormat" :options="formatOptions" :searchable="true" :show-labels="false" placeholder="pick a format" :allowEmpty="false">
+      <template slot="singleLabel" slot-scope="{option}">
+        {{option.title}}
+      </template>
+      <template slot="option" slot-scope="{option}">
+        {{option.description}}
+      </template>
+    </multiselect>
 
-  <div>
-    <br>
-    <br>
-    <hr>
-    <b>Raster Visualisation</b>
     <div>
-      <b>Gamma</b> &nbsp;&nbsp;&nbsp;<v-checkbox hide-details v-model="syncBands" style="display: inline-block;"/>sync bands
-      <multiselect v-model="selectedGamma" :options="gammas" :show-labels="false" :allowEmpty="false" placeholder="gamma correction" />
+      <br>
+      <br>
+      <hr>
+      <b>Raster visualisation</b>
+      <div>
+        <b>Gamma</b> &nbsp;&nbsp;&nbsp;<v-checkbox hide-details v-model="syncBands" style="display: inline-block;"/>sync bands
+        <multiselect v-model="selectedGamma" :options="gammas" :show-labels="false" :allowEmpty="false" placeholder="gamma correction" />
+      </div>
+      
+      <!--<div v-show="selectedProduct !== undefined && selectedProduct.name !== 'color'">-->
+      <div>
+        <b>Single band mapping</b>
+        <multiselect v-model="selectedOneBandMapping" :options="oneBandMappings" :show-labels="false" :allowEmpty="false" placeholder="value to pixel mapping of one band" />
+      </div>
     </div>
-    
-    <!--<div v-show="selectedProduct !== undefined && selectedProduct.name !== 'color'">-->
+
     <div>
-      <b>Single Band Mapping</b>
-      <multiselect v-model="selectedOneBandMapping" :options="oneBandMappings" :show-labels="false" :allowEmpty="false" placeholder="value to pixel mapping of one band" />
-    </div>
-  </div>
+      <br>
+      <br>
+      <hr>
+      <b>Vector overlay</b>
+      <div>
+        <v-checkbox hide-details v-model="showLabels" style="display: inline-block;"/>Show vector feature labels
+      </div>
+    </div>    
   </div>
 </vue-draggable-resizable>
 
@@ -91,8 +101,10 @@ export default {
       gammas: ["auto", "0.1", "0.2", "0.5", "1.0", "1.5", "2.0", "2.5", "3.0"],
       selectedGamma: "auto",
       syncBands: false,
-      oneBandMappings: ["grey", "color"],
+      oneBandMappings: ["grey", "inferno", "viridis", "jet", "cividis"],
       selectedOneBandMapping: "grey",
+
+      showLabels: true,
     }
   },
   methods: {
@@ -106,7 +118,7 @@ export default {
         var tduration = tend - tstart;
         var mBps = ((20 * 1000) / tduration).toFixed(0);
         var mbps = ((20 * 1000 * 8) / tduration).toFixed(0);
-        this.connectionSpeedMessage = "measured " + mbps +" Mbit/s (" + mBps + " MBytes/s)";
+        this.connectionSpeedMessage = "measured " + mbps +" Mbit/s (" + mBps + " MByte/s)";
       } catch {
         console.log("connection test error");
         this.connectionSpeedMessage = "measuring error";
@@ -127,6 +139,9 @@ export default {
     },
     syncBands() {
       this.$emit('sync-bands', this.syncBands);      
+    },
+    showLabels() {
+      this.$emit('show-labels', this.showLabels);      
     },
     selectedOneBandMapping: {
       immediate: true,

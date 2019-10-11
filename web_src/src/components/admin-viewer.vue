@@ -1,41 +1,16 @@
 <template>
   <div class="main" :class="selectedBackgroundClass">
     <div id="olmap-viewer" v-bind:style="{ height: '100%', paddingLeft: olmap_viewer_padding_left + 'px' }" />
-    <div class="no_layer" v-show="meta === undefined">
-      <b>no layer</b>
-    </div>
     <div class="busy" style="margin-left: 100px;" v-show="transactionRunCount > 0">
 					<img src="images/busy.svg" /> Processing ... {{transactionRunCount > 1 ? '(' + transactionRunCount + ' queued)' : ''}}
 					<b>{{transactionRunCount > 1 ? 'Please wait until processing finished.' : ''}}</b>
 		</div>
 
-    <!--<div id="top" style="display: inline-block; white-space: nowrap;">
-      <v-toolbar>
-            Mouse<br>Modus
-            <v-btn-toggle v-model="mouseModus" mandatory>
-              <v-btn flat value="move" title="move map by mouse (press and hold left mouse button)">
-                move<v-icon>pan_tool</v-icon>
-              </v-btn>
-              <v-btn flat value="select" title="select an extent on map (press and hold left mouse button)">
-                select<v-icon>settings_overscan</v-icon>
-              </v-btn>
-            </v-btn-toggle>
-      </v-toolbar>
-      <div v-show="!selectShow">
-      {{rasterdb}}<v-btn flat icon color="indigo" @click="selectShow = true" title="open box"><v-icon>add</v-icon></v-btn>
-      </div>
-      <admin-viewer-select :currentRasterdb="rasterdb" :currentTimestamp="timestamp" :currentProduct="product" :meta="meta" @selected-rasterdb="selectedRasterdb = $event" @selected-timestamp="selectedTimestamp = $event" @selected-product="selectedProduct = $event" @selected-background="selectedBackground = $event" @close="selectShow = false" v-show="selectShow"/>
-      <div v-show="!toolsShow">
-      Tools<v-btn flat icon color="indigo" @click="toolsShow = true" title="open tools"><v-icon>add</v-icon></v-btn>
-      </div>
-      <admin-viewer-tools @close="toolsShow = false" v-show="toolsShow" @tool-raster-export-show="toolRasterExportShow = true;" />
-    </div>-->
-
     <div class="innergrid-container">
       <v-list dense class="innergrid-item-nav" id="innergrid-item-nav">
          <v-toolbar>
             Mouse<br>Modus
-            <v-btn-toggle v-model="mouseModus" mandatory style="border: 1px solid #8d8d88;">
+            <v-btn-toggle v-model="mouseModusButtonState" mandatory style="border: 1px solid #8d8d88;">
               <v-btn flat value="move" title="move map by mouse (press and hold left mouse button)">
                 <v-icon>open_with</v-icon>move
               </v-btn>
@@ -46,30 +21,6 @@
 
             <div style="padding-right: 10px;"></div>
             <v-btn fab title="change viewer settings" @click="onSettingsDialog"><v-icon>settings_applications</v-icon></v-btn>
-            <!--<v-dialog v-model="settingsDialog" width="500">
-              <template v-slot:activator="{ on }">
-                <v-btn fab title="change viewer settings" v-on="on"><v-icon>settings_applications</v-icon></v-btn>
-              </template>
-              <v-card>
-                <v-card-title class="headline grey lighten-2" primary-title>
-                  Viewer Settings              
-                </v-card-title>
-                <v-card-text style="min-height: 500px;">
-                  <admin-viewer-settings        
-                  @selected-background="selectedBackground = $event"  
-                  @selected-format="selectedFormat = $event"
-                  @selected-gamma="selectedGamma = $event" 
-                  @sync-bands="syncBands = $event" 
-                  @selected-mapping="selectedOneBandMapping = $event"        
-                  />
-                </v-card-text>
-                <v-divider></v-divider>
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn color="primary" flat @click="settingsDialog = false">close</v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>-->
       </v-toolbar>
       <admin-viewer-select 
         :currentLayerWMS_opacity="layerWMS_opacity" 
@@ -84,9 +35,17 @@
         @close="selectShow = false" 
         v-show="selectShow"
       />
-      <admin-viewer-tools @tool-raster-export-show="toolRasterExportShow = true;" @tool-point-export-show="toolPointExportShow = true;" @tool-point-raster-export-show="toolPointRasterExportShow = true;" :selectedExtent="selectedExtent" :meta="meta" :epsgCode="epsgCode" @selected-vectordb="selectedVectordb = $event" />
+      <admin-viewer-tools 
+        @tool-raster-export-show="toolRasterExportShow = true;" 
+        @tool-point-export-show="toolPointExportShow = true;" 
+        @tool-point-raster-export-show="toolPointRasterExportShow = true;" 
+        :selectedExtent="selectedExtent" 
+        :meta="meta" 
+        :epsgCode="epsgCode"
+        :currentVectordb="vectordb" 
+        @selected-vectordb="selectedVectordb = $event" 
+      />
       </v-list>
-      <!--<div id="olmap-viewer" class="innergrid-item-main" />-->
                   
     </div>
 
@@ -96,7 +55,8 @@
                   @selected-format="selectedFormat = $event"
                   @selected-gamma="selectedGamma = $event" 
                   @sync-bands="syncBands = $event" 
-                  @selected-mapping="selectedOneBandMapping = $event"        
+                  @selected-mapping="selectedOneBandMapping = $event"
+                  @show-labels="showLabels = $event"         
                   />
 
 
@@ -124,6 +84,21 @@
       :pointcloud="meta.associated.pointcloud" 
       :selectedExtent="selectedExtent"
     />
+
+    <v-dialog :value="featureDetailsShow" lazy persistent max-width="500px">
+      <v-card>
+        <v-card-title class="headline">Attributes</v-card-title>
+        <v-card-text>
+        <table v-for="feature in selectedFeatures" :key="feature.getId()">
+          <tr v-for="(a, i) in table.attributes" :key="i"><td><b>{{a}}</b></td><td>{{featureToTableEntry(feature.getId())[i]}}</td></tr>
+        </table>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" flat="flat" @click.native="featureDetailsShow = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     
 
     <div v-show="Object.keys(messages).length > 0" class="message_box">
@@ -176,7 +151,7 @@ import axios from 'axios';
 export default {
   name: 'admin-viewer',
 
-  props: ['rasterdb', 'timestamp', 'product'],
+  props: ['rasterdb', 'timestamp', 'product', 'vectordb'],
 
   components: {
         'admin-viewer-select': adminViewerSelect,
@@ -197,19 +172,22 @@ export default {
       notificationsIndex: 0,
 
       olmap: undefined,
+      mapAliasToProj4: {},
+      mapProj4ToAlias: {},
+      viewOverlay: undefined,
       olmousePosition: undefined,
       layerBackgroundOSM: undefined,
       layerBackgroundOpenTopoMap: undefined,
       layerBackgroundStamenTerrain: undefined,
       selectedFormat: undefined,
+      vectorSource: undefined,
       vectorLayer: undefined,
+      vectorLabelLayer: undefined,
       sourceWMS: undefined,
       layerWMS: undefined,
       layerWMS_opacity: 1,
 
       meta: undefined,
-      mapAliasToProj4: {},
-      mapProj4ToAlias: {},
 
       selectShow: true,
       selectedRasterdb: undefined,
@@ -225,15 +203,21 @@ export default {
       toolPointExportShow: false,
       toolPointRasterExportShow: false,
       selectedVectordb: undefined,
+      showLabels: true,
 
       settingsDialog: false,
 
-      mouseModus: undefined,
+      mouseModusButtonState: 'move',
+      mouseModusKeySelect: false,
       interactionExtent: undefined,
       selectedExtent: undefined,
 
       globalEventListeners: {},
       olmap_viewer_padding_left: 400,
+
+      table:{attibutes: [], data: []},
+      featureDetailsShow: false,
+      selectedFeatures: [],
     }
   },
   methods: {
@@ -253,32 +237,31 @@ export default {
     removeMessage(id) {
       Vue.delete(this.messages, id);
     },
-    refreshMeta() {
-      if(this.rasterdb === undefined) {
-        this.meta = undefined;
+    async refreshMeta() {
+      console.log("refreshMeta");
+      this.meta = undefined;
+      if(this.selectedRasterdb === undefined || this.selectedRasterdb === null) {
+        this.setVectorView();
         return;
       }
-      var self = this;
       var messageID = this.addMessage("loading meta data of layer ...");
-      axios.get(this.urlPrefix + '../../rasterdb/' + this.rasterdb + '/meta.json')
-      .then(function(response) {
-        self.meta = response.data;
-        self.removeMessage(messageID);
-      })
-      .catch(function(e) {
-        self.meta = undefined;
-        self.addnotification('ERROR loading meta data of layer ' + e);
-        self.removeMessage(messageID);
-      });
-      /*.finally(function () {
-        self.removeMessage(messageID);
-      });*/      
+      try {
+        var url = this.$store.getters.apiUrl('rasterdb/' + this.selectedRasterdb.name + '/meta.json');
+        var response = await axios.get(url);
+        this.meta = response.data;
+        this.removeMessage(messageID);
+      } catch(e) {
+        this.addnotification('ERROR loading meta data of layer ' + e);
+        this.removeMessage(messageID);
+      }     
     },
     refreshWMS() {
       var self = this;
 
       if(this.meta === undefined) {
+        this.sourceWMS = undefined;
         this.layerWMS.setSource(undefined);
+        this.refreshLayers();
         return;
       }
 
@@ -288,28 +271,12 @@ export default {
           image.getImage().src = src + "&cnt=" + cnt;
           self.$store.commit('identity/incrementTransactionCount');
       };
-      var view_proj4 = '+proj=utm +zone=37 +south +datum=WGS84 +units=m +no_defs ';
+
+      var wmsProj4 = '';
       if(this.meta.ref.proj4 !== undefined && this.meta.ref.proj4 !== '') {
-        view_proj4 = this.meta.ref.proj4.trim();
+        wmsProj4 = this.meta.ref.proj4.trim();
       }
-      //console.log(view_proj4);
-
-      var alias = this.mapProj4ToAlias[view_proj4];
-      if(alias === undefined) {
-        var i = 1;
-        alias = 'WMS_VIEW_PROJECTION_' + i;
-        while(this.mapAliasToProj4[alias] !== undefined) {
-          i++;
-          alias = 'WMS_VIEW_PROJECTION_' + i;
-        }
-        this.mapAliasToProj4[alias] = view_proj4;
-        this.mapProj4ToAlias[view_proj4] = alias;
-      }
-
-      proj4.defs(alias, view_proj4);
-      ol_proj_proj4_register(proj4);
-
-      this.olmousePosition.setProjection(alias);
+      var wmsProjectionAlias = this.getProjectionAlias(wmsProj4);
 
       var wmsUrl = this.$store.getters.apiUrl('rasterdb_wms');
 
@@ -317,7 +284,7 @@ export default {
         url: wmsUrl,
         params: this.wmsParams,
         imageLoadFunction: imageLoadFunctionWMS,
-        projection: alias,
+        projection: wmsProjectionAlias,
         ratio: 1,
       });
 
@@ -338,10 +305,39 @@ export default {
       });
 
       this.layerWMS.setSource(this.sourceWMS);
-      
       var extent = this.meta.ref.extent;
       this.layerWMS.setExtent(extent);
 
+      this.setWmsView();
+    },
+
+    setWmsView() {
+      if(this.meta === undefined) {
+        this.refreshLayers();
+        return;
+      }
+      if(this.meta.ref === undefined) {
+        this.refreshLayers();
+        return;
+      }
+      if(this.meta.ref.pixel_size === undefined) {
+        this.refreshLayers();
+        return;
+      }
+      if(this.meta.ref.extent === undefined) {
+        this.refreshLayers();
+        return;
+      }
+      var viewProj4 = '';
+      if(this.meta.ref.proj4 !== undefined && this.meta.ref.proj4 !== '') {
+        viewProj4 = this.meta.ref.proj4.trim();
+      }
+      var viewProjectionAlias = this.getProjectionAlias(viewProj4);
+
+      console.log("setWmsView " + viewProj4 +" -> " + viewProjectionAlias);
+
+      this.olmousePosition.setProjection(viewProjectionAlias);
+      var extent = this.meta.ref.extent;
       var min_pixel_size = this.meta.ref.pixel_size.x <= this.meta.ref.pixel_size.y ? this.meta.ref.pixel_size.x : this.meta.ref.pixel_size.y;
       var extent_size_x = extent[2] - extent[0];
       var extent_size_y = extent[3] - extent[1];
@@ -349,8 +345,9 @@ export default {
 
       var view = new ol_View({
         center: [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2],
-        projection: alias,
+        projection: viewProjectionAlias,
         extent: extent,
+        constrainOnlyCenter: true,
         minResolution: min_pixel_size / 4,
         maxResolution: max_extent_size / 256,
       });
@@ -359,74 +356,182 @@ export default {
 
       view.fit(extent);
 
-
+      this.olmap.updateSize();
+      this.refreshLayers();
     },
-    refreshRoute() {
-      var rasterdb = this.selectedRasterdb === undefined ? this.rasterdb : this.selectedRasterdb.name;
-      var timestamp = this.selectedTimestamp === undefined ? this.timestamp : this.selectedTimestamp.timestamp;
-      var product = this.selectedProduct === undefined ? this.product : this.selectedProduct.name;
 
-      this.$router.push('/viewer/' + rasterdb);
-      this.$router.push({path: '/viewer/' + rasterdb, query: {timestamp: timestamp, product: product}});
+    setWebmercatorView() {
+      var viewProj4 = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs';
+      var viewProjectionAlias = this.getProjectionAlias(viewProj4);
+      this.olmousePosition.setProjection(viewProjectionAlias);
+
+      var view = new ol_View({
+        center: [0, 0],
+        projection: viewProjectionAlias,
+        zoom: 2,
+      });
+
+      this.olmap.setView(view);
+
+      //view.fit(extent);
+
+      this.olmap.updateSize();
+      this.refreshLayers();
+    },
+
+    setVectorView() {
+      if(this.meta !== undefined) {
+        this.refreshLayers();
+        return;
+      }
+      if(this.vectorSource === undefined) {
+        this.setWebmercatorView();
+        return;
+      }
+      var viewProj4 = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs';
+      var viewProjectionAlias = this.getProjectionAlias(viewProj4);
+      this.olmousePosition.setProjection(viewProjectionAlias);
+
+      var view = new ol_View({
+        center: [0, 0],
+        projection: viewProjectionAlias,
+        zoom: 2,
+      });
+
+      this.olmap.setView(view);
+
+      var extent = this.vectorSource.getExtent();
+      view.fit(extent);
+
+      this.olmap.updateSize();
+      this.refreshLayers();
+    },    
+
+
+    refreshRoute() {
+      var path = '/viewer';
+      var query = {};
+
+      if(this.selectedRasterdb === undefined) {
+        if(this.rasterdb !== undefined) {
+          path += '/' + this.rasterdb;
+        }
+      } else if(this.selectedRasterdb !== null) {
+        path += '/' + this.selectedRasterdb.name;
+      }
+
+      if(this.selectedTimestamp === undefined) {
+        if(this.timestamp !== undefined) {
+          query.timestamp = this.timestamp;
+        }
+      } else if(this.selectedTimestamp !== null) {
+        query.timestamp = this.selectedTimestamp.timestamp;
+      }
+
+      if(this.selectedProduct === undefined) {
+        if(this.product !== undefined) {
+          query.product = this.product;
+        }
+      } else if(this.selectedProduct !== null) {
+        query.product = this.selectedProduct.name;
+      }
+
+      if(this.selectedVectordb === undefined) {
+        if(this.vectordb !== undefined) {
+          query.vectordb = this.vectordb;
+        }
+      } else if(this.selectedVectordb !== null) {
+        query.vectordb = this.selectedVectordb.name;
+      }
+      
+      this.$router.push({path: path, query: query});
     },
     refreshLayers() {
       var layers = this.olmap.getLayers();
       layers.clear();
-      switch(this.selectedBackground.name) {
-        case "osm":
-          layers.push(this.layerBackgroundOSM);
-          break;
-        case "OpenTopoMap":
-          layers.push(this.layerBackgroundOpenTopoMap);
-          break;
-        case "StamenTerrain":
-          layers.push(this.layerBackgroundStamenTerrain);
-          break;
+      if(this.selectedBackground !== undefined) {
+        switch(this.selectedBackground.name) {
+          case "osm":
+            layers.push(this.layerBackgroundOSM);
+            break;
+          case "OpenTopoMap":
+            layers.push(this.layerBackgroundOpenTopoMap);
+            break;
+          case "StamenTerrain":
+            layers.push(this.layerBackgroundStamenTerrain);
+            break;
+        }
       }
-      layers.push(this.layerWMS);
-      layers.push(this.vectorLayer);
+      if(this.sourceWMS !== undefined) {
+        layers.push(this.layerWMS);
+      }
+      if(this.vectorSource !== undefined) {
+        layers.push(this.vectorLayer);
+        if(this.showLabels) {
+          layers.push(this.vectorLabelLayer);
+        }
+      }
     },
     selectFullExtent() {
-      //this.selectedExtent = this.meta.ref.extent;
       this.interactionExtent.setExtent(this.meta.ref.extent);
     },
     refreshVectordbLayer() {
       //console.log("refreshVectordbLayer");
-      if(this.selectedVectordb !== undefined && this.epsgCode !== undefined) {
+      if(this.selectedVectordb !== undefined && this.selectedVectordb !== null && this.epsgCode !== undefined) {
         this.loadGeojson();
+        this.loadTable();
       } else {
         this.refreshVectorSource(undefined);
       }
     },
-    loadGeojson() {
-      var self = this;
+    async loadGeojson() {
       var messageID = this.addMessage("loading vector data of layer ...");
       var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/geometry.json');
-      axios.get(url, {
-        params: {
-          epsg: this.epsgCode,
-        }
-      })
-      .then(function(response) {
+      try {
+        var response = await axios.get(url, {
+          params: {
+            epsg: this.epsgCode,
+          }
+        });
         var geojson = response.data;
-        self.removeMessage(messageID);
-        self.refreshVectorSource(geojson);
-      })
-      .catch(function(e) {
-        self.addnotification('ERROR vector data of layer' + e);
-        self.removeMessage(messageID);
-      });
+        this.removeMessage(messageID);
+        this.refreshVectorSource(geojson);
+      } catch(e) {
+        this.addnotification('ERROR vector data of layer' + e);
+        this.removeMessage(messageID);
+      }
+    },
+    async loadTable() {
+      var messageID = this.addMessage("loading table data of layer ...");
+      var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/table.json');
+      try {
+        var response = await axios.get(url);
+        this.table = response.data;
+        this.removeMessage(messageID);
+      } catch {
+        this.addnotification('ERROR table data of layer');
+        this.removeMessage(messageID);
+      }
     },
     refreshVectorSource(geojson) {
-      var features = geojson === undefined ? [] : (new GeoJSON()).readFeatures(geojson);
+      if(geojson === undefined) {
+        this.vectorSource = undefined;
+        this.vectorLayer.setSource(undefined);
+        this.vectorLabelLayer.setSource(undefined);
+        this.setVectorView();
+        return;        
+      }
+      var features = (new GeoJSON()).readFeatures(geojson);
       //console.log(features[0]);
 
-      var vectorSource = new ol_source.Vector({
+      this.vectorSource = new ol_source.Vector({
         features: features,
       });
 
-      this.vectorLayer.setSource(vectorSource);
+      this.vectorLayer.setSource(this.vectorSource);
+      this.vectorLabelLayer.setSource(this.vectorSource);
       //console.log("refreshVectorSource done");
+      this.setVectorView();
     },
     onSettingsDialog() {
       this.settingsDialog = !this.settingsDialog;
@@ -434,12 +539,53 @@ export default {
       //console.log(rect.right);
       //console.log(this.$refs.settingsDialog);
       this.$refs.settingsDialog.boxX = rect.right; // just inital x position
-    }
+    },
+    showFeaturesDialog(e) {
+      var feature = this.vectorSource.getClosestFeatureToCoordinate(e.coordinate);
+      if(feature !== null) {
+        console.log("clicked " + feature.getId()+"  " + e.coordinate);      
+        this.selectedFeatures = [feature];
+        this.featureDetailsShow = true;
+      }
+    },
+    featureToTableEntry(id) {
+      if(id === undefined) {
+        return [];
+      }
+      var row = this.table.data[id];
+      if(row == undefined) {
+        return [];
+      }
+      return row;
+    },
+    getProjectionAlias(proj4Text) {
+      var alias = this.mapProj4ToAlias[proj4Text];
+      if(alias === undefined) {
+        var i = 1;
+        alias = 'WMS_VIEW_PROJECTION_' + i;
+        while(this.mapAliasToProj4[alias] !== undefined) {
+          i++;
+          alias = 'WMS_VIEW_PROJECTION_' + i;
+        }
+        this.mapAliasToProj4[alias] = proj4Text;
+        this.mapProj4ToAlias[proj4Text] = alias;
+        proj4.defs(alias, proj4Text);
+        ol_proj_proj4_register(proj4);
+      }
+      return alias;
+    },
   },
   computed: {
     ...mapState({
       urlPrefix: state => state.identity.urlPrefix,
     }),
+    mouseModus() {
+      var m = this.mouseModusButtonState;
+      if(this.mouseModusKeySelect) {
+        m = 'select';
+      }
+      return m;
+    },
     session() {
       var i = this.$store.state.identity.data;
       return i === undefined ? undefined : i.session;
@@ -463,7 +609,10 @@ export default {
       }
     },
     wmsParams() {
-      var styleParamter = this.product;
+      var styleParamter = undefined;
+      if(this.selectedProduct!== undefined && this.selectedProduct !== null) {
+        styleParamter = this.selectedProduct.name
+      }
 
       if(this.selectedGamma !== 'auto') {
         styleParamter += ' gamma' + this.selectedGamma;
@@ -481,8 +630,8 @@ export default {
         LAYERS: this.rasterdb,
       };
 
-      if(this.timestamp != undefined) {
-        p.TIME = this.timestamp; 
+      if(this.selectedTimestamp !== undefined && this.selectedTimestamp !== null) {
+        p.TIME = this.selectedTimestamp.timestamp; 
       }
 
       if(styleParamter != undefined) {
@@ -504,7 +653,7 @@ export default {
     },
     epsgCode() {
       if(this.meta === undefined || this.meta.ref === undefined) {
-        return undefined;
+        return 3857; // WGS 84 / Pseudo-Mercator
       }
       var code = this.meta.ref.code;
       if(code === undefined) {
@@ -518,66 +667,71 @@ export default {
     }
   },
   watch: {
-    rasterdb() {
-      this.refreshRoute();
+    $route(to) {
+      console.log(to);
+    },
+    selectedRasterdb() {
       this.refreshMeta();
-    },
-    wmsParams() {
-      if(this.sourceWMS !== undefined) {
-        this.sourceWMS.updateParams(this.wmsParams);
-      }
-    },
-    timestamp() {
-      this.refreshRoute();
-      this.refreshWMS();
-    },
-    product() {
       this.refreshRoute();
     },
     meta() {
       this.refreshWMS();
       this.interactionExtent.setExtent();
-      var title = this.meta.ref.projectionTitle;
-      if(title === undefined) {
-        title = this.meta.ref.proj4;
+      var projectionTitle = 'unknown projection';
+      if(this.meta !== undefined && this.meta.ref !== undefined) {
+        if(this.meta.ref.projectionTitle !== undefined) {
+          projectionTitle = this.meta.ref.projectionTitle;
+        } else if(this.meta.ref.proj4 !== undefined && this.meta.ref.proj4 !== '') {
+          projectionTitle = this.meta.ref.proj4;
+        }
       }
-      document.getElementById('foot-start-1').innerHTML = title === undefined ? 'unknown projection' : title;
-    },
-    session() {
-      this.refreshWMS();
-    },
-    selectedRasterdb() {
-      //console.log("selected");
-      //console.log(this.selectedRasterdb);
-      //console.log(this.selectedRasterdb.name);
-      
-      this.refreshRoute();
+      document.getElementById('foot-start-1').innerHTML = projectionTitle;
     },
     selectedTimestamp() {
+      this.refreshWMS();
       this.refreshRoute();
     },
     selectedProduct() {
       this.refreshRoute();
+    },          
+    selectedVectordb() {
+      this.refreshVectordbLayer();
+      this.refreshRoute();
+    },          
+    mouseModusButtonState() {
+      this.mouseModusKeySelect = false; // reset key state at button modus switch
     },
+   
+    wmsParams() {
+      if(this.sourceWMS !== undefined) {
+        this.sourceWMS.updateParams(this.wmsParams);
+      }
+    },
+    
+
+
+    session() {
+      this.refreshWMS();
+    },
+    
     selectedBackground() {
       //console.log(this.selectedBackground.name);
       this.refreshLayers();
     },
     mouseModus() {
-      var viewCanvas = document.querySelector("#olmap-viewer canvas");
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move-on');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select-on');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-move');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-move-on');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-select');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-select-on');
       switch(this.mouseModus) {
         case 'select':
           this.interactionExtent.setActive(true); 
-          viewCanvas.classList.add('olmap-viewer-mouseModus-select');
+          this.viewOverlay.classList.add('olmap-viewer-mouseModus-select');
           break;
         default:
           this.interactionExtent.setActive(false);
           this.interactionExtent.createOrUpdatePointerFeature_([NaN, NaN]);
-          viewCanvas.classList.add('olmap-viewer-mouseModus-move');
+          this.viewOverlay.classList.add('olmap-viewer-mouseModus-move');
           break;
       }
     },
@@ -589,9 +743,9 @@ export default {
     epsgCode() {
       this.refreshVectordbLayer();
     },
-    selectedVectordb() {
-      this.refreshVectordbLayer();
-    }   
+    showLabels() {
+      this.refreshLayers();
+    },  
   },
   mounted() {
     var self = this;
@@ -604,43 +758,18 @@ export default {
 
     this.globalEventListeners.keydown = e => {
       if (e.keyCode == 17) { // ctrl-key
-        switch(this.mouseModus) {
-          case 'select':
-            break;
-          default:
-            var viewCanvas = document.querySelector("#olmap-viewer canvas");
-            viewCanvas.classList.remove('olmap-viewer-mouseModus-move');
-            viewCanvas.classList.remove('olmap-viewer-mouseModus-move-on');
-            viewCanvas.classList.remove('olmap-viewer-mouseModus-select');
-            viewCanvas.classList.remove('olmap-viewer-mouseModus-select-on');
-            this.interactionExtent.setActive(true);
-            viewCanvas.classList.add('olmap-viewer-mouseModus-select');
-            break;
-        }
+        this.mouseModusKeySelect = true;
       }
     };
     
     this.globalEventListeners.keyup = e => {
       if (e.keyCode == 17) { // ctrl-key
-        switch(this.mouseModus) {
-          case 'select':
-            break;
-          default:
-          var viewCanvas = document.querySelector("#olmap-viewer canvas");
-          viewCanvas.classList.remove('olmap-viewer-mouseModus-move');
-          viewCanvas.classList.remove('olmap-viewer-mouseModus-move-on');
-          viewCanvas.classList.remove('olmap-viewer-mouseModus-select');
-          viewCanvas.classList.remove('olmap-viewer-mouseModus-select-on');
-            this.interactionExtent.setActive(false);
-            this.interactionExtent.createOrUpdatePointerFeature_([NaN, NaN]);
-            viewCanvas.classList.add('olmap-viewer-mouseModus-move');
-            break;
-        }
+        this.mouseModusKeySelect = false;
       }
     };
 
     document.addEventListener('keydown', this.globalEventListeners.keydown);
-		document.addEventListener('keyup', this.globalEventListeners.keyup);    
+    document.addEventListener('keyup', this.globalEventListeners.keyup); 
 
     this.$store.dispatch('identity/init');
 
@@ -671,30 +800,70 @@ export default {
       })
     });
 
-    var vector_fill = new ol_style.Fill({
+    var vectorFill = new ol_style.Fill({
       //color: 'rgba(255,255,255,0.15)'
       color: 'rgba(255,255,255,0.0)'
     });
-    var vector_stroke = new ol_style.Stroke({
+    var vectorStroke = new ol_style.Stroke({
       color: 'rgb(95, 112, 245)',
       width: 2,
       /*lineDash: [1, 5],*/
     });
-    var vector_styles = [
-      new ol_style.Style({
-        image: new ol_style.Circle({
-          fill: vector_fill,
-          stroke: vector_stroke,
-          radius: 5,
-        }),
-        fill: vector_fill,
-        stroke: vector_stroke,
-      })
-    ];
-
-    this.vectorLayer = new ol_layer.Vector({
-      style: vector_styles,
+    var vectorPointStroke = new ol_style.Stroke({
+      color: 'rgb(200, 20, 35)',
+      width: 2,
+      /*lineDash: [1, 5],*/
     });
+    function vectorStyleFun(/*feature*/) {
+      return new ol_style.Style({
+        /*image: new ol_style.Circle({
+          fill: vectorFill,
+          stroke: vectorStroke,
+          radius: 5
+        }),*/
+        image: new ol_style.RegularShape({
+            stroke: vectorPointStroke,
+            points: 4,
+            radius: 10,
+            radius2: 0,
+            angle: Math.PI / 4
+        }),
+        fill: vectorFill,
+        stroke: vectorStroke,
+      });
+    }
+    this.vectorLayer = new ol_layer.VectorImage({
+      style: vectorStyleFun,
+      //declutter: true,
+    });
+
+    /*var labelBackgroundStroke = new ol_style.Stroke({
+      //color: 'rgba(95, 112, 245, 0.3)',
+      color: 'rgba(255,255,255,0.5)',
+      width: 2,
+    });*/
+    var labelBackgroundFill = new ol_style.Fill({
+      color: 'rgba(255,255,255,0.6)',
+    });
+    function vectorLabelStyleFun(feature) {
+      var text = new ol_style.Text({
+        font: '15px sans-serif',
+        text: feature.getProperties().name,
+        overflow: true,
+        //backgroundStroke: labelBackgroundStroke,
+        backgroundFill: labelBackgroundFill,
+        padding: [2, 2, 2, 2],
+      });
+      return new ol_style.Style({
+        text: text,
+      });
+    }
+     this.vectorLabelLayer = new ol_layer.VectorImage({
+      style: vectorLabelStyleFun,
+      declutter: true,
+    });
+
+
 
     var interactionExtentBoxStyle = [
       new ol_style.Style({
@@ -721,7 +890,9 @@ export default {
       } else {
         self.selectedExtent = e.extent;
       }
-		});
+    });
+    
+    this.interactionExtent.setActive(false);
 
     this.olmousePosition = new ol_control_MousePosition({projection: 'EPSG:4326', target: 'foot-end-1', coordinateFormat: function(coordinate) {return toStringXY(coordinate, 2);}});
 
@@ -736,83 +907,48 @@ export default {
         ]),
       });
 
-    var viewCanvas = document.querySelector("#olmap-viewer canvas");
+    this.viewOverlay = document.querySelector(".ol-overlaycontainer-stopevent");
 
-    viewCanvas.addEventListener('mousedown', e => {
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move-on');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select-on');
-      switch(self.mouseModus) {
-        case 'select':
-          viewCanvas.classList.add('olmap-viewer-mouseModus-select-on');
-          break;
-        default:
-          if(e.ctrlKey) {
-            this.interactionExtent.setActive(true); 
-            viewCanvas.classList.add('olmap-viewer-mouseModus-select-on');
-          } else {
-            this.interactionExtent.setActive(false);
-            this.interactionExtent.createOrUpdatePointerFeature_([NaN, NaN]); 
-            viewCanvas.classList.add('olmap-viewer-mouseModus-move-on');
-          }
-          break;
-      }
-    });
-
-    viewCanvas.addEventListener('mouseup', e => {
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move-on');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select-on');
-      switch(self.mouseModus) {
-        case 'select':
-          viewCanvas.classList.add('olmap-viewer-mouseModus-select');
-          break;
-        default:          
-          if(e.ctrlKey) {
-            this.interactionExtent.setActive(true); 
-            viewCanvas.classList.add('olmap-viewer-mouseModus-select-on');
-          } else {
-            this.interactionExtent.setActive(false);
-            this.interactionExtent.createOrUpdatePointerFeature_([NaN, NaN]); 
-            viewCanvas.classList.add('olmap-viewer-mouseModus-move-on');
-          }
+    this.olmap.on('click', e => {
+      switch(this.mouseModus) {
+        case 'move':
+          this.showFeaturesDialog(e);
           break;
       }
     });
     
-    this.olmap.on('movestart', function() {
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move-on');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select-on');
-      switch(self.mouseModus) {
+    this.olmap.on('movestart', () => {
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-move');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-move-on');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-select');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-select-on');
+      switch(this.mouseModus) {
         case 'select':
-          viewCanvas.classList.add('olmap-viewer-mouseModus-select-on');
+          this.viewOverlay.classList.add('olmap-viewer-mouseModus-select-on');
           break;
         default:
-          viewCanvas.classList.add('olmap-viewer-mouseModus-move-on');
+          this.viewOverlay.classList.add('olmap-viewer-mouseModus-move-on');
           break;
       }
     });
 
-    this.olmap.on('moveend', function() {
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-move-on');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select');
-      viewCanvas.classList.remove('olmap-viewer-mouseModus-select-on');
-      switch(self.mouseModus) {
+    this.olmap.on('moveend', () => {
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-move');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-move-on');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-select');
+      this.viewOverlay.classList.remove('olmap-viewer-mouseModus-select-on');
+      switch(this.mouseModus) {
         case 'select':
-          viewCanvas.classList.add('olmap-viewer-mouseModus-select');
+          this.viewOverlay.classList.add('olmap-viewer-mouseModus-select');
           break;
         default:
-          viewCanvas.classList.add('olmap-viewer-mouseModus-move');
+          this.viewOverlay.classList.add('olmap-viewer-mouseModus-move');
           break;
       }
     });
 
-    this.refreshMeta();
+    //this.refreshMeta();
+    this.setWebmercatorView();
   },
   destroyed() {
     document.getElementById('foot-start-1').innerHTML = '?';

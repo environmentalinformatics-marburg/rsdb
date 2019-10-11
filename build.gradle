@@ -67,7 +67,10 @@ dependencies {
 	runtime group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.10.6'
 	runtime group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.10.6'
 	
-	compile group: 'org.gdal', name: 'gdal', version: '2.2.0'	
+	compile group: 'org.gdal', name: 'gdal', version: '2.2.0'
+	
+	compile group: 'org.imintel', name: 'mbtiles4j', version: '1.0.6'
+		
 }
 
 sourceSets.main.java.srcDir 'src'

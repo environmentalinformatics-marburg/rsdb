@@ -43,7 +43,7 @@ export default new Router({
       ],
     },
     {path: '/explorer', component: adminExplorer},
-    {path: '/viewer/:rasterdb?', component: adminViewer, props: (route) => ({ rasterdb: route.params.rasterdb,  timestamp: route.query.timestamp, product: route.query.product })},
+    {path: '/viewer/:rasterdb?', component: adminViewer, props: (route) => ({ rasterdb: route.params.rasterdb,  timestamp: route.query.timestamp, product: route.query.product, vectordb: route.query.vectordb })},
     {path: '/upload', component: adminUpload}, 
     {path: '/tools', component: adminTools,
       children: [
@@ -51,12 +51,14 @@ export default new Router({
         {path: 'status', component: adminToolsStatus},
         {path: 'task', component: adminToolsTask},
         {path: 'accounts', component: adminAccounts},
+        {path: 'vectorviewer/:vectordb?', component: adminVectorviewer, props: true},
         {path: '*', redirect: 'info' },
         {path: '', redirect: 'info' },
       ],    
     },
     {path: '/files', component: adminFiles},  
-    {path: '/vectorviewer/:vectordb?', component: adminVectorviewer, props: true},
+    //{path: '/vectorviewer/:vectordb?', component: adminVectorviewer, props: true},
+    {path: '/vectorviewer/:vectordb?', redirect: to => {console.log(to); return { path: '/viewer', query: {vectordb: to.params.vectordb} };}},
     {path: '*', redirect: '/' },
   ]
 })

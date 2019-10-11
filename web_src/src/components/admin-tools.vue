@@ -4,7 +4,8 @@
   <v-tab to="/tools/info"><v-icon>view_compact</v-icon> Info</v-tab>
   <v-tab to="/tools/status"><v-icon>schedule</v-icon> Status</v-tab>
   <v-tab to="/tools/task"><v-icon>card_travel</v-icon> Task</v-tab>  
-  <v-tab to="/tools/accounts" v-if="isAdmin"><v-icon>contact_mail</v-icon> Accounts</v-tab> 
+  <v-tab to="/tools/accounts" v-if="isAdmin"><v-icon>contact_mail</v-icon> Accounts</v-tab>
+  <v-tab to="/tools/vectorviewer"><v-icon>map</v-icon> vectorviewer</v-tab> 
 </v-tabs>
 <router-view class="tools-grid-item-content" /> 
 </div>

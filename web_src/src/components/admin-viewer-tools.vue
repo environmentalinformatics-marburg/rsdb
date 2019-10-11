@@ -7,7 +7,7 @@
   <div v-show="epsgCode !== undefined">
     <br>
     <hr>
-    <v-icon style="font-size: 1em;">category</v-icon><b>Overlay (Vector Layer)</b>
+    <v-icon style="font-size: 1em;">category</v-icon><b>Vector Layer</b>
     <multiselect v-if="vectordbs !== undefined" 
           v-model="selectedVectordb" 
           :options="vectordbs" 
@@ -78,7 +78,7 @@ import 'vue-multiselect/dist/vue-multiselect.min.css'
 export default {
   name: 'admin-viewer-tools',
 
-  props: ['meta', 'selectedExtent', 'epsgCode'],
+  props: ['meta', 'selectedExtent', 'epsgCode', 'currentVectordb'],
 
   components: {
     Multiselect,
@@ -86,7 +86,7 @@ export default {
 
   data() {
     return {
-      selectedVectordb: undefined,
+      selectedVectordb: null,
     };
   },
   methods: {
@@ -146,6 +146,23 @@ export default {
       console.log(url);
       window.open(url, '_blank');
     },
+    refreshSelectedVectordb() {
+      if(this.vectordbs === undefined) {
+        this.selectedVectordb = undefined;
+        return;
+      }
+      if(this.currentVectordb === undefined) {
+        this.selectedVectordb = null;
+        return;
+      }
+      for (const vectordb of this.vectordbs) {
+          if(vectordb.name === this.currentVectordb) {
+            this.selectedVectordb = vectordb;
+            return;
+          }
+      }
+      this.selectedVectordb = undefined;
+    },
   },
   computed: {
     vectordbs() {
@@ -156,9 +173,15 @@ export default {
     },
   },
   watch: {
+    vectordbs() {
+      this.refreshSelectedVectordb();
+    },
+    currentVectordb() {
+      this.refreshSelectedVectordb();
+    },
     selectedVectordb() {
-      this.$emit('selected-vectordb', this.selectedVectordb == null ? undefined : this.selectedVectordb);
-    }
+      this.$emit('selected-vectordb', this.selectedVectordb);     
+    },
   },
   mounted() {
     this.$store.dispatch('vectordbs/init');

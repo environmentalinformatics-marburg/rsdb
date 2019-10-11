@@ -84,6 +84,7 @@ import {toStringXY} from 'ol/coordinate';
 import GeoJSON from 'ol/format/GeoJSON';
 //import * as ol_interaction from 'ol/interaction';
 //import * as ol_geom from 'ol/geom';
+//import * as ol_format from 'ol/format';
 
 import axios from 'axios';
 
@@ -266,19 +267,42 @@ export default {
     document.getElementById('foot-start-1').innerHTML = 'WGS 84/Pseudo-Mercator';
     document.getElementById('foot-end-1').innerHTML = '';
 
-    var fill = new ol_style.Fill({
+    var vectorFill = new ol_style.Fill({
       //color: 'rgba(255,255,255,0.15)'
       color: 'rgba(255,255,255,0.0)'
     });
-    var stroke = new ol_style.Stroke({
+    var vectorStroke = new ol_style.Stroke({
       color: 'rgb(95, 112, 245)',
       width: 2,
       /*lineDash: [1, 5],*/
     });
-    var pointStroke = new ol_style.Stroke({
+    var vectorPointStroke = new ol_style.Stroke({
       color: 'rgb(200, 20, 35)',
       width: 2,
       /*lineDash: [1, 5],*/
+    });
+    function vectorStyleFun(/*feature*/) {
+      return new ol_style.Style({
+        /*image: new ol_style.Circle({
+          fill: vectorFill,
+          stroke: vectorStroke,
+          radius: 5
+        }),*/
+        image: new ol_style.RegularShape({
+            stroke: vectorPointStroke,
+            points: 4,
+            radius: 10,
+            radius2: 0,
+            angle: Math.PI / 4
+        }),
+        fill: vectorFill,
+        stroke: vectorStroke,
+      });
+    }
+    this.vectorLayer = new ol_layer.VectorImage({
+      style: vectorStyleFun,
+      //declutter: true,
+      //renderMode: 'image',
     });
 
     /*var labelBackgroundStroke = new ol_style.Stroke({
@@ -289,26 +313,6 @@ export default {
     var labelBackgroundFill = new ol_style.Fill({
       color: 'rgba(255,255,255,0.6)',
     });
-
-    function styleFun(/*feature*/) {
-      return new ol_style.Style({
-        /*image: new ol_style.Circle({
-          fill: fill,
-          stroke: stroke,
-          radius: 5
-        }),*/
-        image: new ol_style.RegularShape({
-            stroke: pointStroke,
-            points: 4,
-            radius: 10,
-            radius2: 0,
-            angle: Math.PI / 4
-        }),
-        fill: fill,
-        stroke: stroke,
-      });
-    }
-
     function vectorLabelStyleFun(feature) {
       var text = new ol_style.Text({
         font: '15px sans-serif',
@@ -322,24 +326,23 @@ export default {
         text: text,
       });
     }
-
-    this.vectorLayer = new ol_layer.Vector({
-      style: styleFun,
-      //declutter: true,
-      renderMode: 'image',
-    });
-
-     this.vectorLabelLayer = new ol_layer.Vector({
+     this.vectorLabelLayer = new ol_layer.VectorImage({
       style: vectorLabelStyleFun,
       declutter: true,
       renderMode: 'image',
     });
 
-    //var OsmUrl = this.$store.getters.apiUrl('api/proxy/{z}/{x}/{y}.png');
+    //var backgroundSourceUrl = this.$store.getters.apiUrl('api/proxy/{z}/{x}/{y}.png');
+    //var backgroundSourceUrl = this.$store.getters.apiUrl('api/mbtiles/satellite/{z}/{x}/{-y}');
 
     var backgroundSource = new ol_source.OSM({
-      //url: OsmUrl,
-    });  
+      //url: backgroundSourceUrl,
+    });
+
+    /*var backgroundSource = new ol_source.VectorTile({
+      format: new ol_format.MVT(),
+      url: backgroundSourceUrl,
+    });*/
 
     self.olmap = new ol_Map({
         target: 'olmap-vectorviewer',
@@ -347,6 +350,9 @@ export default {
           new ol_layer.Tile({
             source: backgroundSource,
           }),
+          /*new ol_layer.VectorTile({
+            source: backgroundSource,
+          }),*/
           this.vectorLayer,
           this.vectorLabelLayer,
         ],
@@ -372,6 +378,8 @@ export default {
       self.selectedFeatures = [feature];
       self.featureDetailsShow = true;
     });
+
+    this.refreshVectorSource();
   },
   destroyed() {
     document.getElementById('foot-start-1').innerHTML = '?';
