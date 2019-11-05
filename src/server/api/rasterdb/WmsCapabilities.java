@@ -82,8 +82,8 @@ public class WmsCapabilities {
 		addElement(eRootLayer, "Abstract", "WMS service");
 		for (String name : broker.getRasterdbNames()) {
 			log.info("load " + name);
-			// if(config.isAllowed(userIdentity)) {
 			RasterDB rasterdb = broker.getRasterdb(name);
+			if(rasterdb.getACL().isAllowed(userIdentity)) {
 			// int default_epsg = 4326; // WGS-84 / geographisch 2D weltweites System für
 			// GPS-Geräte, OpenStreetMap Datenbank
 			String default_epsg = "EPSG:3857"; // WGS 84 / Pseudo-Mercator Google Maps, OpenStreetMap und andere
@@ -91,7 +91,7 @@ public class WmsCapabilities {
 			// int default_epsg = 32737;
 			String code = rasterdb.ref().optCode(default_epsg);
 			addLayer(eRootLayer, code, rasterdb);
-			// }
+			}
 		}
 		return rootElement;
 	}
@@ -138,7 +138,7 @@ public class WmsCapabilities {
 		int bandCount = rasterdb.bandMap.size();
 		Element eLayer = addElement(root, "Layer");
 		addElement(eLayer, "Name", name);
-		addElement(eLayer, "Title", description);
+		addElement(eLayer, "Title", name + " - " + description);
 		addElement(eLayer, "Abstract", "raster with " + bandCount + " bands");
 		addElement(eLayer, "CRS", code);
 		Element eBoundingBox = addElement(eLayer, "BoundingBox");

@@ -42,7 +42,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SigningKeyResolver;
 
 /**
- * Injects Authentication into Request if IP is in ipMap and user is in loginService.
+ * Injects Authentication by JWS.
  * @author woellauer
  *
  */

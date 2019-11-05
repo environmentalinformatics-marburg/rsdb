@@ -86,8 +86,10 @@ public class PointDBServer {
 	private static final String WEBFILES_PATH = "webfiles"; //static files for user download (with folder listing)
 	private static final String WEBFILES_CSS_FILE = WEBCONTENT_PATH+"/jetty-dir.css"; // stylesheet for webfiles directory listing
 
+	private static final boolean useHTTP2 = false; // QGIS WMS seems to not support (optional) HTTP2
+
 	private static final File KEYSTORE_FILE = new File("keystore");
-	
+
 	private static HttpConfiguration createBaseHttpConfiguration() {
 		HttpConfiguration httpConfiguration = new HttpConfiguration();
 		httpConfiguration.setSendServerVersion(false);
@@ -95,7 +97,7 @@ public class PointDBServer {
 		httpConfiguration.setSendXPoweredBy(false);
 		return httpConfiguration;
 	}
-	
+
 	private static HttpConfiguration createJwsHttpConfiguration() {
 		HttpConfiguration httpConfiguration = createBaseHttpConfiguration();
 		httpConfiguration.addCustomizer(new Customizer() {			
@@ -106,7 +108,7 @@ public class PointDBServer {
 		});
 		return httpConfiguration;
 	}
-	
+
 	private static HttpConfiguration createBaseHttpsConfiguration(int https_port) {
 		HttpConfiguration httpsConfiguration = createBaseHttpConfiguration();
 		httpsConfiguration.setSecureScheme("https");
@@ -118,7 +120,7 @@ public class PointDBServer {
 		httpsConfiguration.addCustomizer(src);
 		return httpsConfiguration;
 	}
-	
+
 	private static HttpConfiguration createJwsHttpsConfiguration(int https_port) {
 		HttpConfiguration httpsConfiguration = createBaseHttpsConfiguration(https_port);
 		httpsConfiguration.addCustomizer(new Customizer() {			
@@ -129,7 +131,7 @@ public class PointDBServer {
 		});
 		return httpsConfiguration;
 	}
-	
+
 	private static ServerConnector createHttpConnector(Server server, int http_port, HttpConfiguration httpConfiguration) {
 		HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpConfiguration);		
 		ServerConnector httpServerConnector = new ServerConnector(server, httpConnectionFactory);
@@ -138,24 +140,42 @@ public class PointDBServer {
 		httpServerConnector.setAcceptQueueSize(0);
 		return httpServerConnector;
 	}
-	
+
 	private static ServerConnector createHttpsConnector(Server server, int https_port, String keystore_password, HttpConfiguration https_config) {
+		SslContextFactory sslContextFactory = new SslContextFactory.Server();
+		sslContextFactory.setKeyStorePath(KEYSTORE_FILE.getAbsolutePath());
+		sslContextFactory.setKeyStorePassword(keystore_password);
+
+		SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString());
+
+		OptionalSslConnectionFactory optionalSslConnectionFactory = new OptionalSslConnectionFactory(sslConnectionFactory, HttpVersion.HTTP_1_1.asString());
+
+		HttpConnectionFactory httpsConnectionFactory = new HttpConnectionFactory(https_config);
+
+		ServerConnector httpsServerConnector = new ServerConnector(server, optionalSslConnectionFactory, sslConnectionFactory, httpsConnectionFactory);
+		httpsServerConnector.setPort(https_port);
+		httpsServerConnector.setIdleTimeout(DATA_TRANSFER_TIMEOUT_MILLISECONDS);
+		httpsServerConnector.setAcceptQueueSize(0);
+		return httpsServerConnector;
+	}	
+
+	private static ServerConnector createHttps2Connector(Server server, int https_port, String keystore_password, HttpConfiguration https_config) {
 		HTTP2ServerConnectionFactory https2ConnectionFactory = new HTTP2ServerConnectionFactory(https_config);
 		ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
 		alpn.setDefaultProtocol("h2");
-		
+
 		SslContextFactory sslContextFactory = new SslContextFactory.Server();
 		sslContextFactory.setKeyStorePath(KEYSTORE_FILE.getAbsolutePath());
 		sslContextFactory.setKeyStorePassword(keystore_password);
 		sslContextFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
-		
+
 		//SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString());
 		SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, alpn.getProtocol());
-		
+
 		OptionalSslConnectionFactory optionalSslConnectionFactory = new OptionalSslConnectionFactory(sslConnectionFactory, HttpVersion.HTTP_1_1.asString());
-		
+
 		HttpConnectionFactory httpsConnectionFactory = new HttpConnectionFactory(https_config);
-		
+
 		//ServerConnector httpsServerConnector = new ServerConnector(server, optionalSslConnectionFactory, sslConnectionFactory, httpsConnectionFactory);
 		ServerConnector httpsServerConnector = new ServerConnector(server, optionalSslConnectionFactory, sslConnectionFactory, alpn, https2ConnectionFactory, httpsConnectionFactory);
 		httpsServerConnector.setPort(https_port);
@@ -187,15 +207,24 @@ public class PointDBServer {
 		ServerConnector jwsServerConnector = null;
 		if(broker.brokerConfig.server().useJwsPort()) {
 			if(KEYSTORE_FILE.exists()) {
-				jwsServerConnector = createHttpsConnector(server, broker.brokerConfig.server().jws_port, broker.brokerConfig.server().keystore_password, createJwsHttpsConfiguration(broker.brokerConfig.server().jws_port));					
+				if(useHTTP2) {
+					jwsServerConnector = createHttps2Connector(server, broker.brokerConfig.server().jws_port, broker.brokerConfig.server().keystore_password, createJwsHttpsConfiguration(broker.brokerConfig.server().jws_port));
+				} else {
+					jwsServerConnector = createHttpsConnector(server, broker.brokerConfig.server().jws_port, broker.brokerConfig.server().keystore_password, createJwsHttpsConfiguration(broker.brokerConfig.server().jws_port));
+				}
 			} else {
 				jwsServerConnector = createHttpConnector(server, broker.brokerConfig.server().jws_port, createJwsHttpConfiguration());				
 			}
 		}
 
 		if(KEYSTORE_FILE.exists()) {
-			ServerConnector httpsServerConnector = createHttpsConnector(server, broker.brokerConfig.server().secure_port, broker.brokerConfig.server().keystore_password, createBaseHttpsConfiguration(broker.brokerConfig.server().secure_port));
-			
+			ServerConnector httpsServerConnector;
+			if(useHTTP2) {
+				httpsServerConnector = createHttps2Connector(server, broker.brokerConfig.server().secure_port, broker.brokerConfig.server().keystore_password, createBaseHttpsConfiguration(broker.brokerConfig.server().secure_port));
+			} else {
+				httpsServerConnector = createHttpsConnector(server, broker.brokerConfig.server().secure_port, broker.brokerConfig.server().keystore_password, createBaseHttpsConfiguration(broker.brokerConfig.server().secure_port));
+			}
+
 			if(broker.brokerConfig.server().useJwsPort()) {
 				Connector[] connectors = new Connector[]{httpServerConnector, httpsServerConnector, jwsServerConnector};
 				server.setConnectors(connectors);
@@ -221,7 +250,7 @@ public class PointDBServer {
 				server.setAttribute("digest-http-connector", httpServerConnector.getPort());
 			}
 		}
-		
+
 		DefaultSessionIdManager sessionIdManager = new DefaultSessionIdManager(server);
 		sessionIdManager.setWorkerName(null);
 		SessionHandler sessionHandler = new SessionHandler();
@@ -292,14 +321,14 @@ public class PointDBServer {
 			log.error(e);
 		}
 
-		Object digest_http_connector = server.getAttribute("digest-http-connector");
+		Object http_connector = server.getAttribute("digest-http-connector");
 		Object basic_https_connector = server.getAttribute("basic-https-connector");
 		Object jws_http_connector = server.getAttribute("jws-http-connector");
 		Object jws_https_connector = server.getAttribute("jws-https-connector");
 
 		System.out.println();
-		if(digest_http_connector != null) {
-			System.out.println("HTTP (digest authentication)\t\t" + toBold("http://[HOSTNAME]:" + digest_http_connector));
+		if(http_connector != null) {			
+			System.out.println("HTTP ("+ broker.brokerConfig.server().http_authentication +" authentication)\t\t" + toBold("http://[HOSTNAME]:" + http_connector));
 		}
 		if(basic_https_connector != null) {
 			System.out.println("HTTPS (basic authentication)\t\t" + toBold("https://[HOSTNAME]:" + basic_https_connector));
@@ -428,23 +457,37 @@ public class PointDBServer {
 		constraintMapping.setPathSpec("/*");
 		constraintMapping.setConstraint(constraint);
 
-		DigestAuthenticator digestAuthenticator = new DigestAuthenticator();
-		ConstraintSecurityHandler securityDigestHandler = new ConstraintSecurityHandler();
-		securityDigestHandler.setAuthenticator(digestAuthenticator);
-		securityDigestHandler.setLoginService(loginService);
-		securityDigestHandler.setConstraintMappings(Collections.singletonList(constraintMapping));
-		securityDigestHandler.setHandler(handler);		
-		PredicateHandler predicacteHttpHandler = new PredicateHandler(r->!r.isSecure());
-		predicacteHttpHandler.setHandler(securityDigestHandler);
+		ConstraintSecurityHandler httpSecurityHandler = new ConstraintSecurityHandler();
+		String a = broker.brokerConfig.server().http_authentication;
+		switch(a) {
+		case "basic": {
+			BasicAuthenticator basicAuthenticator = new BasicAuthenticator();
+			httpSecurityHandler.setAuthenticator(basicAuthenticator);
+			break;
+		}
+		case "digest": {
+			DigestAuthenticator digestAuthenticator = new DigestAuthenticator();
+			httpSecurityHandler.setAuthenticator(digestAuthenticator);
+			break;
+		}
+		default:
+			throw new RuntimeException("unknown authenticator: " + a);
+		}
 
+		httpSecurityHandler.setLoginService(loginService);
+		httpSecurityHandler.setConstraintMappings(Collections.singletonList(constraintMapping));
+		httpSecurityHandler.setHandler(handler);		
+		PredicateHandler predicacteHttpHandler = new PredicateHandler(r->!r.isSecure());
+		predicacteHttpHandler.setHandler(httpSecurityHandler);
+
+		ConstraintSecurityHandler httpsSecurityHandler = new ConstraintSecurityHandler();
 		BasicAuthenticator basicAuthenticator = new BasicAuthenticator();
-		ConstraintSecurityHandler securityBasicHandler = new ConstraintSecurityHandler();
-		securityBasicHandler.setAuthenticator(basicAuthenticator);
-		securityBasicHandler.setLoginService(loginService);
-		securityBasicHandler.setConstraintMappings(Collections.singletonList(constraintMapping));
-		securityBasicHandler.setHandler(handler);		
+		httpsSecurityHandler.setAuthenticator(basicAuthenticator);
+		httpsSecurityHandler.setLoginService(loginService);
+		httpsSecurityHandler.setConstraintMappings(Collections.singletonList(constraintMapping));
+		httpsSecurityHandler.setHandler(handler);		
 		PredicateHandler predicacteHttpsHandler = new PredicateHandler(r->r.isSecure());
-		predicacteHttpsHandler.setHandler(securityBasicHandler);		
+		predicacteHttpsHandler.setHandler(httpsSecurityHandler);		
 
 		handlerList.addHandler(jwsAuthentication);
 		handlerList.addHandler(ipAuthentication);
@@ -453,6 +496,8 @@ public class PointDBServer {
 
 		return handlerList;
 	}
+
+
 
 
 }
