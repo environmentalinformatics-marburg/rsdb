@@ -42,6 +42,10 @@ top_level_key3:
 server:
   # HTTP port (default 8081) 
   #port: 8081
+
+  # HTTP authentication method basic or digest (default digest)
+  # For usage with Qgis WMS HTTP authentication basic is needed
+  #http_authentication: basic  
   
   # HTTPS port (default 8082) 
   #secure_port: 8082
@@ -123,7 +127,8 @@ pointdb:
 
 ~~~ yaml
 server:
-  port: 8081  
+  port: 8081
+  http_authentication: basic  
 
 pointdb:
   - name: layer1    

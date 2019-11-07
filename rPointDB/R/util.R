@@ -174,8 +174,8 @@ post_json_get_rdat <- function(data, api_url, method, param_list=NULL, curl=RCur
   return(data)
 }
 
-isUnauthorized <- function(url) { # checks if url needs auth then true else false, if url not exists returns false
-  responseHeader <- RCurl::url.exists(url, .header = TRUE)
+isUnauthorized <- function(url, curlHandle) { # checks if url needs auth then true else false, if url not exists returns false
+  responseHeader <- RCurl::url.exists(url, .header = TRUE, curl = RCurl::dupCurlHandle(curlHandle))
   if(is.na(responseHeader["status"])) {
     return(FALSE) # no response
   } else {

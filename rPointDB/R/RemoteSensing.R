@@ -4,10 +4,14 @@ RemoteSensing_public <- list( #      *********** public ************************
     private$base_url <- url
     test_url <- paste0(private$base_url, "/pointdb/")
     private$curlHandle <- RCurl::getCurlHandle()
-    if(isUnauthorized(test_url)) { # only set AUTH_DIGEST if needed, if AUTH_DIGEST is set if not needed HTTP POST content will not be sent!
-      #print("set userpwd")
+    if(isUnauthorized(test_url, private$curlHandle)) { # only set AUTH_DIGEST if needed, if AUTH_DIGEST is set if not needed HTTP POST content will not be sent!
+      #print("set userpwd with AUTH_DIGEST")
       private$curlHandle <- RCurl::getCurlHandle(httpauth = RCurl::AUTH_DIGEST, userpwd = userpwd, verbose = FALSE)
     }
+    if(isUnauthorized(test_url, private$curlHandle)) { # only set AUTH_BASIC if needed, if AUTH_BASIC is set if not needed HTTP POST content will not be sent!
+      #print("set userpwd with AUTH_BASIC")
+      private$curlHandle <- RCurl::getCurlHandle(httpauth = RCurl::AUTH_BASIC, userpwd = userpwd, verbose = FALSE)
+    }    
     responesHeader <- RCurl::url.exists(test_url, .header = TRUE, curl = RCurl::dupCurlHandle(private$curlHandle))
     #print(responesHeader)
     #print(responesHeader["status"])
