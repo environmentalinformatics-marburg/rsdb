@@ -22,6 +22,8 @@ docs:
     children:
       - title: "Server Operation"
         url: /docs/server_operation/      
+      - title: "Server Update"
+        url: /docs/server_update/            
       - title: "Tasks"
         url: /docs/tasks/                        
   - title: Configuration

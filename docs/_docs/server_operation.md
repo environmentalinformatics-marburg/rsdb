@@ -5,7 +5,7 @@ title: Server Operation
 ## Running RSDB Server in foreground
 
 RSDB can be run directly from bash terminal. Server stops when terminal is closed.
-It is recommended to first start RSDB server in this foreground mode to check if anything is working as exepected and in next step start RSDB server in background mode (explained in next section).
+It is recommended to first start RSDB server in this foreground mode to check if anything is working as expected and in next step start RSDB server in background mode (explained in next section).
 
 ~~~ bash
 # Start server in foreground.

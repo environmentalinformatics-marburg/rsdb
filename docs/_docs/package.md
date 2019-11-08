@@ -14,10 +14,16 @@ Prebuilt packages can be found at [https://github.com/environmentalinformatics-m
 | **webcontent/**  | web frontend files |
 | **webfiles/**  | user generated files accessible from web frontend |
 | **[config.yaml](../config.yaml)**  | config file: general RSDB settings |
+| **[github_update.sh](../server_update)**  | update script |
 | **[realm.properties](../realm.properties)**  | config file: local user accounts |
 | **[realm_ip.csv](../realm_ip.csv)**  | config file: direct assignment of IPs to local user accounts |
 | **rsdb.jar**  | application |
 | **rsdb.sh**  | bash entry point to run application |
+| **[server_restart.sh](../server_operation)** | stop and then start background server |
+| **[server_start.sh](../server_operation)** | start background server |
+| **[server_status.sh](../server_operation)** | get running state of background server |
+| **[server_stop.sh](../server_operation)** | stop background server |
+| **yaml.sh** | (internal helper script) |
 
 
 ## Package Creation
@@ -42,3 +48,5 @@ sources:
 | **src/**  | java source files |
 | **webcontent/**  | web frontend files |
 | **webfiles/**  | user generated files accessible from web frontend |
+
+Before package creation you may compile the [web-frontend](../frontend) which places compiled files into folder `webcontent`.
