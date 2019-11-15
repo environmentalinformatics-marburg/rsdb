@@ -51,10 +51,10 @@ public class RdatDataFrame_points {
      * @param pointdb
      * @throws IOException
      */
-	public static void write(Receiver receiver, Collection<GeoPoint> coll, String[] columns, PointDB pointdb) throws IOException {
+	public static void write(Receiver receiver, Collection<GeoPoint> coll, String[] columns, String proj4) throws IOException {
 
 		RdatDataFrame<GeoPoint> df = new RdatDataFrame<GeoPoint>(Collection::size);
-		df.meta.put("proj4", pointdb.config.getProj4());
+		df.meta.put("proj4", proj4);
 
 		if(columns==null||columns.length==0) {
 			df.addAll(columnsList);

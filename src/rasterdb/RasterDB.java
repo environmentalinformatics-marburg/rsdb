@@ -476,6 +476,14 @@ public class RasterDB implements AutoCloseable {
 	}
 
 	public synchronized boolean hasRasterUnit() {
-		return Files.exists(path.resolve("raster"));
+		switch(storageType) {
+		case "RasterUnit":
+			return Files.exists(path.resolve("raster"));
+		case "TileStorage":
+			return Files.exists(path.resolve("raster.idx"));
+		default:
+			throw new RuntimeException("unknown storage_type");
+		}	
+		
 	}
 }

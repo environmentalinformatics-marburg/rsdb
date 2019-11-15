@@ -36,8 +36,8 @@ public class RdatPointDataFrame {
 	}};	
 	
 	
-	public static void writePointList(PointDB pointdb, Receiver receiver, Collection<GeoPoint> points, String[] columns) throws IOException {
-		RdatDataFrame_points.write(receiver, points, columns, pointdb);
+	public static void writePointList(Receiver receiver, Collection<GeoPoint> points, String[] columns, String proj4) throws IOException {
+		RdatDataFrame_points.write(receiver, points, columns, proj4);
 	}
 
 	@Deprecated

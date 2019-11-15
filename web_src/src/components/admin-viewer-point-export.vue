@@ -154,7 +154,10 @@ export default {
             break;
           case 'rDAT':
             method_pointcloud = 'points.rdat';
-            break;     
+            break;
+          case 'zip':
+            method_pointcloud = 'points.zip';
+            break;                  
           default:
             throw "unknown output type " + this.outputType.name;
         }

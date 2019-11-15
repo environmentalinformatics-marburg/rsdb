@@ -28,6 +28,18 @@ public class Region {
 		return new Region(Rect.of_polygon(polygonPoints), polygonPoints);
 	}
 	
+	public static Region ofPolygon(double[] vx, double[] vy) {
+		int len = vx.length;
+		if(vy.length != len) {
+			throw new RuntimeException();
+		}
+		Point2d[] polygonPoints = new Point2d[len];
+		for (int i = 0; i < len; i++) {
+			polygonPoints[i] = new Point2d(vx[i], vy[i]);
+		}
+		return ofPolygon(polygonPoints);
+	}
+	
 	public static Region ofFilteredBbox(Rect bbox, Point2d[] polygonPoints) {
 		return new Region(bbox, polygonPoints);
 	}

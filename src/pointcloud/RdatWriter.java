@@ -6,12 +6,10 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.function.Function;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import util.ResponseReceiver;
+import util.Receiver;
 import util.rdat.Rdat;
 import util.rdat.RdatDataFrame;
 import util.rdat.RdatDataFrame.Column;
@@ -194,7 +192,7 @@ public class RdatWriter {
 		}
 	}
 
-	public static void writePoints(PointTable[] pointTables, AttributeSelector selector, ResponseReceiver receiver) throws IOException {		
+	public static void writePoints(PointTable[] pointTables, AttributeSelector selector, Receiver receiver) throws IOException {		
 		Function<Collection<PointTable>, Integer> rowCalculator = coll -> {
 			int rows = 0;
 			for(PointTable pointTable:coll) {

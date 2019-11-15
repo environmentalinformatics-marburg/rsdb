@@ -18,7 +18,7 @@ import util.collections.vec.Vec;
 public class JsWriter {
 	//private static final Logger log = LogManager.getLogger();
 
-	public static void writePoints(PointDB pointdb, Receiver receiver, Vec<GeoPoint> result, String[] columns) throws IOException {
+	public static void writePoints(Receiver receiver, Vec<GeoPoint> result, String[] columns) throws IOException {
 
 		int n = result.size();
 		ByteArrayOut out = ByteArrayOut.of(4+n*3*4+n);

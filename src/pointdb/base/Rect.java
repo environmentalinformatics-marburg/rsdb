@@ -149,6 +149,22 @@ public class Rect {
 		return PdbConst.utmmToDouble(utmm_max_y + 1);
 	}
 	
+	/**
+	 * highest value within bound
+	 * @return
+	 */
+	public double getUTMd_max_x_inclusive() {
+		return Math.nextDown(PdbConst.utmmToDouble(utmm_max_x + 1));
+	}
+	
+	/**
+	 * highest value within bound
+	 * @return
+	 */
+	public double getUTMd_max_y_inclusive() {
+		return Math.nextDown(PdbConst.utmmToDouble(utmm_max_y + 1));
+	}
+	
 	public int getInteger_UTM_min_x() {
 		return (int) (this.utmm_min_x/1000);
 	}

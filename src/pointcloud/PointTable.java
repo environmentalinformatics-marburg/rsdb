@@ -231,6 +231,18 @@ public class PointTable {
 		private final double[] cvx;
 		private final double[] cvy;
 		
+		public FilterByPolygonFunc(Point2d[] polygonPoints) {
+			int len = polygonPoints.length;
+			double[] vx = new double[len];
+			double[] vy = new double[len];
+			for (int i = 0; i < len; i++) {
+				vx[i] = polygonPoints[i].x;
+				vy[i] = polygonPoints[i].y;
+			}
+			this.cvx = vx;
+			this.cvy = vy;
+		}
+		
 		public FilterByPolygonFunc(double[] vx, double[] vy) {
 			this.cvx = vx;
 			this.cvy = vy;

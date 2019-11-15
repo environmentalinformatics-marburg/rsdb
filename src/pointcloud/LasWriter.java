@@ -5,10 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-import javax.servlet.http.HttpServletResponse;
-
 import util.LittleEndianDataOutputStream;
-import util.ResponseReceiver;
+import util.Receiver;
 
 public class LasWriter {
 	//private static final Logger log = LogManager.getLogger();
@@ -49,7 +47,7 @@ public class LasWriter {
 	private static final double SCALE_FACTOR = 0.001;
 
 	@SuppressWarnings("resource")
-	public static void writePoints(PointTable[] pointTables, ResponseReceiver receiver, LAS_HEADER header, POINT_DATA_RECORD pointDataRecord) throws IOException {
+	public static void writePoints(PointTable[] pointTables, Receiver receiver, LAS_HEADER header, POINT_DATA_RECORD pointDataRecord) throws IOException {
 		LocalDate date = LocalDate.now();
 
 		double xmin = Double.MAX_VALUE;

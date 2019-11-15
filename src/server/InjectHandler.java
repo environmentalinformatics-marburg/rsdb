@@ -14,7 +14,8 @@ public class InjectHandler extends AbstractHandler {
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		response.setHeader("X-Robots-Tag", "noindex, nofollow");
-		response.setHeader("X-Frame-Options", "deny");
+		//response.setHeader("X-Frame-Options", "deny"); // deny all iframes
+		response.setHeader("X-Frame-Options", "sameorigin"); // allow iframes on same site (needed for webfiles iframe)
 		response.setHeader("Referrer-Policy", "no-referrer");
 		response.setHeader("X-Content-Type-Options", "nosniff");
 		if("127.0.0.1".equals(baseRequest.getRemoteAddr())) {

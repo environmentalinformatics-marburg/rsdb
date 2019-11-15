@@ -84,8 +84,8 @@ public class DataProvider2 {
 		} else {
 			double xmin = rect.getUTMd_min_x();
 			double ymin = rect.getUTMd_min_y();
-			double xmax = rect.getUTMd_max_x();
-			double ymax = rect.getUTMd_max_y();
+			double xmax = rect.getUTMd_max_x_inclusive();
+			double ymax = rect.getUTMd_max_y_inclusive();
 			Stream<PointTable> pointTables = pointcloud.getPointTables(xmin, ymin, xmax, ymax, GeoPointTransformer.FULL_GEOPOINT_SELECTOR);
 			return GeoPointTransformer.transform(pointTables);
 		}

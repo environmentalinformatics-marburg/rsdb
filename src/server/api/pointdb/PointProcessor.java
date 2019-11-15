@@ -23,8 +23,11 @@ public class PointProcessor {
 	public static void process(PointDB pointdb, Region region, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, Receiver receiver) throws IOException {
 		log.info("query region " + region);
 		DataProvider2 dp2 = new DataProvider2(pointdb, region);
-
-
+		String proj4 = pointdb.config.getProj4();
+		process(dp2, normalise, filter, sort, columns, format, xnorm, ynorm, proj4, receiver);
+	}
+	
+	public static void process(DataProvider2 dp2, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, String proj4, Receiver receiver) throws IOException {
 		Vec<GeoPoint> points = null;
 
 		if(normalise.normalise_ground) {
@@ -57,16 +60,16 @@ public class PointProcessor {
 
 		switch(format.trim().toLowerCase()) {
 		case "rdat":
-			RdatPointDataFrame.writePointList(pointdb, receiver, points, columns);
+			RdatPointDataFrame.writePointList(receiver, points, columns, proj4);
 			break;
 		case "js":
-			JsWriter.writePoints(pointdb, receiver, points, columns);
+			JsWriter.writePoints(receiver, points, columns);
 			break;
 		case "xyz":
-			PointXyzWriter.writePoints(pointdb, receiver, points, columns);
+			PointXyzWriter.writePoints(receiver, points, columns);
 			break;
 		case "las":
-			LasWriter.writePoints(pointdb, receiver, points, columns, LAS_HEADER.V_1_2, POINT_DATA_RECORD.FORMAT_0);
+			LasWriter.writePoints(receiver, points, columns, LAS_HEADER.V_1_2, POINT_DATA_RECORD.FORMAT_0);
 			break;
 		default:
 			throw new RuntimeException("unknown format "+format);

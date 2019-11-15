@@ -13,7 +13,7 @@ import util.collections.vec.Vec;
 
 public class PointXyzWriter {
 	
-	public static void writePoints(PointDB pointdb, Receiver receiver, Vec<GeoPoint> points, String[] columns) throws IOException {
+	public static void writePoints(Receiver receiver, Vec<GeoPoint> points, String[] columns) throws IOException {
 		receiver.setContentType("application/octet-stream");
 		
 		PrintWriter writer = receiver.getWriter();

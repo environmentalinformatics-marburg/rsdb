@@ -450,6 +450,7 @@ public class Broker implements AutoCloseable {
 		if(Files.exists(rasterdbPath)) {
 			log.info("delete RasterDB: " + name);
 			try {
+				//RasterUnit
 				Files.deleteIfExists(rasterdbPath.resolve("raster"));
 				Files.deleteIfExists(rasterdbPath.resolve("raster1"));
 				Files.deleteIfExists(rasterdbPath.resolve("raster2"));
@@ -460,6 +461,23 @@ public class Broker implements AutoCloseable {
 				Files.deleteIfExists(rasterdbPath.resolve("raster2.cache"));
 				Files.deleteIfExists(rasterdbPath.resolve("raster3.cache"));
 				Files.deleteIfExists(rasterdbPath.resolve("raster4.cache"));
+				//TileStorage
+				Files.deleteIfExists(rasterdbPath.resolve("raster.tst"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster1.tst"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster2.tst"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster3.tst"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster4.tst"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster.idx"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster1.idx"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster2.idx"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster3.idx"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster4.idx"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster.DIRTY"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster1.DIRTY"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster2.DIRTY"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster3.DIRTY"));
+				Files.deleteIfExists(rasterdbPath.resolve("raster4.DIRTY"));
+				//meta
 				Files.deleteIfExists(rasterdbPath.resolve("meta.yaml"));
 				Files.deleteIfExists(rasterdbPath);
 			} catch (IOException e) {

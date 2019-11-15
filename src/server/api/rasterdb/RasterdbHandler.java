@@ -118,6 +118,7 @@ public class RasterdbHandler extends AbstractHandler {
 					handler.handle(rasterdb, subsubTarget, baseRequest, (Response) response, userIdentity);
 				} catch (Exception e) {
 					log.error(e);
+					e.printStackTrace();
 					try {
 						response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 						response.setContentType("text/plain;charset=utf-8");
