@@ -72,3 +72,5 @@ point_coverage: |
   <br>
   <br>
   point_coverage := covered_areas_count / areas_count
+VDR: |
+  reference: Joerg Mueller et al.: LiDAR-derived canopy structure supports the more-individuals hypothesis for arthropod diversity in temperate forests, Oikos (2018) 127: 814-824, <a href="https://doi.org/10.1111/oik.04972">https://doi.org/10.1111/oik.04972</a>

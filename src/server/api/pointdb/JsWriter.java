@@ -3,20 +3,17 @@ package server.api.pointdb;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.servlet.ServletOutputStream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.eclipse.jetty.server.Response;
-
-import pointdb.PointDB;
 import pointdb.base.GeoPoint;
 import pointdb.processing.geopoint.RasterSubGrid;
 import util.ByteArrayOut;
 import util.Receiver;
-import util.ResponseReceiver;
 import util.collections.vec.Vec;
 
 public class JsWriter {
-	//private static final Logger log = LogManager.getLogger();
+	private static final Logger log = LogManager.getLogger();
 
 	public static void writePoints(Receiver receiver, Vec<GeoPoint> result, String[] columns) throws IOException {
 
@@ -51,13 +48,32 @@ public class JsWriter {
 		out.putIntRaw(xLen);
 		out.putIntRaw(yLen);
 		out.putFloats2dBorderedRaw(data, yStart, yBorder, xStart, xBorder);
-		/*for(int y = yStart; y<yBorder; y++) {
-			double[] row = data[y];
-			out.writeFloatsBorderedRaw(row, xStart, xBorder);
-			//for(int x = xStart; x<xBorder; x++) {
-			//	out.writeFloatRaw(row[x]);
-			//}
-		}*/
+		receiver.setContentType("application/octet-stream");
+		OutputStream stream = receiver.getOutputStream();
+		out.flip(stream);
+	}
+	
+	public static void writeFloat2d(int[][] data, Receiver receiver) throws IOException {
+		int xLen = data[0].length;
+		int yLen = data.length;
+		ByteArrayOut out = ByteArrayOut.of(xLen*yLen*4+2*4);
+		log.info("writeFloat2d" + xLen +"  "  + yLen  +"  " + (xLen*yLen*4+2*4) + "  " + out.buf.length);
+		out.putIntRaw(xLen);
+		out.putIntRaw(yLen);
+		out.putFloats2d(data);
+		receiver.setContentType("application/octet-stream");
+		OutputStream stream = receiver.getOutputStream();
+		out.flip(stream);
+	}
+	
+	public static void writeFloat2d(double[][] data, Receiver receiver) throws IOException {
+		int xLen = data[0].length;
+		int yLen = data.length;
+		ByteArrayOut out = ByteArrayOut.of(xLen*yLen*4+2*4);
+		log.info("writeFloat2d" + xLen +"  "  + yLen  +"  " + (xLen*yLen*4+2*4) + "  " + out.buf.length);
+		out.putIntRaw(xLen);
+		out.putIntRaw(yLen);
+		out.putFloats2d(data);
 		receiver.setContentType("application/octet-stream");
 		OutputStream stream = receiver.getOutputStream();
 		out.flip(stream);

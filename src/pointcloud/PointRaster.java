@@ -1,11 +1,15 @@
 package pointcloud;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.googlecode.javaewah.datastructure.BitSet;
 
 import rasterdb.tile.ProcessingDouble;
 import util.collections.vec.Vec;
 
 public class PointRaster {
+	private static final Logger log = LogManager.getLogger();
 
 	public final Vec<P3d>[][] grid;
 	public final double xmin;
@@ -16,6 +20,7 @@ public class PointRaster {
 	public final int xlen;
 	public final int ylen;
 
+	@SuppressWarnings("unchecked")
 	public PointRaster(double xmin, double ymin, double xmax, double ymax, double res) {
 		this.xmin = xmin;
 		this.ymin = ymin;
@@ -33,6 +38,7 @@ public class PointRaster {
 		double[] ys = pointTable.y;
 		double[] zs = pointTable.z;
 		for (int i = 0; i < len; i++) {
+			try {
 			double x = (xs[i] - xmin) / res;
 			double y = (ys[i] - ymin) / res;
 			double z = zs[i];
@@ -42,6 +48,10 @@ public class PointRaster {
 				grid[(int) y][(int) x] = list;
 			}
 			list.add(new P3d(x, y, z));
+			} catch(Exception e) {
+				log.info("insert point " + xs[i] + " " + ys[i]);
+				throw e;
+			}
 		}		
 	}
 

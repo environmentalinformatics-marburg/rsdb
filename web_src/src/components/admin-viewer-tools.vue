@@ -60,10 +60,19 @@
     <br>
     <v-btn @click="viewPointsPointcloud" :disabled="selectedExtent === undefined"><v-icon>3d_rotation</v-icon>&nbsp;&nbsp;view points</v-btn>
     <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>    
+    <br>
+    <v-btn @click="viewSurfacePointcloud" :disabled="selectedExtent === undefined"><v-icon>360</v-icon>&nbsp;&nbsp;view surface</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
     <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>
+    <br>
     <v-btn @click="$emit('tool-point-export-show')" :disabled="selectedExtent === undefined"><v-icon>save_alt</v-icon>&nbsp;&nbsp;export points</v-btn>
     <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
     <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>
+    <br>
+    <v-btn @click="$emit('tool-point-raster-export-show')" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>    
   </div>    
 
 </div>
@@ -126,6 +135,18 @@ export default {
       console.log(url);
       window.open(url, '_blank');
     },
+    viewSurfacePointcloud() {
+      console.log(this.selectedExtent);
+      var ext = this.selectedExtent;
+      var x = (ext[0] + ext[2]) / 2;
+      var y = (ext[1] + ext[3]) / 2;
+      var name = this.meta.associated.pointcloud;
+      var param = 'pointcloud=' + name + '&x=' + x +'&y=' + y;
+      var url = this.urlPrefix + '../../web/height_map_view/height_map_view.html?' + param;
+      console.log(this.urlPrefix);
+      console.log(url);
+      window.open(url, '_blank');
+    },    
     exportPointsPointdb() {
       console.log(this.selectedExtent);
       var ext = this.selectedExtent;

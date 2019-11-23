@@ -11,33 +11,33 @@
 #' @author woellauer
 #' @keywords package
 #' @examples
+#'# load rPointDB package
+#'library(rPointDB)
 #'
-#' #get documentation pages
+#'# show package overview
+#'??"rPontDB-package"
 #'
-#' library(rPointDB)
+#'#show index of package documentation pages
+#'help(package="rPointDB")
 #'
-#' #package overview
-#' ?`rPontDB-package`
+#'#list available functions/classes in package
+#'ls(pos="package:rPointDB")
 #'
-#' #documentation of central class RemoteSensing
-#' ?RemoteSensing
+#'#documentation of central class RemoteSensing
+#'?rPointDB::RemoteSensing
 #'
-#' #documentation of (hyperspectral) raster class RasterDB
-#' ?RasterDB
+#'#documentation of (hyperspectral) raster class RasterDB
+#'?rPointDB::RasterDB
 #'
-#' #documentation of (LiDAR) point-cloude class PointDB
-#' ?PointDB
+#'#documentation of (LiDAR) point-cloud class PointDB
+#'?rPointDB::PointDB
 #'
-#' #show package description file
-#' packageDescription("rPointDB")
+#'#documentation of (RGB) point-cloud class PointCloud
+#'?rPointDB::PointCloud
 #'
-#' #show package version
-#' packageDescription("rPointDB")$Version
+#'#show package description file
+#'packageDescription("rPointDB")
 #'
-#' #show index of package documentation pages
-#' help(package="rPointDB")
-#'
-#' #list available functions/classes in package
-#' ls(pos="package:rPointDB")
-#'
+#'#show package version
+#'packageDescription("rPointDB")$Version
 NULL

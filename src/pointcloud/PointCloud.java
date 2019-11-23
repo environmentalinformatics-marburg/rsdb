@@ -2,6 +2,7 @@ package pointcloud;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Stream;
@@ -32,7 +33,12 @@ import util.yaml.YamlMap;
 public class PointCloud implements AutoCloseable {
 	private static final Logger log = LogManager.getLogger();
 
+	private static final int CURRENT_VERSION_MAJOR = 1;
+	private static final int CURRENT_VERSION_MINOR = 0;
+	private static final int CURRENT_VERSION_PATCH = 1;
+
 	private static final AttributeSelector ATTRIBUTE_SELECTOR_ALL = new AttributeSelector().all();
+
 
 	private final GridDB griddb;
 	private Attribute attr_x;
@@ -59,6 +65,9 @@ public class PointCloud implements AutoCloseable {
 	private ACL acl_mod = EmptyACL.ADMIN;
 	private Associated associated = new Associated();
 	private Informal informal = Informal.EMPTY;
+	private int version_major = CURRENT_VERSION_MAJOR;
+	private int version_minor = CURRENT_VERSION_MINOR;
+	private int version_patch = CURRENT_VERSION_PATCH;
 
 	public final PointCloudConfig config;
 
@@ -228,7 +237,6 @@ public class PointCloud implements AutoCloseable {
 	private class ExtendedMetaHook implements ExtendedMeta {
 
 		private static final String TYPE = "pointcloud";
-		private static final int CURRENT_VERSION = 1;
 
 		@Override
 		public void read(YamlMap yamlMap) {
@@ -237,7 +245,24 @@ public class PointCloud implements AutoCloseable {
 				if (!type.equals(TYPE)) {
 					throw new RuntimeException("wrong type: " + type);
 				}
-				//int version = map.optInt("version", ExtendedMetaHook.CURRENT_VERSION);
+				String versionText = yamlMap.getString("version");
+				String[] versionParts = versionText.split("\\.");
+				if(versionParts.length < 1 || versionParts.length > 3) {
+					throw new RuntimeException("version error");
+				} else if(versionParts.length == 1) {
+					version_major = Integer.parseInt(versionParts[0]);
+					version_minor = 0;
+					version_patch = 0;
+				} else if(versionParts.length == 2) {
+					version_major = Integer.parseInt(versionParts[0]);
+					version_minor = Integer.parseInt(versionParts[1]);
+					version_patch = 0;
+				} else if(versionParts.length == 3) {
+					version_major = Integer.parseInt(versionParts[0]);
+					version_minor = Integer.parseInt(versionParts[1]);
+					version_patch = Integer.parseInt(versionParts[2]);
+				}
+
 				cellscale = yamlMap.getDouble("cellscale");
 				cellsize = yamlMap.getDouble("cellsize");
 				if(yamlMap.contains("celloffset")) {
@@ -259,7 +284,8 @@ public class PointCloud implements AutoCloseable {
 		public synchronized void write(LinkedHashMap<String, Object> map) {
 			synchronized (griddb) {
 				map.put("type", TYPE);
-				map.put("version", CURRENT_VERSION);
+				String version_text = version_major + "." + version_minor + "." + version_patch;
+				map.put("version", version_text);
 				map.put("cellscale", cellscale);
 				map.put("cellsize", cellsize);
 				if(celloffset != null) {
@@ -459,13 +485,20 @@ public class PointCloud implements AutoCloseable {
 				log.info("cell point "+cellTable.x[0]+" "+cellTable.y[0]);
 			}*/
 			//Timer.resume("create mask");
-			double pxmin = (celloffset.x + cellTable.cx) * cellsize;
-			double pymin = (celloffset.y + cellTable.cy) * cellsize;
-			double pxmax = (celloffset.x + cellTable.cx + 1) * cellsize - 1 / cellscale;
-			double pymax = (celloffset.y + cellTable.cy + 1) * cellsize - 1 / cellscale;
-			//log.info("cell range " + pxmin + " " + pymin + " " + pxmax + " " + pymax);
-			BitSet filter = xmin <= pxmin && ymin <= pymin && xmax >= pxmax && ymax >= pymax ? null : maskExtent(cellTable, xmin, ymin, xmax, ymax);
-			//log.info("filter range " + xmin + " " + ymin + " " + xmax + " " + ymax + "   " + filter);
+
+			BitSet filter;
+			if(isVersion(1, 0, 0)) { //workaround for bug in import with points on line of pxymax	
+				filter = maskExtent(cellTable, xmin, ymin, xmax, ymax); // always mask extent for buggy import with point on line of pxymax
+			} else {
+				double pxmin = (celloffset.x + cellTable.cx) * cellsize;
+				double pymin = (celloffset.y + cellTable.cy) * cellsize;
+				double pxmax = (celloffset.x + cellTable.cx + 1) * cellsize - 1 / cellscale;
+				double pymax = (celloffset.y + cellTable.cy + 1) * cellsize - 1 / cellscale;
+				log.info("cell range   " + pxmin + " " + pymin + " " + pxmax + " " + pymax);
+				filter = xmin <= pxmin && ymin <= pymin && xmax >= pxmax && ymax >= pymax ? null : maskExtent(cellTable, xmin, ymin, xmax, ymax);
+				log.info("filter range " + xmin + " " + ymin + " " + xmax + " " + ymax + "   " + filter);
+			}
+
 			//Timer.stop("create mask");
 			if(!selector.x) {
 				cellTable.x = null;
@@ -597,6 +630,11 @@ public class PointCloud implements AutoCloseable {
 		return code;
 	}
 
+	public short getEPSGcode() {
+		String c = getCode();		
+		return c.startsWith("EPSG:") ? Short.parseShort(c.substring(5)) : 0;
+	}
+
 	public boolean hasCode() {
 		return !code.isEmpty();
 	}
@@ -707,12 +745,12 @@ public class PointCloud implements AutoCloseable {
 		associated.setRasterDB(name);
 		griddb.writeMeta();
 	}
-	
+
 	public void setAssociatedPoiGroups(List<String> poi_groups) {
 		associated.setPoi_groups(poi_groups);
 		griddb.writeMeta();
 	}
-	
+
 	public void setAssociatedRoiGroups(List<String> roi_groups) {
 		associated.setRoi_groups(roi_groups);
 		griddb.writeMeta();
@@ -720,5 +758,22 @@ public class PointCloud implements AutoCloseable {
 
 	public void commitMeta() {
 		griddb.writeMeta();
+	}
+
+	public boolean isVersion(int version_major, int version_minor, int version_patch) {
+		return this.version_major == version_major && this.version_minor == version_minor && this.version_patch == version_patch;
+	}
+
+	public boolean isVersionOrNewer(int version_major, int version_minor, int version_patch) {
+		if(this.version_major < version_major) {
+			return false;
+		}
+		if(this.version_minor < version_minor) {
+			return false;
+		}
+		if(this.version_patch < version_patch) {
+			return false;
+		}
+		return true;
 	}
 }

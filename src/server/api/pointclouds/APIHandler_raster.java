@@ -3,6 +3,9 @@ package server.api.pointclouds;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.stream.Stream;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -17,11 +20,20 @@ import pointcloud.PointCloud;
 import pointcloud.PointCountRaster;
 import pointcloud.PointRaster;
 import pointcloud.PointTable;
+import pointcloud.Rect2d;
+import rasterdb.TimeBandProcessor;
 import rasterdb.node.ProcessorNode_gap_filling;
 import rasterdb.tile.ProcessingDouble;
+import server.api.pointdb.JsWriter;
+import util.Range2d;
+import util.Receiver;
+import util.ResponseReceiver;
+import util.StreamReceiver;
 import util.rdat.RdatBand;
 import util.rdat.RdatList;
 import util.rdat.RdatWriter;
+import util.tiff.TiffBand;
+import util.tiff.TiffWriter;
 
 public class APIHandler_raster {
 	private static final Logger log = LogManager.getLogger();
@@ -31,11 +43,11 @@ public class APIHandler_raster {
 	private final static double SMALL_VALUE = 0.000001d;
 
 	public static final String[][] RASTER_TYPES = new String[][] {
+		{"dtm", "Digital Terrain Model"},
+		{"dsm", "Digital Surface Model"},
+		{"chm", "Canopy Height Model"},
 		{"point_count", "count of points per pixel"},
 		{"pulse_count", "count of laser puleses per pixel"},
-		{"dsm", "Digital Surface Model"},
-		{"dtm", "Digital Terrain Model"},
-		{"chm", "Canopy Height Model"},
 	};
 
 	public APIHandler_raster(Broker broker) {
@@ -58,38 +70,63 @@ public class APIHandler_raster {
 		log.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax);
 
 		String resText = request.getParameter("res");
-		double res = 1;
+		double res0 = 1;
 		if(resText != null) {
-			res = Double.parseDouble(resText);
+			res0 = Double.parseDouble(resText);
 		}
+		final double res = res0;
 
 		String fillText = request.getParameter("fill");
-		int fill = 0;
+		int fill0 = 0;
 		if(fillText != null) {
-			fill = Integer.parseInt(fillText);
-			if(fill < 0 || fill > 100) {
-				throw new RuntimeException("fill value out of range (0 to 100): " + fill);
+			fill0 = Integer.parseInt(fillText);
+			if(fill0 < 0 || fill0 > 100) {
+				throw new RuntimeException("fill value out of range (0 to 100): " + fill0);
 			}
 		}
-
-		double res_xmin = req_xmin;
-		double res_ymin = req_ymin;
-		double res_xmax = Math.floor((req_xmax - req_xmin) / res) * res + res_xmin;
-		double res_ymax = Math.floor((req_ymax - req_ymin) / res) * res + res_ymin;
-		log.info("res "+res_xmin+" "+res_ymin+" "+res_xmax+" "+res_ymax);
-
-		double proc_add = res - SMALL_VALUE;
-		double proc_xmin = res_xmin;
-		double proc_ymin = res_ymin;
-		double proc_xmax = res_xmax + proc_add;
-		double proc_ymax = res_ymax + proc_add;
-		log.info("proc "+proc_xmin+" "+proc_ymin+" "+proc_xmax+" "+proc_ymax);
+		final int fill = fill0;
 
 		String typeText = request.getParameter("type");
-		String type = "count";
+		String type0 = "count";
 		if(typeText != null) {
-			type = typeText;
+			type0 = typeText.toLowerCase();
 		}
+		final String type = type0;
+
+		if(format.equals("zip")) {			
+			String tileFormat = "tiff";
+			response.setContentType("application/zip");
+			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
+			Receiver receiver = new StreamReceiver(zipOutputStream);			
+			double tileSize = 1000d;
+			Rect2d req_rect = new Rect2d(req_xmin, req_ymin, req_xmax, req_ymax);
+			req_rect.tiled(tileSize, tileSize, (long xtile, long ytile, Rect2d tile_rect) -> {
+				String tileFilename = "tile_" + xtile + "_" + ytile + ".tiff";
+				try {
+					zipOutputStream.putNextEntry(new ZipEntry(tileFilename));
+					processRaster(pointcloud, type, tile_rect.xmin, tile_rect.ymin, tile_rect.xmax, tile_rect.ymax, res, fill, tileFormat, receiver);
+					zipOutputStream.closeEntry();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			});
+			zipOutputStream.finish();
+			zipOutputStream.flush();
+		} else {
+			Receiver receiver = new ResponseReceiver(response);
+			processRaster(pointcloud, type, req_xmin, req_ymin, req_xmax, req_ymax, res, fill, format, receiver);
+		}
+	}
+
+	private void processRaster(PointCloud pointcloud, String type, double req_xmin, double req_ymin, double req_xmax, double req_ymax, double res, int fill, String format, Receiver receiver) throws IOException {
+		double proc_xmin = req_xmin;
+		double proc_ymin = req_ymin;
+		double proc_xmax_excluding = req_xmin + Math.floor((req_xmax - req_xmin) / res) * res + res;
+		double proc_ymax_excluding = req_ymin + Math.floor((req_ymax - req_ymin) / res) * res + res;
+		double proc_xmax = Math.nextDown(proc_xmax_excluding);
+		double proc_ymax = Math.nextDown(proc_ymax_excluding);
+		log.info("proc "+proc_xmin+" "+proc_ymin+" "+proc_xmax+" "+proc_ymax);
 
 		int width = 0;
 		int height = 0;
@@ -183,7 +220,8 @@ public class APIHandler_raster {
 			meta.addString("source", "pointcloud " + pointcloud.getName());
 			RdatList bandMeta = new RdatList();
 			bandMeta.addString("name", type);
-			RdatWriter rdatWriter = new RdatWriter(width, height, res_xmin, res_ymin, res_xmax + res, res_ymax + res, meta);
+			//TODO check proc_xmax_excluding, proc_ymax_excluding
+			RdatWriter rdatWriter = new RdatWriter(width, height, proc_xmin, proc_ymin, proc_xmax_excluding, proc_ymax_excluding, meta);
 			if(pointcloud.hasProj4()) {
 				rdatWriter.setProj4(pointcloud.getProj4());
 			}
@@ -193,16 +231,36 @@ public class APIHandler_raster {
 			if(double_grid != null) {
 				rdatWriter.addRdatBand(RdatBand.ofFloat64(width, height, bandMeta, double_grid));
 			}
-			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("application/octet-stream");
-			rdatWriter.write(new DataOutputStream(response.getOutputStream()));
+			receiver.setStatus(HttpServletResponse.SC_OK);
+			receiver.setContentType("application/octet-stream");
+			rdatWriter.write(new DataOutputStream(receiver.getOutputStream()));
+			break;
+		}
+		case "js": {
+			if(int_grid != null) {
+				JsWriter.writeFloat2d(int_grid, receiver);
+			}
+			if(double_grid != null) {
+				JsWriter.writeFloat2d(double_grid, receiver);
+			}
+			break;
+		}
+		case "tiff": {
+			short epsg = pointcloud.getEPSGcode();
+			TiffWriter tiffWriter = new TiffWriter(width, height, proc_xmin, proc_ymin, res, res, epsg);
+			if(int_grid != null) {
+				tiffWriter.addTiffBand(TiffBand.ofInt32(int_grid));
+			}
+			if(double_grid != null) {
+				tiffWriter.addTiffBand(TiffBand.ofFloat64(double_grid));
+			}
+			receiver.setStatus(HttpServletResponse.SC_OK);
+			receiver.setContentType("image/tiff");
+			tiffWriter.writeAuto(new DataOutputStream(receiver.getOutputStream()));
 			break;
 		}
 		default:
 			throw new RuntimeException("unknown format: " + format);
 		}
 	}
-
-
-
 }

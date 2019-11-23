@@ -111,7 +111,16 @@ export default {
         });        
       } else if(this.pointcloud !== undefined) {
         this.meta = undefined;
-        this.metaMessage = 'error in meta: no load function for meta of pointcloud';
+        this.metaMessage = "loading meta data of layer ...";
+        axios.get(this.urlPrefix + '../../pointclouds/' + this.pointcloud) 
+        .then(response => {
+          this.meta = response.data;
+          this.metaMessage = undefined;
+        })
+        .catch(e => {
+          this.meta = undefined;
+          this.metaMessage = 'ERROR loading meta data of layer ' + e;
+        });
       } else { 
         this.meta = undefined;
         this.metaMessage = 'error in meta';
@@ -232,12 +241,19 @@ export default {
       return name + ext;
     },
     raster_processing_types() {
-        if(this.meta === undefined || this.meta.raster_processing_types === undefined) {
+        if(this.meta === undefined) {
           return undefined;
         }
-        return this.meta.raster_processing_types
+        if(this.meta.raster_processing_types !== undefined) {
+          return this.meta.raster_processing_types
           .filter(t => this.valid_processing_types.indexOf(t.data_type) >= 0)
           .map(t => {return {name: t.name, label : t.name + ' - ' + t.title};});
+        }
+        if(this.meta.pointcloud !== undefined) {
+          return this.meta.pointcloud.raster_types
+          .map(t => {return {name: t.name, label : t.name + ' - ' + t.description};});
+        }
+        return undefined;
     },
   },
   watch: {

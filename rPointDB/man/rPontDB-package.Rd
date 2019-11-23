@@ -14,28 +14,11 @@ Methods of \code{\link{RemoteSensing}} provide access to raster (\code{\link{Ras
 and point-cloud (\code{\link{PointDB}}) units and meta data.
 }
 \examples{
-
-#get documentation pages
-
+# load rPointDB package
 library(rPointDB)
 
-#package overview
-?`rPontDB-package`
-
-#documentation of central class RemoteSensing
-?RemoteSensing
-
-#documentation of (hyperspectral) raster class RasterDB
-?RasterDB
-
-#documentation of (LiDAR) point-cloude class PointDB
-?PointDB
-
-#show package description file
-packageDescription("rPointDB")
-
-#show package version
-packageDescription("rPointDB")$Version
+# show package overview
+??"rPontDB-package"
 
 #show index of package documentation pages
 help(package="rPointDB")
@@ -43,6 +26,23 @@ help(package="rPointDB")
 #list available functions/classes in package
 ls(pos="package:rPointDB")
 
+#documentation of central class RemoteSensing
+?rPointDB::RemoteSensing
+
+#documentation of (hyperspectral) raster class RasterDB
+?rPointDB::RasterDB
+
+#documentation of (LiDAR) point-cloud class PointDB
+?rPointDB::PointDB
+
+#documentation of (RGB) point-cloud class PointCloud
+?rPointDB::PointCloud
+
+#show package description file
+packageDescription("rPointDB")
+
+#show package version
+packageDescription("rPointDB")$Version
 }
 \author{
 woellauer

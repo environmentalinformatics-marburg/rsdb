@@ -440,7 +440,7 @@ public final class Serialisation {
 
 	public static byte[] intToByteArrayBigEndian(int[] data) {
 		int SIZE_INTS = data.length;
-		byte[] result = new byte[SIZE_INTS*4];
+		byte[] result = new byte[SIZE_INTS * 4];
 		int pos=0;
 		for(int i=0; i<SIZE_INTS; i++) {
 			int v = data[i];
@@ -452,7 +452,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-
+	
 	public static int[] byteToIntArrayBigEndian(byte[] data) {
 		int SIZE_INTS = data.length/4;
 		int[] result = new int[SIZE_INTS];

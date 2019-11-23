@@ -31,6 +31,10 @@ public abstract class TiffBand {
 		return ofInt16(data[0].length, data.length, data);
 	}
 	
+	public static TiffBandInt32 ofInt32(int[][] data) {
+		return ofInt32(data[0].length, data.length, data);
+	}
+	
 	public static TiffBandFloat32 ofFloat32(float[][] data) {
 		return ofFloat32(data[0].length, data.length, data);
 	}
@@ -43,6 +47,15 @@ public abstract class TiffBand {
 		return new TiffBandInt16(width, height) {			
 			@Override
 			protected short[][] getData() {
+				return data;
+			}
+		};
+	}
+	
+	public static TiffBandInt32 ofInt32(int width, int height, int[][] data) {
+		return new TiffBandInt32(width, height) {			
+			@Override
+			protected int[][] getData() {
 				return data;
 			}
 		};
@@ -140,6 +153,15 @@ public abstract class TiffBand {
 		return new TiffBandInt16(width, height) {			
 			@Override
 			protected short[][] getData() {
+				return supplier.get();
+			}
+		};
+	}
+	
+	public static TiffBandInt32 ofInt32(int width, int height, Supplier<int[][]> supplier) {
+		return new TiffBandInt32(width, height) {			
+			@Override
+			protected int[][] getData() {
 				return supplier.get();
 			}
 		};

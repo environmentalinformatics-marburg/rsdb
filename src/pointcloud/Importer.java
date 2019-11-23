@@ -327,8 +327,10 @@ public class Importer {
 					//if(0 <= xcell && xcell < xcellrange && 0 <= ycell && ycell < ycellrange) { // extent check of cells
 					//int xloc = (int) Math.round((x % xcellsize) * xcellscale); // not correct for x values below zero
 					//int yloc = (int) Math.round((y % ycellsize) * ycellscale); // not correct for y values below zero
-					int xloc = (int) Math.round(floorMod(x, xcellsize) * xcellscale); // floor for x values below zero
-					int yloc = (int) Math.round(floorMod(y, ycellsize) * ycellscale); // floor for y values below zero
+					//int xloc = (int) Math.round(floorMod(x, xcellsize) * xcellscale); // floor for x values below zero, not correct, may round over cell bound
+					//int yloc = (int) Math.round(floorMod(y, ycellsize) * ycellscale); // floor for y values below zero, not correct, may round over cell bound
+					int xloc = (int) (floorMod(x, xcellsize) * xcellscale); // floor for x values below zero, then positive local floor
+					int yloc = (int) (floorMod(y, ycellsize) * ycellscale); // floor for y values below zero, then positive local floor
 					//log.info(xs[i]+" "+x+" "+xcell+"    "+xloc);
 					//log.info(ys[i]+" "+y+" "+ycell+"    "+yloc);		
 					//int cnt = cellcnt[ycell][xcell]++;

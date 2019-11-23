@@ -33,6 +33,7 @@ public class Fun_BE {
 	@Description("Median Canopy Height (based on point height above ground)")
 	public
 	static class Fun_BE_H_MEDIAN extends ProcessingFun {
+		public static final Fun_BE_H_MEDIAN DEFAULT = new Fun_BE_H_MEDIAN(); 
 		@Override
 		public double process(DataProvider2 provider) {
 			double[] zs = provider.get_sortedCanopyHeights();

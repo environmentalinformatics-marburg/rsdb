@@ -16,13 +16,17 @@
 <body ondragstart="return false;" ondrop="return false;">
 
 <div id="app">
+	<div class="no_raster_type_panel" v-show="viewType == undefined">
+		No raster type selected. 
+		<br><b>Select one raster type</b> to view rastered pointcloud.
+	</div>
 	<div class="loading_panel" v-show="loadingMessage != undefined">
 	<img src="../images/default.svg" style="border: 0; vertical-align:middle;" width="24" >
 		{{loadingMessage}}
 	</div>
 	<div class="control_panel">
 		<table>
-		<tr><td>type<td><select v-model="viewType"><option v-for="v in viewTypes.filter(function(e){return e.data_type==='basic_raster';})" :value="v.name">{{v.name}} - {{v.title}}</option></select>
+		<tr><td>type<td><select v-model="viewType"><option v-for="v in viewTypes.filter(function(e){return e.data_type === undefined || e.data_type==='basic_raster';})" :value="v.name">{{v.name}} - {{v.description === undefined ? v.title : v.description}}</option></select>
 		<tr><td><label for="checkbox_illuminated">fog</label><td><input type="checkbox" id="checkbox_illuminated" v-model="illuminated"><span v-show="illuminated">{{(1/this.fogDensity).toFixed(0)}}</span>
 		<tr><td><label for="checkbox_animated">animated</label><td><input type="checkbox" id="checkbox_animated" v-model="useAnimation">
 		</table>

@@ -450,6 +450,42 @@ public class ByteArrayOut extends OutputStream implements RichDataOutput {
 		}
 		pos = p;
 	}
+	
+	public void putFloats2d(int[][] data) {
+		byte[] b = buf;
+		int p = pos;
+		int xLen = data[0].length;
+		int yLen = data.length;
+		for (int y = 0; y < yLen; y++) {
+			int[] row = data[y];
+			for (int x = 0; x < xLen; x++) {
+				int v = Float.floatToRawIntBits((float)row[x]);			
+				b[p++] = (byte) (v);
+				b[p++] = (byte) (v >> 8);
+				b[p++] = (byte) (v >> 16);
+				b[p++] = (byte) (v >> 24);
+			}
+		}
+		pos = p;		
+	}
+	
+	public void putFloats2d(double[][] data) {
+		byte[] b = buf;
+		int p = pos;
+		int xLen = data[0].length;
+		int yLen = data.length;
+		for (int y = 0; y < yLen; y++) {
+			double[] row = data[y];
+			for (int x = 0; x < xLen; x++) {
+				int v = Float.floatToRawIntBits((float)row[x]);			
+				b[p++] = (byte) (v);
+				b[p++] = (byte) (v >> 8);
+				b[p++] = (byte) (v >> 16);
+				b[p++] = (byte) (v >> 24);
+			}
+		}
+		pos = p;
+	}
 
 	public void putFloats2dBorderedRaw(double[][] data, int rowOffset, int rowBorder, int colOffset, int colBorder) {
 		byte[] b = buf;
@@ -525,4 +561,6 @@ public class ByteArrayOut extends OutputStream implements RichDataOutput {
 	public void write(byte[] b, int off, int len) throws IOException {
 		putBytes(b, off, len);
 	}
+
+	
 }

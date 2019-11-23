@@ -24,6 +24,7 @@ public class Functions {
 		add(Fun_point_coverage.class);
 		//add(Fun_canopy_height.class);
 		add(Fun_LAI.class);
+		add(Fun_VDR.class);
 
 		addContained(Fun_BE.class);
 		addContained(Fun_pulse.class);

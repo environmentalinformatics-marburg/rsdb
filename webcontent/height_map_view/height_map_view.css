@@ -15,6 +15,7 @@ body {
 	background-color: #4B4B4B;
 	opacity: 0.9;
 	text-align: left;
+	font-size: 2em;
 }
 
 .control_panel {
@@ -24,4 +25,15 @@ body {
 	background-color: #4D472BE6;
 	opacity: 0.8;
 	text-align: left;
+}
+
+.no_raster_type_panel {
+	position: absolute;
+	top: 0;
+	left: 200px;
+	color:
+	#f01313;
+	background-color:
+	#fff;
+	font-size: 1.5em;
 }

@@ -20,7 +20,7 @@ data: {
 	controls: undefined,
 	plane: undefined,
 	viewTypes: [{name: 'DTM', title: '', data_type: 'basic_raster'}],
-	viewType: 'DTM',
+	viewType: undefined,
 	loadingMessage: "init",
 },
 
@@ -73,8 +73,6 @@ mounted: function () {
 	} else {
 		this.controls.enableDamping = false;		
 	}
-	
-	this.load_heightMap();
 },
 
 methods: {
@@ -82,27 +80,70 @@ methods: {
 	refresh_raster_processing_types: function() {
 		var self = this;
 		var urlParameters = extractParameters();
-		var queryParameters = {db:urlParameters.db, statistics: false};
-		axios.get("../../pointdb/info.json", {params: queryParameters})
-		.then(function(response) {
-			var json = response.data;
-			self.viewTypes = json.raster_processing_types;
-		})
-		.catch(function(error) {
-			console.log("could not load raster_processing_types " + error);
-		});			
+		var url = "";
+		var queryParameters = {};
+		if(urlParameters.db !== undefined) {
+			this.loadingMessage = "loading raster types ...";
+			url = "../../pointdb/info.json";
+			queryParameters.db = urlParameters.db;
+			queryParameters.statistics = false;
+			axios.get(url, {params: queryParameters})
+			.then(function(response) {
+				self.loadingMessage = undefined;
+				var json = response.data;
+				self.viewTypes = json.raster_processing_types;
+			})
+			.catch(function(error) {
+				self.loadingMessage = "ERROR loading " +error;
+				console.log("could not load raster_processing_types " + error);
+			});
+		} else if(urlParameters.pointcloud !== undefined) {
+			this.loadingMessage = "loading raster types ...";
+			url = "../../pointclouds/" + urlParameters.pointcloud;
+			axios.get(url, {params: queryParameters})
+			.then(function(response) {
+				self.loadingMessage = undefined;
+				var json = response.data;
+				self.viewTypes = json.pointcloud.raster_types;
+			})
+			.catch(function(error) {
+				self.loadingMessage = "ERROR loading " +error;
+				console.log("could not load raster_types " + error);
+			});
+		} else {
+			throw "invalid parameters";
+		}					
 	},
 
 	load_heightMap: function() {
 		var self = this;
-		this.loadingMessage = "loading";
+		this.loadingMessage = "loading " + this.viewType + " ...";
 		var urlParameters = extractParameters();
-		var radius = 200;
-		var qx = parseFloat(urlParameters.x);
-		var qy = parseFloat(urlParameters.y);
-		var ext = ""+(qx-radius)+","+(qx+radius)+","+(qy-radius)+","+(qy+radius);
-		var queryParameters = {db: urlParameters.db, ext: ext, type: this.viewType, format: "js"};
-		axios.get("../../pointdb/query_raster", {params: queryParameters, headers: {'Accept': 'application/octet-stream'}, responseType: 'arraybuffer'})
+		var url = "";
+		var queryParameters = {};
+		if(urlParameters.db !== undefined) {
+			url = "../../pointdb/query_raster";
+			var radius = 200;
+			var qx = parseFloat(urlParameters.x);
+			var qy = parseFloat(urlParameters.y);
+			var ext = ""+(qx-radius)+","+(qx+radius)+","+(qy-radius)+","+(qy+radius);
+			queryParameters.db = urlParameters.db;
+			queryParameters.ext = ext;
+			queryParameters.type = this.viewType;
+			queryParameters.format = "js";
+		} else if(urlParameters.pointcloud !== undefined) {
+			url = "../../pointclouds/" + urlParameters.pointcloud  + "/raster.js";
+			var radius = 200;
+			var qx = parseFloat(urlParameters.x);
+			var qy = parseFloat(urlParameters.y);
+			var ext = ""+(qx-radius)+" "+(qy-radius)+" "+(qx+radius)+" "+(qy+radius);
+			queryParameters.db = urlParameters.db;
+			queryParameters.ext = ext;
+			queryParameters.type = this.viewType;
+		} else {
+			throw "invalid parameters";
+		}
+		axios.get(url, {params: queryParameters, headers: {'Accept': 'application/octet-stream'}, responseType: 'arraybuffer'})
 		.then(function(response) {
 			self.loadingMessage = undefined;
 			var arrayBuffer = response.data;
