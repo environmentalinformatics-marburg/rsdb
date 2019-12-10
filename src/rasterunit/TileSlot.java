@@ -50,6 +50,17 @@ public class TileSlot {
 		TileSlot other = (TileSlot) obj;
 		return len == other.len && pos == other.pos && rev == other.rev && type == other.type;
 	}
+	
+	public boolean equalsNoRev(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TileSlot other = (TileSlot) obj;
+		return len == other.len && pos == other.pos && type == other.type;
+	}
 
 	@Override
 	public String toString() {

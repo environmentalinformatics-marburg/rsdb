@@ -93,7 +93,7 @@ public class WmsHandler extends AbstractHandler {
 	}
 
 	public static class InterruptorInterruptedException extends RuntimeException {
-
+		private static final long serialVersionUID = -8405416244955848549L;
 	}
 
 	public static class Interruptor {
@@ -211,62 +211,72 @@ public class WmsHandler extends AbstractHandler {
 
 			BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
 
-			String style = request.getParameter("STYLES");	
-
-			PureImage image = null;
-			String[] styles = style.split(" ");
-			String styles_bands = styles[0];
-			String minText = null;
-			String maxText = null;
-			String gammaText = null;
-			String palText = "grey";
-			boolean syncBands = false;
-			for (int i = 1; i < styles.length; i++) {
-				String text = styles[i];
-				if(text.startsWith("min")) {
-					minText = text.substring(3);
-				} else if(text.startsWith("max")) {
-					maxText = text.substring(3);
-				} else if(text.startsWith("gamma")) {
-					gammaText = text.substring(5);
-				} else if(text.equals("sync_bands")) {
-					syncBands = true;
-				} else if(text.startsWith("pal_")) {
-					palText = text.substring(4);
-				} else {
-					log.warn("unknown style: " + text);
-				}
-			}
-			double[] range = null;
-			if(minText != null && maxText != null) {
-				try {
-					double min = Double.parseDouble(minText);
-					double max = Double.parseDouble(maxText);
-					log.info("minmax "+min+"  "+max);
-					range = new double[]{min, max};
-				} catch (Exception e) {
-					log.warn(e);
-				}
-			}
+			String style_product = "color";
 			double gamma = Double.NaN;
-			if(gammaText != null) {
-				try {
-					gamma = Double.parseDouble(gammaText);
-				} catch (Exception e) {
-					log.warn(e);
+			double[] range = null;
+			boolean syncBands = false;
+			int[] palette = null;
+
+			{// style processing
+				String minText = null;
+				String maxText = null;
+				String gammaText = null;
+				String palText = "grey";
+				String style = request.getParameter("STYLES");
+				if(style != null) {
+					String[] styles = style.trim().split(" ");
+					//log.info("styles " + Arrays.toString(styles));
+					if(styles.length > 0) {
+						style_product = styles[0];
+						for (int i = 1; i < styles.length; i++) {
+							String text = styles[i];
+							if(text.startsWith("min")) {
+								minText = text.substring(3);
+							} else if(text.startsWith("max")) {
+								maxText = text.substring(3);
+							} else if(text.startsWith("gamma")) {
+								gammaText = text.substring(5);
+							} else if(text.equals("sync_bands")) {
+								syncBands = true;
+							} else if(text.startsWith("pal_")) {
+								palText = text.substring(4);
+							} else {
+								log.warn("unknown style: " + text);
+							}
+						}
+					}
 				}
-			}
-			int[] palette = MonoColor.getPaletteDefaultNull(palText);
+				if(minText != null && maxText != null) {
+					try {
+						double min = Double.parseDouble(minText);
+						double max = Double.parseDouble(maxText);
+						log.info("minmax "+min+"  "+max);
+						range = new double[]{min, max};
+					} catch (Exception e) {
+						log.warn(e);
+					}
+				}
+				if(gammaText != null) {
+					try {
+						gamma = Double.parseDouble(gammaText);
+					} catch (Exception e) {
+						log.warn(e);
+					}
+				}
+				palette = MonoColor.getPaletteDefaultNull(palText);
+			} // style processing end
+
 			if(Interruptor.isInterrupted(currentInterruptor)) {
 				log.info("****************************************** interrupted (pre load)*******************************************");
 				return;
 			}
-			if(styles_bands.equals("color") || styles_bands.isEmpty()) {
+			PureImage image = null;
+			if(style_product.equals("color") || style_product.isEmpty()) {
 				Timer.start("render");
 				image = Rasterizer.rasterizeRGB(processor, width, height, gamma, range, syncBands, currentInterruptor);
 				log.info(Timer.stop("render"));
-			} else if(styles_bands.startsWith("band")) {
-				String s = styles_bands.substring(4);
+			} else if(style_product.startsWith("band")) {
+				String s = style_product.substring(4);
 				int bandIndex = Integer.parseInt(s);
 				TimeBand band = processor.getTimeBand(bandIndex);
 				Timer.start("render");
@@ -278,7 +288,7 @@ public class WmsHandler extends AbstractHandler {
 				log.info(Timer.stop("render"));
 			} else {
 				ErrorCollector errorCollector = new ErrorCollector();
-				DoubleFrame[] doubleFrames = DSL.process(styles_bands, errorCollector, processor);
+				DoubleFrame[] doubleFrames = DSL.process(style_product, errorCollector, processor);
 				if(doubleFrames.length < 1) {
 					throw new RuntimeException("no result");
 				}

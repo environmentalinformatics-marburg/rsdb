@@ -58,6 +58,7 @@ public class APIHandler_pointclouds extends AbstractHandler {
 	}
 
 	private void handleList(Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
+		boolean withDescription = request.getParameter("description") != null;
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
@@ -70,6 +71,9 @@ public class APIHandler_pointclouds extends AbstractHandler {
 				JsonUtil.put(json, "name", name);
 				Informal informal = broker.getPointCloudInformal(name);
 				JsonUtil.optPut(json, "title", informal.title);
+				if(withDescription) {
+					JsonUtil.optPut(json, "description", informal.description);
+				}
 				json.endObject();
 			}
 		}

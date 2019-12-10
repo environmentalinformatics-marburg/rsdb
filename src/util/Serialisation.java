@@ -3,6 +3,7 @@ package util;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.logging.log4j.LogManager;
@@ -180,6 +181,15 @@ public final class Serialisation {
 			short curr = data[i];
 			data[i] = encodeZigZag((short)(curr - prev));
 			prev = curr;
+		}
+	}
+	
+	public static void decodeDelta(int[] data) {
+		int curr = 0;
+		final int SIZE = data.length;
+		for (int i = 0; i < SIZE; i++) {
+			curr += data[i];
+			data[i] = curr;
 		}
 	}
 
@@ -747,5 +757,22 @@ public final class Serialisation {
 			curr += decodeZigZag(data[i]);
 			data[i] = curr;
 		}
+	}
+
+	public static void writeIntsWithSize(int[] compressed, ByteBuffer byteBuffer) {
+		byteBuffer.putInt(compressed.length);
+		for(int c:compressed) {
+			byteBuffer.putInt(c);
+		}
+		
+	}
+
+	public static int[] readIntsWithSize(ByteBuffer byteBuffer) {
+		int len = byteBuffer.getInt();
+		int[] data = new int[len];
+		for(int i=0; i<len; i++) {
+			data[i] = byteBuffer.getInt();
+		}
+		return data;
 	}
 }

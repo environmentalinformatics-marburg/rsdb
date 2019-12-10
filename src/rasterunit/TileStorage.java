@@ -5,12 +5,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.file.OpenOption;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.AbstractCollection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NavigableSet;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -23,7 +25,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import griddb.Encoding;
 import util.Range2d;
+import util.Serialisation;
 import util.collections.ReadonlyNavigableSetView;
 
 public class TileStorage implements RasterUnitStorage {
@@ -34,7 +38,7 @@ public class TileStorage implements RasterUnitStorage {
 	private final ConcurrentSkipListMap<TileKey, TileSlot> map;
 	private final AtomicLong fileLimit;
 	private final ConcurrentSkipListSet<FreeSlot> freeSet;
-	private boolean dirty;
+	private boolean dirty; // only read/write inside of flushLock
 	private final ReentrantReadWriteLock flushLock = new ReentrantReadWriteLock(true);
 
 	public final ReadonlyNavigableSetView<TileKey> tileKeysReadonly;
@@ -289,39 +293,12 @@ public class TileStorage implements RasterUnitStorage {
 	private void flush(boolean close) throws IOException {
 		flushLock.writeLock().lock();
 		try {
-			tileFileChannel.force(true);
-			int mapLen = map.size();
-			final int ENTRY_LEN = 6 * 4 + 8;
-			long fileLen = 4 + mapLen * ENTRY_LEN;
-			if(fileLen > Integer.MAX_VALUE) {
-				throw new RuntimeException("index file too large");
+			if(dirty) {
+				tileFileChannel.force(true);
+				//writeIndexVersion1(map,config.indexPath);
+				writeIndexVersion2(map,config.indexPath);	
+				unsetDirty();
 			}
-			ByteBuffer byteBuffer = ByteBuffer.allocateDirect((int) fileLen);
-			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-			byteBuffer.putInt(mapLen);
-			int i = 0;
-			for(Entry<TileKey, TileSlot> e:map.entrySet()) {
-				TileKey k = e.getKey();
-				TileSlot v = e.getValue();
-				byteBuffer.putInt(k.t);
-				byteBuffer.putInt(k.b);
-				byteBuffer.putInt(k.y);
-				byteBuffer.putInt(k.x);
-				byteBuffer.putLong(v.pos);
-				byteBuffer.putInt(v.len);
-				byteBuffer.putInt(v.type);
-			}
-			byteBuffer.flip();
-			try(FileChannel indexFileChannel = FileChannel.open(config.indexPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
-				int fileWritten = 0;
-				while(fileWritten < fileLen) {
-					fileWritten += indexFileChannel.write(byteBuffer);
-				}
-				if(fileWritten != fileLen) {
-					throw new RuntimeException("write error");
-				}
-			}
-			unsetDirty();
 			if(close) {
 				tileFileChannel.close();
 				fileLimit.set(Long.MIN_VALUE);
@@ -333,6 +310,274 @@ public class TileStorage implements RasterUnitStorage {
 		}
 	}
 
+	public static void writeIndexVersion1(ConcurrentSkipListMap<TileKey, TileSlot> map, Path path) throws IOException {
+		int mapLen = map.size();
+		final int ENTRY_LEN = 6 * 4 + 8;
+		long fileLen = 4 + 4 + 4 + mapLen * ENTRY_LEN;
+		if(fileLen > Integer.MAX_VALUE) {
+			throw new RuntimeException("index file too large");
+		}
+		ByteBuffer byteBuffer = ByteBuffer.allocateDirect((int) fileLen);
+		byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+		byteBuffer.putInt(INDEX_FILE_HEADER);
+		byteBuffer.putInt(INDEX_FILE_VERSION_1);
+		byteBuffer.putInt(mapLen);
+		for(Entry<TileKey, TileSlot> e:map.entrySet()) {
+			TileKey k = e.getKey();
+			TileSlot v = e.getValue();
+			byteBuffer.putInt(k.t);
+			byteBuffer.putInt(k.b);
+			byteBuffer.putInt(k.y);
+			byteBuffer.putInt(k.x);
+			byteBuffer.putLong(v.pos);
+			byteBuffer.putInt(v.len);
+			byteBuffer.putInt(v.type);
+		}
+		byteBuffer.flip();
+		try(FileChannel indexFileChannel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+			int fileWritten = 0;
+			while(fileWritten < fileLen) {
+				fileWritten += indexFileChannel.write(byteBuffer);
+			}
+			if(fileWritten != fileLen) {
+				throw new RuntimeException("write error");
+			}
+		}
+	}
+
+	public static void writeIndexVersion2(ConcurrentSkipListMap<TileKey, TileSlot> map, Path path) throws IOException {
+		final int MAP_LEN = map.size();
+		final int ENTRY_LEN = 6 * 4 + 8;
+		final int COMPRESSORS = 8;
+		final int MAX_OVERHEAD = COMPRESSORS * 8; // estimation
+		long maxFileLen = 4 + 4 + 4 + MAP_LEN * ENTRY_LEN + MAX_OVERHEAD;
+		if(maxFileLen > Integer.MAX_VALUE) {
+			throw new RuntimeException("index file too large");
+		}
+		ByteBuffer byteBuffer = ByteBuffer.allocateDirect((int) maxFileLen);
+		byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+		byteBuffer.putInt(TileStorage.INDEX_FILE_HEADER);
+		byteBuffer.putInt(TileStorage.INDEX_FILE_VERSION_2);
+		byteBuffer.putInt(MAP_LEN);
+		Set<Entry<TileKey, TileSlot>> set = map.entrySet();
+		{
+			int i = 0;
+			int[] data = new int[MAP_LEN];
+			for(Entry<TileKey, TileSlot> e:set) {
+				TileKey k = e.getKey();
+				data[i++] = k.t;
+			}
+			Serialisation.encodeDelta(data); // delta >= 0 (except first if below zero)
+			int[] compressed = Encoding.encInt32_pfor_internal(data);
+			Serialisation.writeIntsWithSize(compressed, byteBuffer);
+		}
+		{
+			int i = 0;
+			int[] data = new int[MAP_LEN];
+			for(Entry<TileKey, TileSlot> e:set) {
+				TileKey k = e.getKey();
+				data[i++] = k.b;
+			}
+			Serialisation.encodeDeltaZigZag(data);
+			int[] compressed = Encoding.encInt32_pfor_internal(data);
+			Serialisation.writeIntsWithSize(compressed, byteBuffer);
+		}
+		{
+			int i = 0;
+			int[] data = new int[MAP_LEN];
+			for(Entry<TileKey, TileSlot> e:set) {
+				TileKey k = e.getKey();
+				data[i++] = k.y;
+			}
+			Serialisation.encodeDeltaZigZag(data);
+			int[] compressed = Encoding.encInt32_pfor_internal(data);
+			Serialisation.writeIntsWithSize(compressed, byteBuffer);
+		}
+		{
+			int i = 0;
+			int[] data = new int[MAP_LEN];
+			for(Entry<TileKey, TileSlot> e:set) {
+				TileKey k = e.getKey();
+				data[i++] = k.x;
+			}
+			Serialisation.encodeDeltaZigZag(data);
+			int[] compressed = Encoding.encInt32_pfor_internal(data);
+			Serialisation.writeIntsWithSize(compressed, byteBuffer);
+		}		
+		{
+			int i = 0;
+			int[] upper = new int[MAP_LEN];
+			int[] lower = new int[MAP_LEN];
+			long prev = 0;
+			for(Entry<TileKey, TileSlot> e:set) {
+				TileSlot v = e.getValue();
+				long curr = v.pos;
+				long value = Serialisation.encodeZigZag(curr - prev);
+				upper[i] = (int) (value >> 32);
+				lower[i++] = (int) value;
+				prev = curr;
+			}
+			int[] compressed_upper = Encoding.encInt32_pfor_internal(upper);
+			Serialisation.writeIntsWithSize(compressed_upper, byteBuffer);
+			int[] compressed_lower = Encoding.encInt32_pfor_internal(lower);
+			Serialisation.writeIntsWithSize(compressed_lower, byteBuffer);
+		}		
+		{
+			int i = 0;
+			int[] data = new int[MAP_LEN];
+			for(Entry<TileKey, TileSlot> e:set) {
+				TileSlot v = e.getValue();
+				data[i++] = v.len;
+			}
+			Serialisation.encodeDeltaZigZag(data);
+			int[] compressed = Encoding.encInt32_pfor_internal(data);
+			Serialisation.writeIntsWithSize(compressed, byteBuffer);
+		}		
+		{
+			int i = 0;
+			int[] data = new int[MAP_LEN];
+			for(Entry<TileKey, TileSlot> e:set) {
+				TileSlot v = e.getValue();
+				data[i++] = v.type;
+			}
+			int[] compressed = Encoding.encInt32_pfor_internal(data); // no delta
+			Serialisation.writeIntsWithSize(compressed, byteBuffer);
+		}
+
+		byteBuffer.flip();
+		int dataSize = byteBuffer.limit();
+		log.info("dataSize " + dataSize);
+
+		try(FileChannel indexFileChannel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+			int fileWritten = 0;
+			while(fileWritten < dataSize) {
+				fileWritten += indexFileChannel.write(byteBuffer);
+			}
+			if(fileWritten != dataSize) {
+				throw new RuntimeException("write error");
+			}
+		}
+	}
+
+	public static final int INDEX_FILE_HEADER = 0xe6699667;
+	static final int INDEX_FILE_VERSION_1 = 0x01_00_00_00;
+	public static final int INDEX_FILE_VERSION_2 = 0x02_00_00_00;
+
+	public static TreeSet<TileSlot> readIndex(Path path, ConcurrentSkipListMap<TileKey, TileSlot> map) throws IOException {
+		try(FileChannel indexFileChannel = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.CREATE)) {
+			long fileLen = indexFileChannel.size();
+			log.info("fileLen " + fileLen);
+			if(fileLen > Integer.MAX_VALUE) {
+				throw new RuntimeException("index file too large");
+			}
+			ByteBuffer byteBuffer = ByteBuffer.allocateDirect((int) fileLen);
+			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);					
+			int fileRead = 0;
+			while(fileRead < fileLen) {
+				fileRead += indexFileChannel.read(byteBuffer);
+			}
+			if(fileRead != fileLen) {
+				throw new RuntimeException("read error");
+			}
+			byteBuffer.flip();
+			int fileHeader = byteBuffer.getInt();
+			if(fileHeader == INDEX_FILE_HEADER) {
+				int fileVersion = byteBuffer.getInt();
+				switch(fileVersion) {
+				case INDEX_FILE_VERSION_1:
+					return readIndexVersion1(byteBuffer, map);
+				case INDEX_FILE_VERSION_2:
+					return readIndexVersion2(byteBuffer, map);					
+				default:
+					throw new RuntimeException("unknown index version");
+				}
+
+			} else {
+				byteBuffer.rewind(); // legacy version
+				return readIndexVersion1(byteBuffer, map);
+			}
+		}
+	}
+
+	public static TreeSet<TileSlot> readIndexVersion1(ByteBuffer byteBuffer, ConcurrentSkipListMap<TileKey, TileSlot> map) {
+		int mapLen = byteBuffer.getInt();
+		log.info("mapLen " + mapLen);
+		ThreadLocalRandom random = ThreadLocalRandom.current();
+		TreeSet<TileSlot> slotSet = new TreeSet<TileSlot>(TileSlot.POS_LEN_REV_COMPARATOR);
+		for (int i = 0; i < mapLen; i++) {
+			int t = byteBuffer.getInt();
+			int b = byteBuffer.getInt();
+			int y = byteBuffer.getInt();
+			int x = byteBuffer.getInt();
+			long pos = byteBuffer.getLong();
+			int len = byteBuffer.getInt();
+			int type = byteBuffer.getInt(); 
+			TileSlot tileSlot = new TileSlot(pos, len, type, random.nextInt());
+			map.put(new TileKey(t, b, y, x), tileSlot);
+			slotSet.add(tileSlot);
+		}
+		return slotSet;		
+	}
+
+	public static TreeSet<TileSlot> readIndexVersion2(ByteBuffer byteBuffer, ConcurrentSkipListMap<TileKey, TileSlot> map) {
+		int mapLen = byteBuffer.getInt();
+		log.info("mapLen " + mapLen);
+
+		int[] ts = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
+		Serialisation.decodeDelta(ts);  // delta, no zigzag
+
+		int[] bs = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
+		Serialisation.decodeDeltaZigZag(bs);
+
+		int[] ys = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
+		Serialisation.decodeDeltaZigZag(ys);
+
+		int[] xs = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
+		Serialisation.decodeDeltaZigZag(xs);
+
+		int[] pos_upper = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
+		int[] pos_lower = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
+		long[] poss = new long[mapLen];
+		for (int i = 0; i < mapLen; i++) {
+			poss[i] = (long)pos_lower[i] | ((long)pos_upper[i]<<32);
+		}
+		Serialisation.decodeDeltaZigZag(poss);
+
+		int[] lens = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
+		Serialisation.decodeDeltaZigZag(lens);
+
+		int[] types = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer)); // no delta
+
+		ThreadLocalRandom random = ThreadLocalRandom.current();
+		TreeSet<TileSlot> slotSet = new TreeSet<TileSlot>(TileSlot.POS_LEN_REV_COMPARATOR);
+		for (int i = 0; i < mapLen; i++) {
+			TileSlot tileSlot = new TileSlot(poss[i], lens[i], types[i], random.nextInt());
+			map.put(new TileKey(ts[i], bs[i], ys[i], xs[i]), tileSlot);
+			slotSet.add(tileSlot);
+		}
+		return slotSet;
+	}
+
+	public static long refreshFreeSet(TreeSet<TileSlot> slotSet, ConcurrentSkipListSet<FreeSlot> freeSet) {
+		long pos = 0;
+		for(TileSlot tileSlot:slotSet) {
+			long slotPos = tileSlot.pos;
+			if(slotPos < pos) {
+				throw new RuntimeException("internal error");
+			}
+			long lenDiff = slotPos - pos;
+			while(lenDiff > 0) {
+				int freeSlotLen = lenDiff > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) lenDiff;
+				FreeSlot freeSlot = new FreeSlot(pos, freeSlotLen);
+				freeSet.add(freeSlot);
+				pos += freeSlotLen;
+				lenDiff = slotPos - pos;
+			}
+			pos = tileSlot.pos + tileSlot.len;
+		}
+		return pos;
+	}
+
 	private void open() throws IOException {
 		flushLock.writeLock().lock();
 		try {
@@ -340,63 +585,17 @@ public class TileStorage implements RasterUnitStorage {
 			fileLimit.set(Long.MIN_VALUE);
 			freeSet.clear();
 			if(config.indexPath.toFile().exists()) {
-				try(FileChannel indexFileChannel = FileChannel.open(config.indexPath, StandardOpenOption.READ, StandardOpenOption.CREATE)) {
-					long fileLen = indexFileChannel.size();
-					if(fileLen > Integer.MAX_VALUE) {
-						throw new RuntimeException("index file too large");
-					}
-					ByteBuffer byteBuffer = ByteBuffer.allocateDirect((int) fileLen);
-					byteBuffer.order(ByteOrder.LITTLE_ENDIAN);					
-					int fileRead = 0;
-					while(fileRead < fileLen) {
-						fileRead += indexFileChannel.read(byteBuffer);
-					}
-					if(fileRead != fileLen) {
-						throw new RuntimeException("read error");
-					}
-					byteBuffer.flip();
-					int mapLen = byteBuffer.getInt();
-					log.info("mapLen " + mapLen);
-					ThreadLocalRandom random = ThreadLocalRandom.current();
-					TreeSet<TileSlot> slotSet = new TreeSet<TileSlot>(TileSlot.POS_LEN_REV_COMPARATOR);
-					for (int i = 0; i < mapLen; i++) {
-						int t = byteBuffer.getInt();
-						int b = byteBuffer.getInt();
-						int y = byteBuffer.getInt();
-						int x = byteBuffer.getInt();
-						long pos = byteBuffer.getLong();
-						int len = byteBuffer.getInt();
-						int type = byteBuffer.getInt(); 
-						TileSlot tileSlot = new TileSlot(pos, len, type, random.nextInt());
-						map.put(new TileKey(t, b, y, x), tileSlot);
-						slotSet.add(tileSlot);
-					}
-					refreshDerivedKeys();
-					long pos = 0;
-					for(TileSlot tileSlot:slotSet) {
-						long slotPos = tileSlot.pos;
-						if(slotPos < pos) {
-							throw new RuntimeException("internal error");
-						}
-						long lenDiff = slotPos - pos;
-						while(lenDiff > 0) {
-							int freeSlotLen = lenDiff > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) lenDiff;
-							FreeSlot freeSlot = new FreeSlot(pos, freeSlotLen);
-							freeSet.add(freeSlot);
-							pos += freeSlotLen;
-							lenDiff = slotPos - pos;
-						}
-						pos = tileSlot.pos + tileSlot.len;
-					}
-					fileLimit.set(pos);
-					long tileFileLen = tileFileChannel.size();
-					if(tileFileLen < pos) {
-						throw new RuntimeException("tile file error");
-					}
-					if(pos < tileFileLen) {
-						log.info("truncate " + tileFileLen + " to " + pos);
-						tileFileChannel.truncate(pos);
-					}
+				TreeSet<TileSlot> slotSet = readIndex(config.indexPath, map);
+				refreshDerivedKeys();
+				long pos = refreshFreeSet(slotSet, freeSet);
+				fileLimit.set(pos);
+				long tileFileLen = tileFileChannel.size();
+				if(tileFileLen < pos) {
+					throw new RuntimeException("tile file error");
+				}
+				if(pos < tileFileLen) {
+					log.info("truncate " + tileFileLen + " to " + pos);
+					tileFileChannel.truncate(pos);
 				}
 			} else {
 				fileLimit.set(0);

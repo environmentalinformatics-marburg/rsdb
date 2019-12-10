@@ -146,7 +146,7 @@ public class VectordbsHandler extends AbstractHandler {
 
 	public void handleRootGET(Request request, Response response, UserIdentity userIdentity) throws IOException {
 		try {
-
+			boolean withDescription = request.getParameter("description") != null;
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentType("application/json");
 			JSONWriter json = new JSONWriter(response.getWriter());
@@ -160,6 +160,9 @@ public class VectordbsHandler extends AbstractHandler {
 					JsonUtil.put(json, "title", entry.title);
 				}
 				JsonUtil.writeOptArray(json, "tags", entry.tags);
+				if(withDescription) {
+					JsonUtil.optPut(json, "description", entry.description);	
+				}
 				json.endObject();
 			});
 			json.endArray();			

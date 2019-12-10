@@ -56,7 +56,9 @@
                   @selected-gamma="selectedGamma = $event" 
                   @sync-bands="syncBands = $event" 
                   @selected-mapping="selectedOneBandMapping = $event"
-                  @show-labels="showLabels = $event"         
+                  @show-labels="showLabels = $event"
+                  @value-range-min="valueRangeMin = $event"   
+                  @value-range-max="valueRangeMax = $event"        
                   />
 
 
@@ -197,6 +199,8 @@ export default {
       selectedGamma: "auto",
       syncBands: false,
       selectedOneBandMapping: undefined,
+      valueRangeMin: NaN,
+      valueRangeMax: NaN,
 
       toolsShow: true,
       toolRasterExportShow: false,
@@ -609,8 +613,8 @@ export default {
       }
     },
     wmsParams() {
-      var styleParamter = undefined;
-      if(this.selectedProduct!== undefined && this.selectedProduct !== null) {
+      var styleParamter = 'color';
+      if(this.selectedProduct !== undefined && this.selectedProduct !== null) {
         styleParamter = this.selectedProduct.name
       }
 
@@ -624,7 +628,15 @@ export default {
 
       if (this.syncBands) {
 				styleParamter += " sync_bands";
-			}
+      }
+      
+      if(!isNaN(this.valueRangeMin)) {
+        styleParamter += " min" + this.valueRangeMin;
+      }
+
+      if(!isNaN(this.valueRangeMax)) {
+        styleParamter += " max" + this.valueRangeMax;
+      }
 
       var p = {
         LAYERS: this.rasterdb,
@@ -634,11 +646,11 @@ export default {
         p.TIME = this.selectedTimestamp.timestamp; 
       }
 
-      if(styleParamter != undefined) {
+      if(styleParamter !== '') {
         p.STYLES = styleParamter; 
       }
 
-      if(this.session != undefined) {
+      if(this.session !== undefined) {
         p.session = this.session;
       }
 

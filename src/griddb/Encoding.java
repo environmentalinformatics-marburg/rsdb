@@ -59,6 +59,12 @@ public class Encoding {
 		int[] ints = ic.uncompress(data);
 		return ints;
 	}
+	
+	public static int[] decInt32_pfor_internal(int[] compressed) {
+		IntCompressor ic = threadLocal_ic.get();
+		int[] ints = ic.uncompress(compressed);
+		return ints;
+	}
 
 	public static char[] decUint16_pfor(byte[] compressed, int off, int len) {
 		int[] ints = decInt32_pfor_internal(compressed, off, len);
@@ -134,7 +140,7 @@ public class Encoding {
 		data = rows < data.length ? Arrays.copyOf(data, rows) : data;
 		return Serialisation.intToByteArray(encInt32_pfor_internal(data));
 	}
-
+	
 	public static byte[] encInt32_delta_zigzag_pfor(int[] data, int rows) {
 		return Serialisation.intToByteArray(encInt32_pfor_internal(Serialisation.encodeDeltaZigZagCopy(data, rows)));
 	}
