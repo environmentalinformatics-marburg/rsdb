@@ -26,30 +26,30 @@ import util.TimeUtil;
 import util.Timer;
 import util.Util;
 
-public class Import_soda {
+public class Import_sequoia {
 	private static final Logger log = LogManager.getLogger();
 	
 	private final Broker broker;
 	private final String namePrefix;
 	private final String corresponding_contact;
 	
-	public Import_soda(Broker broker, String namePrefix, String corresponding_contact) {
+	public Import_sequoia(Broker broker, String namePrefix, String corresponding_contact) {
 		this.broker = broker;
 		this.namePrefix = namePrefix;
 		this.corresponding_contact = corresponding_contact;
 	}
 	
 	public void importDirectory(Path root) throws Exception {
-		Timer.start("import_soda "+root);		
+		Timer.start("import_sequoia "+root);		
 		importDirectoryInternal(root, root.getFileName().toString());
-		log.info(Timer.stop("import_soda "+root));
+		log.info(Timer.stop("import_sequoia "+root));
 	}
 	
 	private void importDirectoryInternal(Path root, String dataName) throws Exception {
 		for(Path path:Util.getPaths(root)) {
 			if(path.toFile().isFile()) {
 				if(path.getFileName().toString().endsWith(".tif")) {
-					log.info("import soda "+path);
+					log.info("import sequoia "+path);
 					importFile(path);
 				}
 			} else if(path.toFile().isDirectory()) {
@@ -68,7 +68,7 @@ public class Import_soda {
 	
 	public void importFile(Path path) throws Exception {
 		String filename = path.getFileName().toString();
-		if(!filename.contains("soda")) {
+		if(!filename.contains("sequoia_reflectance")) {
 			log.info("skip filename "+filename);
 			return;
 		}
@@ -76,7 +76,9 @@ public class Import_soda {
 		int layerNameIndex = filename.indexOf('_');
 		String layerSubName = filename.substring(0, layerNameIndex);
 		int dateIndex = filename.lastIndexOf('_');
-		String dateText = filename.substring(layerNameIndex + 1, dateIndex);		
+		String dateText = filename.substring(layerNameIndex + 1, dateIndex);
+		dateIndex = dateText.lastIndexOf('_');
+		dateText = dateText.substring(0, dateIndex);
 		log.info("dateText " + dateText);
 		LocalDate date = LocalDate.parse(dateText, UNDERSCORE_DATE);
 		LocalDateTime datetime = LocalDateTime.of(date, LocalTime.MIDNIGHT);
@@ -95,27 +97,36 @@ public class Import_soda {
 		
 		spec.storage_type = "TileStorage";
 		spec.generalTimestamp = timestamp;
-		spec.inf.title = "uav soda " + layerSubName;
-		spec.inf.description = "UAV soda at " + layerSubName;
+		spec.inf.title = "uav sequoia " + layerSubName;
+		spec.inf.description = "UAV sequoia reflectance values at " + layerSubName;
 		spec.inf.acquisition_date = "(time series planned)";
 		spec.inf.corresponding_contact = corresponding_contact;
-		spec.inf.setTags("exploratories", "UAV", "soda", layerSubName);
+		spec.inf.setTags("exploratories", "UAV", "sequoia", "reflectance", layerSubName);
 		spec.acl = ACL.of("be");
 		log.info(spec.bandSpecs);
 		BandSpec band1 = spec.bandSpecs.get(0);
-		band1.band_name = "Red";
-		band1.visualisation = "red";
-		band1.no_data_value = 0d;
+		band1.band_name = "Green";
+		band1.visualisation = "blue";
+		band1.wavelength = 550;
+		band1.fwhm = 40;
 		
 		BandSpec band2 = spec.bandSpecs.get(1);
-		band2.band_name = "Green";
-		band2.visualisation = "green";
-		band2.no_data_value = 0d;
+		band2.band_name = "Red";
+		band2.visualisation = "";
+		band2.wavelength = 660;
+		band2.fwhm = 40;
 		
 		BandSpec band3 = spec.bandSpecs.get(2);
-		band3.band_name = "Blue";
-		band3.visualisation = "blue";
-		band3.no_data_value = 0d;
+		band3.band_name = "RedEdge";
+		band3.visualisation = "green";
+		band3.wavelength = 735;
+		band3.fwhm = 10;
+		
+		BandSpec band4 = spec.bandSpecs.get(3);
+		band4.band_name = "NIR";
+		band4.visualisation = "red";
+		band4.wavelength = 790;
+		band4.fwhm = 40;
 		
 		ImportRemoteTask importRemoteTask = ImportBySpec.importPerpare(broker, path, layerName, spec);
 		importRemoteTask.run();

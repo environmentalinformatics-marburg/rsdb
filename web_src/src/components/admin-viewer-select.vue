@@ -28,9 +28,9 @@
       </div>
   </div>
 
-    <div v-if="meta !== undefined && meta.wms.styles.length > 0">
+    <div v-if="styles.length > 0">
       <b>Raster Visualisation</b>
-      <multiselect v-if="meta.wms.styles.length > 1" v-model="selectedProduct" :options="meta.wms.styles" label="title" :searchable="true" :show-labels="false" placeholder="pick a band" :allowEmpty="false">
+      <multiselect v-if="styles.length > 1" v-model="selectedProduct" :options="styles" label="title" :searchable="true" :show-labels="false" placeholder="pick a band" :allowEmpty="false">
         <template slot="singleLabel" slot-scope="{option}">
           {{option.name}} - {{option.title}}
         </template>
@@ -38,8 +38,12 @@
           {{option.name}} - {{option.title}}
         </template>
       </multiselect>
-      <div v-if="meta.wms.styles.length === 1">
-        {{meta.wms.styles[0].name}} - {{meta.wms.styles[0].title}}
+      <div v-if="selectedProduct !== undefined && selectedProduct !== null &&selectedProduct.name === 'custom'">
+        custom: 
+        <input type="text" id="name" name="name" class="text-input" placeholder="type text, e.g. [b1,b2,b3]" v-model="customProductText" title="e.g. for RGB visualisation with bands 1,3,5 type: [b1,b3,b5]" />
+      </div>      
+      <div v-if="styles.length === 1">
+        {{styles[0].name}} - {{styles[0].title}}
       </div>
       <v-slider v-model="selectedLayerWMS_opacity" label="opacity" min="0" max="1" step="0" style="padding-right: 15px; margin-top: 0px;" :hide-details="true" />
     </div>    
@@ -66,7 +70,8 @@ export default {
       selectedRasterdb: undefined,
       selectedProduct: undefined,
       selectedTimestamp: undefined,
-      selectedLayerWMS_opacity: 1,      
+      selectedLayerWMS_opacity: 1,
+      customProductText: undefined,      
     }
   },
   methods: {
@@ -105,7 +110,7 @@ export default {
       this.selectedTimestamp = undefined;     
     },
     refreshSelectedProduct() {
-      if(this.selectedRasterdb === undefined || this.selectedRasterdb === null || this.meta === undefined || this.meta.name !== this.selectedRasterdb.name || this.meta.wms.styles.length === 0) {
+      if(this.selectedRasterdb === undefined || this.selectedRasterdb === null || this.meta === undefined || this.meta.name !== this.selectedRasterdb.name || this.styles.length === 0) {
         this.selectedProduct = undefined;
         return;
       }
@@ -113,7 +118,7 @@ export default {
         this.selectedProduct = null;
         return;
       }
-      for (const product of this.meta.wms.styles) {
+      for (const product of this.styles) {
         if(product.name === this.currentProduct) {
           this.selectedProduct = product;
           return;
@@ -121,12 +126,26 @@ export default {
       }
       this.selectedProduct = undefined;
     },
+    emitSelectedProduct() {
+      if(this.selectedProduct !== undefined && this.selectedProduct !== null &&this.selectedProduct.name === 'custom') {
+        var customProduct = {name: this.customProductText, title: 'custom'};
+        this.$emit('selected-product', customProduct);
+      } else {
+        this.$emit('selected-product', this.selectedProduct);
+      }
+    },
   },
   computed: {
     rasterdbs() {
       var r = this.$store.state.rasterdbs.data;
       return r === undefined ? [] : r.slice().sort(function(a, b) { return a.title.localeCompare(b.title);});
     },
+    styles() {
+      if(this.meta === undefined) {
+        return [];
+      }
+      return this.meta.wms.styles.concat({name: 'custom', title: 'user defined'});
+    }
   },
   watch: {
     rasterdbs() {
@@ -154,7 +173,10 @@ export default {
       this.refreshSelectedProduct();
     },
     selectedProduct() {
-      this.$emit('selected-product', this.selectedProduct);
+      this.emitSelectedProduct();
+    },
+    customProductText() {
+      this.emitSelectedProduct();
     },
     currentLayerWMS_opacity() {
       this.selectedLayerWMS_opacity = this.currentLayerWMS_opacity;
@@ -174,5 +196,11 @@ export default {
 </script>
 
 <style scoped>
+
+.text-input {
+  border-style: solid;
+  border-color: #00000054;
+  border-width: 1px;
+}
 
 </style>

@@ -13,13 +13,15 @@
                         <td><input type="checkbox" id="checkbox" v-model="props.item.remove" style="width: 40px;"/>remove band</td>
                         <td>{{props.item.index}}</td>
                         <td><input v-model="props.item.title" placeholder="title" /></td>
+                        <td><input v-model="props.item.visualisation" placeholder="visualisation" /></td>
                         <td><input v-model="props.item.vis_min" placeholder="vis_min" /></td>
                         <td><input v-model="props.item.vis_max" placeholder="vis_max" /></td>
                         <td :class="{remove: props.item.remove}">{{props.item.remove ? 'remove band' : '(keep band)'}}</td>
                     </template>
                 </v-data-table>
                 <v-card-text>
-                    Edit band titles by click on band title entry. Remove data of a band at all timestamp by checkbox.
+                    <b>Edit</b> band titles by click on band title entry. 
+                    <br><b>Remove</b> bands by checkbox, all data of that band at all timestamps will be removed.
                 </v-card-text>
                 <br>
                 <v-card-actions>
@@ -56,6 +58,7 @@ export default {
             bandTableHeaders: [{ text: "", align: 'left', sortable: false}, 
                                { text: "index", align: 'left', value: "index"},
                                { text: "title", align: 'left', value: "title" },
+                               { text: "visualisation", align: 'left', value: "visualisation" },
                                { text: "vis_min", align: 'left', value: "vis_min"}, 
                                { text: "vis_max", align: 'left', value: "vis_max"},
                                { text: "action", align: 'left', value: "remove"}],
@@ -67,7 +70,7 @@ export default {
         
         refresh() {
             this.bands = this.meta.bands.map(function(band) {
-                return {index: band.index, title: band.title, vis_min: band.vis_min, vis_max: band.vis_max};
+                return {index: band.index, title: band.title, visualisation:band.visualisation, vis_min: band.vis_min, vis_max: band.vis_max};
             });
         },
 

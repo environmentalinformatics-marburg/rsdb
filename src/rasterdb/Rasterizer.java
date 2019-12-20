@@ -31,7 +31,7 @@ public class Rasterizer {
 				ShortFrame frameB = processor.getShortFrame(bands[2]);
 				log.info(Timer.stop("load"));
 				Interruptor.checkInterrupted(interruptor);
-				return Renderer.renderRbShort(frameR, frameB, naR, naB, width, height, gamma, range);			
+				return Renderer.renderRbShort(frameR, frameB, naR, naB, width, height, gamma, range, syncBands);			
 			} else {
 				short naR = bands[0].band.getShortNA();
 				short naG = bands[1].band.getShortNA();
@@ -54,7 +54,7 @@ public class Rasterizer {
 				FloatFrame frameB = processor.getFloatFrame(bands[2]);
 				log.info(Timer.stop("load"));
 				Interruptor.checkInterrupted(interruptor);
-				return Renderer.renderRbFloat(frameR, frameB, width, height, gamma, range);		
+				return Renderer.renderRbFloat(frameR, frameB, width, height, gamma, range, syncBands);		
 			} else {
 				Interruptor.checkInterrupted(interruptor);
 				FloatFrame frameR = processor.getFloatFrame(bands[0]);
@@ -74,7 +74,7 @@ public class Rasterizer {
 				DoubleFrame frameB = processor.getDoubleFrame(bands[2]);
 				log.info(Timer.stop("load"));
 				Interruptor.checkInterrupted(interruptor);
-				return Renderer.renderRbDouble(frameR, frameB, width, height, gamma, range);		
+				return Renderer.renderRbDouble(frameR, frameB, width, height, gamma, range, syncBands);		
 			} else {
 				Interruptor.checkInterrupted(interruptor);
 				DoubleFrame frameR = processor.getDoubleFrame(bands[0]);

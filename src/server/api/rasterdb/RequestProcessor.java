@@ -19,7 +19,6 @@ import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import util.Range2d;
 import util.ResponseReceiver;

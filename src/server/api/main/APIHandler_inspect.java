@@ -88,54 +88,11 @@ public class APIHandler_inspect extends APIHandler {
 
 		}
 	}
-
-
-
-	@Override
-	protected void handle(String target, Request request, Response response) throws IOException {		
-
-		String filename = request.getParameter("filename");
-		if(filename == null) {
-			throw new RuntimeException("no filename");
-		}
-
-		Strategy strategy = Strategy.of(request.getParameter("strategy"));
-
-		boolean guessTimestamp = Web.getBoolean(request, "guess_timestamp", false);
-
-		String id = request.getParameter("rasterdb");
-		if(strategy.isExisting()) {
-			if(id == null) {
-				throw new RuntimeException("missing rasterdb parameter");
-			}
-		} else {
-			if(id != null) {
-				throw new RuntimeException("rasterdb parameter not applicable for create strategy");
-			}
-		}
-
-		RasterDB rasterdb = null;
-		if(strategy.isExisting()) {
-			rasterdb = broker.getRasterdb(id);
-		}
-
-		ChunkedUpload chunkedUpload = chunkedUploader.map.get(filename);
-		Path path;
-		if(chunkedUpload == null) {
-			//throw new RuntimeException("file not found");
-			log.warn("old session ? ");
-			path = Paths.get("temp", filename);
-		} else {
-			path = chunkedUpload.path;
-		}
-
-
-		log.info(path);
-		GdalReader gdalreader = new GdalReader(path.toString());
-
-		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
-		JSONWriter json = new JSONWriter(response.getWriter());
+	
+	public static void createJSONspec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json) {
+		log.info(fullPath);
+		GdalReader gdalreader = new GdalReader(fullPath.toString());
+		
 		json.object();
 		json.key("specification");
 		json.object();
@@ -144,23 +101,23 @@ public class APIHandler_inspect extends APIHandler {
 		json.value(strategy.toString());
 
 		json.key("filename");
-		json.value(filename);
+		json.value(fileID);
 
 		if(strategy.isCreate()) {
-			id = filename;
-			int li = filename.lastIndexOf('.');
+			rasterdbID = fileID;
+			int li = fileID.lastIndexOf('.');
 			if(li > 0) {
-				id = id.substring(0, li);
+				rasterdbID = rasterdbID.substring(0, li);
 			}		
-			id = id.replace(' ', '_');
-			id = id.replace('\t', '_');
-			id = id.replace('\n', '_');
-			id = id.replace('/', '_');
-			id = id.replace('\\', '_');
-			id = id.replace('.', '_');
+			rasterdbID = rasterdbID.replace(' ', '_');
+			rasterdbID = rasterdbID.replace('\t', '_');
+			rasterdbID = rasterdbID.replace('\n', '_');
+			rasterdbID = rasterdbID.replace('/', '_');
+			rasterdbID = rasterdbID.replace('\\', '_');
+			rasterdbID = rasterdbID.replace('.', '_');
 		}
 		json.key("id");
-		json.value(id);
+		json.value(rasterdbID);
 
 		double file_pixel_size_x = gdalreader.getPixelSize_x();
 		double file_pixel_size_y = gdalreader.getPixelSize_y();
@@ -473,7 +430,7 @@ public class APIHandler_inspect extends APIHandler {
 		if(guessTimestamp) {
 			try {
 				Pattern pattern = Pattern.compile("_(\\d{4}_\\d{2}_\\d{2})_");
-				Matcher matcher = pattern.matcher(filename);
+				Matcher matcher = pattern.matcher(fileID);
 				if(matcher.find()) {
 					String tText = matcher.group(1);
 					log.info("tText " + tText);
@@ -489,6 +446,51 @@ public class APIHandler_inspect extends APIHandler {
 		json.value(timestampText);
 
 		json.endObject();
-		json.endObject();		
+		json.endObject();				
+	}
+
+
+
+	@Override
+	protected void handle(String target, Request request, Response response) throws IOException {		
+
+		String fileID = request.getParameter("filename");
+		if(fileID == null) {
+			throw new RuntimeException("no filename");
+		}
+
+		Strategy strategy = Strategy.of(request.getParameter("strategy"));
+
+		boolean guessTimestamp = Web.getBoolean(request, "guess_timestamp", false);
+
+		String id = request.getParameter("rasterdb");
+		if(strategy.isExisting()) {
+			if(id == null) {
+				throw new RuntimeException("missing rasterdb parameter");
+			}
+		} else {
+			if(id != null) {
+				throw new RuntimeException("rasterdb parameter not applicable for create strategy");
+			}
+		}
+		RasterDB rasterdb = null;
+		if(strategy.isExisting()) {
+			rasterdb = broker.getRasterdb(id);
+		}
+
+		ChunkedUpload chunkedUpload = chunkedUploader.map.get(fileID);
+		Path path;
+		if(chunkedUpload == null) {
+			//throw new RuntimeException("file not found");
+			log.warn("old session ? ");
+			path = Paths.get("temp", fileID);
+		} else {
+			path = chunkedUpload.path;
+		}
+
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(MIME_JSON);
+		JSONWriter json = new JSONWriter(response.getWriter());
+		createJSONspec(path, strategy, fileID, id, rasterdb, guessTimestamp, json);		
 	}	
 }

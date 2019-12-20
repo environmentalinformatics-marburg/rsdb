@@ -142,6 +142,10 @@ public class RasterdbMethod_set extends RasterdbMethod {
 								builder.title  = jsonBand.getString("title").trim();
 								break;
 							}
+							case "visualisation": {
+								builder.visualisation  = jsonBand.getString("visualisation").trim();
+								break;
+							}
 							case "vis_min": {
 								builder.vis_min = JsonUtil.getDouble(jsonBand, "vis_min");
 								break;

@@ -6,17 +6,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import remotetask.RemoteTask;
-import server.api.main.APIHandler_import.BandSpec;
 import util.Range2d;
 import util.Util;
 import util.collections.vec.Vec;

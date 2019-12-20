@@ -54,7 +54,7 @@
         <br>
         <multiselect v-model="outputType" :options="outputTypes" :show-labels="false" :allowEmpty="false" placeholder="output format" />
       </div>
-      <div v-if="mode.id === 'direct_bands' && (preselectedTimestamp.timestamp !== 0 || preselectedTimestamp.length > 1)">
+      <div v-if="mode.id === 'direct_bands' && preselectedTimestamp !== undefined && preselectedTimestamp !== null && (preselectedTimestamp.timestamp !== 0 || preselectedTimestamp.length > 1)">
         <br>
         <b>timestamp</b>: {{preselectedTimestamp.datetime}}
         <br>
@@ -135,7 +135,7 @@ export default {
       outputType: 'GeoTIFF - data',
       modes: [{id: 'direct_bands', title: 'raster-file'},
               {id: 'zip', title: 'zip-file'}],
-      mode: {id: 'zip', title: 'zip-file'},
+      mode: undefined,
       zip_arrangements: [{id: 'multiband', title: 'multiband: one raster-file per timestamp'},
                         {id: 'timeseries', title: 'timeseries: one raster-file per band (files with multiple timestamps as file-bands)'},
                         {id: 'separate_timestamp_band', title: 'separate: raster-files for each timestamp and band (one band raster-files)'},
@@ -156,7 +156,7 @@ export default {
       selectedTimestamps: [],
       scaleDivs: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536],
       scaleDiv: 1,
-      user_timestamp: {timestamp: 0, datetime: '-'},
+      user_timestamp: undefined,
     };
   },
   methods: {
@@ -236,7 +236,9 @@ export default {
       var ext = this.selectedExtent.join(' ');
       var parameters = { ext: ext };
 
-      parameters.timestamp = this.user_timestamp.timestamp;
+      if(this.user_timestamp !== undefined && this.user_timestamp !== null) {
+        parameters.timestamp = this.user_timestamp.timestamp;
+      }
 
       switch(this.outputType) {
         case 'GeoTIFF - data':
@@ -298,7 +300,7 @@ export default {
           throw "unknown output type";
         }
         var name = this.meta.name;
-        if(this.user_timestamp.timestamp !== 0) {
+        if(this.user_timestamp !== undefined && this.user_timestamp !== null && this.user_timestamp.timestamp !== 0) {
           name += '__' + this.user_timestamp.datetime.split('-').join('_').split(':').join('_');
         } 
       return name + ext;
@@ -331,6 +333,7 @@ export default {
     },*/
   },
   mounted() {
+    this.mode = this.modes[1];
   },
 }
 

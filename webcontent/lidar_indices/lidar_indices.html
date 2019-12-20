@@ -87,7 +87,7 @@
 							<span v-show="poiGroups.length == 1" class="highlighted">{{poiGroup == undefined ? '' : poiGroupMap[poiGroup].title}}</span>
 							<select v-show="poiGroups.length != 1" v-model="poiGroup">
 								<option v-for="x in poiGroups" :value="x.name">
-									{{x.title}}
+									{{x.title === undefined || x.title === '' ? x.name : x.title}}
 								</option>
 							</select>
 						</div>
@@ -130,7 +130,7 @@
 							</span>
 							<select v-show="roiGroups.length != 1" v-model="roiGroup">
 								<option v-for="x in roiGroups" :value="x.name">
-									{{x.title}}
+									{{x.title === undefined || x.title === '' ? x.name : x.title}}
 								</option>
 							</select>
 						</div>

@@ -611,71 +611,30 @@ public class VectorDB {
 		DataSource datasource = getDataSource();
 		try {
 			Vec<Roi> rois = new Vec<Roi>();
-			HashSet<String> poiNames = new HashSet<String>();
+			HashSet<String> roiNames = new HashSet<String>();
 			int layerCount = datasource.GetLayerCount();
 			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
 				int geomType = layer.GetGeomType();
-				if(geomType == 3 || geomType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D
+				//log.info("getROIs geomType " + geomType);
+				if(geomType == 6 || geomType == -2147483642) { // 6  MultiPolygon 0x80000006  MultiPolygon25D
+					log.warn("just first polygon will be included in multipolygon in " + getName());
 					int fieldIndex = layer.FindFieldIndex(nameAttr, 1);
 					if(fieldIndex >= 0) {
 						layer.ResetReading();
 						Feature feature = layer.GetNextFeature();
-						featureLoop: while(feature != null) {
-							if(feature.IsFieldSet(fieldIndex)) {
-								String orgName = feature.GetFieldAsString(fieldIndex);
-								if(orgName.isEmpty()) {
-									orgName = "ROI";
-								}
-								String name = orgName;
-								int nameIndex = 1;
-								while(poiNames.contains(name)) {
-									name = orgName + "_" + (++nameIndex);
-								}
-								poiNames.add(name);
-								Geometry geometry = feature.GetGeometryRef();
-
-								int geoCount = geometry.GetGeometryCount();
-								if(geoCount != 1) {
-									if(geoCount > 1) {
-										log.warn("just first sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
-									} else {
-										log.warn("missing sub geometry in polygon: " + geoCount+" in " + getName() + " : " + name);
-										continue featureLoop;
-									}
-								}
-								Geometry subGeo = geometry.GetGeometryRef(0);
-								int subType = subGeo.GetGeometryType();
-								//log.info("subgeomerty: " + subType + " in " + getName() + " : " + name);
-								if(subType == 3 || subType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D fix subType polygon
-									int subsubCount = subGeo.GetGeometryCount();
-									if(subsubCount > 1) {
-										log.warn("just first sub sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
-									}
-									subGeo = subGeo.GetGeometryRef(0);
-									subType = subGeo.GetGeometryType();
-									//log.warn("fix subtype polygon -> subgeomerty: " + subType + " in " + getName() + " : " + name + "  " + subsubCount);
-								}
-								switch (subType) {
-								case 2: // 2  LINESTRING
-								case -2147483646: { // 0x80000002  LineString25D
-									Object[] polygonPoints = subGeo.GetPoints();
-									int pointsLen = polygonPoints.length;
-									Point2d[] points = new Point2d[pointsLen];									
-									int len = points.length;
-									int[] xs = new int[len];
-									int[] ys = new int[len];
-									for (int i = 0; i < pointsLen; i++) {
-										double[] p = (double[]) polygonPoints[i];
-										points[i] = new Point2d(p[0], p[1]);
-									}									
-									rois.add(new Roi(name, points));									
-									break;
-								}
-								default: 
-									log.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
-								}								
-							}
+						while(feature != null) {
+							collectROI(feature, fieldIndex, roiNames, rois);
+							feature = layer.GetNextFeature();
+						}
+					}
+				} else if(geomType == 3 || geomType == -2147483645) { // 3  POLYGON      0x80000003  Polygon25D
+					int fieldIndex = layer.FindFieldIndex(nameAttr, 1);
+					if(fieldIndex >= 0) {
+						layer.ResetReading();
+						Feature feature = layer.GetNextFeature();
+						while(feature != null) {
+							collectROI(feature, fieldIndex, roiNames, rois);
 							feature = layer.GetNextFeature();
 						}
 					}
@@ -686,6 +645,62 @@ public class VectorDB {
 			closeDataSource(datasource);
 		}
 	}
+	
+	private void collectROI(Feature feature, int fieldIndex, HashSet<String> roiNames, Vec<Roi> rois) {
+		if(feature.IsFieldSet(fieldIndex)) {
+			String orgName = feature.GetFieldAsString(fieldIndex);
+			if(orgName.isEmpty()) {
+				orgName = "ROI";
+			}
+			String name = orgName;
+			int nameIndex = 1;
+			while(roiNames.contains(name)) {
+				name = orgName + "_" + (++nameIndex);
+			}
+			roiNames.add(name);
+			Geometry geometry = feature.GetGeometryRef();
+
+			int geoCount = geometry.GetGeometryCount();
+			if(geoCount != 1) {
+				if(geoCount > 1) {
+					log.warn("just first sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+				} else {
+					log.warn("missing sub geometry in polygon: " + geoCount+" in " + getName() + " : " + name);
+					return;
+				}
+			}
+			Geometry subGeo = geometry.GetGeometryRef(0);
+			int subType = subGeo.GetGeometryType();
+			//log.info("subgeomerty: " + subType + " in " + getName() + " : " + name);
+			if(subType == 3 || subType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D fix subType polygon
+				int subsubCount = subGeo.GetGeometryCount();
+				if(subsubCount > 1) {
+					log.warn("just first sub sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+				}
+				subGeo = subGeo.GetGeometryRef(0);
+				subType = subGeo.GetGeometryType();
+				//log.warn("fix subtype polygon -> subgeomerty: " + subType + " in " + getName() + " : " + name + "  " + subsubCount);
+			}
+			switch (subType) {
+			case 2: // 2  LINESTRING
+			case -2147483646: { // 0x80000002  LineString25D
+				Object[] polygonPoints = subGeo.GetPoints();
+				int pointsLen = polygonPoints.length;
+				Point2d[] points = new Point2d[pointsLen];									
+				int len = points.length;
+				for (int i = 0; i < pointsLen; i++) {
+					double[] p = (double[]) polygonPoints[i];
+					points[i] = new Point2d(p[0], p[1]);
+				}									
+				rois.add(new Roi(name, points));									
+				break;
+			}
+			default: 
+				log.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
+			}								
+		}		
+	}
+	
 
 	public boolean getStructuredAccessPOI() {
 		return structured_access_poi;

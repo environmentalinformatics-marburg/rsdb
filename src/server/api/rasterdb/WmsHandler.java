@@ -294,11 +294,20 @@ public class WmsHandler extends AbstractHandler {
 				}
 				Timer.start("render");
 				Interruptor.checkInterrupted(currentInterruptor);
-				if(palette == null) {
-					image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, range);
+				//log.info("frames " + doubleFrames.length);
+				if(doubleFrames.length < 1) {
+					// nothing
+				} else if(doubleFrames.length == 1) {
+					if(palette == null) {
+						image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, range);
+					} else {
+						image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, range, palette);					
+					}
+				} else if(doubleFrames.length == 2) {
+					image = Renderer.renderRbDouble(doubleFrames[0], doubleFrames[1], width, height, gamma, range, syncBands);
 				} else {
-					image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, range, palette);					
-				}
+					image = Renderer.renderRgbDouble(doubleFrames[0], doubleFrames[1], doubleFrames[2], width, height, gamma, range, syncBands);
+				}				
 				log.info(Timer.stop("render"));
 			}
 			if(Interruptor.isInterrupted(currentInterruptor)) {

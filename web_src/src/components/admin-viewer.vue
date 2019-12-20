@@ -437,7 +437,11 @@ export default {
           query.product = this.product;
         }
       } else if(this.selectedProduct !== null) {
-        query.product = this.selectedProduct.name;
+        if(this.selectedProduct.title === 'custom') {
+          query.product = 'custom';
+        } else {
+          query.product = this.selectedProduct.name;
+        }
       }
 
       if(this.selectedVectordb === undefined) {

@@ -50,7 +50,8 @@ public class RequestProcessorProduct {
 			} else if(doubleFrames.length >= 2) {
 				double gamma = Double.NaN;
 				double[] range = null;
-				ImageBufferARGB image = Renderer.renderRbDouble(doubleFrames[0], doubleFrames[1], reqWidth, reqHeight, gamma, range);	
+				boolean syncBands = false;
+				ImageBufferARGB image = Renderer.renderRbDouble(doubleFrames[0], doubleFrames[1], reqWidth, reqHeight, gamma, range, syncBands);	
 				RequestProcessorProductWriters.writeImage(image, format, processor, productText, resceiver);
 			} else if(doubleFrames.length >= 1) {
 				double gamma = Double.NaN;

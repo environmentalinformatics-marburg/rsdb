@@ -117,6 +117,10 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				json.value(band.has_title() ? band.title : "band"+band.index);
 				json.key("datatype");
 				json.value(band.getDatatypeName());
+				if(band.has_visualisation()) {
+					json.key("visualisation");
+					json.value(band.visualisation);
+				}
 				if(band.has_vis_min()) {
 					json.key("vis_min");
 					json.value(band.vis_min);

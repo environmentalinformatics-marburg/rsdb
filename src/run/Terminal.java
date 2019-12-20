@@ -40,7 +40,9 @@ import rasterdb.importer.Import_banded;
 import rasterdb.importer.Import_landsat8;
 import rasterdb.importer.Import_modis;
 import rasterdb.importer.Import_rapideye;
+import rasterdb.importer.Import_sequoia;
 import rasterdb.importer.Import_soda;
+import rasterdb.importer.Import_soda_OLD;
 import rasterdb.importer.RasterDBimporter;
 import remotetask.Context;
 import remotetask.RemoteTask;
@@ -88,6 +90,8 @@ public class Terminal {
 		addCommand("import_landsat8", Terminal::command_import_landsat8);
 		addCommand("import_rapideye", Terminal::command_import_rapideye);
 		addCommand("import_modis", Terminal::command_import_modis);
+		addCommand("import_soda_old", Terminal::command_import_soda_old);
+		addCommand("import_sequoia", Terminal::command_import_sequoia);
 		addCommand("import_soda", Terminal::command_import_soda);
 		addCommand("modis_preprocess", Terminal::command_modis_preprocess);
 		addCommand("catalog_refresh", Terminal::command_catalog_refresh);
@@ -652,13 +656,49 @@ public class Terminal {
 		}
 	}
 
-	public static void command_import_soda(String[] args) {
+	public static void command_import_soda_old(String[] args) {
 		if(args.length == 3) {
 			String name = args[1];
 			String source = args[2];			
 			log.info("import_soda "+name+" from "+source);
 			try(Broker broker = new Broker()) {
-				Import_soda importer = new Import_soda(broker, name);
+				Import_soda_OLD importer = new Import_soda_OLD(broker, name);
+				importer.importDirectory(Paths.get(source));
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.error(e);
+			}
+		} else {
+			System.out.println("command import_soda needs 2 parameters");
+		}
+	}
+	
+	public static void command_import_sequoia(String[] args) {
+		if(args.length == 4) {
+			String name = args[1];
+			String source = args[2];
+			String corresponding_contact = args[3];
+			log.info("import_sequoia "+name+" from "+source);
+			try(Broker broker = new Broker()) {
+				Import_sequoia importer = new Import_sequoia(broker, name, corresponding_contact);
+				importer.importDirectory(Paths.get(source));
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.error(e);
+			}
+		} else {
+			System.out.println("command import_soda needs 2 parameters");
+		}
+	}
+	
+	public static void command_import_soda(String[] args) {
+		if(args.length == 4) {
+			String name = args[1];
+			String source = args[2];
+			String corresponding_contact = args[3];
+			log.info("import_soda "+name+" from "+source);
+			try(Broker broker = new Broker()) {
+				Import_soda importer = new Import_soda(broker, name, corresponding_contact);
 				importer.importDirectory(Paths.get(source));
 			} catch (Exception e) {
 				e.printStackTrace();
