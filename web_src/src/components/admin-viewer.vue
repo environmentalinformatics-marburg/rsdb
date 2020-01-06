@@ -119,8 +119,6 @@
 
 import { mapState } from 'vuex'
 
-import Multiselect from 'vue-multiselect'
-import 'vue-multiselect/dist/vue-multiselect.min.css'
 import RingLoader from 'vue-spinner/src/RingLoader.vue'
 
 import adminViewerSelect from './admin-viewer-select.vue'
@@ -163,7 +161,6 @@ export default {
         'admin-viewer-point-raster-export': adminViewerPointRasterExport,
         'admin-viewer-settings': adminViewerSettings,
         RingLoader,
-        Multiselect,
   },
 
   data() {

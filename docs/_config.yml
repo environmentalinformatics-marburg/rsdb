@@ -5,7 +5,7 @@ github_username:  environmentalinformatics-marburg
 repository: 'environmentalinformatics-marburg/rsdb'
 
 markdown: kramdown
-remote_theme: "mmistakes/minimal-mistakes@4.15.2"
+remote_theme: "mmistakes/minimal-mistakes@4.17.2"
 plugins:
   - jekyll-include-cache
   - jekyll-feed
