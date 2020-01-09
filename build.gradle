@@ -1,5 +1,19 @@
 plugins {
-  id "org.kordamp.markdown.convert" version "1.1.0" // https://github.com/aalmiray/markdown-gradle-plugin
+  id "org.kordamp.markdown.convert" version "1.2.0" // https://github.com/aalmiray/markdown-gradle-plugin
+  id "com.github.ben-manes.versions" version "0.27.0" // update check task: dependencyUpdates  https://github.com/ben-manes/gradle-versions-plugin
+}
+
+// check for updates:
+//gradle dependencyUpdates
+
+def isNonStable = { String version ->
+  return version.contains('alpha') || version.contains('beta') 
+}
+
+dependencyUpdates {
+  rejectVersionIf {  // reject all non stable versions
+    isNonStable(it.candidate.version)
+  }
 }
 
 markdownToHtml {
@@ -27,19 +41,19 @@ repositories {
 }
 
 dependencies {
-  	compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.2'
-  	compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.2'
-  	compile group: 'org.apache.logging.log4j', name: 'log4j-web', version: '2.11.2'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.0'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.0'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-web', version: '2.13.0'
+  	compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.13.0'   	
   	compile group: 'com.lmax', name: 'disruptor', version: '3.4.2'
-  	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
-  	compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.2'  	
+  	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
   	
-  	compile group: 'org.mapdb', name: 'mapdb', version: '2.0-beta13'
-  	compile group: 'org.ehcache', name: 'ehcache', version: '3.7.0'
+  	compile group: 'org.mapdb', name: 'mapdb', version: '2.0-beta13' // warning: newer versions v3 do break storage layout
+  	compile group: 'org.ehcache', name: 'ehcache', version: '3.8.1'
   	
-  	compile group: 'org.json', name: 'json', version: '20180813'
-  	compile group: 'org.yaml', name: 'snakeyaml', version: '1.24'
-  	compile group: 'com.opencsv', name: 'opencsv', version: '4.5'  	
+  	compile group: 'org.json', name: 'json', version: '20190722'
+  	compile group: 'org.yaml', name: 'snakeyaml', version: '1.25'
+  	compile group: 'com.opencsv', name: 'opencsv', version: '4.6' // warning: API at v5.0 breaks  	
   	compile group: 'com.github.mreutegg', name: 'laszip4j', version: '0.7'
   	compile group: 'ar.com.hjg', name: 'pngj', version: '2.1.0'
   	
@@ -47,30 +61,27 @@ dependencies {
   	compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
   	compile group: 'com.mkobos', name: 'pca_transform', version: '1.0.2'
   	
-  	compile group: 'com.googlecode.javaewah', name: 'JavaEWAH', version: '1.1.6'  	
-  	compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.2'
-  	// compile group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.11'  	
-  	compile group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.12' // data format changed from 0.1.11 to 0.1.12
-  	compile group: 'com.github.luben', name: 'zstd-jni', version: '1.4.0-1'
+  	compile group: 'com.googlecode.javaewah', name: 'JavaEWAH', version: '1.1.7'  	
+  	compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.3' // caution: newer versions may break storage layout
+  	// compile group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.11' // data format changed from 0.1.11 to 0.1.12  	
+  	compile group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.12' // caution: newer versions may break storage layout
+  	compile group: 'com.github.luben', name: 'zstd-jni', version: '1.4.4-3' // caution: newer versions may break storage layout
   	
   	compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.7.2'
   	
-	compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.20.v20190813'
-	compile group: 'org.eclipse.jetty', name: 'jetty-security', version: '9.4.20.v20190813'
-	compile group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '9.4.20.v20190813'
-	compile group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: '9.4.20.v20190813'
-	compile group: 'org.eclipse.jetty', name: 'jetty-client', version: '9.4.20.v20190813'
+	compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.25.v20191220'
+	compile group: 'org.eclipse.jetty', name: 'jetty-security', version: '9.4.25.v20191220'
+	compile group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '9.4.25.v20191220'
+	compile group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: '9.4.25.v20191220'
+	compile group: 'org.eclipse.jetty', name: 'jetty-client', version: '9.4.25.v20191220'
 	
-	compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.14.0'
+	compile group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.10.7'
+	runtime group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.10.7'
+	runtime group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.10.7'
 	
-	compile group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.10.6'
-	runtime group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.10.6'
-	runtime group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.10.6'
+	compile group: 'org.gdal', name: 'gdal', version: '2.2.0' // caution: newer versions may break compatibility
 	
-	compile group: 'org.gdal', name: 'gdal', version: '2.2.0'
-	
-	compile group: 'org.imintel', name: 'mbtiles4j', version: '1.0.6'
-		
+	compile group: 'org.imintel', name: 'mbtiles4j', version: '1.0.6'		
 }
 
 sourceSets.main.java.srcDir 'src'

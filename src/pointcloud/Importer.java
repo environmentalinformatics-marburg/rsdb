@@ -9,10 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.ContentResponse;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import pointdb.las.Las;
 import pointdb.las.Laz;
 import rasterunit.Tile;
@@ -83,7 +82,7 @@ public class Importer {
 	private void importFile(Path filename) throws IOException {
 		log.info("import " + filename);
 		Timer.start("import");
-		
+
 		Las las = null;
 		Laz laz = null;
 		boolean isLas = true;
@@ -100,7 +99,7 @@ public class Importer {
 		} else {
 			throw new RuntimeException("unknown extension");
 		}
-		
+
 		if(fileEPSG != 0) {
 			log.info("fileEpsg " + fileEPSG);
 			if(pointcloud.hasCode()) {
@@ -110,19 +109,22 @@ public class Importer {
 				if(!pointcloud.hasProj4()) {
 					String url = "https://epsg.io/"+fileEPSG+".proj4";
 					log.warn("request proj4 of epsg: " + fileEPSG + "     " + url);
-					OkHttpClient client = new OkHttpClient.Builder()
-					        .connectTimeout(15, TimeUnit.SECONDS)
-					        .writeTimeout(15, TimeUnit.SECONDS)
-					        .readTimeout(15, TimeUnit.SECONDS)
-					        .build();
-					Request request = new Request.Builder().url(url).build();
-					try(Response response = client.newCall(request).execute()) {
-						if(response.isSuccessful()) {
-							String proj4 = response.body().string();
-							pointcloud.setProj4(proj4);
-							log.info("received proj4: "+proj4);							
-						} else {
-							log.warn("could not request proj4 of epsg");
+					try {
+						HttpClient httpClient = new HttpClient();
+						httpClient.start();
+						try {
+							ContentResponse response = httpClient.newRequest(url)
+									.timeout(15, TimeUnit.SECONDS)
+									.send();
+							if(response.getStatus() == 200) {
+								String proj4 = response.getContentAsString();
+								pointcloud.setProj4(proj4);
+								log.info("received proj4: "+proj4);		
+							} else {
+								log.warn("could not request proj4 of epsg   server response " + response.getStatus());
+							}
+						} finally {
+							httpClient.stop();
 						}
 					} catch(Exception e) {
 						log.warn("could not request proj4 of epsg: " + e);
@@ -130,7 +132,7 @@ public class Importer {
 				}
 			}
 		}
-		
+
 		double[] las_scale_factor = isLas ? las.scale_factor : laz.scale_factor;
 		double[] las_offset = isLas ? las.offset : laz.offset;
 		long las_number_of_point_records = isLas ? las.number_of_point_records : laz.number_of_point_records;
@@ -143,7 +145,7 @@ public class Importer {
 		double ylasmin = isLas ? las.min[1] : laz.min[1];
 		double xlasmax = isLas ? las.max[0] : laz.max[0];
 		double ylasmax = isLas ? las.max[1] : laz.max[1];
-		
+
 
 
 		DoublePoint celloffset = pointcloud.getOrSetCelloffset(Math.floor(xlasmin / xcellsize), Math.floor(ylasmin / ycellsize));
@@ -416,9 +418,9 @@ public class Importer {
 		log.info(Timer.stop("import"));	
 		log.info(Timer.toStringAll());
 	}
-	
+
 	public static double floorMod(double x, double y) {
-        return x - Math.floor(x / y) * y;
-    }
+		return x - Math.floor(x / y) * y;
+	}
 
 }
