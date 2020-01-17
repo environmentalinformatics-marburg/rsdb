@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="same-origin" />
+<script charset="utf-8">
+{{>sha3.min.js}}
+
+function getNonce(len) {
+	var rnd = new Uint32Array(len);
+	window.crypto.getRandomValues(rnd);
+	var nonce = "";
+	var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	var charsLen = chars.length;
+	for(var i = 0; i < len; i++) {
+		nonce += chars[rnd[i] % charsLen];
+	}
+	return nonce;
+}
+
+var user_salt = '{{user_salt}}';
+var user_hash_size = {{user_hash_size}};
+var salt = '{{salt}}';
+var server_nonce = '{{server_nonce}}';
+var client_nonce = getNonce(8);
+
+if(typeof(TextEncoder) === 'undefined') {
+	alert('ERROR: Your browser is not supported. This page will NOT work in your browser!');
+}
+const utf8Encoder = new TextEncoder();
+
+function trans(text) {
+	var bytes = utf8Encoder.encode(text);
+	console.log(text);
+	console.log(bytes);
+	return sha3_512(bytes);
+}
+
+function hash(user, password) {
+	var h = trans(salt + user + salt + password + salt);
+	return trans(server_nonce + client_nonce + h + client_nonce + server_nonce);
+}
+
+function login() {
+	var u = document.getElementById('user').value;
+	var h_u = trans(user_salt + u + user_salt).substr(-user_hash_size);
+	var p = document.getElementById('password').value;
+	console.log(p);
+	console.log(utf8Encoder.encode(p));
+	var h = hash(u, p);
+	window.location.href = "/login?user=" + h_u + "&server_nonce=" + server_nonce + "&client_nonce=" + client_nonce +"&hash=" + h + "&ref=" + encodeURIComponent(window.location.href);
+}
+
+document.onkeydown = function (e) {
+	if(e.code === 'Enter') {
+		login();
+	}
+}
+</script>
+</head>
+
+<body style="text-align: center;">
+
+<hr>
+<h2>Login by third party (Single sign-on)</h2>
+<br>
+<table  align="center">
+{{#jws}}
+  <tr>
+    <td>
+	  <a href="{{{redirect_target}}}">{{{link_text}}}</a>
+    </td>
+	<td style="width: 20px;">
+    </td>
+    <td>
+	  {{{link_description}}}
+    </td>
+  </tr>
+{{/jws}}
+</table>
+
+<br>
+<br>
+<br>
+<br>
+<hr>
+<h2>Local Login</h2>
+<div style="color: grey;">Note: You need a local account. A third party account can NOT be used for local login. If you do have a third party account then use the entries in "Login by third party".</div>
+<br>
+user name:<br>
+<input type="text" name="user name" value="" id="user">
+<br>
+password:<br>
+<input type="password" name="password" value="" id="password">
+<br><br>
+
+<button onclick="login()">login</button>
+<br><br>
+<br>
+<br>
+
+<hr>
+<i>By login action you agree to store identifiing cookies in your browser.</i>
+		
+</body>
+</html>

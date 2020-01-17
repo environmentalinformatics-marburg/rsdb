@@ -2,11 +2,17 @@
 <v-app light>
   <div class="grid-container">
     <div class="grid-item-head">
-      <v-tabs dark color="blue-grey lighten-1" slider-color="yellow">
+      <v-tabs dark color="blue-grey lighten-1" slider-color="yellow" style="position: relative;">
         <v-tab v-for="tab in tabs" :key="tab.name" :to="'/' + (tab.target === undefined ? tab.name : tab.target)" ripple replace>
           <v-icon v-if="tab.icon !== undefined">{{tab.icon}}</v-icon>
           {{tab.title}}
         </v-tab>
+        <span v-if="identity !== undefined && identity.auth_method === 'local_login'" style="position: absolute; right: 5px; top: 5px;">
+          <a @click="local_logout">
+            <v-icon>meeting_room</v-icon>
+            logout
+          </a>
+        </span>
       </v-tabs>
     </div>
     <!--<keep-alive include="admin-viewer,admin-explorer">-->
@@ -34,11 +40,17 @@ export default {
     return {};   
   },
   methods: {
+    local_logout() {
+      window.location.href = "/logout?ref=" + encodeURIComponent(window.location.href);
+    },
   },
   computed: {
     ...mapGetters({
       isAdmin: 'identity/isAdmin',
     }),
+    identity() {
+      return this.$store.state.identity.data;
+    },
     tabs() {
       var tabs = [];
       tabs.push({name: 'overview', title: 'Overview', target: '', icon: 'home'});

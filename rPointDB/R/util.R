@@ -308,3 +308,47 @@ convert_SpatialPolygonsDataFrame_to_named_matrix_list <- function(areas) {
   stopifnot(is(areas, "SpatialPolygons") || is(areas, "SpatialPolygonsDataFrame"))
   return(convert_SpatialPolygons_to_named_matrix_list(areas))
 }
+
+#' @export
+getConData <- function(url_base, user, password) {
+  print(url_base)
+  url_check <- paste0(url_base, "/pointdb/")
+  auth <- NULL
+  print(url_check)
+  r <- httr::GET(url_check, auth)
+  url_check <- r$url
+  if(!endsWith(url_check, "/pointdb/")) {
+    stop("error in RSDB request")
+  }
+  url_base <- substr(url_check, 1, nchar(url_check)-9)
+  if(r$status_code == 200) { # OK, no auth
+    return(list(url_base = url_base))
+  }
+  if(r$status_code != 401) {
+    stop("unknown error")
+  }
+  if(startsWith(r$headers$`www-authenticate`, "basic ")) {
+    #stop("basic")
+    auth <- httr::authenticate(user, password, type="basic")
+  }
+  if(startsWith(r$headers$`www-authenticate`, "Digest ")) {
+    #stop("Digest")
+    auth <- httr::authenticate(user, password, type="digest")
+  }
+  if(is.null(auth)) {
+    stop("no valid authentication type")
+  }
+  r <- httr::GET(url_check, auth)
+  url_check <- r$url
+  if(!endsWith(url_check, "/pointdb/")) {
+    stop("error in RSDB request")
+  }
+  url_base <- substr(url_check, 1, nchar(url_check)-9)
+  if(r$status_code == 200) { # OK, with auth
+    return(list(url_base = url_base, auth = auth))
+  }
+  if(r$status_code == 401) {
+    stop("wrong url / username / password?")
+  }
+  stop("unknown error")
+}

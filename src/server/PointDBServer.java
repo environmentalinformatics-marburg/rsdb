@@ -361,6 +361,7 @@ public class PointDBServer {
 				createContext(POINTDB_WEB_URL, createWebcontentHandler()),
 				createContext(WEBFILES_URL, createWebfilesHandler()),
 				createContext("/entrypoint", true, new BaseRedirector(POINTDB_WEB_URL + "/admin2/")),
+				createContext("/logout", true, new LogoutHandler(broker)),
 				createContext(createShutdownHandler()),
 				createContext(new BaseRedirector(POINTDB_WEB_URL+"/")),
 				createContext(new InvalidUrlHandler("unknown request")),
@@ -489,6 +490,7 @@ public class PointDBServer {
 		PredicateHandler predicacteHttpsHandler = new PredicateHandler(r->r.isSecure());
 		predicacteHttpsHandler.setHandler(httpsSecurityHandler);		
 
+		handlerList.addHandler(createContext("/login", true, new LoginHandler(broker)));
 		handlerList.addHandler(jwsAuthentication);
 		handlerList.addHandler(ipAuthentication);
 		handlerList.addHandler(predicacteHttpHandler);
