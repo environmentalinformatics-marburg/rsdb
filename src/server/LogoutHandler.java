@@ -1,15 +1,7 @@
 package server;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.security.Principal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import javax.security.auth.Subject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,21 +10,10 @@ import javax.servlet.http.HttpSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.security.AbstractLoginService;
-import org.eclipse.jetty.security.DefaultUserIdentity;
-import org.eclipse.jetty.security.UserAuthentication;
-import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
-import com.github.aelstad.keccakj.fips202.SHA3_512;
-
 import broker.Broker;
-import server.api.main.APIHandler_identity;
-import util.Hex;
-import util.Nonce;
-import util.TemplateUtil;
 
 public class LogoutHandler extends AbstractHandler {
 	private static final Logger log = LogManager.getLogger();

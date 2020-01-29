@@ -1,14 +1,17 @@
 RasterDB_public <- list( #      *********** public *********************************
 
-  initialize = function(base_url, name, curlHandle) {
+  initialize = function(base_url, name, curlHandle, rsdbConnector) {
+    private$rsdbConnector <- rsdbConnector
+    
     private$base_url <- base_url
     private$name_ <- name
     private$curlHandle <- curlHandle
     private$url <- paste0(private$base_url, "/rasterdb/", private$name_)
-    if(!RCurl::url.exists(paste0(private$url, "/meta.json"), curl = RCurl::dupCurlHandle(private$curlHandle))) {
-      stop("no connection to RasterDB: ",private$db_url)
-    }
-    private$meta <- query_json(private$url, "meta.json", curl = RCurl::dupCurlHandle(private$curlHandle))
+    #if(!RCurl::url.exists(paste0(private$url, "/meta.json"), curl = RCurl::dupCurlHandle(private$curlHandle))) {
+    #  stop("no connection to RasterDB: ",private$db_url)
+    #}
+    #private$meta <- query_json(private$url, "meta.json", curl = RCurl::dupCurlHandle(private$curlHandle))
+    private$meta <- private$rsdbConnector$GET(paste0("/rasterdb/", private$name_, "/meta.json"))
   },
 
   raster = function(ext, band=NULL, timestamp=NULL, product=NULL) {
@@ -24,18 +27,25 @@ RasterDB_public <- list( #      *********** public *****************************
     if(!is.null(product)) {
       param_list <- c(param_list, product=product)
     }
-    r <- query_RDAT(private$url, "raster.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle))
-    return(r)
+    #r <- query_RDAT(private$url, "raster.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle))
+    #return(r)
+    path <- paste0("/rasterdb/", private$name_, "/raster.rdat")
+    query <- as.list(param_list)
+    rdat <- private$rsdbConnector$GET(path, query)
+    return(rdat)
   },
 
   insert_RasterLayer = function(r, band=1, timestamp=0) {
     stopifnot(is(r, "RasterLayer"))
     ext <- r@extent
     extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
-    param_list <- c(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE)
+    #param_list <- c(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE)
     data <- r@data@values
     raw <- writeBin(object=data, con=raw(0), size=2, endian="little")
-    result <- post_raw_get_json(raw=raw, api_url=private$url, method="insert_raster", param_list=param_list, curl=RCurl::dupCurlHandle(private$curlHandle)) #raw not send if with curlHandle
+    #result <- post_raw_get_json(raw=raw, api_url=private$url, method="insert_raster", param_list=param_list, curl=RCurl::dupCurlHandle(private$curlHandle)) #raw not send if with curlHandle
+    path <- paste0("/rasterdb/", private$name_, "/insert_raster")
+    query <- list(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE)
+    result <- private$rsdbConnector$POST_raw(path, query, raw)
     return(result)
   },
 
@@ -56,7 +66,9 @@ RasterDB_public <- list( #      *********** public *****************************
   },
 
   rebuild_pyramid = function() {
-    result <- query_json(private$url, "rebuild_pyramid", curl = RCurl::dupCurlHandle(private$curlHandle))
+    #result <- query_json(private$url, "rebuild_pyramid", curl = RCurl::dupCurlHandle(private$curlHandle))
+    path <- paste0("/rasterdb/", private$name_, "/rebuild_pyramid")
+    result <- private$rsdbConnector$POST_json(path)
     return(result)
   }
 
@@ -104,7 +116,8 @@ RasterDB_private <- list( #      *********** private ***************************
   name_ = NULL,
   curlHandle = NULL,
   url = NULL,
-  meta = NULL
+  meta = NULL,
+  rsdbConnector = NULL  
 
 ) #***********************************************************************************
 

@@ -57,15 +57,9 @@ public class JWSAuthentication extends AbstractHandler {
 
 	private static final boolean ALWAYS_REFRESH_MUSTACHE = true;
 
-	public static final String salt = Nonce.get(8);
-	
-	public static final String user_salt = Nonce.get(8);
-	
-	public static final int user_hash_size = 1;
-	
-	public static final Charset charset = StandardCharsets.UTF_8;
-	
-	
+
+
+
 
 	private final Broker broker;
 
@@ -194,13 +188,25 @@ public class JWSAuthentication extends AbstractHandler {
 		}
 
 		request.setHandled(true);
-		response.setContentType("text/html;charset=utf-8");
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		
 		String server_nonce = createServerNonce();
+
+		String auth_req = "login_sha2_512";
+		auth_req += " server_nonce=\"" + server_nonce + "\"";
+		auth_req += ", user_hash_size=\"" + LoginHandler.user_hash_size + "\"";
+		auth_req += ", user_salt=\"" + LoginHandler.user_salt + "\"";
+		auth_req += ", salt=\"" + LoginHandler.salt + "\"";
+
+		
+		response.setHeader("WWW-Authenticate", auth_req);
+		response.setContentType("text/html;charset=utf-8");
+
 		HashMap<String, Object> ctx = new HashMap<>();
 		ctx.put("server_nonce", server_nonce);
-		ctx.put("user_hash_size", user_hash_size);
-		ctx.put("user_salt", user_salt);
-		ctx.put("salt", salt);
+		ctx.put("user_hash_size", LoginHandler.user_hash_size);
+		ctx.put("user_salt", LoginHandler.user_salt);
+		ctx.put("salt", LoginHandler.salt);
 		Vec<Map<String, Object>> jwsList = new Vec<Map<String, Object>>();
 		for(JwsConfig jwsConfig:broker.brokerConfig.jws()) {
 			String clientJws = Jwts.builder()
@@ -279,7 +285,7 @@ public class JWSAuthentication extends AbstractHandler {
 				HashMap<String, Object> ctx = new HashMap<>();
 				ctx.put("error", e.getMessage());
 				ctx.put("redirect_target", redirect_target);
-				TemplateUtil.getTemplate("user_jws_error.mustache", ALWAYS_REFRESH_MUSTACHE).execute(ctx, response.getWriter());
+				TemplateUtil.getTemplate("jws_error.mustache", ALWAYS_REFRESH_MUSTACHE).execute(ctx, response.getWriter());
 				return;
 			}
 		}			
@@ -298,7 +304,7 @@ public class JWSAuthentication extends AbstractHandler {
 			UserIdentity userIdentity = new DefaultUserIdentity(subject, principal, jwsConfig.roles);
 			Authentication authentication = new UserAuthentication("jws", userIdentity);
 			request.setAuthentication(authentication);
-		} catch (JwtException e) {			
+		} catch (Exception e) {			
 			HashMap<String, Object> ctx = new HashMap<>();
 			ctx.put("error", e.getMessage());
 			TemplateUtil.getTemplate("api_jws_error.mustache", ALWAYS_REFRESH_MUSTACHE).execute(ctx, response.getWriter());

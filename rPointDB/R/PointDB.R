@@ -1,24 +1,27 @@
 PointDB_public <- list( # **************** public ***********************
 
-  initialize = function(url, db, curlHandle) {
+  initialize = function(url, db, curlHandle, rsdbConnector) {
+    private$rsdbConnector <- rsdbConnector
+    
     private$base_url <- url
     private$db_url <- paste0(url, "/pointdb")
     private$db <- db
     private$curlHandle <- curlHandle
-    if(!RCurl::url.exists(paste0(private$db_url, "/"), curl = RCurl::dupCurlHandle(private$curlHandle))) {
-      stop("no connection to PointDB: ",private$db_url)
-    }
+    #if(!RCurl::url.exists(paste0(private$db_url, "/"), curl = RCurl::dupCurlHandle(private$curlHandle))) {
+    #  stop("no connection to PointDB: ",private$db_url)
+    #}
+    private$rsdbConnector$GET("/pointdb/")
   },
 
-  process_OLD = function(subset, script) {
-    .Deprecated("$process")
-    subsetFinal <- paste0(subset, collapse=";")
-    scriptFinal <- paste0(script, collapse=";")
-    #j <- query_json(private$db_url, "process", c(db=private$db, subset=subsetFinal, script=scriptFinal, format="json"), curlHandle=private$curlHandle)
-    #return(j)
-    df <- query_RDAT(private$db_url, "process", c(db=private$db, subset=subsetFinal, script=scriptFinal, format="rdat"), curlHandle=private$curlHandle)
-    return(df)
-  },
+  #process_OLD = function(subset, script) {
+  #  .Deprecated("$process")
+  #  subsetFinal <- paste0(subset, collapse=";")
+  #  scriptFinal <- paste0(script, collapse=";")
+  #  #j <- query_json(private$db_url, "process", c(db=private$db, subset=subsetFinal, script=scriptFinal, format="json"), curlHandle=private$curlHandle)
+  #  #return(j)
+  #  df <- query_RDAT(private$db_url, "process", c(db=private$db, subset=subsetFinal, script=scriptFinal, format="rdat"), curlHandle=private$curlHandle)
+  #  return(df)
+  #},
 
   process = function(areas, functions) {
     if(is(areas, "SpatialPolygons")) {
@@ -54,7 +57,12 @@ PointDB_public <- list( # **************** public ***********************
     translated_areas <- mapply(FUN=translate_area, areas, titles, SIMPLIFY=FALSE, USE.NAMES=FALSE)
     data <- list(areas=translated_areas, functions=functions)
     param_list <- c(db=private$db, format="rdat")
-    post_json_get_rdat(data=data, api_url=private$db_url, method="process", param_list=param_list, curl=RCurl::dupCurlHandle(private$curlHandle))
+    #post_json_get_rdat(data=data, api_url=private$db_url, method="process", param_list=param_list, curl=RCurl::dupCurlHandle(private$curlHandle))
+    path <- "/pointdb/process"
+    query <- as.list(param_list)
+    query <- query[query != ""] # remove empty entries
+    rdat <- private$rsdbConnector$POST_json(path, query, data)
+    return(rdat)
   },
 
   query = function(ext, filter=NULL, columns=NULL, normalise=NULL) {
@@ -64,7 +72,12 @@ PointDB_public <- list( # **************** public ***********************
                     filter=paste0(filter, collapse=";"),
                     columns=paste0(columns, collapse=","),
                     normalise=paste0(normalise, collapse=","))
-    query_RDAT(private$db_url,"query",param_list, curlHandle=private$curlHandle)
+    #query_RDAT(private$db_url,"query",param_list, curlHandle=private$curlHandle)
+    path <- "/pointdb/query"
+    query <- as.list(param_list)
+    query <- query[query != ""] # remove empty entries
+    rdat <- private$rsdbConnector$GET(path, query)
+    return(rdat)
   },
 
   query_polygon = function(polygon, filter=NULL, columns=NULL, normalise=NULL) {
@@ -73,7 +86,12 @@ PointDB_public <- list( # **************** public ***********************
                     filter=paste0(filter, collapse=";"),
                     columns=paste0(columns, collapse=","),
                     normalise=paste0(normalise, collapse=","))
-    query_RDAT(private$db_url, "polygon", param_list, curlHandle=private$curlHandle)
+    #query_RDAT(private$db_url, "polygon", param_list, curlHandle=private$curlHandle)
+    path <- "/pointdb/polygon"
+    query <- as.list(param_list)
+    query <- query[query != ""] # remove empty entries
+    rdat <- private$rsdbConnector$GET(path, query)
+    return(rdat)
   },
 
   query_raster = function(ext, type) {
@@ -81,57 +99,74 @@ PointDB_public <- list( # **************** public ***********************
     param_list <- c(db=private$db,
                     ext=extText,
                     type=paste0(type, collapse=","))
-    query_RDAT(private$db_url, "query_raster", param_list, curlHandle=private$curlHandle)
-  },
-
-  query_dtm = function(ext) {
-    .Deprecated("query_raster(type='dtm', ...)")
-    extText <- extToText(ext)
-    param_list <- c(db=private$db,
-                    ext=extText)
-    query_RDAT(private$db_url,"dtm",param_list, curlHandle=private$curlHandle)
-  },
-
-  query_dsm = function(ext) {
-    .Deprecated("query_raster(type='dsm', ...)")
-    extText <- extToText(ext)
-    param_list <- c(db=private$db,
-                    ext=extText)
-    query_RDAT(private$db_url,"dsm",param_list, curlHandle=private$curlHandle)
-  },
-
-  query_chm = function(ext) {
-    .Deprecated("query_raster(type='chm', ...)")
-    extText <- extToText(ext)
-    param_list <- c(db=private$db,
-                    ext=extText)
-    query_RDAT(private$db_url,"chm",param_list, curlHandle=private$curlHandle)
+    #query_RDAT(private$db_url, "query_raster", param_list, curlHandle=private$curlHandle)
+    path <- "/pointdb/query_raster"
+    query <- as.list(param_list)
+    query <- query[query != ""] # remove empty entries
+    rdat <- private$rsdbConnector$GET(path, query)
+    return(rdat)
   }
+
+  #query_dtm = function(ext) {
+  #  .Deprecated("query_raster(type='dtm', ...)")
+  #  extText <- extToText(ext)
+  #  param_list <- c(db=private$db,
+  #                  ext=extText)
+  #  query_RDAT(private$db_url,"dtm",param_list, curlHandle=private$curlHandle)
+  #},
+
+  #query_dsm = function(ext) {
+  #  .Deprecated("query_raster(type='dsm', ...)")
+  #  extText <- extToText(ext)
+  #  param_list <- c(db=private$db,
+  #                  ext=extText)
+  #  query_RDAT(private$db_url,"dsm",param_list, curlHandle=private$curlHandle)
+  #},
+
+  #query_chm = function(ext) {
+  #  .Deprecated("query_raster(type='chm', ...)")
+  #  extText <- extToText(ext)
+  #  param_list <- c(db=private$db,
+  #                  ext=extText)
+  #  query_RDAT(private$db_url,"chm",param_list, curlHandle=private$curlHandle)
+  #}
 
 ) # *********************************************************************
 
 PointDB_active <- list( # **************** active ***********************
 
   info = function() {
-    l <- query_json(private$db_url, "info", c(db=private$db), curlHandle=private$curlHandle)
-    return(l)
+    #l <- query_json(private$db_url, "info", c(db=private$db), curlHandle=private$curlHandle)
+    path <- "/pointdb/info"
+    query <- list(db=private$db)
+    result <- private$rsdbConnector$GET(path, query)
+    return(result)
   },
 
   processing_functions = function() {
-    df <- query_RDAT(private$db_url, "process_functions", c(format="rdat"), curlHandle=private$curlHandle)
+    #df <- query_RDAT(private$db_url, "process_functions", c(format="rdat"), curlHandle=private$curlHandle)
+    path <- "/pointdb/process_functions"
+    query <- list(format="rdat")
+    df <- private$rsdbConnector$GET(path, query)
     return(df)
   },
 
   roi_groups = function() {
-    api_url <- paste0(private$base_url, "/api")
-    l <- query_json(api_url, "roi_groups", c(pointdb=private$db), curlHandle=private$curlHandle)
-    return(l)
+    #api_url <- paste0(private$base_url, "/api")
+    #l <- query_json(api_url, "roi_groups", c(pointdb=private$db), curlHandle=private$curlHandle)
+    path <- "/api/roi_groups"
+    query <- list(pointdb=private$db)
+    result <- private$rsdbConnector$GET(path, query)
+    return(result)
   },
 
   poi_groups = function() {
-    api_url <- paste0(private$base_url, "/api")
-    l <- query_json(api_url, "poi_groups", c(pointdb=private$db), curlHandle=private$curlHandle)
-    return(l)
+    #api_url <- paste0(private$base_url, "/api")
+    #l <- query_json(api_url, "poi_groups", c(pointdb=private$db), curlHandle=private$curlHandle)
+    path <- "/api/poi_groups"
+    query <- list(pointdb=private$db)
+    result <- private$rsdbConnector$GET(path, query)
+    return(result)
   },
 
   raster_processing_types = function() {
@@ -146,7 +181,8 @@ PointDB_private <- list( # **************** private *********************
   base_url = NULL,
   db_url = NULL,
   db = NULL,
-  curlHandle = NULL
+  curlHandle = NULL,
+  rsdbConnector = NULL   
 
 ) # *********************************************************************
 

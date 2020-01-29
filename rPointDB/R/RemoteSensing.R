@@ -1,6 +1,14 @@
 RemoteSensing_public <- list( #      *********** public *********************************
 
-  initialize = function(url, userpwd=NULL) {
+  initialize = function(url, userpwd=NULL, ssl_verifypeer=TRUE) {
+    splitIndex <- regexpr(":", userpwd)
+    if(splitIndex <= 0) {
+      stop("parameter 'userpwd' is not of format: USER:PASSWORD")
+    }
+    user <- substring(userpwd, 0, splitIndex - 1)
+    password <- substring(userpwd, splitIndex + 1)
+    private$rsdbConnector <- RsdbConnector$new(base_url = url, username = user, password = password, ssl_verifypeer = ssl_verifypeer)
+    
     private$base_url <- url
     test_url <- paste0(private$base_url, "/pointdb/")
     private$curlHandle <- RCurl::getCurlHandle()
@@ -24,32 +32,35 @@ RemoteSensing_public <- list( #      *********** public ************************
   },
 
   lidar = function(layer) {
-    pointdb <- PointDB$new(private$base_url, layer, curlHandle=private$curlHandle)
+    pointdb <- PointDB$new(private$base_url, layer, curlHandle=private$curlHandle, rsdbConnector = private$rsdbConnector)
     return(pointdb)
   },
 
   pointdb = function(name) {
-    pointdb <- PointDB$new(private$base_url, name, curlHandle=private$curlHandle)
+    pointdb <- PointDB$new(private$base_url, name, curlHandle=private$curlHandle, rsdbConnector = private$rsdbConnector)
     return(pointdb)
   },
 
   rasterdb = function(name) {
-    rasterdb <- RasterDB$new(private$base_url, name, curlHandle=private$curlHandle)
+    rasterdb <- RasterDB$new(private$base_url, name, curlHandle=private$curlHandle, rsdbConnector = private$rsdbConnector)
     return(rasterdb)
   },
 
   lidar_layers = function() {
-    dbs <- query_json(paste0(private$base_url, "/pointdb"), "dbs.json", curlHandle=private$curlHandle)
-    return(dbs)
+    #dbs <- query_json(paste0(private$base_url, "/pointdb"), "dbs.json", curlHandle=private$curlHandle)
+    result <- private$rsdbConnector$GET("/pointdb/dbs.json")
+    return(result)
   },
 
   web = function() {
-    web_url <- paste0(private$base_url, "/web")
+    #web_url <- paste0(private$base_url, "/web")
+    web_url <- paste0(private$rsdbConnector$private$base_url, "/web")
     browseURL(web_url)
   },
 
   poi_group = function(group_name) {
-    group <- query_json(paste0(private$base_url, "/api"), "poi_group", c(name=group_name), curlHandle=private$curlHandle)
+    #group <- query_json(paste0(private$base_url, "/api"), "poi_group", c(name=group_name), curlHandle=private$curlHandle)
+    group <- private$rsdbConnector$GET("/api/poi_group", list(name=group_name))
     row.names(group) <- group$name
     #names(group$x) <- group$name # does not apply names
     #names(group$y) <- group$name # does not apply names
@@ -67,7 +78,8 @@ RemoteSensing_public <- list( #      *********** public ************************
   },
 
   roi_group = function(group_name) {
-    group <- query_json(paste0(private$base_url, "/api"), "roi_group", c(name=group_name), curlHandle=private$curlHandle)
+    #group <- query_json(paste0(private$base_url, "/api"), "roi_group", c(name=group_name), curlHandle=private$curlHandle)
+    group <- private$rsdbConnector$GET("/api/roi_group", list(name=group_name))
     row.names(group) <- group$name
     names(group$polygon) <- group$name
     return(group)
@@ -84,12 +96,13 @@ RemoteSensing_public <- list( #      *********** public ************************
   },
 
   create_rasterdb = function(name) {
-    result <- query_json(paste0(private$base_url, "/api"), "create_raster", c(name=name), curlHandle=private$curlHandle)
+    #result <- query_json(paste0(private$base_url, "/api"), "create_raster", c(name=name), curlHandle=private$curlHandle)
+    result <- private$rsdbConnector$GET("/api/create_raster", list(name=name))
     return(result)
   },
 
   pointcloud = function(name) {
-    return(PointCloud$new(private$base_url, name, curlHandle=private$curlHandle))
+    return(PointCloud$new(private$base_url, name, curlHandle = private$curlHandle, rsdbConnector = private$rsdbConnector))
   }
 
 )
@@ -97,27 +110,32 @@ RemoteSensing_public <- list( #      *********** public ************************
 RemoteSensing_active <- list( #      *********** active *********************************
 
   roi_groups = function() {
-    groups <- query_json(paste0(private$base_url, "/api"), "roi_groups", curlHandle=private$curlHandle)
+    #groups <- query_json(paste0(private$base_url, "/api"), "roi_groups", curlHandle=private$curlHandle)
+    groups <- private$rsdbConnector$GET("/api/roi_groups")
     return(groups)
   },
 
   poi_groups = function() {
-    groups <- query_json(paste0(private$base_url, "/api"), "poi_groups", curlHandle=private$curlHandle)
+    #groups <- query_json(paste0(private$base_url, "/api"), "poi_groups", curlHandle=private$curlHandle)
+    groups <- private$rsdbConnector$GET("/api/poi_groups")
     return(groups)
   },
 
   pointdbs = function() {
-    dbs <- query_json(paste0(private$base_url, "/pointdb"), "dbs.json", curlHandle=private$curlHandle)
+    #dbs <- query_json(paste0(private$base_url, "/pointdb"), "dbs.json", curlHandle=private$curlHandle)
+    dbs <- private$rsdbConnector$GET("/pointdb/dbs.json")
     return(dbs)
   },
 
   rasterdbs = function() {
-    meta <- query_json(private$base_url, "rasterdbs.json", curlHandle=private$curlHandle)
+    #meta <- query_json(private$base_url, "rasterdbs.json", curlHandle=private$curlHandle)
+    meta <- private$rsdbConnector$GET("/rasterdbs.json")
     return(meta$rasterdbs)
   },
 
   plointclouds = function() {
-    json <- query_json(private$base_url, "pointclouds", curlHandle=private$curlHandle)
+    #json <- query_json(private$base_url, "pointclouds", curlHandle=private$curlHandle)
+    json <- private$rsdbConnector$GET("/pointclouds")
     return(json$pointclouds)
   }
 
@@ -126,7 +144,8 @@ RemoteSensing_active <- list( #      *********** active ************************
 RemoteSensing_private <- list( #      *********** private *********************************
 
   base_url = NULL,
-  curlHandle = NULL
+  curlHandle = NULL,
+  rsdbConnector = NULL
 
 )
 

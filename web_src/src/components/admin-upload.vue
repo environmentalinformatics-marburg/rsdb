@@ -130,7 +130,7 @@
       </div>
       <br>
       <table v-if="create">
-        <tr><td><b>code:</b></td><td><input v-model="specification.geo_code" placeholder="code" /></td><td v-if="validEPSG">==> go to <a :href="'https://epsg.io/' + epsg" target="_blank">epsg.io</a></td><td v-if="!validEPSG"><b>no EPSG code</b>: typical geo codes are of form e.g. <i>EPSG:4326</i></td></tr>
+        <tr><td><b>code:</b></td><td><input v-model="specification.geo_code" placeholder="code" /></td><td v-if="validEPSG">==> go to <a :href="'https://epsg.io/' + epsg" target="_blank">epsg.io</a></td><td v-if="!validEPSG"><b>no EPSG code</b>: typical geo codes start with <i>EPSG:</i> e.g. <i>EPSG:4326</i></td></tr>
         <tr><td><b>proj4:</b></td><td><input v-model="specification.proj4" placeholder="proj4" style="min-width: 500px;" /></td><td v-if="proj4CompareOK"><b style="color: green;"><v-icon>check</v-icon></b> (checked on epsg.io)</td><td v-if="(!proj4CompareOK) && proj4Compare !== undefined"><b><v-icon>warning</v-icon> Does not match to epsg.io</b> <v-btn @click="specification.proj4 = proj4Compare">==> adopt epsg.io</v-btn> "{{proj4Compare}}"</td><td v-if="proj4CompareError !== undefined"><b>ERROR</b>: could not get proj4 from epsg.io (invalid EPSG code?)</td></tr>
       </table>
 

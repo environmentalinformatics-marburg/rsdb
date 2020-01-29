@@ -1,12 +1,15 @@
 PointCloud_public <- list( #      *********** public *********************************
 
-  initialize = function(base_url, name, curlHandle) {
+  initialize = function(base_url, name, curlHandle, rsdbConnector) {
+    private$rsdbConnector <- rsdbConnector
+    
     private$name_ <- name
     private$curlHandle <- curlHandle
     private$base_url <- base_url
     private$path_url <-paste0(private$base_url, "/pointclouds")
     private$url <- paste0(private$path_url, "/", private$name_)
-    m <- query_json(private$path_url, private$name_, curl = RCurl::dupCurlHandle(private$curlHandle))
+    #m <- query_json(private$path_url, private$name_, curl = RCurl::dupCurlHandle(private$curlHandle))
+    m <- private$rsdbConnector$GET(paste0("/pointclouds/", private$name_))
     private$meta_ <- m$pointcloud
   },
 
@@ -42,7 +45,11 @@ PointCloud_public <- list( #      *********** public ***************************
       filterText <- paste0(filter, collapse=";")
       param_list <- c(param_list, filter=filterText)
     }
-    return(query_RDAT(private$url, "points.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
+    #return(query_RDAT(private$url, "points.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
+    path <- paste0("/pointclouds/", private$name_, "/points.rdat")
+    query <- as.list(param_list)
+    rdat <- private$rsdbConnector$GET(path, query)
+    return(rdat)
   },
 
   raster = function(ext, res=1, type="point_count", fill=10) {
@@ -64,7 +71,11 @@ PointCloud_public <- list( #      *********** public ***************************
       stopifnot(length(fill) == 1)
       param_list <- c(param_list, fill=fill)
     }
-    return(query_RDAT(private$url, "raster.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
+    #return(query_RDAT(private$url, "raster.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
+    path <- paste0("/pointclouds/", private$name_, "/raster.rdat")
+    query <- as.list(param_list)
+    rdat <- private$rsdbConnector$GET(path, query)
+    return(rdat)
   },
 
   volume = function(ext, res=1, zres=res) {
@@ -81,7 +92,11 @@ PointCloud_public <- list( #      *********** public ***************************
       stopifnot(length(zres) == 1)
       param_list <- c(param_list, zres=zres)
     }
-    return(query_RDAT(private$url, "volume.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
+    #return(query_RDAT(private$url, "volume.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
+    path <- paste0("/pointclouds/", private$name_, "/volume.rdat")
+    query <- as.list(param_list)
+    rdat <- private$rsdbConnector$GET(path, query)
+    return(rdat)
   },
 
   indices = function(areas, functions, omit_empty_areas=TRUE) {
@@ -118,7 +133,11 @@ PointCloud_public <- list( #      *********** public ***************************
     }
     translated_areas <- mapply(FUN=translate_area, areas, titles, SIMPLIFY=FALSE, USE.NAMES=FALSE)
     data <- list(areas=translated_areas, functions=functions, omit_empty_areas=omit_empty_areas)
-    return(post_json_get_rdat(data=data, private$url, method="indices.rdat", curl=RCurl::dupCurlHandle(private$curlHandle)))
+    #return(post_json_get_rdat(data=data, private$url, method="indices.rdat", curl=RCurl::dupCurlHandle(private$curlHandle)))
+    path <- paste0("/pointclouds/", private$name_, "/indices.rdat")
+    query <- list()
+    result <- private$rsdbConnector$POST_json(path, query, data)
+    return(result)
   }
 
 ) #***********************************************************************************
@@ -143,7 +162,10 @@ PointCloud_active <- list( #      *********** active ***************************
 
   extent = function() {
     if(is.null(private$meta_$extent)) {
-      m <- query_json(private$path_url, paste0(private$name_, "?extent"), curl = RCurl::dupCurlHandle(private$curlHandle))
+      #m <- query_json(private$path_url, paste0(private$name_, "?extent"), curl = RCurl::dupCurlHandle(private$curlHandle))
+      path <- paste0("/pointclouds/", private$name_)
+      query <- list(extent=TRUE)
+      m <- private$rsdbConnector$GET(path, query)
       private$meta_ <- m$pointcloud
     }
     m <- private$meta_$extent
@@ -163,7 +185,9 @@ PointCloud_active <- list( #      *********** active ***************************
   },
 
   index_list = function() {
-    m <- query_json(private$url, "index_list", curl = RCurl::dupCurlHandle(private$curlHandle))
+    #m <- query_json(private$url, "index_list", curl = RCurl::dupCurlHandle(private$curlHandle))
+    path <- paste0("/pointclouds/", private$name_, "/index_list")
+    m <- private$rsdbConnector$GET(path)
     return(m$index_list)
   }
 
@@ -176,7 +200,8 @@ PointCloud_private <- list( #      *********** private *************************
   base_url = NULL,
   path_url = NULL,
   url = NULL,
-  meta_ = NULL
+  meta_ = NULL,
+  rsdbConnector = NULL
 
 ) #***********************************************************************************
 

@@ -615,9 +615,17 @@ export default {
     },
     wmsParams() {
       var styleParamter = 'color';
-      if(this.selectedProduct !== undefined && this.selectedProduct !== null) {
-        styleParamter = this.selectedProduct.name
+      if(this.selectedProduct == undefined || this.selectedProduct == null) {
+        if(this.meta !== undefined && this.meta !== null && this.meta.bands !== undefined && this.meta.bands.length == 1) {
+          styleParamter = 'band' + this.meta.bands[0].index;
+        } else {
+          styleParamter = 'color';
+        }
+      } else {
+        styleParamter = this.selectedProduct.name;
       }
+
+
 
       if(this.selectedGamma !== 'auto') {
         styleParamter += ' gamma' + this.selectedGamma;

@@ -5,15 +5,16 @@
 <meta charset="utf-8" />
 <meta name="robots" content="noindex, nofollow" />
 <meta name="referrer" content="same-origin" />
-<title>User Authentication Failed</title>
+<title>Local Login Failed</title>
 </head>
 
 <body style="text-align: center;">
 
-<h1>User Authentication Failed</h1>
+<h1>Local Login Failed</h1>
 <hr>
 <br>
-<a href="{{redirect_target}}">try again</a>
+{{! <button onclick="window.history.back();">try again</button> }}
+<a href="{{ref}}">try again</a>
 <br><br><br><hr>
 
 <i>Reason:</i>

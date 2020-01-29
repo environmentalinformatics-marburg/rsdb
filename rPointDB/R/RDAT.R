@@ -9,6 +9,7 @@ readTextVec_raw <- function(con, len) {
   if(len > 0) {
     for(i in 1:len) {
       text <- readText(con)
+      Encoding(text) <- "UTF-8"
       v[i] <- text
     }
   }
@@ -175,7 +176,7 @@ read_RDAT_DTFM <- function(con) {
       dataList[[colName]] <- colValues
     }
   }
-  df <- as.data.frame(dataList)
+  df <- as.data.frame(dataList, stringsAsFactors = FALSE)
   return(df)
 }
 

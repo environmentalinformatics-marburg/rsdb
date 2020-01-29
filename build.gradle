@@ -148,6 +148,11 @@ task copy_webfiles(type: Copy) {
 	into 'package/webfiles'
 }
 
+task copy_mustache(type: Copy) {
+	from fileTree('mustache')
+	into 'package/mustache'
+}
+
 task copy_webfiles_with_markdown(dependsOn: markdownToHtml) { //convert markdown to html and copy all other files
 }
 
@@ -156,6 +161,6 @@ task copy_build(type: Copy, dependsOn: [jar]) {
 	into 'package'
 }
 
-task _package(dependsOn:[ clean_package, copy_build, copy_lib, copy_webcontent, copy_webfiles_with_markdown, copy_add ]) {
+task _package(dependsOn:[ clean_package, copy_build, copy_lib, copy_webcontent, copy_webfiles_with_markdown, copy_mustache, copy_add ]) {
 	group = 'project' 
 }

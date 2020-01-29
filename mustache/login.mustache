@@ -6,7 +6,8 @@
 <meta name="robots" content="noindex, nofollow" />
 <meta name="referrer" content="same-origin" />
 <script charset="utf-8">
-{{>sha3.min.js}}
+{{! >sha3.min.js}} {{! // SHA-3 512 }}
+{{>sha512.min.js}} {{! // SHA-2 512 }}
 
 function getNonce(len) {
 	var rnd = new Uint32Array(len);
@@ -35,7 +36,8 @@ function trans(text) {
 	var bytes = utf8Encoder.encode(text);
 	console.log(text);
 	console.log(bytes);
-	return sha3_512(bytes);
+	{{! //return sha3_512(bytes); }} {{! // SHA-3 512 }}
+	return sha512(bytes);  {{! // SHA-2 512 }}
 }
 
 function hash(user, password) {

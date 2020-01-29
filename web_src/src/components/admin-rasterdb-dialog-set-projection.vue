@@ -9,6 +9,10 @@
                     <div class="headline">Set projection of <i>RasterDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
                 <v-card-text>
+                    <span v-if="newCode != undefined && newCode != null && !newCode.startsWith('EPSG:')" style="color: red; ">
+                        <v-icon color="red">warning</v-icon>
+                        Projection code SHOULD start with <b>EPSG:</b>
+                    </span>
                     <v-text-field label="projection code" v-model="newCode"></v-text-field>
                     Code may be an
                     <a href="https://epsg.io" target="_blank" rel="noopener noreferrer">EPSG</a> identifier (e.g. 'EPSG:4326')

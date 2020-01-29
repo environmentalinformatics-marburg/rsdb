@@ -2,6 +2,8 @@ package server.api.pointclouds;
 
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONArray;
@@ -18,7 +20,7 @@ import util.Web;
 import util.collections.vec.Vec;
 
 public class APIHandler_indices {
-	//private static final Logger log = LogManager.getLogger();
+	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
 
@@ -42,6 +44,7 @@ public class APIHandler_indices {
 		for (int i = 0; i < jsonAreasLen; i++) {
 			JSONObject e = jsonAreas.getJSONObject(i);
 			String name = e.has("name") ? e.get("name").toString() : ""+(i+1);
+			//log.info("name of area: " + name);
 			if(e.has("script")) {
 				String script = e.get("script").toString();
 				Vec<Pair<Region, String>> script_areas = new pointdb.subsetdsl.Compiler().parse(script).getRegions(broker);
