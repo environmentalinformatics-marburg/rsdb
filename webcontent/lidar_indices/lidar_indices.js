@@ -36,6 +36,7 @@ function init() {
 			subsetMethods: ["POI", "ROI"],
 			subsetMethodTexts: ["Point Surroundings", "Polygon"],
 			subsetMethod: "POI",
+			showAllGroups: false,
 
 			poiGroupsMessage: "init POI groups...",
 			poiGroups: [],
@@ -129,10 +130,32 @@ function init() {
 						self.poiGroupsMessage = "ERROR could not query POI groups: " + error;
 					});
 			},
+			updatePoiGroupsAll: function () {
+				var self = this;
+				self.poiGroupsMessage = "query POI groups...";
+				axios.get(url_poigroups_json)
+					.then(function (response) {
+						self.poiGroups = response.data;						
+					})
+					.catch(function (error) {
+						self.poiGroupsMessage = "ERROR could not query POI groups: " + error;
+					});
+			},			
 			updateRoiGroupsPointdb: function () {
 				var self = this;
 				self.roiGroupsMessage = "query ROI groups...";
 				axios.get(url_roigroups_json, { params: { pointdb: self.layer.name } })
+					.then(function (response) {
+						self.roiGroups = response.data;						
+					})
+					.catch(function (error) {
+						self.roiGroupsMessage = "ERROR could not query ROI groups: " + error;
+					});
+			},
+			updateRoiGroupsAll: function () {
+				var self = this;
+				self.roiGroupsMessage = "query ROI groups...";
+				axios.get(url_roigroups_json)
 					.then(function (response) {
 						self.roiGroups = response.data;						
 					})
@@ -364,6 +387,26 @@ function init() {
 			isValidDiameter: function (x) {
 				return this.isNumber(x) && 0 < x && x <= 1000;
 			},
+			updateGroups: function() {
+				var self = this;
+				if(this.showAllGroups) {
+					this.updatePoiGroupsAll();
+					this.updateRoiGroupsAll();
+				} else {
+					switch(self.layer.type) {
+						case "PointDB":
+						this.updatePoiGroupsPointdb();
+						this.updateRoiGroupsPointdb();
+						break;
+						case "pointcloud":
+						console.log("pointcloud!!!!!");
+						this.updatePointcloudMeta();
+						break;
+						default:
+						console.log("error");
+					}
+				}				
+			},
 		},
 
 		computed: {
@@ -429,19 +472,10 @@ function init() {
 
 		watch: {
 			layer: function () {
-				var self = this;
-				switch(self.layer.type) {
-					case "PointDB":
-					this.updatePoiGroupsPointdb();
-					this.updateRoiGroupsPointdb();
-					break;
-					case "pointcloud":
-					console.log("pointcloud!!!!!");
-					this.updatePointcloudMeta();
-					break;
-					default:
-					console.log("error");
-				}
+				this.updateGroups();
+			},
+			showAllGroups: function() {
+				this.updateGroups();				
 			},
 			poiGroup: function (q) {
 				this.updatePOIs();

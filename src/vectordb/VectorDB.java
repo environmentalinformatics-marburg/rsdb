@@ -562,6 +562,10 @@ public class VectorDB {
 		}
 		return details;
 	}
+	
+	public static String createValidID(String text) {
+		return text.replaceAll("[^a-zA-Z0-9_]", "_");
+	}
 
 	public Vec<Poi> getPOIs() {
 		String nameAttr = getNameAttribute();
@@ -584,6 +588,7 @@ public class VectorDB {
 								if(orgName.isEmpty()) {
 									orgName = "POI";
 								}
+								orgName = createValidID(orgName);
 								String name = orgName;
 								int nameIndex = 1;
 								while(poiNames.contains(name)) {
@@ -652,6 +657,7 @@ public class VectorDB {
 			if(orgName.isEmpty()) {
 				orgName = "ROI";
 			}
+			orgName = createValidID(orgName);
 			String name = orgName;
 			int nameIndex = 1;
 			while(roiNames.contains(name)) {

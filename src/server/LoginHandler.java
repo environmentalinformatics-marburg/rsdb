@@ -207,8 +207,9 @@ public class LoginHandler extends AbstractHandler {
 				HashMap<String, Object> ctx = new HashMap<>();
 				ctx.put("ref", loc);
 				ctx.put("error", "wrong user / password");
-				TemplateUtil.getTemplate("login_error.mustache", true).execute(ctx, response.getWriter());
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				response.setContentType("text/html;charset=utf-8");
+				TemplateUtil.getTemplate("login_error.mustache", true).execute(ctx, response.getWriter());
 				baseRequest.setHandled(true);
 				return;
 			}
@@ -245,8 +246,9 @@ public class LoginHandler extends AbstractHandler {
 			HashMap<String, Object> ctx = new HashMap<>();
 			ctx.put("ref", loc);
 			ctx.put("error", e.getMessage());
-			TemplateUtil.getTemplate("login_error.mustache", true).execute(ctx, response.getWriter());
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.setContentType("text/html;charset=utf-8");
+			TemplateUtil.getTemplate("login_error.mustache", true).execute(ctx, response.getWriter());
 		}
 	}
 

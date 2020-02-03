@@ -30,6 +30,21 @@ public class ProcessIndices {
 			PrintWriter writer = response.getWriter();
 			JSONWriter json = new JSONWriter(writer);
 			json.object();
+			if(db != null) {
+				json.key("title");
+				String title = "PointDB: " + db.config.name;
+				if(db.informal().hasTitle()) {
+					title += " - " + db.informal().title;
+				}
+				json.value(title);
+			} else if(pointcloud != null) {
+				json.key("title");
+				String title = "PointCloud: " + pointcloud.getName();
+				if(pointcloud.informal().hasTitle()) {
+					title += " - " + pointcloud.informal().title;
+				}
+				json.value(title);
+			} 
 			json.key("header");
 			json.array();
 			for(String f:functions) {
@@ -197,13 +212,13 @@ public class ProcessIndices {
 			}
 
 			//if(!results.isEmpty()) {
-				RdatDataFrame<Pair<String, double[]>> df = new RdatDataFrame<Pair<String, double[]>>(Collection::size);
-				for (int i = 0; i < functions.size(); i++) {
-					final int pos = i;
-					df.addString("name", d->d.a);
-					df.addDouble(functions.get(i), d->d.b[pos]);
-				}
-				df.write(new ResponseReceiver(response), results);
+			RdatDataFrame<Pair<String, double[]>> df = new RdatDataFrame<Pair<String, double[]>>(Collection::size);
+			for (int i = 0; i < functions.size(); i++) {
+				final int pos = i;
+				df.addString("name", d->d.a);
+				df.addDouble(functions.get(i), d->d.b[pos]);
+			}
+			df.write(new ResponseReceiver(response), results);
 			//}
 			break;
 		}

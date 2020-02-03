@@ -60,6 +60,7 @@
 				<div v-show="layersMessage !== undefined">{{layersMessage}}</div>
 				<div v-show="layersMessage == undefined">
 					<div class="section" style="text-align: center;">
+						<div><b>!! Check if you selected the correct layer. Layers are not preset !!</b></div>
 						Layer
 						<select v-model="layerIndex">
 							<option v-for="x, i in layers" :value="i">
@@ -77,12 +78,16 @@
 						<div v-show="subsetMethod == 'POI'" style="text-align: left;" :class="isValidDiameter(poiDiameter) ? '' : 'warn'">
 							Diameter
 							<input maxlength="20" size="8" type="text" v-model="poiDiameter" /> m of point enclosing square.
-						</div>
+						</div>						
 					</div>
-
 					<div v-show="subsetMethod == 'POI'">
-						<div v-show="poiGroupsMessage !== undefined">{{poiGroupsMessage}}</div>
+						<div v-show="poiGroupsMessage !== undefined" class="section">
+							<div style="text-align: center;"><input type="checkbox" v-model="showAllGroups"> show all POI groups</div>
+							<div>{{poiGroupsMessage}}</div>
+						</div>
 						<div v-show="poiGroupsMessage == undefined" class="section">
+							<div style="text-align: center;"><input type="checkbox" v-model="showAllGroups"> show all POI groups</div>
+							<div v-if="showAllGroups">Note: Selection is not limited to approved POI groups (for correct projection etc.).</div>
 							POI group
 							<span v-show="poiGroups.length == 1" class="highlighted">{{poiGroup == undefined ? '' : poiGroupMap[poiGroup].title}}</span>
 							<select v-show="poiGroups.length != 1" v-model="poiGroup">
@@ -122,8 +127,13 @@
 					</div>
 
 					<div v-show="subsetMethod == 'ROI'">
-						<div v-show="roiGroupsMessage !== undefined">{{roiGroupsMessage}}</div>
+						<div v-show="roiGroupsMessage !== undefined" class="section">
+							<div style="text-align: center;"><input type="checkbox" v-model="showAllGroups"> show all ROI groups</div>
+							{{roiGroupsMessage}}
+						</div>
 						<div v-show="roiGroupsMessage == undefined" class="section">
+							<div style="text-align: center;"><input type="checkbox" v-model="showAllGroups"> show all ROI groups</div>
+							<div v-if="showAllGroups">Note: Selection is not limited to approved ROI groups (for correct projection etc.).</div>
 							ROI group
 							<span v-show="roiGroups.length == 1">
 								<b>{{roiGroup == undefined ? '' : roiGroupMap[roiGroup].title}}</b>
@@ -192,6 +202,7 @@
 			</div>
 
 			<div v-show="processMessage == undefined" class="result">
+				<div style="padding: 10px;"><b>{{processData.title}}</b></div>
 				<table v-show="processData.header != undefined">
 					<thead>
 						<tr>

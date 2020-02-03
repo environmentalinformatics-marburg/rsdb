@@ -6,10 +6,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
 
 import broker.Broker;
 import server.api.APIHandler;
+import util.Web;
 
 public class APIHandler_layer_tags extends APIHandler {
 	//private static final Logger log = LogManager.getLogger();
@@ -20,7 +22,7 @@ public class APIHandler_layer_tags extends APIHandler {
 
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
-		//EmptyACL.ADMIN.check(Web.getUserIdentity(request));
+		UserIdentity userIdentity = Web.getUserIdentity(request);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
@@ -28,7 +30,7 @@ public class APIHandler_layer_tags extends APIHandler {
 
 		json.object();
 		json.key("layer_tags");
-		json.value(broker.catalog.getTags());
+		json.value(broker.catalog.getTags(userIdentity));
 		json.endObject();
 		
 		

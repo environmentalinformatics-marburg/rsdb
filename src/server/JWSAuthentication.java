@@ -1,8 +1,6 @@
 package server;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -39,11 +37,9 @@ import broker.JwsConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SigningKeyResolver;
-import util.Nonce;
 import util.TemplateUtil;
 import util.collections.vec.Vec;
 
@@ -280,8 +276,8 @@ public class JWSAuthentication extends AbstractHandler {
 				if(session != null) {
 					session.invalidate();
 				}
-				response.setContentType("text/html;charset=utf-8");
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.setContentType("text/html;charset=utf-8");
 				HashMap<String, Object> ctx = new HashMap<>();
 				ctx.put("error", e.getMessage());
 				ctx.put("redirect_target", redirect_target);
@@ -307,6 +303,8 @@ public class JWSAuthentication extends AbstractHandler {
 		} catch (Exception e) {			
 			HashMap<String, Object> ctx = new HashMap<>();
 			ctx.put("error", e.getMessage());
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.setContentType("text/html;charset=utf-8");
 			TemplateUtil.getTemplate("api_jws_error.mustache", ALWAYS_REFRESH_MUSTACHE).execute(ctx, response.getWriter());
 			request.setHandled(true);
 		}

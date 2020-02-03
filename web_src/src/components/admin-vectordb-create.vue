@@ -11,8 +11,8 @@
 
                 <v-card-text>
                     <v-text-field v-model="name" label="name" />
-                    <i>Space, not latin chars and other special chars are not allowed. You may replace space chars by underscore or hyphen.
-                    <br>Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-</i>                    
+                    <i>Space, not latin chars and other special chars are not allowed. You may replace space chars by underscore.
+                    <br>Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_</i>                    
                 </v-card-text>
 
                 <v-card-text>

@@ -348,8 +348,8 @@ public class Util {
 	}
 	
 	public static void checkStrictID(String id) {
-		if(!id.chars().allMatch(c-> ('0'<=c && c<='9') || ('a'<=c && c<='z') || ('A'<=c && c<='Z')  || c=='_' || c=='-' )) {
-			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-");
+		if(!id.chars().allMatch(c-> ('0'<=c && c<='9') || ('a'<=c && c<='z') || ('A'<=c && c<='Z')  || c=='_')) {
+			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_");
 		}
 	}
 	

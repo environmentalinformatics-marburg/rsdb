@@ -639,11 +639,13 @@ public class Catalog {
 		return result;
 	}
 
-	public String[] getTags() {
+	public String[] getTags(UserIdentity userIdentity) {
 		HashSet<String> collector = new HashSet<String>();
 		for(CatalogEntry e:map.values()) {
-			for(String tag:e.tags) {
-				collector.add(tag);
+			if(e.acl.isAllowed(userIdentity)) {
+				for(String tag:e.tags) {
+					collector.add(tag);
+				}
 			}
 		}
 		String[] result = collector.toArray(new String[0]);
