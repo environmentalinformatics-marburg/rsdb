@@ -1,13 +1,13 @@
-library(rPointDB)
+library(RSDB)
 
 #httr::set_config(httr::verbose()) # http debug messages
 httr::reset_config() # no http debug messages
 
-remotesensing <- rPointDB::RemoteSensing$new(url = "http://127.0.0.1:8081", userpwd = "user:pw1", ssl_verifypeer = FALSE)
+remotesensing <- RSDB::RemoteSensing$new(url = "http://127.0.0.1:8081", userpwd = "user:pw1", ssl_verifypeer = FALSE)
 pointdbs <- remotesensing$pointdbs
 pointdb <- remotesensing$pointdb(name = pointdbs[1])
 
-ext <- rPointDB::extent_radius(100,200, 10)
+ext <- RSDB::extent_radius(100,200, 10)
 poly <- Polygon(matrix(c(1,1,1,2,2,2,2,1,1,1), ncol = 2, byrow = TRUE))
 
 # active bindings

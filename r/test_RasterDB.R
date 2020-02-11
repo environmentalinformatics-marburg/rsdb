@@ -1,13 +1,13 @@
-library(rPointDB)
+library(RSDB)
 
 #httr::set_config(httr::verbose()) # http debug messages
 httr::reset_config() # no http debug messages
 
-remotesensing <- rPointDB::RemoteSensing$new(url = "http://127.0.0.1:8081", userpwd = "user:pw1", ssl_verifypeer = FALSE)
+remotesensing <- RSDB::RemoteSensing$new(url = "http://127.0.0.1:8081", userpwd = "user:pw1", ssl_verifypeer = FALSE)
 rasterdbs <- remotesensing$rasterdbs
 rasterdb <- remotesensing$rasterdb(name = rasterdbs$name[1])
 
-ext <- rPointDB::extent_radius(100,200, 10)
+ext <- RSDB::extent_radius(100,200, 10)
 
 # active bindings
 result_name <- rasterdb$name
@@ -23,3 +23,5 @@ result_description <- rasterdb$description
 result_raster <- rasterdb$raster(ext = ext)
 result_insert_RasterStack <- rasterdb$insert_RasterStack(result_raster)
 result_rebuild_pyramid <- rasterdb$rebuild_pyramid()
+
+

@@ -1,9 +1,9 @@
-library(rPointDB)
+library(RSDB)
 
 #httr::set_config(httr::verbose()) # http debug messages
 httr::reset_config() # no http debug messages
 
-remotesensing <- rPointDB::RemoteSensing$new(url = "http://127.0.0.1:8081", userpwd = "user:pw1", ssl_verifypeer = FALSE)
+remotesensing <- RSDB::RemoteSensing$new(url = "http://127.0.0.1:8081", userpwd = "user:pw1", ssl_verifypeer = FALSE)
 
 # active bindings
 result_roi_groups <- remotesensing$roi_groups

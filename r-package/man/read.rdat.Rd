@@ -7,7 +7,7 @@
 read.rdat(filename)
 }
 \description{
-Reads rPointDB-package transfer format into R object.
+Reads RSDB-package transfer format into R object.
 }
 \details{
 If file contains raster data it is returned as RasterLayer or RasterStack.

@@ -187,14 +187,14 @@ Convert Polygon to Extent (bounding box)
 \preformatted{
 x <- p@coords[,1]
 y <- p@coords[,2]
-ext <- extent(x=min(x), xmax=max(x), ymin=min(y), ymax=max(y))
+ext <- raster::extent(x=min(x), xmax=max(x), ymin=min(y), ymax=max(y))
 }
 }
 
 \examples{
 
 # open remote sensing database
-library(rPointDB)
+library(RSDB)
 #remotesensing <- RemoteSensing$new("http://localhost:8081", "user:password") # local
 remotesensing <- RemoteSensing$new("http://example.com:8081", "user:password") # remote server
 

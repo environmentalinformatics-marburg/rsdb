@@ -270,7 +270,7 @@ Example create three areas with names a1, a2, a3 of rectangle, square, triangle:
 
 \code{
 areas <- list(
-   a1=extent(x=1000, ymin=3000, xmax=1010, ymax=3005),
+   a1=raster::extent(x=1000, ymin=3000, xmax=1010, ymax=3005),
    a2=extent_diameter(x=1200, y=3100, 10),
    a3=matrix(c(10,71,12,71,12,72,11,71), ncol=2, byrow=TRUE)
 )
@@ -307,7 +307,7 @@ Areas that are not covered by LiDAR points are not included in result.
 
 \examples{
 # open remote sensing database
-library(rPointDB)
+library(RSDB)
 # remotesensing <- RemoteSensing$new("http://localhost:8081", "user:password") # local
 remotesensing <- RemoteSensing$new("http://example.com:8081", "user:password") # remote server
 

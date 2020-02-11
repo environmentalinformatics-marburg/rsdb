@@ -17,7 +17,7 @@ import util.image.ImageBufferARGB;
 
 public class Renderer {
 	private static final Logger log = LogManager.getLogger();
-	
+
 	private static Color COLOR_POLYGON = new Color(0, 255, 0, 100);
 	private static Color COLOR_LINE = new Color(0, 0, 255, 100);
 	private static Color COLOR_POINT = new Color(255, 0, 0, 100);
@@ -27,10 +27,10 @@ public class Renderer {
 		double[] extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
 		double xlen = extent[2] - extent[0];
 		double ylen = extent[3] - extent[1];
-		
+
 		double xTargetScale = maxWidth / xlen;
 		double yTargetScale = maxHeight / ylen;
-		
+
 		double targetScale = Math.min(xTargetScale, yTargetScale);
 		int width = (int) Math.ceil(targetScale * xlen);
 		int height = (int) Math.ceil(targetScale * ylen);		
@@ -41,7 +41,7 @@ public class Renderer {
 		gc.setColor(Color.DARK_GRAY);
 		//gc.drawLine(0, 0, 99, 99);		
 
-		
+
 		double xscale = (width - 4) / xlen;
 		double xoff = - extent[0] + 2 * (1 / xscale);
 		double yoff = extent[3] + 2 * (1 / xscale);
@@ -394,7 +394,11 @@ public class Renderer {
 		Feature feature = layer.GetNextFeature();
 		while(feature != null) {
 			Geometry geometry = feature.GetGeometryRef();
-			collectGeometry(geometry, points, lines, polygons);
+			if(geometry != null) {
+				collectGeometry(geometry, points, lines, polygons);
+			} else {
+				log.warn("missing geometry");
+			}
 			feature = layer.GetNextFeature();
 		}		
 	}

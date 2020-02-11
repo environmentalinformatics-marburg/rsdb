@@ -4,7 +4,7 @@ title: R Package Installation
 
 For installation of R package paste the following lines into an R terminal.
 ~~~ R
-install.packages("remotes")
+if(!require("remotes")) install.packages("remotes")
 remotes::install_github("environmentalinformatics-marburg/rsdb/rPointDB")
 library(rPointDB)
 ??rPointDB

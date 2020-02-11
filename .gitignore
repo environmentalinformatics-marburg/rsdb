@@ -11,12 +11,12 @@
 /proxy
 /rasterdb
 /roi
+/RSDB.Rcheck
 /src_testing
 /storage
 /temp
 /vectordb
 /webfiles
-
 
 /.classpath
 /.project

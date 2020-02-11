@@ -4,7 +4,7 @@
 
 ### Install R Package
 ```R
-install.packages("remotes")
+if(!require("remotes")) install.packages("remotes")
 remotes::install_github("environmentalinformatics-marburg/rsdb/rPointDB")
 library(rPointDB)
 ??rPointDB

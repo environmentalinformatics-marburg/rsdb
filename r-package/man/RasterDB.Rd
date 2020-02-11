@@ -190,7 +190,7 @@ contain raster pixel values and additional information, that can be accessed by 
 
 \examples{
 # open remote sensing database
-library(rPointDB)
+library(RSDB)
 #remotesensing <- RemoteSensing$new("http://localhost:8081", "user:password") # local
 remotesensing <- RemoteSensing$new("http://example.com:8081", "user:password") # remote server
 

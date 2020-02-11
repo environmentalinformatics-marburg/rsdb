@@ -232,37 +232,44 @@ public class VectorDB {
 				SpatialReference layerRef = layer.GetSpatialRef();
 				CoordinateTransformation ct = null;
 				if(refDst != null && layerRef != null) {
-					ct = CoordinateTransformation.CreateCoordinateTransformation(layerRef, refDst);		
+					ct = CoordinateTransformation.CreateCoordinateTransformation(layerRef, refDst);	
+					//log.info("refDst " + refDst);
+					//log.info("layerRef " + layerRef);
 				}
 				layer.ResetReading();
 				Feature feature = layer.GetNextFeature();
 				while(feature != null) {
 					Geometry geometry = feature.GetGeometryRef();
-					if(ct != null) {
-						geometry.Transform(ct);
-					}
-					String json = geometry.ExportToJson();
-					if(isFirst) {
-						isFirst = false;
-					} else {
-						sb.append(",");						
-					}
-					sb.append("{\"type\":\"Feature\",\"geometry\":");
-					sb.append(json);
-					String id = "" + cnt++;
-
-					String name = id;
-					if(!getNameAttribute().isEmpty()) {
-						String featureName = feature.GetFieldAsString(getNameAttribute());
-						if(featureName != null) {
-							name = featureName;
+					if(geometry != null) {
+						if(ct != null) {
+							geometry.Transform(ct);
 						}
+						String json = geometry.ExportToJson();
+						if(isFirst) {
+							isFirst = false;
+						} else {
+							sb.append(",");						
+						}
+						sb.append("{\"type\":\"Feature\",\"geometry\":");
+						sb.append(json);
+						String id = "" + cnt++;
 
+						String name = id;
+						if(!getNameAttribute().isEmpty()) {
+							String featureName = feature.GetFieldAsString(getNameAttribute());
+							if(featureName != null) {
+								name = featureName;
+							}
+
+						}
+						//int name = id;
+						sb.append(",\"id\":\"" + id +"\"");
+						sb.append(",\"properties\":{\"name\": \""+ name +"\"}");
+						sb.append("}");
+					} else {
+						String attr1 = feature.GetFieldAsString(0);
+						log.warn("missing geometry in feature : " + feature.GetFID() + "  " + attr1);
 					}
-					//int name = id;
-					sb.append(",\"id\":\"" + id +"\"");
-					sb.append(",\"properties\":{\"name\": \""+ name +"\"}");
-					sb.append("}");
 					feature = layer.GetNextFeature();
 				}
 			}
@@ -307,9 +314,11 @@ public class VectorDB {
 				Feature feature = layer.GetNextFeature();
 				while(feature != null) {
 					Geometry geometry = feature.GetGeometryRef();
-
-					resultGeo.AddGeometry(geometry);
-
+					if(geometry != null) {
+						resultGeo.AddGeometry(geometry);
+					} else {
+						log.warn("missing geometry");
+					}
 					feature = layer.GetNextFeature();
 				}
 			}
@@ -346,8 +355,12 @@ public class VectorDB {
 		int geoCount = geometry.GetGeometryCount();
 		for(int i=0; i<geoCount; i++) {
 			Geometry subGeo = geometry.GetGeometryRef(i);
-			deconGeo(subGeo, ps);
-		}
+			if(subGeo != null) {
+				deconGeo(subGeo, ps);
+			} else {
+				log.warn("missing sub geometry");
+			}
+		}		
 	}
 
 	public DataSource getDataSource() {
@@ -385,7 +398,11 @@ public class VectorDB {
 			Feature feature = layer.GetNextFeature();
 			while(feature != null) {
 				Geometry geometry = feature.GetGeometryRef();
-				deconGeo(geometry, ps);				
+				if(geometry != null) {
+					deconGeo(geometry, ps);
+				} else {
+					log.warn("missing geometry");
+				}
 				feature = layer.GetNextFeature();
 			}
 		}
@@ -433,8 +450,14 @@ public class VectorDB {
 		Layer layer = datasource.GetLayerByIndex(0);
 		Feature feature = layer.GetNextFeature();
 		Geometry geometry = feature.GetGeometryRef();
-		SpatialReference ref = geometry.GetSpatialReference();
-		return ref;
+		if(geometry != null) {
+			SpatialReference ref = geometry.GetSpatialReference();
+			return ref;
+		} else {
+			log.warn("missing geometry");
+			SpatialReference ref = layer.GetSpatialRef();
+			return ref;
+		}
 	}
 
 	public List<Path> getDataFilenames() {
@@ -562,7 +585,7 @@ public class VectorDB {
 		}
 		return details;
 	}
-	
+
 	public static String createValidID(String text) {
 		return text.replaceAll("[^a-zA-Z0-9_]", "_");
 	}
@@ -596,9 +619,13 @@ public class VectorDB {
 								}
 								poiNames.add(name);
 								Geometry geometry = feature.GetGeometryRef();
-								double x = geometry.GetX();
-								double y = geometry.GetY();
-								pois.add(new Poi(name, x, y));
+								if(geometry != null) {
+									double x = geometry.GetX();
+									double y = geometry.GetY();
+									pois.add(new Poi(name, x, y));
+								} else {
+									log.warn("missing geometry in " + getName());
+								}
 							}
 							feature = layer.GetNextFeature();
 						}
@@ -650,7 +677,7 @@ public class VectorDB {
 			closeDataSource(datasource);
 		}
 	}
-	
+
 	private void collectROI(Feature feature, int fieldIndex, HashSet<String> roiNames, Vec<Roi> rois) {
 		if(feature.IsFieldSet(fieldIndex)) {
 			String orgName = feature.GetFieldAsString(fieldIndex);
@@ -665,48 +692,61 @@ public class VectorDB {
 			}
 			roiNames.add(name);
 			Geometry geometry = feature.GetGeometryRef();
-
-			int geoCount = geometry.GetGeometryCount();
-			if(geoCount != 1) {
-				if(geoCount > 1) {
-					log.warn("just first sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+			if(geometry != null) {
+				int geoCount = geometry.GetGeometryCount();
+				if(geoCount != 1) {
+					if(geoCount > 1) {
+						log.warn("just first sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+					} else {
+						log.warn("missing sub geometry in polygon: " + geoCount+" in " + getName() + " : " + name);
+						return;
+					}
+				}
+				Geometry subGeo = geometry.GetGeometryRef(0);
+				if(subGeo != null) {
+					int subType = subGeo.GetGeometryType();
+					//log.info("subgeomerty: " + subType + " in " + getName() + " : " + name);
+					if(subType == 3 || subType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D fix subType polygon
+						int subsubCount = subGeo.GetGeometryCount();
+						if(subsubCount > 1) {
+							log.warn("just first sub sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+						}
+						Geometry subsubGeo = subGeo.GetGeometryRef(0);
+						if(subsubGeo != null) { 
+							int subsubType = subsubGeo.GetGeometryType();
+							//log.warn("fix subtype polygon -> subgeomerty: " + subType + " in " + getName() + " : " + name + "  " + subsubCount);
+							subGeo = subsubGeo;
+							subType = subsubType;
+						} else {
+							log.warn("missing sub sub geometry");
+						}
+					}
+					switch (subType) {
+					case 2: // 2  LINESTRING
+					case -2147483646: { // 0x80000002  LineString25D
+						Object[] polygonPoints = subGeo.GetPoints();
+						int pointsLen = polygonPoints.length;
+						Point2d[] points = new Point2d[pointsLen];									
+						int len = points.length;
+						for (int i = 0; i < pointsLen; i++) {
+							double[] p = (double[]) polygonPoints[i];
+							points[i] = new Point2d(p[0], p[1]);
+						}									
+						rois.add(new Roi(name, points));									
+						break;
+					}
+					default: 
+						log.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
+					}
 				} else {
-					log.warn("missing sub geometry in polygon: " + geoCount+" in " + getName() + " : " + name);
-					return;
+					log.warn("missing sub geometry");
 				}
+			} else {
+				log.warn("missing geometry");
 			}
-			Geometry subGeo = geometry.GetGeometryRef(0);
-			int subType = subGeo.GetGeometryType();
-			//log.info("subgeomerty: " + subType + " in " + getName() + " : " + name);
-			if(subType == 3 || subType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D fix subType polygon
-				int subsubCount = subGeo.GetGeometryCount();
-				if(subsubCount > 1) {
-					log.warn("just first sub sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
-				}
-				subGeo = subGeo.GetGeometryRef(0);
-				subType = subGeo.GetGeometryType();
-				//log.warn("fix subtype polygon -> subgeomerty: " + subType + " in " + getName() + " : " + name + "  " + subsubCount);
-			}
-			switch (subType) {
-			case 2: // 2  LINESTRING
-			case -2147483646: { // 0x80000002  LineString25D
-				Object[] polygonPoints = subGeo.GetPoints();
-				int pointsLen = polygonPoints.length;
-				Point2d[] points = new Point2d[pointsLen];									
-				int len = points.length;
-				for (int i = 0; i < pointsLen; i++) {
-					double[] p = (double[]) polygonPoints[i];
-					points[i] = new Point2d(p[0], p[1]);
-				}									
-				rois.add(new Roi(name, points));									
-				break;
-			}
-			default: 
-				log.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
-			}								
 		}		
 	}
-	
+
 
 	public boolean getStructuredAccessPOI() {
 		return structured_access_poi;

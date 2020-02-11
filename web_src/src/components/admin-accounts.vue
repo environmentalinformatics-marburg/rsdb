@@ -12,9 +12,9 @@
           <v-divider></v-divider>
           <v-data-table :headers="headers" :items="accounts" v-if="accounts != undefined" hide-actions>
               <template slot="items" slot-scope="props">
-                <td :class="{admin: accountIsAdmin(props.item), empty: props.item.roles.length == 0}">{{props.item.name}}</td>
+                <td :class="{admin: accountIsAdmin(props.item), empty: props.item.roles.length == 0}"><span class="user-list">{{props.item.name}}</span></td>
                 <td>
-                  <span v-for="role in props.item.roles" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                  <span v-for="role in props.item.roles" :key="role"><span class="role-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
                   <span v-if="props.item.roles.length === 0" style="color: grey;">(none)</span>
                 </td>
               </template>
@@ -26,9 +26,9 @@
           <v-divider></v-divider>
           <v-data-table :headers="roles_headers" :items="roles" v-if="acl_roles != undefined" hide-actions>
               <template slot="items" slot-scope="props">
-                <td><span class="meta-list">{{props.item.role}}</span></td>
+                <td><span class="role-list">{{props.item.role}}</span></td>
                 <td>
-                  <span v-for="user in props.item.users" :key="user"><span>{{user}}</span>&nbsp;&nbsp;&nbsp;</span>
+                  <span v-for="user in props.item.users" :key="user"><span class="user-list">{{user}}</span></span>
                   <!--<span v-if="props.item.users.length === 0" style="color: grey;">(none)</span>-->
                 </td>                
               </template>
@@ -91,7 +91,8 @@ export default {
       urlPrefix: state => state.identity.urlPrefix,
     }),
     acl_roles() {
-      return ['admin'].concat(this.$store.state.acl_roles.data);
+      //return ['admin'].concat(this.$store.state.acl_roles.data);
+      return this.$store.state.acl_roles.data;
     },
     roles() {
       if(this.acl_roles === undefined) {
@@ -141,11 +142,24 @@ export default {
    color: grey;
  }
 
- .meta-list {
-    background-color: rgb(243, 243, 243);
-    padding: 1px;
-    border-color: rgb(227, 227, 227);
-    border-style: solid;
-    border-width: 1px;
+ .role-list {
+  background-color: rgb(243, 243, 243);
+  padding: 5px;
+  border-color: rgb(227, 227, 227);
+  border-style: solid;
+  border-width: 1px;
+  margin: 5px;
+  border-radius: 25px;
+  color: #0064ff;
+}
+
+ .user-list {
+  background-color: rgb(219, 219, 219);
+  padding: 5px;
+  border-color: rgb(136, 136, 136);
+  border-style: solid;
+  border-width: 1px;
+  margin: 5px;
+  border-radius: 3px;
 }
 </style>

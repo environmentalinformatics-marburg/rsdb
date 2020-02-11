@@ -1,10 +1,12 @@
 package pointdb.process;
 
+import pointdb.base.GeoPoint;
 import pointdb.processing.geopoint.RasterSubGrid;
+import util.collections.vec.Vec;
 
 class Fun_vegetation_coverage {
 
-	private static double get_vegetation_coverage(DataProvider2 provider, double min) {
+	private static double get_vegetation_coverage_CHM(DataProvider2 provider, double min) {
 		RasterSubGrid chm = provider.getCHM();
 		int total_count = 0;
 		int vegetation_count = 0;
@@ -23,35 +25,81 @@ class Fun_vegetation_coverage {
 		return total_count == 0 ? Double.NaN : ((double) vegetation_count) / ((double) total_count);
 	}
 
+	private static double get_vegetation_coverage_points(DataProvider2 provider, double min) {
+		Vec<GeoPoint> ps = provider.get_sortedRegionHeightPoints();
+		int total_count = 0;
+		int vegetation_count = 0;
+		for(GeoPoint p:ps) {
+			if(Double.isFinite(p.z)) {
+				total_count++;
+				if (min <= p.z) {
+					vegetation_count++;
+				}
+			}
+		}
+		return total_count == 0 ? Double.NaN : ((double) vegetation_count) / ((double) total_count);
+	}
+
+	private static double get_vegetation_coverage_rays(DataProvider2 provider, double min) {
+		Vec<GeoPoint> ps = provider.get_sortedRegionHeightPoints();
+		int total_count = 0;
+		int vegetation_count = 0;
+		for(GeoPoint p:ps) {
+			if(Double.isFinite(p.z) && p.returnNumber == 1) {
+				total_count++;
+				if (min <= p.z) {
+					vegetation_count++;
+				}
+			}
+		}
+		return total_count == 0 ? Double.NaN : ((double) vegetation_count) / ((double) total_count);
+	}
+
 	@Description("vegetation coverage in 1 meter height (based on CHM raster pixels)")
-	public static class Fun_vegetation_coverage_01m extends ProcessingFun {
+	public static class Fun_vegetation_coverage_01m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_vegetation_coverage(provider, 1);
+			return get_vegetation_coverage_CHM(provider, 1);
 		}
 	}
 
 	@Description("vegetation coverage in 2 meter height (based on CHM raster pixels)")
-	public static class Fun_vegetation_coverage_02m extends ProcessingFun {
+	public static class Fun_vegetation_coverage_02m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_vegetation_coverage(provider, 2);
+			return get_vegetation_coverage_CHM(provider, 2);
+		}
+	}
+
+	@Description("vegetation coverage in 2 meter height (point based, all returns)")
+	public static class Fun_vegetation_coverage_02m_points extends ProcessingFun {
+		@Override
+		public double process(DataProvider2 provider) {
+			return get_vegetation_coverage_points(provider, 2);
 		}
 	}
 	
-	@Description("vegetation coverage in 5 meter height (based on CHM raster pixels)")
-	public static class Fun_vegetation_coverage_05m extends ProcessingFun {
+	@Description("vegetation coverage in 2 meter height (laser pulse based, all first return points)")
+	public static class Fun_vegetation_coverage_02m_rays extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_vegetation_coverage(provider, 5);
+			return get_vegetation_coverage_rays(provider, 2);
+		}
+	}
+
+	@Description("vegetation coverage in 5 meter height (based on CHM raster pixels)")
+	public static class Fun_vegetation_coverage_05m_CHM extends ProcessingFun {
+		@Override
+		public double process(DataProvider2 provider) {
+			return get_vegetation_coverage_CHM(provider, 5);
 		}
 	}
 
 	@Description("vegetation coverage in 10 meter height (based on CHM raster pixels)")
-	public static class Fun_vegetation_coverage_10m extends ProcessingFun {
+	public static class Fun_vegetation_coverage_10m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_vegetation_coverage(provider, 10);
+			return get_vegetation_coverage_CHM(provider, 10);
 		}
 	}
 
