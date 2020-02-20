@@ -62,7 +62,6 @@ dependencies {
   	compile group: 'ar.com.hjg', name: 'pngj', version: '2.1.0'
   	compile group: 'com.samskivert', name: 'jmustache', version: '1.15'	
   	
-  	compile group: 'org.locationtech.jts', name: 'jts-core', version: '1.16.1'
   	compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
   	compile group: 'com.mkobos', name: 'pca_transform', version: '1.0.2'
   	
@@ -85,6 +84,8 @@ dependencies {
 	runtime group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.10.7'
 	
 	compile group: 'org.gdal', name: 'gdal', version: '2.2.0' // caution: newer versions may break compatibility
+	compile group: 'org.locationtech.jts', name: 'jts-core', version: '1.16.1'
+	compile group: 'org.locationtech.proj4j', name: 'proj4j', version: '1.1.0'	
 	
 	compile group: 'org.imintel', name: 'mbtiles4j', version: '1.0.6'
 	

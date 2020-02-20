@@ -34,6 +34,14 @@
                             <span v-if="optArray(meta.tags).length === 0" style="color: grey;">(none)</span>
                         </td>
                     </tr>
+                    <tr>
+                        <td><b>EPSG:</b></td>
+                        <td><span v-if="meta.epsg.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.epsg}}</span></td>                        
+                    </tr>
+                     <tr>
+                        <td><b>Proj4:</b></td>
+                        <td><span v-if="meta.proj4.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.proj4}}</span></td>                        
+                    </tr>                    
                 </table>
                 </div>
 

@@ -72,6 +72,8 @@ public class VectordbHandler_root extends VectordbHandler {
 			VectordbDetails details = vectordb.getDetails();
 			json.key("details");
 			json.object();
+			json.key("epsg");
+			json.value(details.epsg);
 			json.key("proj4");
 			json.value(details.proj4);
 			json.key("attributes");

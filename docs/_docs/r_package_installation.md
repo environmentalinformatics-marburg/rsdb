@@ -5,51 +5,51 @@ title: R Package Installation
 For installation of R package paste the following lines into an R terminal.
 ~~~ R
 if(!require("remotes")) install.packages("remotes")
-remotes::install_github("environmentalinformatics-marburg/rsdb/rPointDB")
-library(rPointDB)
-??rPointDB
+remotes::install_github("environmentalinformatics-marburg/rsdb/r-package")
+library(RSDB)
+??RSDB
 ~~~
 
 Documentation
 ~~~ R
-# load rPointDB package
-library(rPointDB)
+# load RSDB package
+library(RSDB)
 
 # show package overview
-??"rPontDB-package"
+??"RSDB-package"
 
 #show index of package documentation pages
-help(package="rPointDB")
+help(package="RSDB")
 
 #list available functions/classes in package
-ls(pos="package:rPointDB")
+ls(pos="package:RSDB")
 
 #documentation of central class RemoteSensing
-?rPointDB::RemoteSensing
+?RSDB::RemoteSensing
 
 #documentation of (hyperspectral) raster class RasterDB
-?rPointDB::RasterDB
+?RSDB::RasterDB
 
 #documentation of (LiDAR) point-cloud class PointDB
-?rPointDB::PointDB
+?RSDB::PointDB
 
 #documentation of (RGB) point-cloud class PointCloud
-?rPointDB::PointCloud
+?RSDB::PointCloud
 
 #show package description file
-packageDescription("rPointDB")
+packageDescription("RSDB")
 
 #show package version
-packageDescription("rPointDB")$Version
+packageDescription("RSDB")$Version
 ~~~
 
 Usage
 ~~~ R
-# load rPointDB package
-library(rPointDB)
+# load RSDB package
+library(RSDB)
 
 # open connection to RSDB server
-remoteSensing <- rPointDB::RemoteSensing$new(url="http://127.0.0.1:8081", userpwd="user:password")
+remoteSensing <- RSDB::RemoteSensing$new(url="http://127.0.0.1:8081", userpwd="user:password")
 
 # list Raster layers
 raserLayersDF <- remoteSensing$rasterdbs

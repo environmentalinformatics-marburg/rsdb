@@ -171,6 +171,23 @@ public final class Web {
 		log.warn("value unknown return default: "+text);
 		return defaultValue;
 	}
+	
+	public static boolean getFlagBoolean(Request request, String name) {
+		String text = request.getParameter(name);
+		if(text==null) {
+			return false;
+		}
+		if(text.isEmpty()) {
+			return true;
+		}
+		if(text.equalsIgnoreCase("true")) {
+			return true;
+		}
+		if(text.equalsIgnoreCase("false")) {
+			return false;
+		}
+		throw new RuntimeException("unknown flag value for " + name);
+	}
 
 	public static UserIdentity getUserIdentity(Request request) {
 		Authentication authentication = request.getAuthentication();

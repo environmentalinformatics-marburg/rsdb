@@ -1,5 +1,5 @@
 # open remote sensing database
-library(rPointDB)
+library(RSDB)
 remotesensing <- RemoteSensing$new("http://example.com:8081", 
                                    "user:password")
 

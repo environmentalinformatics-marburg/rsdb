@@ -26,6 +26,9 @@ remotesensing$pointcloud(name)
 remotesensing$pointdbs
 remotesensing$pointdb(name)
 
+remotesensing$vectordbs
+remotesensing$vectordb(name)
+
 remotesensing$roi_groups
 remotesensing$roi_group(name)
 remotesensing$roi(group_name, roi_name)
@@ -37,7 +40,7 @@ remotesensing$poi(group_name, poi_name)
 remotesensing$web()
 }
 \description{
-Remote sensing database manages (hyperspectral) \strong{rasters} and (LiDAR) \strong{point-clouds}
+Remote sensing database manages (hyperspectral) \strong{rasters} and (LiDAR) \strong{point-clouds} and \strong{vector} data
 as well as auxiliary ROIs (regions of interest as named polygons) and POIs (points of interest as named points).
 }
 \details{
@@ -71,6 +74,10 @@ returns: success message}
 \item{$pointdbs}{get names of PointDBs contained in Remote Sensing Database.}
 
 \item{$pointdb(name)}{get PointDB by name.}
+
+\item{$vecordbs}{get names of VectorDBs contained in Remote Sensing Database.}
+
+\item{$vectordb(name)}{get VectorDB by name.}
 
 \item{$roi_groups}{get names of ROI-groups.
 
@@ -194,7 +201,7 @@ remotesensing$web()
 
 }
 \seealso{
-\link{RasterDB} \link{PointCloud} \link{PointDB}
+\link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB}
 }
 \author{
 woellauer
@@ -214,6 +221,7 @@ woellauer
 \item \href{#method-roi}{\code{RemoteSensing$roi()}}
 \item \href{#method-create_rasterdb}{\code{RemoteSensing$create_rasterdb()}}
 \item \href{#method-pointcloud}{\code{RemoteSensing$pointcloud()}}
+\item \href{#method-vectordb}{\code{RemoteSensing$vectordb()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -309,6 +317,14 @@ woellauer
 \subsection{Method \code{pointcloud()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$pointcloud(name)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-vectordb"></a>}}
+\subsection{Method \code{vectordb()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$vectordb(name)}\if{html}{\out{</div>}}
 }
 
 }

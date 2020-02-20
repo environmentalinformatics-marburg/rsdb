@@ -74,6 +74,10 @@ public class APIHandler_roi_group {
 		json.key("name");
 		json.value(roiGroup.name);
 		roiGroup.informal.writeJson(json);
+		json.key("epsg");
+		json.value(roiGroup.epsg);
+		json.key("proj4");
+		json.value(roiGroup.proj4);
 		json.key("rois");
 		json.array();
 		for(Roi r:roiGroup.rois) {

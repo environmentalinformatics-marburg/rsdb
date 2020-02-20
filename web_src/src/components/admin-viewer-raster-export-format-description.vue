@@ -73,7 +73,7 @@
       <hr>
       <h3 :class="{disabled: (outputType !== 'rDAT - data')}">rDAT - data</h3>
       <br>
-      rDAT file format is transfer format of rPointDB package. 
+      rDAT file format is transfer format of RSDB R-package. 
       <br>
       Extensive meta data is preserved by this format.
       <br>e.g. band names, wavelength
@@ -87,7 +87,7 @@
       <br>
       <br>
       <pre>
-library(rPointDB)
+library(RSDB)
 r &lt;- read.rdat("c:/downloads/raster.rdat")
 plot(r)
       </pre>

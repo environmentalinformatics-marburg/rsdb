@@ -8,7 +8,7 @@ RemoteSensing_public <- list( #      *********** public ************************
     user <- substring(userpwd, 0, splitIndex - 1)
     password <- substring(userpwd, splitIndex + 1)
     private$rsdbConnector <- RsdbConnector$new(base_url = url, username = user, password = password, ssl_verifypeer = ssl_verifypeer)
-    
+
     #private$base_url <- url
     #test_url <- paste0(private$base_url, "/pointdb/")
     #private$curlHandle <- RCurl::getCurlHandle()
@@ -19,7 +19,7 @@ RemoteSensing_public <- list( #      *********** public ************************
     #if(isUnauthorized(test_url, private$curlHandle)) { # only set AUTH_BASIC if needed, if AUTH_BASIC is set if not needed HTTP POST content will not be sent!
     #  #print("set userpwd with AUTH_BASIC")
     #  private$curlHandle <- RCurl::getCurlHandle(httpauth = RCurl::AUTH_BASIC, userpwd = userpwd, verbose = FALSE)
-    #}    
+    #}
     #responesHeader <- RCurl::url.exists(test_url, .header = TRUE, curl = RCurl::dupCurlHandle(private$curlHandle))
     ##print(responesHeader)
     ##print(responesHeader["status"])
@@ -103,6 +103,10 @@ RemoteSensing_public <- list( #      *********** public ************************
 
   pointcloud = function(name) {
     return(PointCloud$new(private$base_url, name, curlHandle = private$curlHandle, rsdbConnector = private$rsdbConnector))
+  },
+
+  vectordb = function(name) {
+    return(VectorDB$new(private$base_url, name, curlHandle = private$curlHandle, rsdbConnector = private$rsdbConnector))
   }
 
 )
@@ -137,6 +141,11 @@ RemoteSensing_active <- list( #      *********** active ************************
     #json <- query_json(private$base_url, "pointclouds", curlHandle=private$curlHandle)
     json <- private$rsdbConnector$GET("/pointclouds")
     return(json$pointclouds)
+  },
+
+  vectordbs = function() {
+    json <- private$rsdbConnector$GET("/vectordbs")
+    return(json$vectordbs)
   }
 
 )
@@ -151,7 +160,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 
 #' RemoteSensing class
 #'
-#' Remote sensing database manages (hyperspectral) \strong{rasters} and (LiDAR) \strong{point-clouds}
+#' Remote sensing database manages (hyperspectral) \strong{rasters} and (LiDAR) \strong{point-clouds} and \strong{vector} data
 #' as well as auxiliary ROIs (regions of interest as named polygons) and POIs (points of interest as named points).
 #'
 #' Objects of RemoteSensing class encapsulate connections to one remote sensing database.
@@ -159,7 +168,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' @docType class
 #' @export
 #' @author woellauer
-#' @seealso \link{RasterDB} \link{PointCloud} \link{PointDB}
+#' @seealso \link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB}
 #'
 #' @format
 #' RemoteSensing \code{\link{R6Class}} object.
@@ -184,6 +193,9 @@ RemoteSensing_private <- list( #      *********** private **********************
 #'
 #' remotesensing$pointdbs
 #' remotesensing$pointdb(name)
+#'
+#' remotesensing$vectordbs
+#' remotesensing$vectordb(name)
 #'
 #' remotesensing$roi_groups
 #' remotesensing$roi_group(name)
@@ -222,6 +234,10 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' \item{$pointdbs}{get names of PointDBs contained in Remote Sensing Database.}
 #'
 #' \item{$pointdb(name)}{get PointDB by name.}
+#'
+#' \item{$vecordbs}{get names of VectorDBs contained in Remote Sensing Database.}
+#'
+#' \item{$vectordb(name)}{get VectorDB by name.}
 #'
 #' \item{$roi_groups}{get names of ROI-groups.
 #'

@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -30,6 +31,8 @@ import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import org.json.JSONWriter;
+import org.locationtech.proj4j.CRSFactory;
+import org.locationtech.proj4j.CoordinateReferenceSystem;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Informal;
@@ -51,6 +54,7 @@ public class VectorDB {
 
 	public static final SpatialReference WEB_MERCATOR_SPATIAL_REFERENCE = new SpatialReference("");
 	private static final int WEB_MERCATOR_EPSG = 3857;
+	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
 	static {
 		WEB_MERCATOR_SPATIAL_REFERENCE.ImportFromEPSG(3857);
@@ -208,8 +212,14 @@ public class VectorDB {
 	}
 
 
-	public String getGeoJSON(int epsg) {
-		nameAttribute = getNameAttribute();
+	public String getGeoJSON(int epsg, boolean justNameAttribute) {
+		String nameAttribute = null;
+		ReadonlyList<String> attributes = null;
+		if(justNameAttribute) {
+			nameAttribute = getNameAttribute();
+		} else {
+			attributes = getDetails().attributes;
+		}
 		SpatialReference refDst = null;
 		if(epsg >= 0) {
 			if(epsg == WEB_MERCATOR_EPSG) {
@@ -254,17 +264,13 @@ public class VectorDB {
 						sb.append(json);
 						String id = "" + cnt++;
 
-						String name = id;
-						if(!getNameAttribute().isEmpty()) {
-							String featureName = feature.GetFieldAsString(getNameAttribute());
-							if(featureName != null) {
-								name = featureName;
-							}
-
-						}
-						//int name = id;
 						sb.append(",\"id\":\"" + id +"\"");
-						sb.append(",\"properties\":{\"name\": \""+ name +"\"}");
+						if(justNameAttribute) {
+							addPropertiesJustNameAttribute(sb, feature, id, nameAttribute);
+						} else {
+							addPropertiesAllAttributes(sb, feature, attributes);
+						}
+
 						sb.append("}");
 					} else {
 						String attr1 = feature.GetFieldAsString(0);
@@ -279,6 +285,37 @@ public class VectorDB {
 		} finally {
 			closeDataSource(datasource);
 		}
+	}
+
+	private static void addPropertiesJustNameAttribute(StringBuilder sb, Feature feature, String id, String nameAttribute) {
+		String name = id;
+		if(!nameAttribute.isEmpty()) {
+			String featureName = feature.GetFieldAsString(nameAttribute);
+			if(featureName != null) {
+				name = featureName;
+			}
+
+		}
+		sb.append(",\"properties\":{\"name\": \""+ name +"\"}");		
+	}
+	
+	private static void addPropertiesAllAttributes(StringBuilder sb, Feature feature, ReadonlyList<String> attributes) {		
+		sb.append(",\"properties\":{");		
+		Iterator<String> it = attributes.iterator();
+		boolean isFollowUp = false;
+		while(it.hasNext()) {
+			String attributeName = it.next();
+			String attributeValue = feature.GetFieldAsString(attributeName);
+			if(attributeValue != null) {
+				if(isFollowUp) {
+					sb.append(", ");	
+				} else {
+					isFollowUp = true;
+				}
+				sb.append("\""+ attributeName +"\": \""+ attributeValue +"\"");
+			}
+		}
+		sb.append("}");		
 	}
 
 
@@ -577,6 +614,10 @@ public class VectorDB {
 					}
 				}
 				details.attributes = attributes.readonlyWeakView();
+				if(!details.proj4.isEmpty()) {
+					String epsg = CRS_FACTORY.readEpsgFromParameters(details.proj4);
+					details.epsg = epsg == null ? "" : epsg;
+				}
 			} finally {
 				closeDataSource(datasource);
 			}

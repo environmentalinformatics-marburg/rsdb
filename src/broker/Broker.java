@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.locationtech.proj4j.CRSFactory;
 
 import broker.acl.ACL;
 import broker.acl.DynamicPropertyUserStore;
@@ -35,6 +36,7 @@ import pointdb.PointDB;
 import pointdb.base.PointdbConfig;
 import rasterdb.RasterDB;
 import rasterdb.RasterdbConfig;
+import server.api.vectordbs.VectordbDetails;
 import util.Timer;
 import util.Util;
 import vectordb.VectorDB;
@@ -112,7 +114,8 @@ public class Broker implements AutoCloseable {
 			try {
 				VectorDB vectordb = this.getVectorDB(entry.name);
 				Poi[] pois = vectordb.getPOIs().toArray(Poi[]::new);
-				PoiGroup poiGroup = new PoiGroup(vectordb.getName(), vectordb.informal(), vectordb.getACL(), pois);
+				VectordbDetails details = vectordb.getDetails();
+				PoiGroup poiGroup = new PoiGroup(vectordb.getName(), vectordb.informal(), vectordb.getACL(), details.epsg, details.proj4, pois);
 				map.put(poiGroup.name, poiGroup);
 			} catch(Exception e) {
 				log.warn(e);
@@ -140,7 +143,8 @@ public class Broker implements AutoCloseable {
 			try {
 				VectorDB vectordb = this.getVectorDB(entry.name);
 				Roi[] rois = vectordb.getROIs().toArray(Roi[]::new);
-				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), vectordb.getACL(), rois);
+				VectordbDetails details = vectordb.getDetails();
+				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), vectordb.getACL(), details.epsg, details.proj4, rois);
 				map.put(roiGroup.name, roiGroup);
 			} catch(Exception e) {
 				log.warn(e);

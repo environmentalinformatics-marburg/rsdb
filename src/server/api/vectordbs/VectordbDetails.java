@@ -4,7 +4,8 @@ import util.collections.ReadonlyList;
 
 public class VectordbDetails {
 	
-	public String proj4 = "";
+	public String epsg = "";
+	public String proj4 = "";	
 	public ReadonlyList<String> attributes = ReadonlyList.EMPTY;
 
 }

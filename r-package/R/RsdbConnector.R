@@ -1,5 +1,5 @@
 RsdbConnector_public <- list( #      *********** public *********************************
-  
+
   initialize = function(base_url, username=NULL, password=NULL, ssl_verifypeer=TRUE) {
     private$base_url <- base_url
     private$username <- username
@@ -9,23 +9,23 @@ RsdbConnector_public <- list( #      *********** public ************************
     private$authentication <- "none"
     self$GET("/pointdb/")
   },
-  
+
   GET = function(url_path, url_query = NULL) {
     r <- self$VERB("GET", url_path, url_query)
     return(r)
   },
-  
+
   POST_json = function(url_path, url_query = NULL, data = NULL) {
     json_data <- charToRaw(jsonlite::toJSON(data, auto_unbox=TRUE))
     r <- self$VERB("POST", url_path, url_query, json_data)
     return(r)
   },
-  
+
   POST_raw = function(url_path, url_query = NULL, data = NULL) {
     r <- self$VERB("POST", url_path, url_query, data)
     return(r)
   },
-  
+
   VERB = function(verb, url_path, url_query = NULL, data = NULL) {
     url <- paste0(private$base_url, url_path)
     httr::handle_reset(url)
@@ -48,10 +48,10 @@ RsdbConnector_public <- list( #      *********** public ************************
         user_hash_size <- as.integer(getParam(auth, "user_hash_size"))
         user_salt <- getParam(auth, "user_salt")
         salt <- getParam(auth, "salt")
-        
-        h_user <- trans(paste0(user_salt, private$username, user_salt)) 
+
+        h_user <- trans(paste0(user_salt, private$username, user_salt))
         h_user <- substring(h_user, nchar(h_user) + 1 - user_hash_size)
-        
+
         h_inner <- trans(paste0(salt, private$username, salt, private$password, salt))
         text <- paste0(server_nonce, client_nonce, h_inner, client_nonce, server_nonce)
         h <- trans(text)
@@ -85,12 +85,17 @@ RsdbConnector_public <- list( #      *********** public ************************
       text <- httr::content(r, as = "text", encoding = "UTF-8")
       stop("RSDB - Error: ", r$status_code, ": ", text)
     }
-    
+
     t <- httr::http_type(r)
     if(t == "application/json") {
       text <- httr::content(r, as = "text", encoding = "UTF-8")
       json <- jsonlite::fromJSON(text)
       return(json)
+    }
+    t <- httr::http_type(r)
+    if(t == "application/geo+json") {
+      data <- httr::content(r, as = "raw")
+      return(data)
     }
     if(t == "text/plain") {
       text <- httr::content(r, as = "text", encoding = "UTF-8")
@@ -112,7 +117,7 @@ RsdbConnector_public <- list( #      *********** public ************************
     return(r)
   }
 
-  
+
 )
 
 RsdbConnector_active <- list( #      *********** active *********************************
@@ -120,7 +125,7 @@ RsdbConnector_active <- list( #      *********** active ************************
 )
 
 RsdbConnector_private <- list( #      *********** private *********************************
-  
+
   base_url = NULL,
   username = NULL,
   password = NULL,

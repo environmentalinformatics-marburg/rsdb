@@ -11,6 +11,7 @@ result_poi_groups <- remotesensing$poi_groups
 result_pointdbs <- remotesensing$pointdbs
 result_rasterdbs <- remotesensing$rasterdbs
 result_plointclouds <- remotesensing$plointclouds
+result_vectordbs <- remotesensing$vectordbs
 
 # public functions
 result_lidar <- remotesensing$lidar(layer = result_pointdbs[1])
@@ -24,3 +25,4 @@ result_roi_group <- remotesensing$roi_group(group_name = result_roi_groups$name[
 result_roi <- remotesensing$roi(group_name = result_roi_groups$name[1], roi_name = result_roi_group$name[1])
 result_create_rasterdb <- remotesensing$create_rasterdb(name = "test_raster")
 result_pointcloud <- remotesensing$pointcloud(name = result_plointclouds$name[1])
+result_vectordb <- remotesensing$vectordb(name = result_vectordbs$name[1])

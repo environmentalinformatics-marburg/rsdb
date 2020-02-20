@@ -73,6 +73,10 @@ public class APIHandler_poi_group {
 		json.key("name");
 		json.value(poiGroup.name);
 		poiGroup.informal.writeJson(json);
+		json.key("epsg");
+		json.value(poiGroup.epsg);
+		json.key("proj4");
+		json.value(poiGroup.proj4);
 		json.key("pois");
 		json.array();
 		for(Poi p:poiGroup.pois) {

@@ -496,6 +496,7 @@ export default {
         var response = await axios.get(url, {
           params: {
             epsg: this.epsgCode,
+            just_name_attribute: true,
           }
         });
         var geojson = response.data;

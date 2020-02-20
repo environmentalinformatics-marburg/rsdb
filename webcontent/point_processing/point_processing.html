@@ -89,7 +89,7 @@
 					<b>rDAT format information</b>
 					<br>
 					<br>
-					This file format is point cloud transfer format of rPointDB package.
+					This file format is point cloud transfer format of RSDB R-package.
 					<br>
 					<br>
 					Extensive meta data is preserved by this format.
@@ -100,7 +100,7 @@
 					<br>load file in <a href="https://www.r-project.org/">R</a> as data.frame and plot it.
 					<br>
 					<pre>
-library(rPointDB)
+library(RSDB)
 df <- read.rdat("points.rdat")
 library(rgl)
 plot3d(df$x, df$y, df$z)
