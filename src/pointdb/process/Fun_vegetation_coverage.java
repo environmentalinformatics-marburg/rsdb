@@ -40,7 +40,7 @@ class Fun_vegetation_coverage {
 		return total_count == 0 ? Double.NaN : ((double) vegetation_count) / ((double) total_count);
 	}
 
-	private static double get_vegetation_coverage_rays(DataProvider2 provider, double min) {
+	private static double get_vegetation_coverage_pulses(DataProvider2 provider, double min) {
 		Vec<GeoPoint> ps = provider.get_sortedRegionHeightPoints();
 		int total_count = 0;
 		int vegetation_count = 0;
@@ -80,10 +80,10 @@ class Fun_vegetation_coverage {
 	}
 	
 	@Description("vegetation coverage in 2 meter height (laser pulse based, all first return points)")
-	public static class Fun_vegetation_coverage_02m_rays extends ProcessingFun {
+	public static class Fun_vegetation_coverage_02m_pulses extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_vegetation_coverage_rays(provider, 2);
+			return get_vegetation_coverage_pulses(provider, 2);
 		}
 	}
 
