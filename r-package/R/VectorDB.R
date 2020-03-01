@@ -24,7 +24,15 @@ VectorDB_public <- list( #      *********** public *****************************
     tempFileName <- tempfile()
     writeBin(data, tempFileName)
     tempFileName
-    vectors <- rgdal::readOGR(tempFileName)
+    #vectors <- rgdal::readOGR(tempFileName)
+    vectors <- sf::st_read(tempFileName, quiet=TRUE)
+    if(is.null(epsg) & self$epsg == "") {
+      if(self$proj4 == "") {
+        sf::st_crs(vectors) <- sf::NA_crs_
+      } else {
+        sf::st_crs(vectors) <- self$proj4
+      }
+    }
     file.remove(tempFileName)
     return(vectors)
   },

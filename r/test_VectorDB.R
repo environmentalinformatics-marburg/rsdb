@@ -20,3 +20,10 @@ result_title <- vectordb$title
 # public functions
 result_getVectors <- vectordb$getVectors()
 result_getVectorsWGS84 <- vectordb$getVectorsWGS84()
+
+#testing results
+plot(sf::st_geometry(result_getVectors))
+plot(sf::st_geometry(result_getVectorsWGS84))
+
+mapview::mapview(result_getVectors)
+mapview::mapview(result_getVectorsWGS84)

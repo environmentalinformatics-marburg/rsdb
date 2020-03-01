@@ -232,7 +232,21 @@ public class VectorDB {
 		DataSource datasource = getDataSource();
 		try {
 			StringBuilder sb = new StringBuilder();
-			sb.append("{\"type\":\"FeatureCollection\",\"features\":");
+			sb.append("{\"type\":\"FeatureCollection\"");
+			int targetEPSG = epsg;
+			if(targetEPSG <= 0) {
+				try {
+					targetEPSG = Integer.parseInt(this.getDetails().epsg);
+				} catch(Exception e) {
+					log.warn(e);
+				}
+			}
+			if(targetEPSG > 0) {
+				sb.append(",\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::" + targetEPSG + "\"}}");
+			} else {
+				sb.append(",\"crs\":null");				
+			}
+			sb.append(",\"features\":");
 			sb.append("[");
 			boolean isFirst = true;
 			int cnt = 0;
@@ -298,7 +312,7 @@ public class VectorDB {
 		}
 		sb.append(",\"properties\":{\"name\": \""+ name +"\"}");		
 	}
-	
+
 	private static void addPropertiesAllAttributes(StringBuilder sb, Feature feature, ReadonlyList<String> attributes) {		
 		sb.append(",\"properties\":{");		
 		Iterator<String> it = attributes.iterator();
