@@ -8,7 +8,7 @@ import org.eclipse.jetty.server.Server;
 
 import broker.Broker;
 import pointdb.PointDB;
-import server.PointDBServer;
+import server.RSDBServer;
 import util.Timer;
 
 public class RunImport_RunServer {
@@ -19,9 +19,9 @@ public class RunImport_RunServer {
 		try {
 			//pointdb = new PointDB();
 			Broker broker = new Broker();
-			Server server = PointDBServer.createServer(broker);
+			Server server = RSDBServer.createServer(broker);
 			server.start();
-			PointDBServer.printServerEntrypoint(server, broker);
+			RSDBServer.printServerEntrypoint(server, broker);
 			log.info("server ready...");
 			//server.join();
 			Timer.start("import");

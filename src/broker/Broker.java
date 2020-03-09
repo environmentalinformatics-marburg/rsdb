@@ -299,7 +299,7 @@ public class Broker implements AutoCloseable {
 
 	public void refreshRasterdbConfigs() {
 		if(!rasterdb_root.toFile().exists()) {
-			log.info("no rasterdb layers: rasterdb folder missing");
+			log.trace("no rasterdb layers: rasterdb folder missing");
 			return;
 		}
 		try {
@@ -335,7 +335,7 @@ public class Broker implements AutoCloseable {
 
 	public void refreshVectordbConfigs() {
 		if(!vectordb_root.toFile().exists()) {
-			log.info("no vectordb layers: vectordb folder missing");
+			log.trace("no vectordb layers: vectordb folder missing");
 			return;
 		}
 		try {

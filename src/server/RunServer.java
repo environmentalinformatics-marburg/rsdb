@@ -16,8 +16,8 @@ public class RunServer {
 		try {
 			broker = new Broker();
 			run(broker);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Throwable e) {
+			//e.printStackTrace();
 			log.error("sever not started "+e);
 		} finally {			
 			try {
@@ -36,9 +36,9 @@ public class RunServer {
 
 	public static void run(Broker broker) {
 		try {
-			Server server = PointDBServer.createServer(broker);
+			Server server = RSDBServer.createServer(broker);
 			server.start();
-			PointDBServer.printServerEntrypoint(server, broker);
+			RSDBServer.printServerEntrypoint(server, broker);
 			System.out.println("Server running...   (press ctrl-c to stop)");
 			addShutdownHook(server, broker);
 			server.join();

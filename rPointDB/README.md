@@ -1,8 +1,13 @@
-# Remote Sensing Database R package
+# obsolete Remote Sensing Database R package 'rPointDB'
 
 ---------------------------------------
 
-### Install R Package
+This 'rPointDB' R package is obsolete. 
+
+For new projects use 'RSDB' R package in folder 'r-package'.
+
+
+### Install rPointDB R Package
 ```R
 if(!require("remotes")) install.packages("remotes")
 remotes::install_github("environmentalinformatics-marburg/rsdb/rPointDB")

@@ -65,7 +65,7 @@ import util.Table.ColumnReaderString;
 import util.Util;
 import util.Web;
 
-public class PointDBServer {
+public class RSDBServer {
 	static final Logger log = LogManager.getLogger();
 	public static final Marker MARKER_REQ = MarkerManager.getMarker("REQ");
 
@@ -280,11 +280,14 @@ public class PointDBServer {
 
 		return server;
 	}
+	
+	private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
+	private static final boolean OS_WINDOWS = OS_NAME.contains("win");
 
 	private static final String setPlainText;
 	private static final String setBoldText;
 	static {
-		if(System.console()!=null) {
+		if(System.console() != null && !OS_WINDOWS) {
 			setPlainText = "\033[0;0m";
 			//setPlainText = "\033[47;1m\033[34;1m";
 			setBoldText = "\033[32;1m";

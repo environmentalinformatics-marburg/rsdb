@@ -1,0 +1,1 @@
+win_rsdb.cmd terminal
