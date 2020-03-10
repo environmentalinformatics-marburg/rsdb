@@ -7,7 +7,7 @@ Manage remote sensing raster, point-cloud and vector data online.
 
 A ready to use RSDB distribution is located at:
 
-[https://environmentalinformatics-marburg.github.io/rsdb-data](https://environmentalinformatics-marburg.github.io/rsdb-data)
+[https://github.com/environmentalinformatics-marburg/rsdb-data](https://github.com/environmentalinformatics-marburg/rsdb-data)
 
 ---------------------------------------
 
