@@ -349,7 +349,7 @@ public class TileStorage implements RasterUnitStorage {
 		final int MAP_LEN = map.size();
 		final int ENTRY_LEN = 6 * 4 + 8;
 		final int COMPRESSORS = 8;
-		final int MAX_OVERHEAD = COMPRESSORS * 8; // estimation
+		final int MAX_OVERHEAD = COMPRESSORS * 16; // estimation
 		long maxFileLen = 4 + 4 + 4 + MAP_LEN * ENTRY_LEN + MAX_OVERHEAD;
 		if(maxFileLen > Integer.MAX_VALUE) {
 			throw new RuntimeException("index file too large");

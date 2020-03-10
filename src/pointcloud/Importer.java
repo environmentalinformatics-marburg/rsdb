@@ -5,12 +5,11 @@ import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
+import org.locationtech.proj4j.CRSFactory;
+import org.locationtech.proj4j.CoordinateReferenceSystem;
 
 import pointdb.las.Las;
 import pointdb.las.Laz;
@@ -20,6 +19,8 @@ import util.Util;
 
 public class Importer {
 	private static final Logger log = LogManager.getLogger();
+
+	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
 	private final PointCloud pointcloud;
 
@@ -107,27 +108,22 @@ public class Importer {
 			} else {
 				pointcloud.setCodeEPSG(fileEPSG);
 				if(!pointcloud.hasProj4()) {
-					String url = "https://epsg.io/"+fileEPSG+".proj4";
-					log.warn("request proj4 of epsg: " + fileEPSG + "     " + url);
 					try {
-						HttpClient httpClient = new HttpClient();
-						httpClient.start();
-						try {
-							ContentResponse response = httpClient.newRequest(url)
-									.timeout(15, TimeUnit.SECONDS)
-									.send();
-							if(response.getStatus() == 200) {
-								String proj4 = response.getContentAsString();
-								pointcloud.setProj4(proj4);
-								log.info("received proj4: "+proj4);		
+						String fileCode = "EPSG:"+fileEPSG;
+						CoordinateReferenceSystem crs = CRS_FACTORY.createFromName(fileCode);
+						if(crs != null) {
+							String fileProj4 = crs.getParameterString();
+							if(fileProj4 != null && !fileProj4.isEmpty()) {
+								log.info("set proj4: " + fileProj4);
+								pointcloud.setProj4(fileProj4);
 							} else {
-								log.warn("could not request proj4 of epsg   server response " + response.getStatus());
+								log.warn("could not get proj4 of epsg");
 							}
-						} finally {
-							httpClient.stop();
+						} else {
+							log.warn("could not get proj4 of epsg");
 						}
 					} catch(Exception e) {
-						log.warn("could not request proj4 of epsg: " + e);
+						log.warn("could not get proj4 of epsg: " + e);
 					}
 				}
 			}

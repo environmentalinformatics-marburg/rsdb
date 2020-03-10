@@ -26,6 +26,7 @@
                 <br><a :href="logout_jws_url"><v-icon>call_end</v-icon> logout</a> <span style="font-size: 0.8em">(JWS authentication)</span>
               </div>
 
+              <!--
               <div v-if="identity !== undefined && identity.http_port !== undefined && identity.auth_method !== 'DIGEST'">
                 <br><a :href="http_url"><v-icon>http</v-icon><b>switch to <span style="font-size: 1.2em">HTTP (digest authentication)</span></b> {{http_url}}</a> 
                 <br><span v-if="identity.auth_method === 'BASIC' || (identity.auth_method === 'jws' && identity.jws_protocol === 'https:')" style="font-size: 0.8em">(Your browser may not allow to downgrade connection from HTTPS to HTTP.)</span>
@@ -44,6 +45,7 @@
                 <br><a :href="jws_url"><v-icon>vpn_key</v-icon><b>switch to <span style="font-size: 1.2em">HTTPS (JWS authentication)</span></b> {{jws_url}}</a>
                 <br>(You may need to add an exception in your browser to allow a self signed certificate.)
               </div>
+              -->
 
             </div>
           </v-card-title>

@@ -10,7 +10,15 @@
             <span class="component"><a href="#/layers"><div><img src="images/layers.png" /></div><div class="component-text">Layers</div></a></span>
             <span class="component"><a href="#/explorer"><div><img src="images/catalog2.png" /></div><div class="component-text">Map Explorer</div></a></span>
             <span class="component"><a href="#/viewer"><div><img src="images/rasterdb_image.png" /></div><div class="component-text">Layer Viewer</div></a></span>
-            <span class="component"><a href="#/upload"><div><img src="images/upload.png" /></div><div class="component-text">File Upload</div></a></span>
+            <!--<span class="component"><a href="#/upload"><div><img src="images/upload.png" /></div><div class="component-text">File Upload</div></a></span>-->
+            <span class="component"><a :href="old_interface_url" target="_blank"><div><img src="images/old_interface.png" /></div><div class="component-text">old web interface</div></a></span>
+          </v-card-title>
+          <v-divider></v-divider>
+          <v-card-title>
+            <span class="component"><a :href="indices_processing_url" target="_blank"><div><img src="images/lidar_indices_processing.png" /></div><div class="component-text">LiDAR indices processing</div></a></span>
+            <span class="component"><a :href="indices_documentation_url" target="_blank"><div><img src="images/lidar_indices_documentation.png" /></div><div class="component-text">LiDAR indices documentation</div></a></span>
+            <span class="component"><a href="https://environmentalinformatics-marburg.github.io/rsdb" target="_blank"><div><img src="images/rsdb_documentation.png" /></div><div class="component-text">RSDB documentation</div></a></span>
+
           </v-card-title>
         </v-card>
       </v-flex>
@@ -28,6 +36,17 @@ export default {
     }
   },
   methods: {
+  },
+  computed: {
+    old_interface_url() {
+      return this.$store.getters.apiUrl('web');
+    },
+    indices_processing_url() {
+      return this.$store.getters.apiUrl('web/lidar_indices/lidar_indices.html');
+    },
+    indices_documentation_url() {
+      return this.$store.getters.apiUrl('web/lidar_indices_description/lidar_indices_description.html');
+    },
   },
   mounted() {
   },

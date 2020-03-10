@@ -32,7 +32,6 @@ import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import org.json.JSONWriter;
 import org.locationtech.proj4j.CRSFactory;
-import org.locationtech.proj4j.CoordinateReferenceSystem;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Informal;

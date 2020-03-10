@@ -2,7 +2,7 @@
 title: realm_ip.csv
 ---
 
-This file lists IP addresses that are associated with one an account directly without login. If file is missing, no IPs are associated.
+This file lists IP addresses that are associated to an account directly without login. *(optional file)*
 
 [<i class="fa fa-arrow-right"/> structure](#structure)
 

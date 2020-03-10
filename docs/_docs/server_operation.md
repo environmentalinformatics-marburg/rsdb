@@ -1,5 +1,5 @@
 ---
-title: Server Operation
+title: Server Operation (Ubuntu only)
 ---
 
 ## Running RSDB Server in foreground

@@ -72,10 +72,9 @@ public class RSDBServer {
 	private static final long DATA_TRANSFER_TIMEOUT_MILLISECONDS = 2*60*60*1000; // set timeout to 2 hours
 
 	private static final String POINTDB_API_URL = "/pointdb";
-	//private static final String SPECTRALDB_API_URL = "/spectraldb";
 	private static final String RASTERDB_API_URL = "/rasterdb";
 	private static final String MAIN_API_URL = "/api";
-	private static final String POINTDB_WEB_URL = "/web";
+	private static final String WEBCONTENT_URL = "/web";
 	private static final String WEBFILES_URL = "/files";
 	private static final String POINTCLOUDS_URL = "/pointclouds";
 	private static final String VECTORDBS_URL = "/vectordbs";
@@ -361,12 +360,12 @@ public class RSDBServer {
 				createContext(MAIN_API_URL, new MainAPICollectionHandler(broker)),
 				createContext("/rasterdb_wms", true, new WmsHandler(broker)),
 				createContext("/rasterdbs.json", true, new RasterdbsHandler(broker)),
-				createContext(POINTDB_WEB_URL, createWebcontentHandler()),
+				createContext(WEBCONTENT_URL, createWebcontentHandler()),
 				createContext(WEBFILES_URL, createWebfilesHandler()),
-				createContext("/entrypoint", true, new BaseRedirector(POINTDB_WEB_URL + "/admin2/")),
+				createContext("/entrypoint", true, new BaseRedirector(WEBCONTENT_URL + "/admin2/")),
 				createContext("/logout", true, new LogoutHandler(broker)),
 				createContext(createShutdownHandler()),
-				createContext(new BaseRedirector(POINTDB_WEB_URL+"/")),
+				createContext(new BaseRedirector("/entrypoint")),
 				createContext(new InvalidUrlHandler("unknown request")),
 		};
 		return contexts;

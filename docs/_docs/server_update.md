@@ -1,5 +1,5 @@
 ---
-title: Server Update
+title: Server Update (Ubuntu only)
 ---
 
 New Versions of RSDB are available as releases.
