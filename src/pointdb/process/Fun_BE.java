@@ -134,6 +134,11 @@ public class Fun_BE {
 			return hs.length==0 ? 0 : new DescriptiveStatistics(hs).getKurtosis();
 		}
 	}
+	
+	static double getPercentile(DataProvider2 provider, double percentile) {
+		double[] hs = provider.get_sortedCanopyHeights();
+		return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(percentile);
+	}
 
 	@Tag("canopy_height")
 	@Tag("canopy_height_percentile")
@@ -501,6 +506,58 @@ public class Fun_BE {
 	@Description("Mean Aspect (aspect of ground a.s.l., based on DTM raster pixels bilinear regression)")
 	static class Fun_BE_ELEV_ASPECT extends Fun_dtm_aspect.Fun_dtm_aspect_reg {
 	}
+	
+	
+	
+	@Tag("PR_relative")
+	@Exculde("base class")
+	static class Fun_BE_PR_H extends ProcessingFun {
+		private final int decile;
+		public Fun_BE_PR_H(int decile) {
+			this(decile, "BE_PR_H" + (decile<=9 ? "0" : "") + decile, "Penetration rate (pass through rate) of "+((decile-1)*10)+"% to "+(decile*10)+"% height layer relative to maximum height (based on point height above ground)");
+		}
+		public Fun_BE_PR_H(int decile, String name, String descrption) {
+			super(name, descrption);
+			this.decile = decile;
+		}
+		@Override
+		public double process(DataProvider2 provider) {
+			double cnt = 0;
+			double reach = 0;
+			Vec<GeoPoint> points = provider.get_sortedRegionHeightPoints();
+			if(points.isEmpty()) {
+				return Double.NaN;
+			}
+			double hmax = Fun_BE_H_MAX.DEFAULT.process(provider);
+			double hsetMax = decile < 10 ? ((hmax * decile) / 10d) : Double.POSITIVE_INFINITY;
+			double hsetMin = decile > 1 ? ((hmax * (decile - 1)) / 10d) : Double.NEGATIVE_INFINITY;
+			
+			if(provider.classified_vegetation) {
+				for(GeoPoint p:points) {
+					if(p.z <= hsetMax) {
+						reach++;
+						if(hsetMin < p.z && p.isVegetaion()) {
+							cnt++;
+						}
+					}
+				}
+			} else {
+				for(GeoPoint p:points) {
+					if(p.z <= hsetMax) {
+						reach++;
+						if(hsetMin < p.z) {
+							cnt++;
+						}
+					}
+				}				
+			}
+			if(reach == 0) {
+				return Double.NaN;
+			}
+			return 1d - cnt/reach;
+		}
+	}
+	
 	
 	@Tag("PR_meter")
 	@Exculde("base class")

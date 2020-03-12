@@ -8,6 +8,7 @@ import java.util.TreeSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pointdb.process.Fun_BE.Fun_BE_PR_INTERVAL;
+import pointdb.process.Fun_BE.Fun_BE_PR_H;
 import pointdb.process.Fun_BE.Fun_BE_RD_INTERVAL;
 
 public class Functions {
@@ -37,11 +38,15 @@ public class Functions {
 		addContained(Fun_dtm_elevation.class);
 		addContained(Fun_point_elevation.class);
 		addContained(Fun_vegetation_coverage.class);
-		addContained(Fun_surface_ratio.class);
+		addContained(Fun_surface_area.class);
 		addContained(Fun_forest_structure.class);
 		
 		for (int i = 1; i <= 55; i++) {
         	Functions.add(new Fun_BE_PR_INTERVAL(i));			
+		}
+		
+		for (int i = 1; i <= 10; i++) {
+        	Functions.add(new Fun_BE_PR_H(i));			
 		}
 		
 		int LAYER_MAX = 55;

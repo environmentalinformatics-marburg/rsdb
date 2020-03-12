@@ -119,7 +119,7 @@ public abstract class RemoteTask implements Runnable {
 	}
 	
 	protected void log(String message) {
-		logMessages.add(message);
+		//logMessages.add(message);
 		log.info(message);
 	}
 

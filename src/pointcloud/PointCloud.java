@@ -493,9 +493,9 @@ public class PointCloud implements AutoCloseable {
 				double pymin = (celloffset.y + cellTable.cy) * cellsize;
 				double pxmax = (celloffset.x + cellTable.cx + 1) * cellsize - 1 / cellscale;
 				double pymax = (celloffset.y + cellTable.cy + 1) * cellsize - 1 / cellscale;
-				log.info("cell range   " + pxmin + " " + pymin + " " + pxmax + " " + pymax);
+				//log.info("cell range   " + pxmin + " " + pymin + " " + pxmax + " " + pymax);
 				filter = xmin <= pxmin && ymin <= pymin && xmax >= pxmax && ymax >= pymax ? null : maskExtent(cellTable, xmin, ymin, xmax, ymax);
-				log.info("filter range " + xmin + " " + ymin + " " + xmax + " " + ymax + "   " + filter);
+				//log.info("filter range " + xmin + " " + ymin + " " + xmax + " " + ymax + "   " + filter);
 			}
 
 			//Timer.stop("create mask");
@@ -563,7 +563,7 @@ public class PointCloud implements AutoCloseable {
 
 	public PointTable cellTableToPointTable(CellTable cellTable, BitSet mask, int size) {
 		int len = cellTable.rows;
-		log.info("cellTableToPointTable " + size +" / " + len +" -> " + (((double)size) / len));
+		//log.info("cellTableToPointTable " + size +" / " + len +" -> " + (((double)size) / len));
 		double[] x = cellTable.x == null ? null : ColumnsUtil.filterTransform(cellTable.x, len, mask, size, cellscale, (celloffset.x + cellTable.cx) * cellsize);
 		double[] y = cellTable.y == null ? null : ColumnsUtil.filterTransform(cellTable.y, len, mask, size, cellscale, (celloffset.y + cellTable.cy) * cellsize);
 		double[] z = cellTable.z == null ? null : ColumnsUtil.filterTransform(cellTable.z, len, mask, size, cellscale);

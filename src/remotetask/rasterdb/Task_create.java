@@ -1,5 +1,6 @@
 package remotetask.rasterdb;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -18,6 +19,7 @@ import remotetask.RemoteTask;
 @Param(name="offset", type="number_array", desc="offset to projection origin", format="x_offset, y_offset", example="0.5, -0.5", required=false)
 @Param(name="code", desc="projection code", format="EPSG:code", example="EPSG:32632", required=false)
 @Param(name="proj4", desc="projection", format="PROJ4", example="+proj=utm +zone=32 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
+@Param(name="storage_type", desc="storage type of new RasterDB: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 public class Task_create extends RemoteTask {
 	
 	private final Broker broker;
@@ -36,8 +38,28 @@ public class Task_create extends RemoteTask {
 		double pixel_size_x = GeoReference.NO_PIXEL_SIZE;
 		double pixel_size_y = GeoReference.NO_PIXEL_SIZE;
 		double offset_x = GeoReference.NO_OFFSET;
-		double offset_y = GeoReference.NO_OFFSET;		
-
+		double offset_y = GeoReference.NO_OFFSET;
+		
+		double pixel_size = task.optDouble("pixel_size");
+		if(Double.isFinite(pixel_size)) {
+			pixel_size_x = pixel_size;
+			pixel_size_y = pixel_size;
+		}
+		JSONArray pixel_size_array = task.optJSONArray("pixel_size");
+		if(pixel_size_array != null) {
+			if(pixel_size_array.isEmpty()) {
+				// nothing
+			} else if(pixel_size_array.length() == 1) {
+				double v = pixel_size_array.optDouble(0);
+				pixel_size_x = v;
+				pixel_size_y = v;
+			} else if(pixel_size_array.length() == 2) {
+				pixel_size_x = pixel_size_array.optDouble(0);
+				pixel_size_y = pixel_size_array.optDouble(1);
+			} else {
+				throw new RuntimeException("invalid value for parameter 'pixel_size'");
+			}
+		}
 		JSONObject pixel_size_obj = task.optJSONObject("pixel_size");
 		if(pixel_size_obj != null) {
 			double x = pixel_size_obj.optDouble("x");
@@ -49,12 +71,17 @@ public class Task_create extends RemoteTask {
 				pixel_size_y = y;
 			}
 		}
-		double pixel_size = task.optDouble("pixel_size");
-		if(Double.isFinite(pixel_size)) {
-			pixel_size_x = pixel_size;
-			pixel_size_y = pixel_size;
-		}
+
 		
+		JSONArray offset_array = task.optJSONArray("offset");
+		if(offset_array != null) {
+			if(offset_array.length() == 2) {
+				offset_x = offset_array.optDouble(0);
+				offset_y = offset_array.optDouble(1);
+			} else {
+				throw new RuntimeException("invalid value for parameter 'offset'");
+			}
+		}
 		JSONObject offset_obj = task.optJSONObject("offset");
 		if(offset_obj != null) {
 			double x = offset_obj.optDouble("x");
@@ -68,6 +95,15 @@ public class Task_create extends RemoteTask {
 		}
 		
 		RasterDB rasterdb = broker.createNewRasterdb(name);
+		
+		if(task.has("storage_type")) {
+			String storage_type = task.getString("storage_type");
+			rasterdb = broker.createNewRasterdb(name, true, storage_type);
+		} else {
+			rasterdb = broker.createNewRasterdb(name, true);	
+		}
+		
+		
 		rasterdb.setPixelSize(pixel_size_x, pixel_size_y, offset_x, offset_y);
 		
 		String code = task.optString("code");

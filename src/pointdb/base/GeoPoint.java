@@ -62,7 +62,7 @@ public class GeoPoint {
 	public String toString() {
 		return String.format(
 				"GeoPoint [x=%s, y=%s, z=%s, intensity=%s, returnNumber=%s, returns=%s, scanAngleRank=%s, classification=%s, classificationFlags=%s]",
-				x, y, z, intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
+				x, y, z, (int)intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
 	}
 	
 	public static class GeoPointStatistics {

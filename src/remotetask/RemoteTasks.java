@@ -64,6 +64,7 @@ public class RemoteTasks {
 		put(Task_rasterize.class);
 		put(remotetask.pointcloud.Task_verify.class);
 		put(remotetask.pointcloud.Task_rebuild.class);
+		put(remotetask.pointcloud.Task_index_raster.class);
 
 		//task_vectordb
 		put(RefreshCatalogEntryRemoteTask.class);

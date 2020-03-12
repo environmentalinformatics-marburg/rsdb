@@ -1,6 +1,9 @@
 RemoteSensing_public <- list( #      *********** public *********************************
 
   initialize = function(url, userpwd=NULL, ssl_verifypeer=TRUE) {
+    if(is.null(userpwd)) {
+      userpwd <- "user:password"
+    }
     splitIndex <- regexpr(":", userpwd)
     if(splitIndex <= 0) {
       stop("parameter 'userpwd' is not of format: USER:PASSWORD")

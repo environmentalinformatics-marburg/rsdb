@@ -35,8 +35,8 @@ function init() {
 
 			subsetMethods: ["POI", "ROI"],
 			subsetMethodTexts: ["Point Surroundings", "Polygon"],
-			subsetMethod: "POI",
-			showAllGroups: false,
+			subsetMethod: "ROI",
+			showAllGroups: true,
 
 			poiGroupsMessage: "init POI groups...",
 			poiGroups: [],

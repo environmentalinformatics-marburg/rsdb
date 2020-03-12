@@ -32,7 +32,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 		if(target.isEmpty()) {
 			handleRoot(request, response);
 		} else {
-			log.info("target [" + target + "]");
+			//log.info("target [" + target + "]");
 			String idText = target;
 			String subTarget = "";
 			int idEndIndex = target.indexOf('/');
@@ -140,7 +140,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 	}
 
 	private void handleId(long id, String target, Request request, Response response) throws IOException {
-		log.info(id + "   "+ target);
+		//log.info(id + "   "+ target);
 		if(target.isEmpty()) {
 			handleIdRoot(id, request, response);
 		} else {

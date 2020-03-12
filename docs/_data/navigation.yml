@@ -16,7 +16,12 @@ docs:
       - title: "R Package Installation"
         url: /docs/r_package_installation/   
       - title: "WMS"
-        url: /docs/wms/          
+        url: /docs/wms/
+  - title: Data Insertion
+    url: /docs/data_insertion/
+    children:
+      - title: "raster data"
+        url: /docs/raster_data_insertion/    
   - title: Administration
     url: /docs/administration/
     children:

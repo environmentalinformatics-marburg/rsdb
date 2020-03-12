@@ -14,3 +14,5 @@ remotes::install_github("environmentalinformatics-marburg/rsdb/rPointDB")
 library(rPointDB)
 ??rPointDB
 ```
+
+The obsolete rPointDB R-package connects to a running RSDB server.
