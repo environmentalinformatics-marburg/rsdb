@@ -20,6 +20,7 @@ import java.util.TreeMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.UserIdentity;
+import org.locationtech.proj4j.CRSFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Associated;
@@ -63,6 +64,8 @@ public class RasterDB implements AutoCloseable {
 
 	private final Path path;
 	private String storageType = "RasterUnit";
+
+	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
 	public RasterDB(RasterdbConfig config) {
 		this.config = config;
@@ -254,7 +257,7 @@ public class RasterDB implements AutoCloseable {
 		bandMap.put(band.index, band);
 		writeMeta();
 	}
-	
+
 	public Band removeBand(int band_number) {
 		Band removedBand = bandMap.remove(band_number);
 		writeMeta();
@@ -312,31 +315,47 @@ public class RasterDB implements AutoCloseable {
 		log.info(ref + "   " + GeoReference.code_wms_transposed.contains(code));
 		writeMeta();
 	}
-	
+
 	public void setAssociatedPointDB(String pointdb) {
 		associated.setPointDB(pointdb);
 		writeMeta();
 	}
-	
+
 	public void setAssociatedPointCloud(String pointcloud) {
 		associated.setPointCloud(pointcloud);
 		writeMeta();
 	}
-	
+
 	public void setAssociatedPoiGroups(List<String> poi_groups) {
 		associated.setPoi_groups(poi_groups);
 		writeMeta();
 	}
-	
+
 	public void setAssociatedRoiGroups(List<String> roi_groups) {
 		associated.setRoi_groups(roi_groups);
 		writeMeta();
 	}
 
 	public void setProj4(String proj4) {
+		log.info("setProj4 " + proj4);
 		ref = ref.withProj4(proj4);
 		log.info(ref);
 		writeMeta();
+		if(!ref.has_code() && ref.has_proj4()) {
+			try {
+				log.info("try get EPSG from PROJ4 '" + ref.proj4 + "'");
+				String epsg = CRS_FACTORY.readEpsgFromParameters(ref.proj4);
+				if(epsg != null) {
+					String c = "EPSG:" + epsg;
+					log.info("EPSG from PROJ4 '" + ref.proj4 + "' -> " + c);
+					setCode(c);
+				} else {
+					log.info("EPSG from PROJ4 not found '" + ref.proj4 + "' -> ");
+				}
+			} catch(Exception e) {
+				log.warn(e);
+			}
+		}
 	}
 
 	public GeoReference ref() {
@@ -484,6 +503,6 @@ public class RasterDB implements AutoCloseable {
 		default:
 			throw new RuntimeException("unknown storage_type");
 		}	
-		
+
 	}
 }

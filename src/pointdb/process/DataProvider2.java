@@ -209,7 +209,7 @@ public class DataProvider2 {
 			sortedRegionHeightPoints = zs;
 			//log.info("sorted");
 			if(zs.size() > 0) {
-				log.info("get_sortedRegionHeightPoints " + zs.size() + "  min " + zs.get(0) + "  max " + zs.get(zs.size()-1));
+				//log.info("get_sortedRegionHeightPoints " + zs.size() + "  min " + zs.get(0) + "  max " + zs.get(zs.size()-1));
 			}
 		}
 		return sortedRegionHeightPoints;

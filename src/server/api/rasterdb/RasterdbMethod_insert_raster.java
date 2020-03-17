@@ -35,6 +35,10 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 		request.setHandled(true);
 		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
 		try {
+
+			boolean flush = true;
+			boolean rebuild_pyramid = true;
+
 			String[] extText = (request.getParameter("ext").split(" "));
 			log.info("ext "+Arrays.toString(extText));
 
@@ -90,7 +94,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 			if(pos != raw_size) {
 				throw new RuntimeException("not all bytes read "+pos+"  of  "+raw_size);
 			}
-			
+
 			int t = 0;
 			String timestampText = request.getParameter("timestamp");
 			if(timestampText != null) {
@@ -100,23 +104,29 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 					throw new RuntimeException("could not parse timestamp: "+timestampText);
 				}
 			}
-			
-			
+
+
 			String flip_y = request.getParameter("flip_y") == null ? "FALSE" : request.getParameter("flip_y");
 			boolean flipY = flip_y.trim().toUpperCase().equals("TRUE");
 			short[][] pixels = flipY ? Serialisation.byteToShortArrayArrayFlipY(raw, width, height) : Serialisation.byteToShortArrayArray(raw, width, height);
 			int pixelXmin = rasterdb.ref().geoXToPixel(geoxmin);
 			int pixelYmin = rasterdb.ref().geoYToPixel(geoymin);
-			
-			
+
+
 			int bandIndex = Integer.parseInt(request.getParameter("band"));
 			Band band = rasterdb.bandMap.get(bandIndex);
 			if(band == null) {
-				band = Band.of(TilePixel.TYPE_SHORT, bandIndex, null, null);
+				String band_title = request.getParameter("band_title"); // nullable
+				band = Band.of(TilePixel.TYPE_SHORT, bandIndex, band_title, null);
 				rasterdb.setBand(band);
 			}			
 			ProcessingShort.writeMerge(rasterUnit, t, band, pixels, pixelYmin, pixelXmin);
-			rasterUnit.commit();
+			if(rebuild_pyramid) {
+				rasterdb.rebuildPyramid();
+			}
+			if(flush) {
+				rasterdb.flush();
+			}			
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentType(MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());

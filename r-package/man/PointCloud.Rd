@@ -3,7 +3,9 @@
 \name{PointCloud}
 \alias{PointCloud}
 \title{PointCloud class}
-\format{PointCloud \link{R6Class} object.}
+\format{
+PointCloud \link{R6Class} object.
+}
 \usage{
 # connect to remote sensing database
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
@@ -248,6 +250,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -256,6 +259,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-points"></a>}}
+\if{latex}{\out{\hypertarget{method-points}{}}}
 \subsection{Method \code{points()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(ext, columns = NULL, filter = NULL)}\if{html}{\out{</div>}}
@@ -264,6 +268,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-raster"></a>}}
+\if{latex}{\out{\hypertarget{method-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$raster(ext, res = 1, type = "point_count", fill = 10)}\if{html}{\out{</div>}}
@@ -272,6 +277,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-volume"></a>}}
+\if{latex}{\out{\hypertarget{method-volume}{}}}
 \subsection{Method \code{volume()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$volume(ext, res = 1, zres = res)}\if{html}{\out{</div>}}
@@ -280,6 +286,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-indices"></a>}}
+\if{latex}{\out{\hypertarget{method-indices}{}}}
 \subsection{Method \code{indices()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$indices(areas, functions, omit_empty_areas = TRUE)}\if{html}{\out{</div>}}

@@ -3,13 +3,15 @@
 \name{RasterDB}
 \alias{RasterDB}
 \title{RasterDB class}
-\format{RasterDB \link{R6Class} object.}
+\format{
+RasterDB \link{R6Class} object.
+}
 \usage{
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 rasterdb <- remotesensing$rasterdb(name)
 
 raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL)
-rasterdb$insert_RasterLayer(r, band=1, timestamp=0)
+rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)
 rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0)
 rasterdb$rebuild_pyramid()
 
@@ -53,11 +55,25 @@ product: character vector of requested product specification. See section produc
 
 returns: RasterLayer or RasterStack}
 
-\item{$insert_RasterLayer(r, band=1, timestamp=0)}{Insert raster data into RasterDB.
+\item{$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)}{Insert raster data from RasterLayerinto RasterDB.
+
+If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
+
+band: (optional) integer band number, creates band if it does not exist
+
+band_title: (optional) title of band, only applied for newly created band
+
+timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
 
 returns: success message}
 
-\item{$insert_RasterStack(r, bands=NULL, timestamp=0)}{Insert raster data into RasterDB.
+\item{$insert_RasterStack(r, bands=NULL, timestamp=0)}{Insert raster data from RasterStack into RasterDB.
+
+If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
+
+band: (optional) vector or single number of inserted band numbers, creates bands if some do not exist
+
+timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
 
 returns: success message}
 
@@ -234,6 +250,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -242,6 +259,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-raster"></a>}}
+\if{latex}{\out{\hypertarget{method-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$raster(ext, band = NULL, timestamp = NULL, product = NULL)}\if{html}{\out{</div>}}
@@ -250,14 +268,16 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-insert_RasterLayer"></a>}}
+\if{latex}{\out{\hypertarget{method-insert_RasterLayer}{}}}
 \subsection{Method \code{insert_RasterLayer()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterLayer(r, band = 1, timestamp = 0)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterLayer(r, band = 1, timestamp = 0, band_title = NULL)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-insert_RasterStack"></a>}}
+\if{latex}{\out{\hypertarget{method-insert_RasterStack}{}}}
 \subsection{Method \code{insert_RasterStack()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterStack(r, bands = NULL, timestamp = 0)}\if{html}{\out{</div>}}
@@ -266,6 +286,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-rebuild_pyramid"></a>}}
+\if{latex}{\out{\hypertarget{method-rebuild_pyramid}{}}}
 \subsection{Method \code{rebuild_pyramid()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$rebuild_pyramid()}\if{html}{\out{</div>}}

@@ -2,7 +2,7 @@ RasterDB_public <- list( #      *********** public *****************************
 
   initialize = function(base_url, name, curlHandle, rsdbConnector) {
     private$rsdbConnector <- rsdbConnector
-    
+
     private$base_url <- base_url
     private$name_ <- name
     private$curlHandle <- curlHandle
@@ -35,16 +35,17 @@ RasterDB_public <- list( #      *********** public *****************************
     return(rdat)
   },
 
-  insert_RasterLayer = function(r, band=1, timestamp=0) {
+  insert_RasterLayer = function(r, band=1, timestamp=0, band_title=NULL) {
     stopifnot(is(r, "RasterLayer"))
     ext <- r@extent
     extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
     #param_list <- c(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE)
     data <- r@data@values
-    raw <- writeBin(object=data, con=raw(0), size=2, endian="little")
+    out_data <- as.integer(data)
+    raw <- writeBin(object=out_data, con=raw(0), size=2, endian="little")
     #result <- post_raw_get_json(raw=raw, api_url=private$url, method="insert_raster", param_list=param_list, curl=RCurl::dupCurlHandle(private$curlHandle)) #raw not send if with curlHandle
     path <- paste0("/rasterdb/", private$name_, "/insert_raster")
-    query <- list(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE)
+    query <- list(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE, band_title=band_title)
     result <- private$rsdbConnector$POST_raw(path, query, raw)
     return(result)
   },
@@ -117,7 +118,7 @@ RasterDB_private <- list( #      *********** private ***************************
   curlHandle = NULL,
   url = NULL,
   meta = NULL,
-  rsdbConnector = NULL  
+  rsdbConnector = NULL
 
 ) #***********************************************************************************
 
@@ -135,7 +136,7 @@ RasterDB_private <- list( #      *********** private ***************************
 #' rasterdb <- remotesensing$rasterdb(name)
 #'
 #' raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL)
-#' rasterdb$insert_RasterLayer(r, band=1, timestamp=0)
+#' rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)
 #' rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0)
 #' rasterdb$rebuild_pyramid()
 #'
@@ -178,11 +179,25 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #' returns: RasterLayer or RasterStack}
 #'
-#' \item{$insert_RasterLayer(r, band=1, timestamp=0)}{Insert raster data into RasterDB.
+#' \item{$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)}{Insert raster data from RasterLayerinto RasterDB.
+#'
+#' If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
+#'
+#' band: (optional) integer band number, creates band if it does not exist
+#'
+#' band_title: (optional) title of band, only applied for newly created band
+#'
+#' timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
 #'
 #' returns: success message}
 #'
-#' \item{$insert_RasterStack(r, bands=NULL, timestamp=0)}{Insert raster data into RasterDB.
+#' \item{$insert_RasterStack(r, bands=NULL, timestamp=0)}{Insert raster data from RasterStack into RasterDB.
+#'
+#' If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
+#'
+#' band: (optional) vector or single number of inserted band numbers, creates bands if some do not exist
+#'
+#' timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
 #'
 #' returns: success message}
 #'

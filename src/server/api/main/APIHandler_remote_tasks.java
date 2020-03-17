@@ -44,7 +44,11 @@ public class APIHandler_remote_tasks extends APIHandler {
 				case "log": {
 					handleLog(id, request, response);
 					return;
-				}					
+				}
+				case "cancel": {
+					handleIdCancel(id, request, response);
+					return;
+				}
 				default:
 					throw new RuntimeException("unknown target: " + subTarget);
 				}
@@ -68,7 +72,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.endObject();
 			res.endObject();
 		}
-		
+
 		response.setContentType("text/plain");	
 		PrintWriter out = response.getWriter();
 		for(String line:remoteTask.getLog()) {
@@ -146,7 +150,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 		} else {
 			switch(request.getMethod()) {
 			case "POST":
-				handleIdCancel(id, request, response);
+				handleIdCancel(id, request, response); //TODO check if remove
 				break;
 			default:
 				throw new RuntimeException("invalid HTTP method: " + request.getMethod());

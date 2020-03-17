@@ -3,7 +3,9 @@
 \name{VectorDB}
 \alias{VectorDB}
 \title{VectorDB class}
-\format{VectorDB \link{R6Class} object.}
+\format{
+VectorDB \link{R6Class} object.
+}
 \usage{
 # connect to remote sensing database
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
@@ -104,6 +106,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VectorDB$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -112,6 +115,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-getVectors"></a>}}
+\if{latex}{\out{\hypertarget{method-getVectors}{}}}
 \subsection{Method \code{getVectors()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VectorDB$getVectors(epsg = NULL)}\if{html}{\out{</div>}}
@@ -120,6 +124,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-getVectorsWGS84"></a>}}
+\if{latex}{\out{\hypertarget{method-getVectorsWGS84}{}}}
 \subsection{Method \code{getVectorsWGS84()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VectorDB$getVectorsWGS84()}\if{html}{\out{</div>}}

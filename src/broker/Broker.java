@@ -399,6 +399,7 @@ public class Broker implements AutoCloseable {
 
 	public synchronized RasterDB createOrGetRasterdb(String name, boolean transaction, String storage_type) {
 		Util.checkStrictID(name);
+		log.info("createOrGetRasterdb with storage_type " + storage_type);
 		RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(rasterdb_root.resolve(name), storage_type);
 		if(!transaction) {
 			rasterdbConfig.set_fast_unsafe_import(true);

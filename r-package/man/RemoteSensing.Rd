@@ -4,7 +4,8 @@
 \name{RemoteSensing}
 \alias{RemoteSensing}
 \title{RemoteSensing class}
-\format{RemoteSensing \code{\link{R6Class}} object.
+\format{
+RemoteSensing \code{\link{R6Class}} object.
 
 Instance objects of R6Class are created by 'new':
 
@@ -12,13 +13,14 @@ Instance objects of R6Class are created by 'new':
 
 Methods of instance objects are called by '$':
 
-\code{result <- remotesensing$method(parameters)}}
+\code{result <- remotesensing$method(parameters)}
+}
 \usage{
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 
 remotesensing$rasterdbs
 remotesensing$rasterdb(name)
-remotesensing$create_rasterdb(name)
+remotesensing$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL)
 
 remotesensing$pointclouds
 remotesensing$pointcloud(name)
@@ -63,7 +65,15 @@ returns: RemoteSensing object}
 
 \item{$rasterdb(name)}{get RasterDB by name.}
 
-\item{$create_rasterdb(name)}{creates new empty RasterDB.
+\item{$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL)}{creates new empty RasterDB.
+
+name: name of RasterDB layer
+
+proj4: (optional) CRS as PROJ4
+
+resolution: (optional) one number or vector of two numbers of pixel size in projection units, e.g. 0.5 -> xres=0.5, yres=0.5  or e.g. c(10, 5) -> xres=10, yres=5
+
+storage_type: (optional) storage_type RasterUnit (default) or TileStorage
 
 returns: success message}
 
@@ -226,6 +236,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$new(url, userpwd = NULL, ssl_verifypeer = TRUE)}\if{html}{\out{</div>}}
@@ -234,6 +245,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-lidar"></a>}}
+\if{latex}{\out{\hypertarget{method-lidar}{}}}
 \subsection{Method \code{lidar()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$lidar(layer)}\if{html}{\out{</div>}}
@@ -242,6 +254,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-pointdb"></a>}}
+\if{latex}{\out{\hypertarget{method-pointdb}{}}}
 \subsection{Method \code{pointdb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$pointdb(name)}\if{html}{\out{</div>}}
@@ -250,6 +263,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-rasterdb"></a>}}
+\if{latex}{\out{\hypertarget{method-rasterdb}{}}}
 \subsection{Method \code{rasterdb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$rasterdb(name)}\if{html}{\out{</div>}}
@@ -258,6 +272,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-lidar_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-lidar_layers}{}}}
 \subsection{Method \code{lidar_layers()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$lidar_layers()}\if{html}{\out{</div>}}
@@ -266,6 +281,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-web"></a>}}
+\if{latex}{\out{\hypertarget{method-web}{}}}
 \subsection{Method \code{web()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$web()}\if{html}{\out{</div>}}
@@ -274,6 +290,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-poi_group"></a>}}
+\if{latex}{\out{\hypertarget{method-poi_group}{}}}
 \subsection{Method \code{poi_group()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$poi_group(group_name)}\if{html}{\out{</div>}}
@@ -282,6 +299,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-poi"></a>}}
+\if{latex}{\out{\hypertarget{method-poi}{}}}
 \subsection{Method \code{poi()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$poi(group_name, poi_name)}\if{html}{\out{</div>}}
@@ -290,6 +308,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-roi_group"></a>}}
+\if{latex}{\out{\hypertarget{method-roi_group}{}}}
 \subsection{Method \code{roi_group()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$roi_group(group_name)}\if{html}{\out{</div>}}
@@ -298,6 +317,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-roi"></a>}}
+\if{latex}{\out{\hypertarget{method-roi}{}}}
 \subsection{Method \code{roi()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$roi(group_name, roi_name)}\if{html}{\out{</div>}}
@@ -306,14 +326,21 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-create_rasterdb"></a>}}
+\if{latex}{\out{\hypertarget{method-create_rasterdb}{}}}
 \subsection{Method \code{create_rasterdb()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$create_rasterdb(name)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$create_rasterdb(
+  name,
+  proj4 = NULL,
+  resolution = NULL,
+  storage_type = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-pointcloud"></a>}}
+\if{latex}{\out{\hypertarget{method-pointcloud}{}}}
 \subsection{Method \code{pointcloud()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$pointcloud(name)}\if{html}{\out{</div>}}
@@ -322,6 +349,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-vectordb"></a>}}
+\if{latex}{\out{\hypertarget{method-vectordb}{}}}
 \subsection{Method \code{vectordb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$vectordb(name)}\if{html}{\out{</div>}}

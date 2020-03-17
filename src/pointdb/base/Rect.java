@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 
+import pointcloud.DoubleRect;
 import util.Web;
 
 /**
@@ -263,5 +264,9 @@ public class Rect {
 				consumer.accept(xtile, ytile, rect);
 			}
 		}
+	}
+
+	public DoubleRect toDoubleRect() {
+		return new DoubleRect(getUTMd_min_x(), getUTMd_min_y(), getUTMd_max_x(), getUTMd_max_y());
 	}
 }

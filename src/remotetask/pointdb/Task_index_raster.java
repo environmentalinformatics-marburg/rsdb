@@ -14,7 +14,7 @@ import remotetask.Param;
 @Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)", example="pointdb1")
 @Param(name="rasterdb", type="rasterdb", desc="existing ID of RasterDB layer (target)", example="rasterdb1")
 @Param(name="indices", type="string_array", desc="list of indices", example="BE_H_MAX, LAI, point_density")
-@Param(name="rect", type="number_rect", desc="extent to process", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000, 5530100, 609094, 609200")
+@Param(name="rect", type="number_rect", desc="extent to process", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
 @Param(name="mask_band",  type="integer", desc="band number of mask in RasterDB layer, no mask if left empty", example="1", required=false)
 public class Task_index_raster extends Abstract_task_index_raster {
 	private static final Logger log = LogManager.getLogger();

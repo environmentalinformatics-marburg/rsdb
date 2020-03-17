@@ -209,7 +209,18 @@ public class JWSAuthentication extends AbstractHandler {
 					.setPayload(req)
 					.setHeaderParam(JwsHeader.KEY_ID, jwsConfig.client_key_id)
 					.signWith(stringToPrivateKey(jwsConfig.client_private_key))
-					.compact();					
+					.compact();			
+			
+			/*String testReq = "http://example.com";
+			String clientTextJws = Jwts.builder()
+					.setPayload(testReq)
+					.setHeaderParam(JwsHeader.KEY_ID, jwsConfig.client_key_id)
+					.signWith(stringToPrivateKey(jwsConfig.client_private_key))
+					.compact();			
+			System.out.println("++clientTextJws++");
+			System.out.println(clientTextJws);
+			System.out.println("--clientTextJws--");*/			
+			
 			String redirect_target = jwsConfig.provider_url + "?jws="+clientJws;
 
 			HashMap<String, Object> map = new HashMap<String, Object>();

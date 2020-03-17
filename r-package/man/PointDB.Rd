@@ -3,7 +3,9 @@
 \name{PointDB}
 \alias{PointDB}
 \title{PointDB class}
-\format{RasterDB \link{R6Class} object.}
+\format{
+RasterDB \link{R6Class} object.
+}
 \usage{
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 pointdb <- remotesensing$pointdb(name)
@@ -381,6 +383,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$new(url, db, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -389,6 +392,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-process"></a>}}
+\if{latex}{\out{\hypertarget{method-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$process(areas, functions)}\if{html}{\out{</div>}}
@@ -397,6 +401,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-query"></a>}}
+\if{latex}{\out{\hypertarget{method-query}{}}}
 \subsection{Method \code{query()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$query(ext, filter = NULL, columns = NULL, normalise = NULL)}\if{html}{\out{</div>}}
@@ -405,6 +410,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-query_polygon"></a>}}
+\if{latex}{\out{\hypertarget{method-query_polygon}{}}}
 \subsection{Method \code{query_polygon()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$query_polygon(polygon, filter = NULL, columns = NULL, normalise = NULL)}\if{html}{\out{</div>}}
@@ -413,6 +419,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-query_raster"></a>}}
+\if{latex}{\out{\hypertarget{method-query_raster}{}}}
 \subsection{Method \code{query_raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$query_raster(ext, type)}\if{html}{\out{</div>}}

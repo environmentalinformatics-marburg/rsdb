@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
+import pointcloud.DoubleRect;
 import pointdb.base.PdbConst;
 import pointdb.base.Rect;
 import pointdb.process.Functions;
@@ -19,6 +20,7 @@ import rasterdb.TimeBandProcessor;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
+import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.RemoteTask;
 import util.BlokingTaskSubmitter;
@@ -26,7 +28,7 @@ import util.Range2d;
 import util.Timer;
 import util.frame.BooleanFrame;
 
-public abstract class Abstract_task_index_raster extends RemoteTask {
+public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
@@ -59,12 +61,24 @@ public abstract class Abstract_task_index_raster extends RemoteTask {
 			bands[i] = rasterdb.createBand(TilePixel.TYPE_FLOAT, index_text, null);
 		}
 
+		DoubleRect pointcloudExtent = dpFactory.getExtent();
+		double xmin = pointcloudExtent.xmin;
+		double ymin = pointcloudExtent.ymin;
+		double xmax = pointcloudExtent.xmax;
+		double ymax = pointcloudExtent.ymax;
+		
+		JSONArray rect_Text = task.optJSONArray("rect");
+		if(rect_Text != null) {
+			double rect_xmin = rect_Text.getDouble(0);
+			double rect_ymin = rect_Text.getDouble(1);
+			double rect_xmax = rect_Text.getDouble(2);
+			double rect_ymax = rect_Text.getDouble(3);
+			if(xmin < rect_xmin) xmin = rect_xmin;
+			if(ymin < rect_ymin) ymin = rect_ymin;
+			if(xmax > rect_xmax) xmax = rect_xmax;
+			if(ymax > rect_ymax) ymax = rect_ymax;
+		}
 
-		JSONArray rect_Text = task.getJSONArray("rect");
-		double xmin = rect_Text.getDouble(0);
-		double ymin = rect_Text.getDouble(1);
-		double xmax = rect_Text.getDouble(2);
-		double ymax = rect_Text.getDouble(3);
 
 		log.info("query rect "+xmin+" "+ymin+" "+xmax+" "+ymax);
 
@@ -73,6 +87,14 @@ public abstract class Abstract_task_index_raster extends RemoteTask {
 		int raster_ymin = ref.geoYToPixel(ymin);
 		int raster_xmax = ref.geoXToPixel(xmax);
 		int raster_ymax = ref.geoYToPixel(ymax);
+		
+		if(maskBand != null) {
+			Range2d localRange = rasterdb.getLocalRange(true);
+			if(raster_xmin < localRange.xmin) raster_xmin = localRange.xmin;
+			if(raster_ymin < localRange.ymin) raster_ymin = localRange.ymin;
+			if(raster_xmax > localRange.xmax) raster_xmax = localRange.xmax;
+			if(raster_ymax > localRange.ymax) raster_ymax = localRange.ymax;
+		}
 
 		log.info("raster rect "+raster_xmin+" "+raster_ymin+" "+raster_xmax+" "+raster_ymax);
 
@@ -82,6 +104,10 @@ public abstract class Abstract_task_index_raster extends RemoteTask {
 		} else {
 			log.info("use NO mask band");	
 		}
+		
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
+		}
 		long processed_pixel = process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmax, raster_ymax, bands, indices, maskBand);		
 		Timer timer = Timer.stop("index_raster processing");
 		long xsize = raster_xmax - raster_xmin + 1;
@@ -89,9 +115,12 @@ public abstract class Abstract_task_index_raster extends RemoteTask {
 		long pixel = xsize * ysize;
 		log.info(timer+"   size " + xsize + " x " + ysize+":  " + processed_pixel + " pixel  of rect pixel " + pixel + "  " +  (((double)(timer.end - timer.begin))/(processed_pixel)) + " ms / pixel");
 
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
+		}
 		rasterdb.rebuildPyramid();
 	}
-	
+
 	private static long MAX_RASTER_BYTES = 268_435_456;
 
 	public long process_rect(DataProvider2Factory dpFactory, RasterDB rasterdb, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, Band maskBand) throws IOException {
@@ -158,6 +187,9 @@ public abstract class Abstract_task_index_raster extends RemoteTask {
 					long pymax = PdbConst.to_utmm(ygeo1) - 1;
 					Rect pRect = Rect.of_UTMM(pxmin, pymin, pxmax, pymax);
 					IndexRasterizerPixelTask pixeltask = new IndexRasterizerPixelTask(blokingTaskSubmitter, dpFactory, pRect, indices, pixels, x, y);
+					if(isCanceled()) {
+						throw new RuntimeException("canceled");
+					}
 					blokingTaskSubmitter.submit(pixeltask);
 					processed_pixel++;
 				}
@@ -169,6 +201,9 @@ public abstract class Abstract_task_index_raster extends RemoteTask {
 		Timer timer = Timer.stop("index_raster part processing");
 		log.info(timer+"   size " + width + " x " + height+":  " + processed_pixel + " pixel  of rect pixel " + (width*height) + "  " +  (((double)(timer.end - timer.begin))/(processed_pixel)) + " ms / pixel");
 
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
+		}
 		log.info("raster write "+raster_xmin + " " + raster_ymin + "      " + ref.pixelXToGeo(raster_xmin) + " " + ref.pixelYToGeo(raster_ymin)  );
 		for (int i = 0; i < indices_len; i++) {
 			ProcessingFloat.writeMerge(rasterUnitStorage, 0, bands[i], pixels[i], raster_ymin, raster_xmin);

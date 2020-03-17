@@ -98,9 +98,20 @@ RemoteSensing_public <- list( #      *********** public ************************
     return(p)
   },
 
-  create_rasterdb = function(name) {
+  create_rasterdb = function(name, proj4=NULL, resolution=NULL, storage_type=NULL) {
+    xres <- NULL
+    yres <- NULL
+    if(!is.null(resolution)) {
+      if(length(resolution) == 1) {
+        xres <- resolution[1]
+        yres <- resolution[1]
+      } else if(length(resolution) == 2) {
+        xres <- resolution[1]
+        yres <- resolution[2]
+      } else stop("invalid parameter argument for resolution")
+    }
     #result <- query_json(paste0(private$base_url, "/api"), "create_raster", c(name=name), curlHandle=private$curlHandle)
-    result <- private$rsdbConnector$GET("/api/create_raster", list(name=name))
+    result <- private$rsdbConnector$GET("/api/create_raster", list(name=name, proj4=proj4, xres=xres, yres=yres, storage_type=storage_type))
     return(result)
   },
 
@@ -189,7 +200,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 #'
 #' remotesensing$rasterdbs
 #' remotesensing$rasterdb(name)
-#' remotesensing$create_rasterdb(name)
+#' remotesensing$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL)
 #'
 #' remotesensing$pointclouds
 #' remotesensing$pointcloud(name)
@@ -226,7 +237,15 @@ RemoteSensing_private <- list( #      *********** private **********************
 #'
 #' \item{$rasterdb(name)}{get RasterDB by name.}
 #'
-#' \item{$create_rasterdb(name)}{creates new empty RasterDB.
+#' \item{$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL)}{creates new empty RasterDB.
+#'
+#' name: name of RasterDB layer
+#'
+#' proj4: (optional) CRS as PROJ4
+#'
+#' resolution: (optional) one number or vector of two numbers of pixel size in projection units, e.g. 0.5 -> xres=0.5, yres=0.5  or e.g. c(10, 5) -> xres=10, yres=5
+#'
+#' storage_type: (optional) storage_type RasterUnit (default) or TileStorage
 #'
 #' returns: success message}
 #'

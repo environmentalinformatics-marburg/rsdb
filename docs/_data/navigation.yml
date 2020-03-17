@@ -17,20 +17,39 @@ docs:
         url: /docs/r_package_installation/   
       - title: "WMS"
         url: /docs/wms/
-  - title: Data Insertion
-    url: /docs/data_insertion/
+  - title: Layers
+    url: /docs/layers/
     children:
-      - title: "raster data"
-        url: /docs/raster_data_insertion/    
+      - title: "RasterDB"
+        url: /docs/layers_rasterdb/
+      - title: "PointDB"
+        url: /docs/layers_pointdb/ 
+      - title: "PointCloud"
+        url: /docs/layers_pointcloud/ 
+      - title: "VectorDB"
+        url: /docs/layers_vectordb/ 
+      - title: "POI-group"
+        url: /docs/layers_poi_group/ 
+      - title: "ROI-group"
+        url: /docs/layers_roi_group/         
+  - title: "Tasks"
+    url: /docs/tasks/
+    children:
+      - title: "RasterDB"
+        url: /docs/tasks_rasterdb/
+      - title: "PointDB"
+        url: /docs/tasks_pointdb/
+      - title: "PointCloud"
+        url: /docs/tasks_pointcloud/
+      - title: "VectorDB"
+        url: /docs/tasks_vectordb/         
   - title: Administration
     url: /docs/administration/
     children:
       - title: "Server Operation"
         url: /docs/server_operation/      
       - title: "Server Update"
-        url: /docs/server_update/            
-      - title: "Tasks"
-        url: /docs/tasks/                        
+        url: /docs/server_update/
   - title: Configuration
     url: /docs/configuration/  
     children:
@@ -49,4 +68,5 @@ docs:
         url: /docs/backend/
       - title: "Web Frontend"
         url: /docs/frontend/
-        
+      - title: "R Package"
+        url: /docs/r_package/   
