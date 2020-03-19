@@ -51,7 +51,6 @@ public class Task_rasterize extends RemoteTask {
 		}
 		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb);
 		rasterizer.run();
-		rasterdb.rebuildPyramid();
-		rasterdb.flush();
+		rasterdb.rebuildPyramid(true);
 	}
 }

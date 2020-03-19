@@ -81,7 +81,7 @@ public class Import_soda_OLD {
 		RasterDB rasterdb = broker.createOrGetRasterdb(layerName, false);
 		RasterDBimporter rasterdbimporter = new RasterDBimporter(rasterdb);
 		rasterdbimporter.importFile_GDAL(path, null, true, timestamp);
-		rasterdb.rebuildPyramid();
+		rasterdb.rebuildPyramid(true);
 		Builder informal = rasterdb.informal().toBuilder();
 		informal.setTags(namePrefix);
 		rasterdb.setInformal(informal.build());

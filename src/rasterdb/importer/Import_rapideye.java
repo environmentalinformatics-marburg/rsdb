@@ -75,7 +75,7 @@ public class Import_rapideye {
 		
 		importDirectoryInternal(root, root.getFileName().toString());
 		log.info(Timer.stop("import_rapideye "+root));
-		rasterdb.rebuildPyramid();
+		rasterdb.rebuildPyramid(true);
 	}
 	
 	private void importDirectoryInternal(Path root, String dataName) throws Exception {

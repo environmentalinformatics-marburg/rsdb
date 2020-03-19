@@ -122,9 +122,9 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 			}			
 			ProcessingShort.writeMerge(rasterUnit, t, band, pixels, pixelYmin, pixelXmin);
 			if(rebuild_pyramid) {
-				rasterdb.rebuildPyramid();
+				rasterdb.rebuildPyramid(true);
 			}
-			if(flush) {
+			if(flush && !rebuild_pyramid) {
 				rasterdb.flush();
 			}			
 			response.setStatus(HttpServletResponse.SC_OK);

@@ -25,7 +25,7 @@ read_RDAT_RASTER <- function(con) {
       r <- read_RDAT_RASTER_layer(con, type, type_size, len, nrows, ncols, meta)
       return(r);
     })
-    st <- stack(rasterList)
+    st <- raster::stack(rasterList)
     for (name in names(meta)) {
       if("name"!=name) {
         attr(st, name) <- meta[[name]]
@@ -47,9 +47,9 @@ read_RDAT_RASTER_layer <- function(con, type, type_size, len, nrows, ncols, meta
     }
   }
   r <- raster::raster(nrows=nrows, ncols=ncols, xmn=meta$xmn, ymn=meta$ymn, xmx=meta$xmx, ymx=meta$ymx, crs=meta$proj4)
-  values(r) <- data
+  raster::values(r) <- data
   if((is.null(layerMeta$flipped) || layerMeta$flipped != 1)) {
-    r <- flip(r, direction='y') # mirror raster  !! flip removes attributes !!
+    r <- raster::flip(r, direction='y') # mirror raster  !! flip removes attributes !!
   }
   for (name in names(meta)) {
     if("name"!=name) {

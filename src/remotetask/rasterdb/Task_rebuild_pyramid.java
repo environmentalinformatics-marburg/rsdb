@@ -32,7 +32,7 @@ public class Task_rebuild_pyramid extends RemoteTask {
 
 	@Override
 	public void process() throws IOException {
-		rasterdb.rebuildPyramid();		
+		rasterdb.rebuildPyramid(true);		
 	}
 
 }

@@ -67,7 +67,7 @@ public class Rebuild {
 			for(Band band:src.bandMap.values()) {
 				dst.setBand(band);
 			}
-			dst.rebuildPyramid();
+			dst.rebuildPyramid(true);
 		}
 	}
 

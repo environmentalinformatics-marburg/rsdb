@@ -105,7 +105,7 @@ public class ImportRemoteTask extends RemoteTask {
 
 		if(update_pyramid) {
 			setMessage("rebuild pyramid");
-			rasterdb.rebuildPyramid();
+			rasterdb.rebuildPyramid(true);
 		}
 
 		if(update_catalog) {

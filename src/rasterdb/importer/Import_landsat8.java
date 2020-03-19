@@ -193,8 +193,8 @@ public class Import_landsat8 {
 		}
 
 		log.info(Timer.stop("import_landsat8"+root));
-		rasterdb_30m.rebuildPyramid();
-		rasterdb_15m.rebuildPyramid();
+		rasterdb_30m.rebuildPyramid(true);
+		rasterdb_15m.rebuildPyramid(true);
 	}
 
 }

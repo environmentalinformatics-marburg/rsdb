@@ -27,7 +27,7 @@ public class Import_modis {
 		Timer.start("import_modis "+root);		
 		importDirectoryInternal(root, root.getFileName().toString());
 		log.info(Timer.stop("import_modis "+root));
-		rasterdb.rebuildPyramid();
+		rasterdb.rebuildPyramid(true);
 	}
 	
 	private void importDirectoryInternal(Path root, String dataName) throws Exception {

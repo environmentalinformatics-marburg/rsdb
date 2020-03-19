@@ -128,7 +128,7 @@ public class RasterDB implements AutoCloseable {
 		writeMeta();
 	}
 
-	public void rebuildPyramid() throws IOException {
+	public void rebuildPyramid(boolean flush) throws IOException {
 		getLocalRange(true);
 		log.info("build map 1:4");
 		long c1 = Processing.writeRasterUnitDiv4(this, rasterUnit(), rasterPyr1Unit());
@@ -142,6 +142,9 @@ public class RasterDB implements AutoCloseable {
 		log.info("build map 1:256");
 		long c4 = Processing.writeRasterUnitDiv4(this, rasterPyr3Unit(), rasterPyr4Unit());
 		log.info("tiles written " + c4);
+		if(flush) {		
+			flush();
+		}
 	}
 
 	public synchronized void writeMeta() {

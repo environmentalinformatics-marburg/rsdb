@@ -554,7 +554,7 @@ public class Terminal {
 				} catch (Exception e) {
 					log.error(e);
 				}
-				rasterdb.rebuildPyramid();
+				rasterdb.rebuildPyramid(true);
 			} catch(Exception e){
 				e.printStackTrace();
 				log.error(e);
@@ -583,7 +583,7 @@ public class Terminal {
 				} catch (Exception e) {
 					log.error(e);
 				}
-				rasterdb.rebuildPyramid();
+				rasterdb.rebuildPyramid(true);
 			} catch(Exception e){
 				log.error(e);
 			}
@@ -597,7 +597,7 @@ public class Terminal {
 		if(args.length == 0) {
 			try(Broker broker = new Broker()) {
 				RasterDB rasterdb = broker.createOrGetRasterdb(rasterdbName);
-				rasterdb.rebuildPyramid();
+				rasterdb.rebuildPyramid(true);
 			} catch(Exception e){
 				log.error(e);
 			}
@@ -750,7 +750,7 @@ public class Terminal {
 				rasterizer.run(rasterizer.bandIntensity);
 				rasterizer.run(rasterizer.bandElevation);
 				rasterdb.flush();
-				rasterdb.rebuildPyramid();
+				rasterdb.rebuildPyramid(true);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log.error(e);
@@ -847,7 +847,7 @@ public class Terminal {
 				pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointdb, rasterdb);
 				rasterizer.run();
 				rasterdb.flush();
-				rasterdb.rebuildPyramid();
+				rasterdb.rebuildPyramid(true);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log.error(e);
@@ -912,7 +912,7 @@ public class Terminal {
 				ProcessingFun processingFun = new Fun_BE.Fun_BE_ELEV_MEAN();
 				rasterizer.process(processingFun);
 				rasterdb.flush();
-				rasterdb.rebuildPyramid();
+				rasterdb.rebuildPyramid(true);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log.error(e);
