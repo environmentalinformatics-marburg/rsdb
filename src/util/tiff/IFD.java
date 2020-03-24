@@ -91,7 +91,7 @@ public class IFD {
 		}
 		for(IFD_Entry e:list) {
 			e.writeIFD_entryBigTIFF(out, data_pos, image_data_pos);
-			log.info("bigTIFF write tag " + Util.hex(e.id) + "  " + e.getClass().getSimpleName());
+			//log.info("bigTIFF write tag " + Util.hex(e.id) + "  " + e.getClass().getSimpleName());
 			data_pos += e.data_sizeBigTIFF();
 			if(data_pos % 2 == 1) {
 				data_pos++;
@@ -101,7 +101,7 @@ public class IFD {
 		out.writeLong(0x00_00_00_00__00_00_00_00l); // end of IFDs marker
 		for(IFD_Entry e:list) {
 			e.write_dataBigTIFF(out);
-			log.info("bigTIFF write tag data " + Util.hex(e.id) + "  " + e.getClass().getSimpleName());
+			//log.info("bigTIFF write tag data " + Util.hex(e.id) + "  " + e.getClass().getSimpleName());
 			pos += e.data_sizeBigTIFF();
 			if(pos % 2 == 1) {
 				out.writeByte(0);

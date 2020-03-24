@@ -68,6 +68,7 @@ public class RasterdbHandler extends AbstractHandler {
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		baseRequest.setHandled(true);
+		log.info(MARKER_API, Web.getRequestLogString("API", target, baseRequest));
 		//log.info("RasterDB request " + target);
 		{
 			String currTarget = target.charAt(0) == '/' ? target.substring(1) : target;

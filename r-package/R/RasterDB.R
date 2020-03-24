@@ -94,7 +94,8 @@ RasterDB_active <- list( #      *********** active *****************************
   },
 
   extent = function() {
-    return(raster::extent(private$meta$ref$extent))
+    m <- private$meta$ref$extent
+    return(raster::extent(m[1], m[3], m[2], m[4]))
   },
 
   geo_code = function() {
