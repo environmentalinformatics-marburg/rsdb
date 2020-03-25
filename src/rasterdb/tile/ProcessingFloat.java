@@ -57,9 +57,9 @@ public class ProcessingFloat {
 	}
 
 	public static float[][] readPixelsDiv2(RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange) {
-		log.info("pixelRange " + pixelRange);
+		//log.info("pixelRange " + pixelRange);
 		float[][] pixels = readPixelsDiv2(pyramid_rasterUnit, t, band, pixelRange.ymin, pixelRange.ymax, pixelRange.xmin, pixelRange.xmax);
-		log.info("pixels " + pixels[0].length + "  " + pixels.length);
+		//log.info("pixels " + pixels[0].length + "  " + pixels.length);
 		return pixels;
 	}
 
@@ -69,18 +69,18 @@ public class ProcessingFloat {
 		int xmin = TilePixel.pixelToTile(pxmin); 
 		int xmax = TilePixel.pixelToTile(pxmax);
 		
-		log.info("req pixel " + "   pxmin " + pxmin + "   pymin " + pymin + "   pxmax " + pxmax + "   pymax " + pymax);
-		log.info("req div2 " + "   pxmin " + TilePixel.pixelToDiv2(pxmin)+ "   pymin " + TilePixel.pixelToDiv2(pymin) + "   pxmax " + TilePixel.pixelToDiv2(pxmax) + "   pymax " + TilePixel.pixelToDiv2(pymax));
-		log.info("tiles index " + "   xmin " + xmin + "   ymin " + ymin + "   xmax " + xmax + "   ymax " + ymax);
-		log.info("tiles pixel " + "   xmin " + TilePixel.tileToPixel(xmin) + "   ymin " + TilePixel.tileToPixel(ymin) + "   xmax " + TilePixel.tileToPixel(xmax) + "   ymax " + TilePixel.tileToPixel(ymax));
-		log.info("tiles div2 " + "   xmin " + TilePixel.tileDiv2ToPixel(xmin) + "   ymin " + TilePixel.tileDiv2ToPixel(ymin) + "   xmax " + TilePixel.tileDiv2ToPixel(xmax) + "   ymax " + TilePixel.tileDiv2ToPixel(ymax));
+		//log.info("req pixel " + "   pxmin " + pxmin + "   pymin " + pymin + "   pxmax " + pxmax + "   pymax " + pymax);
+		//log.info("req div2 " + "   pxmin " + TilePixel.pixelToDiv2(pxmin)+ "   pymin " + TilePixel.pixelToDiv2(pymin) + "   pxmax " + TilePixel.pixelToDiv2(pxmax) + "   pymax " + TilePixel.pixelToDiv2(pymax));
+		//log.info("tiles index " + "   xmin " + xmin + "   ymin " + ymin + "   xmax " + xmax + "   ymax " + ymax);
+		//log.info("tiles pixel " + "   xmin " + TilePixel.tileToPixel(xmin) + "   ymin " + TilePixel.tileToPixel(ymin) + "   xmax " + TilePixel.tileToPixel(xmax) + "   ymax " + TilePixel.tileToPixel(ymax));
+		//log.info("tiles div2 " + "   xmin " + TilePixel.tileDiv2ToPixel(xmin) + "   ymin " + TilePixel.tileDiv2ToPixel(ymin) + "   xmax " + TilePixel.tileDiv2ToPixel(xmax) + "   ymax " + TilePixel.tileDiv2ToPixel(ymax));
 		float[][] data = readTilesDiv2(pyramid_rasterUnit, t, band, ymin, ymax, xmin, xmax);
-		log.info("readTilesDiv2 " + data[0].length + "  " + data.length);
+		//log.info("readTilesDiv2 " + data[0].length + "  " + data.length);
 		int yloff = TilePixel.pixelToTileDiv2Offset(pymin);
 		int xloff = TilePixel.pixelToTileDiv2Offset(pxmin);
 		int yroff = TilePixel.tileDiv2ToPixel(ymax - ymin) + TilePixel.pixelToTileDiv2Offset(pymax);
 		int xroff = TilePixel.tileDiv2ToPixel(xmax - xmin) + TilePixel.pixelToTileDiv2Offset(pxmax);
-		log.info("offset " + "   xloff " + xloff + "   yloff " + yloff + "   xroff " + xroff + "   yroff " + yroff);
+		//log.info("offset " + "   xloff " + xloff + "   yloff " + yloff + "   xroff " + xroff + "   yroff " + yroff);
 		return copy(data, yloff, yroff, xloff, xroff);
 	}
 

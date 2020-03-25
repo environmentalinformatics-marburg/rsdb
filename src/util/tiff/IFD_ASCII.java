@@ -119,7 +119,7 @@ public class IFD_ASCII extends IFD_Entry { // 32 bit unsigned integer
 			out.writeByte(0x00); // nul byte
 		} else {
 			out.writeLong(data_pos); //--- data offset
-			log.info("bigTIFF " + Util.hex(id) + " ascii " + Util.hex(data_pos));
+			//log.info("bigTIFF " + Util.hex(id) + " ascii " + Util.hex(data_pos));
 		}
 	}
 
