@@ -136,9 +136,9 @@ Without a filter all points are returned.
  \item \strong{\code{"classification=n"}}
 
  returns all points that are classified n. Multiple classes are separated by _
- 
+
  example: filter="classification=1" returns alle point that are of class 1.
- 
+
  example: filter="classification=1_2_4" returns alle point that are of class 1 or 2 or 4.
 }
 

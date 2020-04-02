@@ -44,6 +44,8 @@ returns: RasterDB object}
 \item{$raster(ext, band=NULL, timestamp=NULL, product=NULL)}{Request raster data from opened RasterDB.
 If neither band nor product are specified all bands are returned. Either band or product can be specified.
 
+ext: object of class raster::extent or sf::st_bbox
+
 band: vector or single number of requested band numbers
 
 timestamp: request raster of time. If not specified newest data is returned.

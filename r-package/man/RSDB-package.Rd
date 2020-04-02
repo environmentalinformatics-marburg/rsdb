@@ -5,13 +5,13 @@
 \alias{RSDB-package}
 \title{RSDB}
 \description{
-RSDB (Remote Sensing Database) manages (hyperspectral) rasters and (LiDAR) point-clouds as well as auxiliary ROIs (regions of interest as named polygons) and POIs (points of interest as named points). Contained data can be queried, processed and analysed.
+RSDB (Remote Sensing Database) manages (hyperspectral) rasters and (LiDAR) point-clouds as well as auxiliary vector data, ROIs (regions of interest as named polygons) and POIs (points of interest as named points). Contained data can be queried, processed and analysed.
 This R package connects to an RSDB server running at local or remote computer.
 }
 \details{
 Central class is \code{\link{RemoteSensing}} that connects to remote sensing database.
-Methods of \code{\link{RemoteSensing}} provide access to raster (\code{\link{RasterDB}})
-and point-cloud (\code{\link{PointDB}}) units and meta data.
+Methods of \code{\link{RemoteSensing}} provide access to raster (\code{\link{RasterDB}}),
+to point clouds (\code{\link{PointCloud}}), (deprecated \code{\link{PointDB}}), to vector (\code{\link{VectorDB}}), to region of interest (ROI) and to poin of interest (POI) (at \code{\link{RemoteSensing}}) layers and meta data.
 }
 \examples{
 # load RSDB package
@@ -32,11 +32,14 @@ ls(pos="package:RSDB")
 #documentation of (hyperspectral) raster class RasterDB
 ?RSDB::RasterDB
 
-#documentation of (LiDAR) point-cloud class PointDB
-?RSDB::PointDB
-
 #documentation of (RGB) point-cloud class PointCloud
 ?RSDB::PointCloud
+
+#documentation of (LiDAR) point-cloud class PointDB (deprecated)
+?RSDB::PointDB
+
+#documentation of vector layer data class VectorDB
+?RSDB::VectorDB
 
 #show package description file
 packageDescription("RSDB")

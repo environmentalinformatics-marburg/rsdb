@@ -49,7 +49,7 @@ parameters:
 
 \strong{ext}: subset of pointcloud.
 
-ext is of type 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).
+ext is of type 'bbox' or 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).
 
 \strong{columns}: requested attributes.
 
@@ -69,7 +69,7 @@ parameters:
 
 \strong{ext}: subset of pointcloud.
 
-ext is of type 'Extent' (rectangular area).
+ext is of type 'bbox' or 'Extent' (rectangular area).
 
 \strong{res}: pixel size of raster.
 
@@ -89,7 +89,7 @@ parameters:
 
 \strong{ext}: subset of pointcloud.
 
-ext is of type 'Extent' (rectangular area).
+ext is of type 'bbox' or 'Extent' (rectangular area).
 
 \strong{res}: pixel (voxel) size of raster.
 
@@ -111,7 +111,7 @@ parameters:
 
  or one area or list of following types:
 
-'Extent' (one rectangular area) Polygons are extracted as rectangles and with names (if list elements are named)
+'bbox' or 'Extent' (one rectangular area) Polygons are extracted as rectangles and with names (if list elements are named)
 
 'Polygon' (one polygon area) Polygons are extracted with names (if list elements are named). . See details of conversion in \link{convert_Polygon_to_matrix}
 
@@ -161,6 +161,8 @@ An Extent (in 'raster'-package) is a rectangle, parallel to the coordinate syste
 It can be directlty created by \code{extent(...)}
 
 or based on position and diameter \code{extent_diameter(x, y, d)}
+
+Alternativly objects of class 'bbox' (in 'sf'-package) can be used.
 }
 
 \section{Polygon objects}{

@@ -71,6 +71,10 @@ toCharacter <- function(value) {
 }
 
 extToText <- function(ext) {
+  if(is(ext, "bbox")) {
+    warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+    ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
+  }
   if(!is(ext, "Extent")) {
     stop("parameter ext needs to be of type 'Extent'")
   }

@@ -15,6 +15,10 @@ RasterDB_public <- list( #      *********** public *****************************
   },
 
   raster = function(ext, band=NULL, timestamp=NULL, product=NULL) {
+    if(is(ext, "bbox")) {
+      warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+      ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
+    }
     extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
     param_list <- c(ext=extText, timestamp=timestamp)
     if(!is.null(band)) {
@@ -168,6 +172,8 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #' \item{$raster(ext, band=NULL, timestamp=NULL, product=NULL)}{Request raster data from opened RasterDB.
 #' If neither band nor product are specified all bands are returned. Either band or product can be specified.
+#'
+#' ext: object of class raster::extent or sf::st_bbox
 #'
 #' band: vector or single number of requested band numbers
 #'

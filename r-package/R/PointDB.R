@@ -2,7 +2,7 @@ PointDB_public <- list( # **************** public ***********************
 
   initialize = function(url, db, curlHandle, rsdbConnector) {
     private$rsdbConnector <- rsdbConnector
-    
+
     private$base_url <- url
     private$db_url <- paste0(url, "/pointdb")
     private$db <- db
@@ -31,6 +31,10 @@ PointDB_public <- list( # **************** public ***********************
       areas <- convert_SpatialPolygonsDataFrame_to_named_matrix_list(areas)
     }
     translate_area <- function(e, name) {
+      if(is(e, "bbox")) {
+        warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+        e <- raster::extent(e$xmin, e$xmax, e$ymin, e$ymax) # convert bbox to Extent
+      }
       if(is(e, "Extent")) { # bbox
         return(list(name=name, bbox=list(e@xmin, e@ymin, e@xmax, e@ymax)))
       } else if(is(e, "Polygons")) {
@@ -51,7 +55,7 @@ PointDB_public <- list( # **************** public ***********************
     if(is.null(titles)) {
       titles <- c(1:length(areas))
     }
-    if(is(areas, "Extent") || is(areas, "Polygon") || is(areas, "Polygons") || is.matrix(areas)) { #convert one object to list
+    if(is(areas, "bbox") || is(areas, "Extent") || is(areas, "Polygon") || is(areas, "Polygons") || is.matrix(areas)) { #convert one object to list
       areas <- list(areas)
     }
     translated_areas <- mapply(FUN=translate_area, areas, titles, SIMPLIFY=FALSE, USE.NAMES=FALSE)
@@ -182,7 +186,7 @@ PointDB_private <- list( # **************** private *********************
   db_url = NULL,
   db = NULL,
   curlHandle = NULL,
-  rsdbConnector = NULL   
+  rsdbConnector = NULL
 
 ) # *********************************************************************
 
@@ -316,9 +320,9 @@ PointDB_private <- list( # **************** private *********************
 #'  \item \strong{\code{"classification=n"}}
 #'
 #'  returns all points that are classified n. Multiple classes are separated by _
-#'  
+#'
 #'  example: filter="classification=1" returns alle point that are of class 1.
-#'  
+#'
 #'  example: filter="classification=1_2_4" returns alle point that are of class 1 or 2 or 4.
 #' }
 #'

@@ -2,7 +2,7 @@ PointCloud_public <- list( #      *********** public ***************************
 
   initialize = function(base_url, name, curlHandle, rsdbConnector) {
     private$rsdbConnector <- rsdbConnector
-    
+
     private$name_ <- name
     private$curlHandle <- curlHandle
     private$base_url <- base_url
@@ -14,6 +14,10 @@ PointCloud_public <- list( #      *********** public ***************************
   },
 
   points = function(ext, columns=NULL, filter=NULL) {
+    if(is(ext, "bbox")) {
+      warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+      ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
+    }
     param_list <- c()
     if(is(ext, "Extent")) {
       extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
@@ -53,6 +57,10 @@ PointCloud_public <- list( #      *********** public ***************************
   },
 
   raster = function(ext, res=1, type="point_count", fill=10) {
+    if(is(ext, "bbox")) {
+      warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+      ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
+    }
     stopifnot(is(ext, "Extent"))
     extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
     param_list <- c(ext=extText)
@@ -79,6 +87,10 @@ PointCloud_public <- list( #      *********** public ***************************
   },
 
   volume = function(ext, res=1, zres=res) {
+    if(is(ext, "bbox")) {
+      warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+      ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
+    }
     stopifnot(is(ext, "Extent"))
     extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
     param_list <- c(ext=extText)
@@ -108,6 +120,10 @@ PointCloud_public <- list( #      *********** public ***************************
       areas <- convert_SpatialPolygonsDataFrame_to_named_matrix_list(areas)
     }
     translate_area <- function(e, name) {
+      if(is(e, "bbox")) {
+        warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+        e <- raster::extent(e$xmin, e$xmax, e$ymin, e$ymax) # convert bbox to Extent
+      }
       if(is(e, "Extent")) { # bbox
         return(list(name=name, bbox=list(e@xmin, e@ymin, e@xmax, e@ymax)))
       } else if(is(e, "Polygons")) {
@@ -128,7 +144,7 @@ PointCloud_public <- list( #      *********** public ***************************
     if(is.null(titles)) {
       titles <- c(1:length(areas))
     }
-    if(is(areas, "Extent") || is(areas, "Polygon") || is(areas, "Polygons") || is.matrix(areas)) { #convert one object to list
+    if(is(areas, "bbox") || is(areas, "Extent") || is(areas, "Polygon") || is(areas, "Polygons") || is.matrix(areas)) { #convert one object to list
       areas <- list(areas)
     }
     translated_areas <- mapply(FUN=translate_area, areas, titles, SIMPLIFY=FALSE, USE.NAMES=FALSE)
@@ -256,7 +272,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' \strong{ext}: subset of pointcloud.
 #'
-#' ext is of type 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).
+#' ext is of type 'bbox' or 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).
 #'
 #' \strong{columns}: requested attributes.
 #'
@@ -276,7 +292,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' \strong{ext}: subset of pointcloud.
 #'
-#' ext is of type 'Extent' (rectangular area).
+#' ext is of type 'bbox' or 'Extent' (rectangular area).
 #'
 #' \strong{res}: pixel size of raster.
 #'
@@ -296,7 +312,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' \strong{ext}: subset of pointcloud.
 #'
-#' ext is of type 'Extent' (rectangular area).
+#' ext is of type 'bbox' or 'Extent' (rectangular area).
 #'
 #' \strong{res}: pixel (voxel) size of raster.
 #'
@@ -318,7 +334,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #'  or one area or list of following types:
 #'
-#' 'Extent' (one rectangular area) Polygons are extracted as rectangles and with names (if list elements are named)
+#' 'bbox' or 'Extent' (one rectangular area) Polygons are extracted as rectangles and with names (if list elements are named)
 #'
 #' 'Polygon' (one polygon area) Polygons are extracted with names (if list elements are named). . See details of conversion in \link{convert_Polygon_to_matrix}
 #'
@@ -366,6 +382,8 @@ PointCloud_private <- list( #      *********** private *************************
 #' It can be directlty created by \code{extent(...)}
 #'
 #' or based on position and diameter \code{extent_diameter(x, y, d)}
+#'
+#' Alternativly objects of class 'bbox' (in 'sf'-package) can be used.
 #'
 #' @section Polygon objects:
 #'
