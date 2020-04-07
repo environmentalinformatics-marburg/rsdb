@@ -69,6 +69,7 @@ public class APIHandler_pointdbs extends AbstractHandler {
 				json.object();
 				JsonUtil.put(json, "name", config.name);
 				JsonUtil.optPut(json, "title", config.informal().title);
+				JsonUtil.writeOptList(json, "tags", config.informal().tags);
 				if(withDescription) {
 					JsonUtil.optPut(json, "description", config.informal().description);
 				}

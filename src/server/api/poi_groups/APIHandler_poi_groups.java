@@ -16,6 +16,7 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import broker.group.PoiGroup;
+import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_poi_groups extends AbstractHandler {
@@ -70,6 +71,7 @@ public class APIHandler_poi_groups extends AbstractHandler {
 				json.value(group.name);
 				json.key("title");
 				json.value(group.informal.title);
+				JsonUtil.writeOptList(json, "tags", group.informal.tags);
 				json.endObject();
 			}
 		}

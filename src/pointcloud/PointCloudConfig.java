@@ -28,12 +28,12 @@ public class PointCloudConfig {
 		this.transaction = transaction;
 		this.preferredStorageType = storageType;
 	}
-	
+
 	public static PointCloudConfig ofPath(Path path, String storageType, boolean transaction) {
 		String name = pathToName(path);
 		return new PointCloudConfig(name, path, storageType, transaction);
 	}
-	
+
 	private static String pathToName(Path path) {
 		String filename = path.getFileName().toString().trim();
 		if(filename.isEmpty()) {
@@ -42,7 +42,7 @@ public class PointCloudConfig {
 			return filename;
 		}		
 	}
-	
+
 	public ACL readACL() {
 		String fileMetaName = name + ".yml";
 		Path metaPath = path.resolve(fileMetaName);
@@ -62,9 +62,9 @@ public class PointCloudConfig {
 			return EmptyACL.ADMIN;
 		}
 	}
-	
+
 	public Informal readInformal() {
-		String fileMetaName = name + ".yml";
+		String fileMetaName = "pointcloud.yml";
 		Path metaPath = path.resolve(fileMetaName);
 		File metaFile = metaPath.toFile();
 		try {
@@ -74,6 +74,8 @@ public class PointCloudConfig {
 					yamlMap = YamlMap.ofObject(new Yaml().load(in));
 				}
 				return Informal.ofYaml(yamlMap);
+			} else {
+				log.warn("missing meta: " + name+ "    " + metaPath);
 			}
 			return Informal.EMPTY;
 		} catch (Exception e) {

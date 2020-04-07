@@ -596,8 +596,10 @@ public class Broker implements AutoCloseable {
 		}
 		PointCloudConfig pointcloudConfig = pointcloudConfigMap.get(name);
 		if(pointcloudConfig != null) {
+			//log.info("readInformal: " + name);
 			return pointcloudConfig.readInformal();
 		}
+		log.warn("missing PointCloudConfig: " + name);
 		return Informal.EMPTY;
 	}
 

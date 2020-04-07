@@ -71,6 +71,7 @@ public class APIHandler_pointclouds extends AbstractHandler {
 				JsonUtil.put(json, "name", name);
 				Informal informal = broker.getPointCloudInformal(name);
 				JsonUtil.optPut(json, "title", informal.title);
+				JsonUtil.writeOptList(json, "tags", informal.tags);
 				if(withDescription) {
 					JsonUtil.optPut(json, "description", informal.description);
 				}

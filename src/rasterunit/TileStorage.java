@@ -11,9 +11,9 @@ import java.util.AbstractCollection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -412,9 +412,22 @@ public class TileStorage implements RasterUnitStorage {
 			for(Entry<TileKey, TileSlot> e:set) {
 				TileSlot v = e.getValue();
 				long curr = v.pos;
+				if(curr < 0) {
+					throw new RuntimeException("internal error: " + v);
+				}
+				//log.info("writeindex2 curr " + curr);
 				long value = Serialisation.encodeZigZag(curr - prev);
+				//log.info("writeindex2 value " + value);
 				upper[i] = (int) (value >> 32);
 				lower[i++] = (int) value;
+				//log.info("writeindex2 upper " + upper[i-1]);
+				//log.info("writeindex2 lower " + lower[i-1]);
+				//log.info("writeindex2 combA " + ((long)lower[i-1] | ((long)upper[i-1]<<32)));
+				//log.info("writeindex2 combB " + (((long)(upper[i-1]) << 32) + (lower[i-1] & 0xFFFFFFFFL)));
+				
+				
+				
+				
 				prev = curr;
 			}
 			int[] compressed_upper = Encoding.encInt32_pfor_internal(upper);
@@ -446,7 +459,7 @@ public class TileStorage implements RasterUnitStorage {
 
 		byteBuffer.flip();
 		int dataSize = byteBuffer.limit();
-		log.info("dataSize " + dataSize);
+		//log.info("dataSize " + dataSize);
 
 		try(FileChannel indexFileChannel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			int fileWritten = 0;
@@ -466,7 +479,7 @@ public class TileStorage implements RasterUnitStorage {
 	public static TreeSet<TileSlot> readIndex(Path path, ConcurrentSkipListMap<TileKey, TileSlot> map) throws IOException {
 		try(FileChannel indexFileChannel = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.CREATE)) {
 			long fileLen = indexFileChannel.size();
-			log.info("fileLen " + fileLen);
+			//log.info("fileLen " + fileLen);
 			if(fileLen > Integer.MAX_VALUE) {
 				throw new RuntimeException("index file too large");
 			}
@@ -521,7 +534,7 @@ public class TileStorage implements RasterUnitStorage {
 
 	public static TreeSet<TileSlot> readIndexVersion2(ByteBuffer byteBuffer, ConcurrentSkipListMap<TileKey, TileSlot> map) {
 		int mapLen = byteBuffer.getInt();
-		log.info("mapLen " + mapLen);
+		//log.info("mapLen " + mapLen);
 
 		int[] ts = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
 		Serialisation.decodeDelta(ts);  // delta, no zigzag
@@ -539,9 +552,16 @@ public class TileStorage implements RasterUnitStorage {
 		int[] pos_lower = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
 		long[] poss = new long[mapLen];
 		for (int i = 0; i < mapLen; i++) {
-			poss[i] = (long)pos_lower[i] | ((long)pos_upper[i]<<32);
+			//poss[i] = (long)pos_lower[i] | ((long)pos_upper[i]<<32); // buggy
+			poss[i] = ((long)(pos_upper[i]) << 32) + (pos_lower[i] & 0xFFFFFFFFL);
 		}
+		/*if(poss.length > 0) {
+			log.info("poss0 " + poss[0]);
+		}*/
 		Serialisation.decodeDeltaZigZag(poss);
+		/*if(poss.length > 0) {
+			log.info("dec poss0 " + poss[0]);
+		}*/
 
 		int[] lens = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
 		Serialisation.decodeDeltaZigZag(lens);
@@ -552,6 +572,9 @@ public class TileStorage implements RasterUnitStorage {
 		TreeSet<TileSlot> slotSet = new TreeSet<TileSlot>(TileSlot.POS_LEN_REV_COMPARATOR);
 		for (int i = 0; i < mapLen; i++) {
 			TileSlot tileSlot = new TileSlot(poss[i], lens[i], types[i], random.nextInt());
+			if(poss[i] < 0) {
+				throw new RuntimeException("internal error: poss[" + i + "] = " + poss[i] + "   " + tileSlot);
+			}
 			map.put(new TileKey(ts[i], bs[i], ys[i], xs[i]), tileSlot);
 			slotSet.add(tileSlot);
 		}
@@ -563,7 +586,7 @@ public class TileStorage implements RasterUnitStorage {
 		for(TileSlot tileSlot:slotSet) {
 			long slotPos = tileSlot.pos;
 			if(slotPos < pos) {
-				throw new RuntimeException("internal error");
+				throw new RuntimeException("internal error: pos=" + pos + "   " + tileSlot);
 			}
 			long lenDiff = slotPos - pos;
 			while(lenDiff > 0) {
