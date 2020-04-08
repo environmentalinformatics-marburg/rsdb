@@ -24,6 +24,7 @@ Doubleclick `win_server.cmd` to run RSDB server. Wait a few seconds until *"Serv
 
 **Web-interface**: Per default your local RSDB server is running at [http://127.0.0.1:8081](http://127.0.0.1:8081)
 
+Consult the [RSDB wiki](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Troubleshooting) if you encounter issues.
 
 
 ## Ubuntu
@@ -62,4 +63,6 @@ chmod +x *.sh
 ~~~
 
 **Web-interface**: Per default your local RSDB server is running at [http://127.0.0.1:8081](http://127.0.0.1:8081)
+
+Consult the [RSDB wiki](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Troubleshooting) if you encounter issues.
 

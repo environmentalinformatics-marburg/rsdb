@@ -1,7 +1,9 @@
 # Remote Sensing Database (RSDB)
 Manage remote sensing raster, point-cloud and vector data online. 
 
-**[RSDB homepage](https://environmentalinformatics-marburg.github.io/rsdb)**
+* **[RSDB homepage](https://environmentalinformatics-marburg.github.io/rsdb)**
+
+* **[Wiki](https://github.com/environmentalinformatics-marburg/rsdb/wiki)** with technical documentation, [point cloud indices details](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Point-cloud-indices) and [troubleshooting](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Troubleshooting)
 
 ---------------------------------------
 
