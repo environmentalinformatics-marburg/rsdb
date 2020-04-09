@@ -45,7 +45,7 @@ public class DBTileKeyProducer implements TileKeyProducer {
 	
 	@Override
 	public void produce(TileKeyConsumer tileKeyConsumer) {
-		NavigableSet<TileKey> fullKeySet = pointdb.isReadyIndexedStorage() ? pointdb.indexedStorage.indexMap.keySet() : pointdb.tileMetaMap.keySet();
+		NavigableSet<TileKey> fullKeySet = pointdb.tileMetaMap.keySet();
 		produce(fullKeySet, tileKeyConsumer);
 	}
 	

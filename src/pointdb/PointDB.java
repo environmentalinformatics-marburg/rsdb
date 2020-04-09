@@ -24,7 +24,6 @@ import pointdb.processing.tilemeta.TileMetaProducer;
 import pointdb.processing.tilepoint.TilePointProducer;
 import util.Timer;
 import util.Util;
-import util.indexedstorage.IndexedStorage;
 
 /**
  * PointDB contains one planar point cloud of lidar data
@@ -39,8 +38,6 @@ public class PointDB {
 	public final BTreeMap<TileKey, Tile> tileMap;
 	public final BTreeMap<TileKey, TileMeta> tileMetaMap;	
 	public final PointdbConfig config;
-
-	public IndexedStorage<TileKey, Tile> indexedStorage = null;
 
 	/**
 	 * opens one existing PointDB
@@ -75,8 +72,6 @@ public class PointDB {
 		dbMeta = createTileMetaDB(fileMeta, config.isTransactions());
 		log.info("init PointDB open meta map ...");
 		tileMetaMap = createTileMetaMap(dbMeta);
-
-		//openIndexedStorage(true, false); // not open indexedstorage
 
 		log.info("init PointDB commit ...");
 		commit(); // workaround for empty db close reopen error
@@ -124,13 +119,6 @@ public class PointDB {
 			log.info("DB close...");
 			dbMeta.close();
 			db.close();
-			if(indexedStorage!=null) {
-				try {
-					indexedStorage.close();
-				} catch(Exception e) {
-					log.error(e);
-				}
-			}
 		}
 	}
 
@@ -202,12 +190,12 @@ public class PointDB {
 
 	private static BTreeMap<TileKey, Tile> createTileMap(DB db, String storageType) {
 		if(storageType.isEmpty()) { // current version
-		return db.treeMapCreate("tileMap")
-				.keySerializer(TileKey.SERIALIZER, TileKey.COMPARATOR)
-				.valueSerializer(Tile.SERIALIZER)
-				.valuesOutsideNodesEnable() // !!
-				//.nodeSize(1024) // !!
-				.makeOrGet();		
+			return db.treeMapCreate("tileMap")
+					.keySerializer(TileKey.SERIALIZER, TileKey.COMPARATOR)
+					.valueSerializer(Tile.SERIALIZER)
+					.valuesOutsideNodesEnable() // !!
+					//.nodeSize(1024) // !!
+					.makeOrGet();		
 		} else if(Tile.SERIALIZER_OLD_VERSION.version.equals(storageType)){ // old Version
 			return db.treeMapCreate("tileMap")
 					.keySerializer(TileKey.SERIALIZER, TileKey.COMPARATOR)
@@ -253,59 +241,13 @@ public class PointDB {
 	}
 
 	public TileProducer tileProducer(Rect rect) {
-		if(isReadyIndexedStorage()) {
-			//log.info("using IndexedStorage");
-			if(rect==null) {
-				return DBFullTileProducer.of(this);
-			}
-			//return DBAsyncIndexedStorageTileProducer.of(this, rect);  // bugs in async ???
-			return DBIndexedStorageTileProducer.of(this, rect);
-		} else {
-			if(rect==null) {
-				return DBFullTileProducer.of(this);
-			}
-			//return DBAsyncTileProducer.of(this, rect); // bugs in async ???
-			return DBTileProducer.of(this, rect);
+		if(rect==null) {
+			return DBFullTileProducer.of(this);
 		}
+		//return DBAsyncTileProducer.of(this, rect); // bugs in async ???
+		return DBTileProducer.of(this, rect);
 	}
 
-	public boolean openIndexedStorage(boolean openOnlyIfExist, boolean clear) {		
-		if( (!openOnlyIfExist) || IndexedStorage.checkExist(config.getIndexedStorageFilename())) {
-			try {
-				if(indexedStorage!=null) {
-					indexedStorage.close();
-				}
-				indexedStorage = new IndexedStorage<TileKey, Tile>("pointdb:"+config.name, config.getIndexedStorageFilename(), TileKey.BULK_SERIALIZER, TileKey.COMPARATOR, Tile.SERIALIZER_PLAIN, clear);
-				return true;
-			} catch (IOException e) {
-				log.error(e);
-				return false;
-			}
-		}
-		return false;
-	}
-
-	public boolean isReadyIndexedStorage() {
-		//return indexedStorage != null;
-		return false; // !!!!
-	}
-
-	public void refreshIndexedStorage() throws IOException {
-		if(openIndexedStorage(false, true)) {
-			indexedStorage.commit();
-
-			Timer.start("write indexed storage");
-			DataOutputByteArray out = new DataOutputByteArray();
-			for(Tile tile:tileMap.values()) {
-				indexedStorage.put(tile.meta.createTileKey(), tile, out);
-			}
-			indexedStorage.commit();
-			Timer.stopAndPrint("write indexed storage");
-		} else {
-			log.error("could not open indexedStorage "+config.getIndexedStorageFilename());
-		}
-	}
-	
 	public Informal informal() {
 		return config.informal();
 	}

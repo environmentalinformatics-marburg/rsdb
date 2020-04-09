@@ -14,3 +14,10 @@ In directory 'launch' are some eclipse launch configurations: File > Import... >
 Java source files are in folder `src`.
 
 [ANTLR](https://www.antlr.org/) grammar files are in folder `dsl` and generated java file are in folder `dsl/generated-sources`.
+
+---
+
+check for Java dependency updates
+``` bash
+gradle dependencyUpdates
+```

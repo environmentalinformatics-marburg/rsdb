@@ -83,7 +83,6 @@ public class Terminal {
 		addCommand("import", Terminal::command_import);
 		addCommand("import_server", Terminal::command_import_server);
 		addCommand("gdal", Terminal::command_gdal);
-		addCommand("refresh_indexed_storage", Terminal::command_refresh_indexed_storage);
 		addCommand("terminal", args->interactiveTerminal());
 		addCommand("exec", Terminal::command_exec);
 		addCommand("rasterdb", Terminal::command_rasterdb);
@@ -159,25 +158,6 @@ public class Terminal {
 		}
 		default:
 			log.error("import type unknown: "+args[1]);
-		}
-
-	}
-
-	public static void command_refresh_indexed_storage(String[] args) throws IOException {
-		if(args.length!=1+2) {
-			throw new RuntimeException("unknown parameter count "+Arrays.toString(args));
-		}
-		String name = args[2];
-		switch(args[1]) {
-		case "pointdb": {
-			try(Broker broker = new Broker()) {
-				PointDB db = broker.getPointdb(name);
-				db.refreshIndexedStorage();
-			}
-			break;
-		}
-		default:
-			log.error("type unknown: "+args[1]);
 		}
 
 	}

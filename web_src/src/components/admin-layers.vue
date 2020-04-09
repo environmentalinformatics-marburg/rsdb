@@ -32,15 +32,6 @@
         no layers
       </div>
 
-      <v-list-tile v-if="rasterdbsMode === 'init' || rasterdbsMode === 'load'">
-        <ring-loader color="#000000" size="20px" />
-        loading rasterdbs...
-      </v-list-tile>
-      <v-list-tile v-if="rasterdbsMode === 'error'">
-        <v-icon>error</v-icon>
-        Could not load rasterdbs.
-      </v-list-tile>
-
       <v-list-group v-if="filteredRasterdbs.length !== 0">
         <v-list-tile slot="activator">
             <v-list-tile-content>
@@ -56,15 +47,6 @@
           </v-list-tile-content>
         </v-list-tile>        
       </v-list-group>
-
-      <v-list-tile v-if="pointdbsMode === 'init' || pointdbsMode === 'load'">
-        <ring-loader color="#000000" size="20px" />
-        loading pointdbs...
-      </v-list-tile>
-      <v-list-tile v-if="pointdbsMode === 'error'">
-        <v-icon>error</v-icon>
-        Could not load pointdbs.
-      </v-list-tile>
 
       <v-list-group v-if="filteredPointdbs.length !== 0">
         <v-list-tile slot="activator">
@@ -82,15 +64,6 @@
         </v-list-tile>
       </v-list-group>
 
-      <v-list-tile v-if="pointcloudsMode === 'init' || pointcloudsMode === 'load'">
-        <ring-loader color="#000000" size="20px" />
-        loading pointclouds...
-      </v-list-tile>
-      <v-list-tile v-if="pointcloudsMode === 'error'">
-        <v-icon>error</v-icon>
-        Could not load pointclouds.
-      </v-list-tile>
-
       <v-list-group v-if="filteredPointclouds.length !== 0">
         <v-list-tile slot="activator">
             <v-list-tile-content>
@@ -106,15 +79,6 @@
           </v-list-tile-content>
         </v-list-tile>
       </v-list-group>
-
-      <v-list-tile v-if="vectordbsMode === 'init' || vectordbsMode === 'load'">
-        <ring-loader color="#000000" size="20px" />
-        loading vectordbs...
-      </v-list-tile>
-      <v-list-tile v-if="vectordbsMode === 'error'">
-        <v-icon>error</v-icon>
-        Could not load vectordbs.
-      </v-list-tile>
 
       <v-list-group v-if="filteredVectordbs.length !== 0">
         <v-list-tile slot="activator">
@@ -132,15 +96,6 @@
         </v-list-tile>
       </v-list-group> 
 
-      <v-list-tile v-if="poi_groupsMode === 'init' || poi_groupsMode === 'load'">
-        <ring-loader color="#000000" size="20px" />
-        loading poi groups...
-      </v-list-tile>
-      <v-list-tile v-if="poi_groupsMode === 'error'">
-        <v-icon>error</v-icon>
-        Could not load poi groups.
-      </v-list-tile>     
-
       <v-list-group v-if="filteredPoi_groups.length !== 0">
         <v-list-tile slot="activator">
             <v-list-tile-content>
@@ -157,15 +112,6 @@
         </v-list-tile>
       </v-list-group>
 
-      <v-list-tile v-if="roi_groupsMode === 'init' || roi_groupsMode === 'load'">
-        <ring-loader color="#000000" size="20px" />
-        loading roi groups...
-      </v-list-tile>
-      <v-list-tile v-if="roi_groupsMode === 'error'">
-        <v-icon>error</v-icon>
-        Could not load roi groups.
-      </v-list-tile>
-
       <v-list-group v-if="filteredRoi_groups.length !== 0">
         <v-list-tile slot="activator">
             <v-list-tile-content>
@@ -181,6 +127,61 @@
           </v-list-tile-content>
         </v-list-tile>
       </v-list-group>
+
+
+      <v-list-tile v-if="rasterdbsMode === 'init' || rasterdbsMode === 'load'">
+        <ring-loader color="#000000" size="20px" />
+        loading rasterdbs...
+      </v-list-tile>
+      <v-list-tile v-if="rasterdbsMode === 'error'">
+        <v-icon>error</v-icon>
+        Could not load rasterdbs.
+      </v-list-tile>
+
+      <v-list-tile v-if="pointdbsMode === 'init' || pointdbsMode === 'load'">
+        <ring-loader color="#000000" size="20px" />
+        loading pointdbs...
+      </v-list-tile>
+      <v-list-tile v-if="pointdbsMode === 'error'">
+        <v-icon>error</v-icon>
+        Could not load pointdbs.
+      </v-list-tile>
+
+      <v-list-tile v-if="pointcloudsMode === 'init' || pointcloudsMode === 'load'">
+        <ring-loader color="#000000" size="20px" />
+        loading pointclouds...
+      </v-list-tile>
+      <v-list-tile v-if="pointcloudsMode === 'error'">
+        <v-icon>error</v-icon>
+        Could not load pointclouds.
+      </v-list-tile>
+
+      <v-list-tile v-if="vectordbsMode === 'init' || vectordbsMode === 'load'">
+        <ring-loader color="#000000" size="20px" />
+        loading vectordbs...
+      </v-list-tile>
+      <v-list-tile v-if="vectordbsMode === 'error'">
+        <v-icon>error</v-icon>
+        Could not load vectordbs.
+      </v-list-tile>
+
+      <v-list-tile v-if="poi_groupsMode === 'init' || poi_groupsMode === 'load'">
+        <ring-loader color="#000000" size="20px" />
+        loading poi groups...
+      </v-list-tile>
+      <v-list-tile v-if="poi_groupsMode === 'error'">
+        <v-icon>error</v-icon>
+        Could not load poi groups.
+      </v-list-tile> 
+
+      <v-list-tile v-if="roi_groupsMode === 'init' || roi_groupsMode === 'load'">
+        <ring-loader color="#000000" size="20px" />
+        loading roi groups...
+      </v-list-tile>
+      <v-list-tile v-if="roi_groupsMode === 'error'">
+        <v-icon>error</v-icon>
+        Could not load roi groups.
+      </v-list-tile>
 
     </v-list>   
 

@@ -70,6 +70,7 @@ public class RSDBServer {
 	public static final Marker MARKER_REQ = MarkerManager.getMarker("REQ");
 
 	private static final long DATA_TRANSFER_TIMEOUT_MILLISECONDS = 2*60*60*1000; // set timeout to 2 hours
+	private static final int BIND_BACKLOG_SIZE = 50;
 
 	private static final String POINTDB_API_URL = "/pointdb";
 	private static final String RASTERDB_API_URL = "/rasterdb";
@@ -112,7 +113,6 @@ public class RSDBServer {
 		HttpConfiguration httpsConfiguration = createBaseHttpConfiguration();
 		httpsConfiguration.setSecureScheme("https");
 		httpsConfiguration.setSecurePort(https_port);
-		httpsConfiguration.setOutputBufferSize(32768);
 		SecureRequestCustomizer src = new SecureRequestCustomizer();
 		src.setStsMaxAge(2000);
 		src.setStsIncludeSubDomains(true);
@@ -136,7 +136,7 @@ public class RSDBServer {
 		ServerConnector httpServerConnector = new ServerConnector(server, httpConnectionFactory);
 		httpServerConnector.setPort(http_port);
 		httpServerConnector.setIdleTimeout(DATA_TRANSFER_TIMEOUT_MILLISECONDS);
-		httpServerConnector.setAcceptQueueSize(0);
+		httpServerConnector.setAcceptQueueSize(BIND_BACKLOG_SIZE);
 		return httpServerConnector;
 	}
 
@@ -154,7 +154,7 @@ public class RSDBServer {
 		ServerConnector httpsServerConnector = new ServerConnector(server, optionalSslConnectionFactory, sslConnectionFactory, httpsConnectionFactory);
 		httpsServerConnector.setPort(https_port);
 		httpsServerConnector.setIdleTimeout(DATA_TRANSFER_TIMEOUT_MILLISECONDS);
-		httpsServerConnector.setAcceptQueueSize(0);
+		httpsServerConnector.setAcceptQueueSize(BIND_BACKLOG_SIZE);
 		return httpsServerConnector;
 	}	
 
@@ -179,7 +179,7 @@ public class RSDBServer {
 		ServerConnector httpsServerConnector = new ServerConnector(server, optionalSslConnectionFactory, sslConnectionFactory, alpn, https2ConnectionFactory, httpsConnectionFactory);
 		httpsServerConnector.setPort(https_port);
 		httpsServerConnector.setIdleTimeout(DATA_TRANSFER_TIMEOUT_MILLISECONDS);
-		httpsServerConnector.setAcceptQueueSize(0);
+		httpsServerConnector.setAcceptQueueSize(BIND_BACKLOG_SIZE);
 		return httpsServerConnector;
 	}	
 
