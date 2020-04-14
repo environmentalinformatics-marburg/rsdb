@@ -5,6 +5,8 @@ Manage remote sensing raster, point-cloud and vector data online.
 
 * **[Wiki](https://github.com/environmentalinformatics-marburg/rsdb/wiki)** with technical documentation, [point cloud indices details](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Point-cloud-indices) and [troubleshooting](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Troubleshooting)
 
+* **[Example](https://github.com/environmentalinformatics-marburg/rsdb-data/blob/master/README.md)** with datasets, web interface and [R-script](https://github.com/environmentalinformatics-marburg/rsdb-data/blob/master/processing.md)  based processing
+
 * **[Issues](https://github.com/environmentalinformatics-marburg/rsdb/issues)** are managed on GitHub
 
 ---------------------------------------
