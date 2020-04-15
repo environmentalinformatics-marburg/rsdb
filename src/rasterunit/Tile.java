@@ -61,7 +61,7 @@ public class Tile {
 	
 	@Override
 	public String toString() {
-		return t+" "+b+" "+y+" "+x+" "+type+" "+data.length;
+		return "t"+t+" b"+b+" y"+y+" x"+x+" i"+type+" s"+data.length;
 	}
 	
 	public TileKey toTileKey() {

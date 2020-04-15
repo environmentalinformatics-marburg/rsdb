@@ -170,7 +170,7 @@ public class WmsHandler extends AbstractHandler {
 			}
 
 			String layer = request.getParameter("LAYERS");
-			log.info("layer "+layer);
+			//log.info("layer "+layer);
 			RasterDB rasterdb = broker.getRasterdb(layer);
 			if (!rasterdb.isAllowed(Web.getUserIdentity(request))) {
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -250,7 +250,7 @@ public class WmsHandler extends AbstractHandler {
 					try {
 						double min = Double.parseDouble(minText);
 						double max = Double.parseDouble(maxText);
-						log.info("minmax "+min+"  "+max);
+						//log.info("minmax "+min+"  "+max);
 						range = new double[]{min, max};
 					} catch (Exception e) {
 						log.warn(e);
@@ -274,7 +274,7 @@ public class WmsHandler extends AbstractHandler {
 			if(style_product.equals("color") || style_product.isEmpty()) {
 				Timer.start("render");
 				image = Rasterizer.rasterizeRGB(processor, width, height, gamma, range, syncBands, currentInterruptor);
-				log.info(Timer.stop("render"));
+				//log.info(Timer.stop("render"));
 			} else if(style_product.startsWith("band")) {
 				String s = style_product.substring(4);
 				int bandIndex = Integer.parseInt(s);
@@ -285,7 +285,7 @@ public class WmsHandler extends AbstractHandler {
 				} else {
 					image = Rasterizer.rasterizePalette(processor, band, width, height, gamma, range, palette, currentInterruptor);		
 				}
-				log.info(Timer.stop("render"));
+				//log.info(Timer.stop("render"));
 			} else {
 				ErrorCollector errorCollector = new ErrorCollector();
 				DoubleFrame[] doubleFrames = DSL.process(style_product, errorCollector, processor);
@@ -308,14 +308,14 @@ public class WmsHandler extends AbstractHandler {
 				} else {
 					image = Renderer.renderRgbDouble(doubleFrames[0], doubleFrames[1], doubleFrames[2], width, height, gamma, range, syncBands);
 				}				
-				log.info(Timer.stop("render"));
+				//log.info(Timer.stop("render"));
 			}
 			if(Interruptor.isInterrupted(currentInterruptor)) {
 				log.info("****************************************** interrupted (pre sent)*******************************************");
 				return;
 			}
 			Timer.start("compress/transfer");
-			log.info("");
+			//log.info("");
 			response.setStatus(HttpServletResponse.SC_OK);
 			switch(format) {
 			case "image/jpeg": {
@@ -371,7 +371,7 @@ public class WmsHandler extends AbstractHandler {
 				}
 			}
 			}
-			log.info(Timer.stop("compress/transfer"));
+			//log.info(Timer.stop("compress/transfer"));
 			log.info(Timer.stop("full request"));
 			if(Interruptor.isInterrupted(currentInterruptor)) {
 				log.info("****************************************** interrupted *******************************************");

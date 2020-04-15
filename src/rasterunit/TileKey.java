@@ -68,7 +68,7 @@ public class TileKey {
 
 	@Override
 	public String toString() {
-		return "TileKey [t=" + t + ", b=" + b + ", y=" + y + ", x=" + x + "]";
+		return "(t" + t + " b" + b + " y" + y + " x" + x + ")";
 	}
 
 	@Override

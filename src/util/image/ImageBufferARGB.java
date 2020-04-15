@@ -215,7 +215,7 @@ public class ImageBufferARGB implements PureImage {
 		}
 		g.dispose();
 		target.bufferedImage.flush();
-		log.info(Timer.stop("scale"));
+		//log.info(Timer.stop("scale"));
 		return target;
 	}
 

@@ -192,14 +192,14 @@ public class RSDBServer {
 		//Server server = new Server(new QueuedThreadPool(7)); //min 7
 		Server server = new Server();
 
-		RequestLog requestLog = new RequestLog() {			
+		/*RequestLog requestLog = new RequestLog() {			
 			@Override
 			public void log(Request request, Response response) {
 				log.info(MARKER_REQ, Web.getRequestLogString("REQ",request.getRequestURL().toString(),request));
 				//log.info("*** request   "+user+" "+request.getLocalAddr()+" "+request.getRequestURL()+"  "+request.getQueryString()+"  "+response.getStatus());
 			}
 		};
-		server.setRequestLog(requestLog);
+		server.setRequestLog(requestLog);*/
 
 		ServerConnector httpServerConnector = createHttpConnector(server, http_port, createBaseHttpConfiguration());		
 
@@ -275,8 +275,6 @@ public class RSDBServer {
 		}
 
 		server.setHandler(handlerList);
-
-
 		return server;
 	}
 	

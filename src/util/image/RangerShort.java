@@ -137,7 +137,7 @@ public class RangerShort {
 		if(min == Integer.MIN_VALUE || max == Integer.MIN_VALUE) {
 			Timer.start("Ranger");
 			short[] r = RangerShort.range(data, na);
-			log.info(Timer.stop("Ranger"));
+			//log.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];
@@ -167,7 +167,7 @@ public class RangerShort {
 		if(min == Integer.MIN_VALUE || max == Integer.MIN_VALUE) {
 			Timer.start("Ranger");
 			short[] r = RangerShort.rangeSync(data, na);
-			log.info(Timer.stop("Ranger"));
+			//log.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];

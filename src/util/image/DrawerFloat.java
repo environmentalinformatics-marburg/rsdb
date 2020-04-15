@@ -42,7 +42,7 @@ public class DrawerFloat {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			//log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;
@@ -71,7 +71,7 @@ public class DrawerFloat {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			//log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;

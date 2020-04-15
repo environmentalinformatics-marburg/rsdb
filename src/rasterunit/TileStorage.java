@@ -8,7 +8,6 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.AbstractCollection;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -80,7 +79,7 @@ public class TileStorage implements RasterUnitStorage {
 		if(createIndexFile) {
 			tileFileOptions = new  OpenOption[] {StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW};
 		}
-		log.info("options " + Arrays.toString(tileFileOptions));
+		//log.info("options " + Arrays.toString(tileFileOptions));
 		tileFileChannel = FileChannel.open(config.storagePath , tileFileOptions);
 		map = new ConcurrentSkipListMap<TileKey, TileSlot>(TileKey.COMPARATOR);
 		tileKeysReadonly = new ReadonlyNavigableSetView<TileKey>(map.keySet());
@@ -128,16 +127,33 @@ public class TileStorage implements RasterUnitStorage {
 			setDirty();
 			TileKey key = tile.toTileKey();
 			TileSlot prevValue = null;
+			int concurrentUpdateWaitCount = 0;
 			while(true) {
 				prevValue = map.get(key);
 				if(prevValue == null) {
 					if(map.putIfAbsent(key, TileSlot.CONCURRENT_UPDATE) == null) {
 						break;
 					}
-				}
-				if(prevValue != null) {
-					if(map.replace(key, prevValue, TileSlot.CONCURRENT_UPDATE)) {
-						break;
+				} else {
+					if(prevValue.isConcurrentUpdate()) {
+						if(concurrentUpdateWaitCount >= 10) {
+							try {							
+								log.info("wait for concurrent update (" + concurrentUpdateWaitCount + ")  " + key.toString());
+								Thread.sleep(concurrentUpdateWaitCount * 100);
+							} catch (InterruptedException e) {
+								log.error(e);
+							}
+						}
+						concurrentUpdateWaitCount++;
+						if(concurrentUpdateWaitCount > 100) {
+							String message = "could not write tile because of persisting concurrent updates " + key.toString();
+							log.error(message);
+							throw new RuntimeException(message);
+						}
+					} else {
+						if(map.replace(key, prevValue, TileSlot.CONCURRENT_UPDATE)) {
+							break;
+						}
 					}
 				}
 			}		
@@ -180,12 +196,11 @@ public class TileStorage implements RasterUnitStorage {
 
 			int rev = prevValue == null ? ThreadLocalRandom.current().nextInt() : prevValue.rev + 1;
 			writeTile(tile.data, pos, len);
-			TileSlot value = new TileSlot(pos, len, tile.type, rev);
-			TileSlot oldValue = map.put(key, value);
-			addKey(key);
-			if(oldValue == null || !oldValue.isConcurrentUpdate()) {
-				throw new RuntimeException("concurrent tile write error");
+			TileSlot value = new TileSlot(pos, len, tile.type, rev);			
+			if(!map.replace(key, TileSlot.CONCURRENT_UPDATE, value)) {
+				throw new RuntimeException("concurrent tile write error " + key.toString());
 			}
+			addKey(key);
 			if(freeSlotFull != null) {
 				freeSet.add(freeSlotFull);
 			}
@@ -239,13 +254,30 @@ public class TileStorage implements RasterUnitStorage {
 		flushLock.readLock().lock();
 		try {
 			TileSlot tileSlotPre = null;
+			int concurrentUpdateOuterWaitCount = 0;
 			while(true) {
+				int concurrentUpdateInnterWaitCount = 0;
 				while(true) {
 					tileSlotPre = map.get(tileKey);
 					if(tileSlotPre == null) {
 						return null;
 					} else {
-						if(!tileSlotPre.isConcurrentUpdate()) {
+						if(tileSlotPre.isConcurrentUpdate()) {
+							if(concurrentUpdateInnterWaitCount >= 10) {
+								try {							
+									log.info("wait for concurrent update (" + concurrentUpdateInnterWaitCount + ")  " + tileKey.toString());
+									Thread.sleep(concurrentUpdateInnterWaitCount * 100);
+								} catch (InterruptedException e) {
+									log.error(e);
+								}
+							}
+							concurrentUpdateInnterWaitCount++;
+							if(concurrentUpdateInnterWaitCount > 100) {
+								String message = "could not read tile because of persisting concurrent updates " + tileKey.toString();
+								log.error(message);
+								throw new RuntimeException(message);
+							}							
+						} else {
 							break;
 						}
 					}
@@ -254,6 +286,21 @@ public class TileStorage implements RasterUnitStorage {
 				TileSlot tileSlotPost = map.get(tileKey);
 				if(tileSlotPost != null && !tileSlotPost.isConcurrentUpdate() && tileSlotPre.equals(tileSlotPost)) {
 					return new Tile(tileKey.t, tileKey.b, tileKey.y, tileKey.x, tileSlotPre.type, data);
+				} else {
+					if(concurrentUpdateOuterWaitCount >= 10) {
+						try {							
+							log.info("wait for concurrent update (" + concurrentUpdateOuterWaitCount + ")  " + tileKey.toString());
+							Thread.sleep(concurrentUpdateOuterWaitCount * 100);
+						} catch (InterruptedException e) {
+							log.error(e);
+						}
+					}
+					concurrentUpdateOuterWaitCount++;
+					if(concurrentUpdateOuterWaitCount > 100) {
+						String message = "could not read tile because of persisting concurrent updates " + tileKey.toString();
+						log.error(message);
+						throw new RuntimeException(message);
+					}	
 				}
 			}
 		} finally {
@@ -424,10 +471,10 @@ public class TileStorage implements RasterUnitStorage {
 				//log.info("writeindex2 lower " + lower[i-1]);
 				//log.info("writeindex2 combA " + ((long)lower[i-1] | ((long)upper[i-1]<<32)));
 				//log.info("writeindex2 combB " + (((long)(upper[i-1]) << 32) + (lower[i-1] & 0xFFFFFFFFL)));
-				
-				
-				
-				
+
+
+
+
 				prev = curr;
 			}
 			int[] compressed_upper = Encoding.encInt32_pfor_internal(upper);
@@ -671,7 +718,11 @@ public class TileStorage implements RasterUnitStorage {
 	@Override
 	public Collection<Tile> readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax) {
 		Collection<RowKey> rows = getRowKeys(t, b, ymin, ymax);
-		return new TileCollection(this, rows, xmin, xmax);
+		TileCollection tileCollection = new TileCollection(this, rows, xmin, xmax);
+		//log.info("read tile rows for t" + t + " b" + b + ":   " +  tileCollection.rowCount());
+		//log.info("read tiles for t" + t + " b" + b + ":   " +  tileCollection.size());
+		//log.info("read tiles: " + tileCollection);
+		return tileCollection;
 	}
 
 	public NavigableSet<TileKey> getTileKeys(int t, int b, int y, int xmin, int xmax) {

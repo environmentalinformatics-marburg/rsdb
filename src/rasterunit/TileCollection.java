@@ -24,6 +24,10 @@ class TileCollection extends AbstractCollection<Tile> {
 	public Iterator<Tile> iterator() {
 		return new TileIterator(this.rasterUnit, rowsKeys.iterator(), xmin, xmax);
 	}
+	
+	public Iterator<TileKey> keyIterator() {
+		return new TileKeyIterator(this.rasterUnit, rowsKeys.iterator(), xmin, xmax);
+	}
 
 	@Override
 	public int size() {
@@ -37,9 +41,30 @@ class TileCollection extends AbstractCollection<Tile> {
 		}
 		return this.calculatedSize;
 	}
+	
+	public int rowCount() {
+		return rowsKeys.size();
+	}
 
 	@Override
 	public Spliterator<Tile> spliterator() {
 		return new TileSpliterator(this.rasterUnit, rowsKeys.iterator(), xmin, xmax, size());
-	}		
+	}
+	
+	@Override
+	public String toString() {
+        Iterator<TileKey> it = keyIterator();
+        if (! it.hasNext())
+            return "[]";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        for (;;) {
+        	TileKey e = it.next();
+            sb.append(e);
+            if (! it.hasNext())
+                return sb.append(']').toString();
+            sb.append(',').append(' ');
+        }
+    }
 }

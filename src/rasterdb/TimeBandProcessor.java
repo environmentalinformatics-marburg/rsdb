@@ -74,7 +74,7 @@ public class TimeBandProcessor {
 	}
 
 	private static int factorToScale(int f) {
-		log.info("factor " + f);
+		//log.info("factor " + f);
 		if(f >= 65536) return 65536;
 		if(f >= 32768) return 32768;
 		if(f >= 16384) return 16384;

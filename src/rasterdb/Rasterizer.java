@@ -42,7 +42,7 @@ public class Rasterizer {
 				ShortFrame frameG = processor.getShortFrame(bands[1]);
 				Interruptor.checkInterrupted(interruptor);
 				ShortFrame frameB = processor.getShortFrame(bands[2]);
-				log.info(Timer.stop("load"));
+				//log.info(Timer.stop("load"));
 				Interruptor.checkInterrupted(interruptor);
 				return Renderer.renderRgbShort(frameR, frameG, frameB, naR, naG, naB, width, height, gamma, range, syncBands);				
 			}			
@@ -52,7 +52,7 @@ public class Rasterizer {
 				FloatFrame frameR = processor.getFloatFrame(bands[0]);
 				Interruptor.checkInterrupted(interruptor);
 				FloatFrame frameB = processor.getFloatFrame(bands[2]);
-				log.info(Timer.stop("load"));
+				//log.info(Timer.stop("load"));
 				Interruptor.checkInterrupted(interruptor);
 				return Renderer.renderRbFloat(frameR, frameB, width, height, gamma, range, syncBands);		
 			} else {

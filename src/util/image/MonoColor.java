@@ -59,7 +59,7 @@ public class MonoColor {
 
 	private static int[] colorBundle(int[] colR, int[] colG, int[] colB) {
 		int len = colR.length;
-		log.info("col len " + len);
+		//log.info("col len " + len);
 		int[] col = new int[len];
 		if(colG.length != len || colB.length != len) {
 			throw new RuntimeException("wrong length");

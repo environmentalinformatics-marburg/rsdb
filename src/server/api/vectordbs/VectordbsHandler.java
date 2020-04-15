@@ -67,7 +67,7 @@ public class VectordbsHandler extends AbstractHandler {
 		//log.info("vectordb request " + target);
 
 		String currTarget = target.charAt(0) == '/' ? target.substring(1) : target;
-		log.info(MARKER_API, Web.getRequestLogString("API", currTarget, baseRequest));
+		//log.info(MARKER_API, Web.getRequestLogString("API", currTarget, baseRequest));
 		//log.info("currTarget " + currTarget);
 		int nameSepIndex = currTarget.indexOf('/');
 		String name = nameSepIndex < 0 ? currTarget : currTarget.substring(0, nameSepIndex); 

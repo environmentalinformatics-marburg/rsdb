@@ -30,7 +30,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 
 	@Override
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.info(request);
+		//log.info(request);
 		request.setHandled(true);
 		try {
 

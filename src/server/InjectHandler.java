@@ -6,10 +6,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+import util.Web;
+
 public class InjectHandler extends AbstractHandler {
+	static final Logger log = LogManager.getLogger();
 
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -27,5 +32,6 @@ public class InjectHandler extends AbstractHandler {
 			//response.setHeader("X-Frame-Options", "deny"); // deny all iframes
 			response.setHeader("X-Frame-Options", "sameorigin"); // allow iframes on same site (needed for webfiles iframe)
 		}
+		log.info(RSDBServer.MARKER_REQ, Web.getRequestLogString("REQ", baseRequest.getRequestURL().toString(), baseRequest));
 	}
 }

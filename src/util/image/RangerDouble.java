@@ -133,7 +133,7 @@ public class RangerDouble {
 		if(min == Double.NEGATIVE_INFINITY || max == Double.NEGATIVE_INFINITY) {
 			Timer.start("Ranger");
 			double[] r = range(data);
-			log.info(Timer.stop("Ranger"));
+			//log.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];
