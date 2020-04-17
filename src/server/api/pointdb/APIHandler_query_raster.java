@@ -104,6 +104,7 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 			}
 			receiver.setStatus(HttpServletResponse.SC_OK);
 			receiver.setContentType("image/tiff");
+			receiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 			tiffWriter.writeAuto(new DataOutputStream(receiver.getOutputStream()));
 			break;
 		}

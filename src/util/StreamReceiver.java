@@ -24,10 +24,16 @@ public class StreamReceiver extends Receiver {
 	@Override
 	public void setContentType(String contentType) {
 	}
+	
+	@Override
+	public void setContentLength(long len) {
+	}
 
 	@Override
 	public PrintWriter getWriter() throws IOException {
 		return new PrintWriter(out);
 	}
+
+
 	
 }

@@ -169,6 +169,7 @@ public class RequestProcessorBandsWriters {
 		tiffWriter.setNoDataValue(noDataValue);
 		resceiver.setStatus(HttpServletResponse.SC_OK);
 		resceiver.setContentType("image/tiff");
+		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));		
 	}
 
@@ -277,6 +278,7 @@ public class RequestProcessorBandsWriters {
 		tiffWriter.setNoDataValue(noDataValue);
 		resceiver.setStatus(HttpServletResponse.SC_OK);
 		resceiver.setContentType("image/tiff");
+		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));		
 	}
 

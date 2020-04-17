@@ -78,7 +78,7 @@ public class TiffWriter {
 		}
 		tiffBands.add(tiffBand);
 	}
-	
+
 	public void addTiffTiledBand(TiffTiledBand tiffTiledBand) {
 		if(!tiffBands.isEmpty()) {
 			throw new RuntimeException("there is a non tiled band");
@@ -253,15 +253,6 @@ public class TiffWriter {
 		return ifd;
 	}
 
-	public void writeAuto(DataOutput out) throws IOException {	
-		long len = estimateSize();
-		if(len >= 2_000_000_000) {
-			writeBigTIFF(out);
-		} else {
-			writeTIFF(out);
-		}
-	}
-
 	public void writeTIFF(DataOutput out) throws IOException {		
 		writeMetaTIFF(out);
 		writeData(out);		
@@ -283,7 +274,7 @@ public class TiffWriter {
 		out.writeInt(0x4d_4d_00_2a); //magic tiff header  big endian
 		int IFDOffset = 0x00_00_00_08;
 		out.writeInt(IFDOffset);		
-		return createIFD().writeTIFF(out);
+		return createIFD().writeTIFF(out); // return exact written byte count including magic tiff header
 	}
 
 
@@ -299,7 +290,7 @@ public class TiffWriter {
 		//out.writeLong(0x00_08_00_00__4d_4d_00_2bl); // magic BigTIFF header, big endian, byte size of offsets
 		long IFDOffset = 0x00_00_00_00__00_00_00_10l;  // Offset to first IFD
 		out.writeLong(IFDOffset);		
-		return createIFD().writeBigTIFF(out);		
+		return createIFD().writeBigTIFF(out); // return exact written byte count including magic tiff header		
 	}
 
 	private void writeData(DataOutput out) throws IOException {
@@ -334,6 +325,31 @@ public class TiffWriter {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public long exactSizeOfWriteAuto() {
+		try {
+			long pos = isAutoBigTiff() ? writeMetaBigTIFF(DataOutputNull.DEFAULT) : writeMetaTIFF(DataOutputNull.DEFAULT);
+			for(TiffBand tiffBand:tiffBands) {
+				pos += tiffBand.getDataSize();
+			}
+			return pos;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void writeAuto(DataOutput out) throws IOException {	
+		if(isAutoBigTiff()) {
+			writeBigTIFF(out);
+		} else {
+			writeTIFF(out);
+		}
+	}
+
+	public boolean isAutoBigTiff() {
+		long len = estimateSize();
+		return len >= 2_000_000_000;
 	}
 
 	public void setTiffComposite(TiffComposite tiffComposite) {

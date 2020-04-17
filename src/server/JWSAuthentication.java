@@ -135,17 +135,42 @@ public class JWSAuthentication extends AbstractHandler {
 		this.broker = broker;
 	}
 
+	private boolean isValidJwsSyntax(String jws) {
+		int len = jws.length();
+		int cnt = 0;
+		for(int i=0; i<len; i++) {
+			if(jws.charAt(i) == '.') {
+				cnt++;
+			}
+		}
+		return cnt == 2;
+	}
+
 	@Override
 	public void handle(String target, Request request, HttpServletRequest req_, HttpServletResponse response) throws IOException, ServletException {
 		if(request.getAttribute("JWS") != null) {
 			String JWSParam = request.getParameter("JWS");
 			if(JWSParam != null) {
+				if(!isValidJwsSyntax(JWSParam)) {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.setContentType("text/html;charset=utf-8");
+					response.getWriter().println("invalid JWS parameter syntax");
+					request.setHandled(true);
+					return;
+				}
 				handleJwsParameterAPI(JWSParam, request, response);
 				return;
 			}
 
 			String jwsParam = request.getParameter("jws");
 			if(jwsParam != null) {
+				if(!isValidJwsSyntax(jwsParam)) {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.setContentType("text/html;charset=utf-8");
+					response.getWriter().println("invalid JWS parameter syntax");
+					request.setHandled(true);
+					return;
+				}
 				handleJwsParameterRedirect(jwsParam, request, response);
 				return;
 			}
@@ -185,7 +210,7 @@ public class JWSAuthentication extends AbstractHandler {
 
 		request.setHandled(true);
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-		
+
 		String server_nonce = createServerNonce();
 
 		String auth_req = "login_sha2_512";
@@ -194,7 +219,7 @@ public class JWSAuthentication extends AbstractHandler {
 		auth_req += ", user_salt=\"" + LoginHandler.user_salt + "\"";
 		auth_req += ", salt=\"" + LoginHandler.salt + "\"";
 
-		
+
 		response.setHeader("WWW-Authenticate", auth_req);
 		response.setContentType("text/html;charset=utf-8");
 
@@ -210,7 +235,7 @@ public class JWSAuthentication extends AbstractHandler {
 					.setHeaderParam(JwsHeader.KEY_ID, jwsConfig.client_key_id)
 					.signWith(stringToPrivateKey(jwsConfig.client_private_key))
 					.compact();			
-			
+
 			/*String testReq = "http://example.com";
 			String clientTextJws = Jwts.builder()
 					.setPayload(testReq)
@@ -220,7 +245,7 @@ public class JWSAuthentication extends AbstractHandler {
 			System.out.println("++clientTextJws++");
 			System.out.println(clientTextJws);
 			System.out.println("--clientTextJws--");*/			
-			
+
 			String redirect_target = jwsConfig.provider_url + "?jws="+clientJws;
 
 			HashMap<String, Object> map = new HashMap<String, Object>();
@@ -320,6 +345,5 @@ public class JWSAuthentication extends AbstractHandler {
 			request.setHandled(true);
 		}
 		return true;
-
 	}
 }

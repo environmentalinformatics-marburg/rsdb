@@ -28,6 +28,11 @@ public class ResponseReceiver extends Receiver {
 	public void setContentType(String contentType) {
 		response.setContentType(contentType);			
 	}
+	
+	@Override
+	public void setContentLength(long len) {
+		response.setContentLengthLong(len);		
+	}
 
 	@Override
 	public PrintWriter getWriter() throws IOException {

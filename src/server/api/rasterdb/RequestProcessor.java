@@ -37,6 +37,8 @@ public class RequestProcessor {
 	public static void process(String format, RasterDB rasterdb, Request request, Response response) throws IOException {
 		request.setHandled(true);
 		try {
+			//log.info("buffer size " + response.getBufferSize());
+			//response.setBufferSize(1024*1024);
 			format = Web.getString(request, "format", format);
 			
 			int scaleDiv = Web.getInt(request, "div", 1);

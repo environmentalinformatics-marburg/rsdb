@@ -32,6 +32,6 @@ public class InjectHandler extends AbstractHandler {
 			//response.setHeader("X-Frame-Options", "deny"); // deny all iframes
 			response.setHeader("X-Frame-Options", "sameorigin"); // allow iframes on same site (needed for webfiles iframe)
 		}
-		log.info(RSDBServer.MARKER_REQ, Web.getRequestLogString("REQ", baseRequest.getRequestURL().toString(), baseRequest));
+		log.info(RSDBServer.MARKER_REQ, Web.getRequestLogString("REQ", baseRequest.getMethod() + "   " + baseRequest.getRequestURL().toString(), baseRequest));
 	}
 }

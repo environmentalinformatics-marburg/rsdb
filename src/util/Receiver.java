@@ -8,5 +8,6 @@ public abstract class Receiver {
 	public abstract OutputStream getOutputStream() throws IOException;
 	public abstract void setStatus(int sc);
 	public abstract void setContentType(String contentType);
+	public abstract void setContentLength(long len);
 	public abstract PrintWriter getWriter() throws IOException;
 }
