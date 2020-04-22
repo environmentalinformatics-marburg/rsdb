@@ -16,7 +16,7 @@ RsdbConnector_public <- list( #      *********** public ************************
   },
 
   POST_json = function(url_path, url_query = NULL, data = NULL) {
-    json_data <- charToRaw(jsonlite::toJSON(data, auto_unbox=TRUE))
+    json_data <- charToRaw(jsonlite::toJSON(data, auto_unbox=TRUE, digits=NA)) # digits=NA max precision for numeric
     r <- self$VERB("POST", url_path, url_query, json_data)
     return(r)
   },

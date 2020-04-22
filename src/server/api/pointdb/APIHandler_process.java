@@ -67,34 +67,38 @@ public class APIHandler_process extends PointdbAPIHandler {
 				for (int i = 0; i < len; i++) {
 					JSONObject e = jsonSubset.getJSONObject(i);
 					String name = e.has("name") ? e.get("name").toString() : ""+(i+1);
-					if(e.has("script")) {
-						String script = e.get("script").toString();
-						Vec<Pair<Region, String>> script_areas = new pointdb.subsetdsl.Compiler().parse(script).getRegions(broker);
-						areas.addAll(script_areas);
-					} else if(e.has("polygon")) {
-						JSONArray polygon = e.getJSONArray("polygon");
-						int polygon_len = polygon.length();
-						Point2d[] points = new Point2d[polygon_len];
-						for (int polygon_index = 0; polygon_index < polygon_len; polygon_index++) {
-							JSONArray coord = polygon.getJSONArray(polygon_index);
-							if(coord.length() != 2) {
-								throw new RuntimeException("no coordinate " + coord);
+					try {
+						if(e.has("script")) {
+							String script = e.get("script").toString();
+							Vec<Pair<Region, String>> script_areas = new pointdb.subsetdsl.Compiler().parse(script).getRegions(broker);
+							areas.addAll(script_areas);
+						} else if(e.has("polygon")) {
+							JSONArray polygon = e.getJSONArray("polygon");
+							int polygon_len = polygon.length();
+							Point2d[] points = new Point2d[polygon_len];
+							for (int polygon_index = 0; polygon_index < polygon_len; polygon_index++) {
+								JSONArray coord = polygon.getJSONArray(polygon_index);
+								if(coord.length() != 2) {
+									throw new RuntimeException("no coordinate " + coord);
+								}
+								Point2d p = Point2d.of(coord.getDouble(0), coord.getDouble(1));
+								points[polygon_index] = p;
 							}
-							Point2d p = Point2d.of(coord.getDouble(0), coord.getDouble(1));
-							points[polygon_index] = p;
+							Region region = Region.ofPolygon(points);
+							areas.add(new Pair<Region, String>(region, name));
+						} else if(e.has("bbox")) {
+							JSONArray bbox = e.getJSONArray("bbox");
+							double xmin = bbox.getDouble(0);
+							double ymin = bbox.getDouble(1);
+							double xmax = bbox.getDouble(2);
+							double ymax = bbox.getDouble(3);
+							Region region = Region.ofRect(Rect.of_UTM(xmin, ymin, xmax, ymax));
+							areas.add(new Pair<Region, String>(region, name));
+						} else {
+							throw new RuntimeException("unknown subset "+e);
 						}
-						Region region = Region.ofPolygon(points);
-						areas.add(new Pair<Region, String>(region, name));
-					} else if(e.has("bbox")) {
-						JSONArray bbox = e.getJSONArray("bbox");
-						double xmin = bbox.getDouble(0);
-						double ymin = bbox.getDouble(1);
-						double xmax = bbox.getDouble(2);
-						double ymax = bbox.getDouble(3);
-						Region region = Region.ofRect(Rect.of_UTM(xmin, ymin, xmax, ymax));
-						areas.add(new Pair<Region, String>(region, name));
-					} else {
-						throw new RuntimeException("unknown subset "+e);
+					} catch(Exception e1) {
+						throw new RuntimeException(e1.getMessage() + " at entity: " + e, e1);
 					}
 				}
 			}
@@ -149,7 +153,7 @@ public class APIHandler_process extends PointdbAPIHandler {
 		if(format==null) {
 			throw new RuntimeException("Parameter 'format' is missing.");
 		}
-		
+
 		//log.info("areas " + areas);
 
 		ProcessIndices.process(areas, functions, format, response, db, null, true);
