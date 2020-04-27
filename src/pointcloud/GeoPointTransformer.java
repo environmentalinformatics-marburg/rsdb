@@ -7,7 +7,7 @@ import util.collections.vec.Vec;
 
 public class GeoPointTransformer {
 	
-	public static final AttributeSelector FULL_GEOPOINT_SELECTOR = new AttributeSelector().setXYZI().setReturns().setScanAngleRank().setClassification();
+	public static final AttributeSelector FULL_GEOPOINT_SELECTOR = new AttributeSelector().setXYZI().setReturnNumber().setReturns().setScanAngleRank().setClassification();
 	
 	public static Vec<GeoPoint> transform(Stream<PointTable> pointTables) {
 		Vec<GeoPoint> list = new Vec<GeoPoint>();

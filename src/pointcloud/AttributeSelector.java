@@ -263,4 +263,12 @@ public class AttributeSelector {
 		}
 		return a;
 	}
+
+	@Override
+	public String toString() {
+		return "AttributeSelector [x=" + x + ", y=" + y + ", z=" + z + ", intensity=" + intensity + ", returnNumber="
+				+ returnNumber + ", returns=" + returns + ", scanDirectionFlag=" + scanDirectionFlag
+				+ ", edgeOfFlightLine=" + edgeOfFlightLine + ", classification=" + classification + ", scanAngleRank="
+				+ scanAngleRank + ", gpsTime=" + gpsTime + ", red=" + red + ", green=" + green + ", blue=" + blue + "]";
+	}
 }

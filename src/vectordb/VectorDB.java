@@ -626,11 +626,11 @@ public class VectorDB {
 						}
 					}
 				}
-				details.attributes = attributes.readonlyWeakView();
 				if(!details.proj4.isEmpty()) {
 					String epsg = CRS_FACTORY.readEpsgFromParameters(details.proj4);
 					details.epsg = epsg == null ? "" : epsg;
 				}
+				details.attributes = attributes.readonlyWeakView();
 			} finally {
 				closeDataSource(datasource);
 			}

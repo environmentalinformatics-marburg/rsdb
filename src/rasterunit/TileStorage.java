@@ -1,6 +1,7 @@
 package rasterunit;
 
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
@@ -227,7 +228,7 @@ public class TileStorage implements RasterUnitStorage {
 		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(len);
 		byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		byteBuffer.put(data);
-		byteBuffer.flip();
+		((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 		writeTile(data, pos, len, byteBuffer);
 	}
 
@@ -312,7 +313,7 @@ public class TileStorage implements RasterUnitStorage {
 		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(len);
 		byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		readTile(pos, len, byteBuffer);
-		byteBuffer.flip();
+		((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 		byte[] data = new byte[len];
 		byteBuffer.get(data);
 		return data;
@@ -380,7 +381,7 @@ public class TileStorage implements RasterUnitStorage {
 			byteBuffer.putInt(v.len);
 			byteBuffer.putInt(v.type);
 		}
-		byteBuffer.flip();
+		((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 		try(FileChannel indexFileChannel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			int fileWritten = 0;
 			while(fileWritten < fileLen) {
@@ -504,7 +505,7 @@ public class TileStorage implements RasterUnitStorage {
 			Serialisation.writeIntsWithSize(compressed, byteBuffer);
 		}
 
-		byteBuffer.flip();
+		((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 		int dataSize = byteBuffer.limit();
 		//log.info("dataSize " + dataSize);
 
@@ -539,7 +540,7 @@ public class TileStorage implements RasterUnitStorage {
 			if(fileRead != fileLen) {
 				throw new RuntimeException("read error");
 			}
-			byteBuffer.flip();
+			((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 			int fileHeader = byteBuffer.getInt();
 			if(fileHeader == INDEX_FILE_HEADER) {
 				int fileVersion = byteBuffer.getInt();

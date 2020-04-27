@@ -1,6 +1,7 @@
 package rasterunit;
 
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
@@ -8,9 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.NavigableSet;
-import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ThreadLocalRandom;
@@ -348,7 +347,7 @@ public class RasterUnit implements RasterUnitStorage {
 			byteBuffer.putInt(byte_count);
 			byteBuffer.put(bytes);			
 
-			byteBuffer.flip();
+			((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 			try(FileChannel fileChannel = FileChannel.open(cachePath, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
 				fileChannel.write(byteBuffer);
 				return true;
@@ -375,7 +374,7 @@ public class RasterUnit implements RasterUnitStorage {
 				byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
 				fileChannel.read(byteBuffer);
 				fileChannel.close();
-				byteBuffer.flip();
+				((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 				int fileCacheHeader = byteBuffer.getInt();
 				if(fileCacheHeader != cacheHeader) {
 					log.warn("cache fileformat error");

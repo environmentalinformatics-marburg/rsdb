@@ -59,10 +59,10 @@ export default {
       user_xmax: undefined,
       user_ymax: undefined,
       outputTypes: [
-        {name: 'LAS', title: '.las - binary file'}, 
-        {name: 'xyz', title: '.xyz - text file'}, 
-        {name: 'rDAT', title: '.rDAT - binary file'}, 
-        {name: 'zip', title: '.zip - containing tiled .las files (experimental)'}
+        {name: 'zip', title: '.zip - containing tiled .las files (for arbitrarily large data)'},        
+        {name: 'LAS', title: '.las - binary file (for small datasets only)'}, 
+        {name: 'xyz', title: '.xyz - text file (for small datasets only)'}, 
+        {name: 'rDAT', title: '.rDAT - binary file (for small datasets only)'}, 
       ],
       outputType: undefined,
     };
@@ -111,7 +111,7 @@ export default {
       if(this.pointdb !== undefined) {
         var url_pointdb = this.urlPrefix + '../../pointdb';
         var method_pointdb = 'unknown';
-        var ext_pointdb = [this.selectedExtent[0], this.selectedExtent[2], this.selectedExtent[1], this.selectedExtent[3]].join(',');
+        var ext_pointdb = [this.user_xmin, this.user_xmax, this.user_ymin, this.user_ymax].join(',');
         var parameters_pointdb = { db: this.pointdb, ext: ext_pointdb };
 
         switch(this.outputType.name) {
@@ -142,7 +142,7 @@ export default {
       if(this.pointcloud !== undefined) {
         var url_pointcloud = this.urlPrefix + '../../pointclouds';
         var method_pointcloud = 'unknown';
-        var ext_pointcloud = this.selectedExtent.join(' ');
+        var ext_pointcloud = [this.user_xmin, this.user_ymin, this.user_xmax, this.user_ymax].join(' ');
         var parameters_pointcloud = { ext: ext_pointcloud };
 
         switch(this.outputType.name) {

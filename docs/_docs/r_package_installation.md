@@ -58,5 +58,5 @@ raserLayersDF <- remoteSensing$rasterdbs
 raserLayersDF <- remoteSensing$pointdbs
 
 # list (RGB) PointCloud layers
-raserLayersDF <- remoteSensing$plointclouds
+raserLayersDF <- remoteSensing$pointclouds
 ~~~

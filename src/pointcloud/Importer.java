@@ -5,12 +5,15 @@ import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 
+import griddb.Cell;
+import griddb.GridDB;
 import pointdb.las.Las;
 import pointdb.las.Laz;
 import rasterunit.Tile;
@@ -344,7 +347,8 @@ public class Importer {
 					}
 					if(useReturnNumber) {
 						cellTable.returnNumber[cnt] = returnNumber[i];
-					}
+						//log.info("set returnNumber " + returnNumber[i]);
+					} 
 					if(useReturns) {
 						cellTable.returns[cnt] = returns[i];
 					}
@@ -395,15 +399,41 @@ public class Importer {
 						if(oldCellTable != null) {
 							//Timer.resume("merge CellTable");
 							cellTable = CellTable.merge(oldCellTable, cellTable);
+							/*if(cellTable.returnNumber != null && cellTable.returnNumber.length > 0) {
+								log.info("cellTable.returnNumber " + cellTable.returnNumber[0]);								
+							}*/
 							//log.info(Timer.stop("merge CellTable"));
 						}
 						//Timer.resume("create tile");
 						Tile tile = pointcloud.createTile(cellTable, tx, ty);
+						
+						/*pointcloud.getGriddb();
+						CellTable newCellTable = pointcloud.getCellTable(GridDB.tileToCell(tile), new AttributeSelector(true));
+						if(newCellTable.returnNumber != null && newCellTable.returnNumber.length > 0) {
+							log.info("newCellTable.returnNumber " + newCellTable.returnNumber[0]);								
+						}
+						PointTable newPointTable = pointcloud.cellTableToPointTable(newCellTable);
+						if(newPointTable.returnNumber != null && newPointTable.returnNumber.length > 0) {
+							log.info("newPointTable.returnNumber " + newPointTable.returnNumber[0]);								
+						}*/
+						
 						//log.info(Timer.stop("create tile"));
 						//log.info(tile);
 						//Timer.resume("write tile");
 						pointcloud.writeTile(tile);
 						//log.info(Timer.stop("write tile"));
+						
+						
+						/*double px = (pointcloud.getCelloffset().x + x) * pointcloud.getCellsize();
+						double py = (pointcloud.getCelloffset().y + y) * pointcloud.getCellsize();
+						log.info("tps" + px + "   " + py);
+						Stream<PointTable> tps = pointcloud.getPointTables(px, py, px + 100, py + 100, new AttributeSelector(true));
+						tps.forEach(pt -> {
+							log.info("pt");
+							if(pt.returnNumber != null && pt.returnNumber.length > 0) {
+								log.info("pt.returnNumber " + pt.returnNumber[0]);								
+							}
+						});*/
 					}
 				}
 			}

@@ -382,7 +382,7 @@ public class CellTable {
 	 * @return
 	 */
 	public static boolean isEntity(byte classification) {
-		return isGround(classification) || isVegetaion(classification) || classification == 6 || classification == 9 || classification == 0;
+		return isGround(classification) || isVegetaion(classification) || classification == 6 || classification == 9 || classification == 0 || classification == 1;
 	}
 
 	public static boolean isLastReturn(byte returnNumber, byte returns) {

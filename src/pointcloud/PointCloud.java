@@ -421,6 +421,7 @@ public class PointCloud implements AutoCloseable {
 	}
 
 	public CellTable getCellTable(Cell cell, AttributeSelector selector) {
+		//log.info("getCellTable " + selector);
 		int[] x = selector.x ? cell.getInt(attr_x) : null;
 		int[] y = selector.y ? cell.getInt(attr_y) : null;
 		int[] z = selector.z ? cell.getInt(attr_z) : null;
@@ -430,6 +431,7 @@ public class PointCloud implements AutoCloseable {
 		}
 		if(selector.returnNumber) {
 			cellTable.returnNumber = cell.getByte(attr_returnNumber);
+			log.info("cellTable.returnNumber " + cellTable.returnNumber + "   " + attr_returnNumber);
 		}
 		if(selector.returns) {
 			cellTable.returns = cell.getByte(attr_returns);
@@ -477,8 +479,17 @@ public class PointCloud implements AutoCloseable {
 
 	public Stream<PointTable> getPointTables(double xmin, double ymin, double xmax, double ymax, AttributeSelector selector, ChainedFilterFunc filterFunc) {
 		AttributeSelector loadSelector = selector.hasXY() ? selector : selector.copy().setXY();
+		//log.info("selector " + selector); 
+		//log.info("loadSelector " + loadSelector); 
 		Stream<CellTable> cellTables = getCellTables(xmin, ymin, xmax, ymax, loadSelector);
 		Stream<PointTable> pointTables = cellTables.map(cellTable -> {
+
+			/*if(cellTable.returnNumber != null && cellTable.returnNumber.length > 0) {
+				log.info("cellTable.returnNumber" + cellTable.returnNumber[0]);
+			} else {
+				log.info("cellTable.returnNumber MISSING");
+			}*/
+
 			/*log.info("CellTable " + cellTable.cx + "  " + cellTable.cy + "  offset " + celloffset.x + " " + celloffset.y + "  cellsize " + cellsize + " cellscale " + cellscale);
 			if(cellTable.x != null && cellTable.x.length > 0 && cellTable.y != null && cellTable.y.length > 0 ) {
 				log.info("cell point "+cellTable.x[0]+" "+cellTable.y[0]);

@@ -203,7 +203,7 @@ library(RSDB)
 remotesensing <- RemoteSensing$new("http://example.com:8081", "user:password") # remote server
 
 # get pointcloud names
-remotesensing$plointclouds
+remotesensing$pointclouds
 
 # open pointcloud
 pointcloud <- remotesensing$pointcloud("jannik_uniwald_sequoia")

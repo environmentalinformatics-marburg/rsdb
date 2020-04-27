@@ -127,6 +127,7 @@ public class Rebuild {
 			dst.trySetCellsize(src.getCellsize());
 			dst.getOrSetCelloffset(src.getCelloffset().x, src.getCelloffset().y);
 			dst.setCode(src.getCode());
+			dst.setProj4(src.getProj4());
 			dst.setACL(src.getACL());
 			dst.setACL_mod(src.getACL_mod());
 			dst.setAssociatedRasterDB(src.getAssociated().getRasterDB());

@@ -49,7 +49,7 @@ public class LasWriter {
 			this.size = size;
 		}
 	}
-	
+
 	private static final double SCALE_FACTOR = 0.001;
 
 	@SuppressWarnings("resource")
@@ -82,8 +82,12 @@ public class LasWriter {
 			if(zmax < p.z) {
 				zmax = p.z;
 			}
-			if(p.returnNumber >= 0 && p.returnNumber <= 15) {
+			if(p.returnNumber > 0 && p.returnNumber <= 15) {
+				//try {
 				numberOfPointsByReturn[p.returnNumber - 1]++;
+				//} catch(Exception e) {
+				//throw new RuntimeException("returnNumber " + p, e);
+				//}
 			}
 		}
 		double xoff = ((int)xmin);
@@ -93,7 +97,7 @@ public class LasWriter {
 		receiver.setContentType("application/octet-stream");		
 		LittleEndianDataOutputStream out = new LittleEndianDataOutputStream(receiver.getOutputStream());
 
-		
+
 
 		out.writeInt(LASF_SIGNATUR); //File Signature (“LASF”) char[4] 4 bytes
 		out.writeShort(0); //File Source ID unsigned short 2 bytes
@@ -161,7 +165,7 @@ public class LasWriter {
 			//Number of Returns (given pulse) 3 bits (bits 3 – 5) 3 bits
 			//Scan Direction Flag 1 bit (bit 6) 1 bit
 			//Edge of Flight Line 1 bit (bit 7) 1 bit
-			out.writeByte(getFormat0Flag(p.returnNumber, p.returns));
+			out.writeByte(returnNumberReturnToByte(p.returnNumber, p.returns));
 			out.writeByte(p.classification);//Classification unsigned char 1 byte
 			out.writeByte(p.scanAngleRank);//Scan Angle Rank (-90 to +90) – Left side char 1 byte
 			out.writeByte(0);//User Data unsigned char 1 byte
@@ -169,10 +173,10 @@ public class LasWriter {
 		}
 	}
 
-	private static int getFormat0Flag(int returnNumber, int returns) {		
+	public static int returnNumberReturnToByte(int returnNumber, int returns) {		
 		int rn = 7 < returnNumber ? 7 : returnNumber;
 		int rs = 7 < returns ? 7 : returns;		
-		return rn & (rs << 3);		
+		return rn | (rs << 3);		
 	}
 
 	private static void writePointDataRecordFormat6(LittleEndianDataOutputStream out, Vec<GeoPoint> points, double xoff, double yoff, double zoff) throws IOException {

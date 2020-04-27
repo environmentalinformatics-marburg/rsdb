@@ -17,8 +17,8 @@
 
 <div id="app">
 	<div class="no_raster_type_panel" v-show="viewType == undefined">
-		No raster type selected. 
-		<br><b>Select one raster type</b> to view rastered pointcloud.
+		<div style="color: #f01313;">No raster type selected.</div> 
+		<div style="color: #000000;"> ==> Select one raster <b>type</b> to view rastered pointcloud!  -----></div>
 	</div>
 	<div class="loading_panel" v-show="loadingMessage != undefined">
 	<img src="../images/default.svg" style="border: 0; vertical-align:middle;" width="24" >

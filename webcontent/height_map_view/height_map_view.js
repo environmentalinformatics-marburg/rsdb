@@ -140,6 +140,7 @@ methods: {
 			queryParameters.db = urlParameters.db;
 			queryParameters.ext = ext;
 			queryParameters.type = this.viewType;
+			queryParameters.fill = 10;
 		} else {
 			throw "invalid parameters";
 		}

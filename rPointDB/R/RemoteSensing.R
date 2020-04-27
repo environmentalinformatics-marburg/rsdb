@@ -133,7 +133,7 @@ RemoteSensing_active <- list( #      *********** active ************************
     return(meta$rasterdbs)
   },
 
-  plointclouds = function() {
+  pointclouds = function() {
     #json <- query_json(private$base_url, "pointclouds", curlHandle=private$curlHandle)
     json <- private$rsdbConnector$GET("/pointclouds")
     return(json$pointclouds)

@@ -133,8 +133,8 @@ export default {
       user_ymax: undefined,
       outputTypes: ['GeoTIFF - data', 'GeoTIFF - tiled data (experimental)', 'rDAT - data', 'PNG - visualisation', 'JPEG - visualisation', 'GeoTIFF - visualisation'],
       outputType: 'GeoTIFF - data',
-      modes: [{id: 'direct_bands', title: 'raster-file'},
-              {id: 'zip', title: 'zip-file'}],
+      modes: [{id: 'zip', title: 'zip-file (for arbitrarily large rasters)'},
+              {id: 'direct_bands', title: 'raster-file (for small rasters only)'}],
       mode: undefined,
       zip_arrangements: [{id: 'multiband', title: 'multiband: one raster-file per timestamp'},
                         {id: 'timeseries', title: 'timeseries: one raster-file per band (files with multiple timestamps as file-bands)'},
@@ -176,7 +176,7 @@ export default {
       var self = this;
       var url = this.$store.getters.apiUrl('rasterdb/' + self.meta.name + '/packages');
       var spec = {
-        ext: self.selectedExtent,
+        ext: [this.user_xmin, this.user_ymin, this.user_xmax, this.user_ymax],
         compression: self.compression.id,
         div: self.scaleDiv,
         arrangement: self.zip_arrangement.id,
@@ -233,7 +233,7 @@ export default {
     downloadLink() {
       var url_rasterdb = this.$store.getters.apiUrl('rasterdb');
       var method = 'raster.tiff';
-      var ext = this.selectedExtent.join(' ');
+      var ext = [this.user_xmin, this.user_ymin, this.user_xmax, this.user_ymax].join(' ');
       var parameters = { ext: ext };
 
       if(this.user_timestamp !== undefined && this.user_timestamp !== null) {
@@ -333,7 +333,7 @@ export default {
     },*/
   },
   mounted() {
-    this.mode = this.modes[1];
+    this.mode = this.modes[0];
   },
 }
 
