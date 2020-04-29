@@ -19,6 +19,7 @@ import remotetask.RemoteTask;
 @Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer (target, default: [pointcloud]_rasterized) ", example="pointcloud1_rasterized", required=false)
 @Param(name="transactions", type="boolean", desc="use power failer safe (and) slow RasterDB operation mode (default) (obsolete for TileStorage)", example="false", required=false)
 @Param(name="storage_type", desc="storage type of new RasterDB: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Param(name="associate", type="boolean", desc="set the created raster layer as map visualisation for this point cloud layer (default: true)", example="false", required=false)
 public class Task_rasterize extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 
@@ -42,6 +43,10 @@ public class Task_rasterize extends RemoteTask {
 		if(task.has("transactions")) {
 			transactions = task.getBoolean("transactions");
 		}
+		boolean associate = true;
+		if(task.has("associate")) {
+			associate = task.getBoolean("associate");
+		}
 		RasterDB rasterdb;
 		if(task.has("storage_type")) {
 			String storage_type = task.getString("storage_type");
@@ -52,5 +57,9 @@ public class Task_rasterize extends RemoteTask {
 		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb);
 		rasterizer.run();
 		rasterdb.rebuildPyramid(true);
+		if(associate) {
+			pointcloud.setAssociatedRasterDB(rasterdb_name);
+		}
+
 	}
 }

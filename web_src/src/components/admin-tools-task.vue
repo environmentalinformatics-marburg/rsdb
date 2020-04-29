@@ -28,6 +28,10 @@
         <template slot="option" slot-scope="props">{{props.option.name}}</template>
       </multiselect>
 
+      <v-btn flat icon color="green" @click="refreshLayers()" title="refresh layers">
+          <v-icon>refresh</v-icon>
+        </v-btn>
+
       <div v-if="selectedRemoteTaskEntry !== undefined">
         <div v-if="selectedRemoteTaskEntry.description !== undefined">
           <br>
@@ -316,6 +320,15 @@ export default {
         return [];
       }
       return a.map(e => this.parseInteger(e));
+    },
+    refreshLayers() {
+      this.$store.dispatch('rasterdbs/refresh');
+      this.$store.dispatch('pointdbs/refresh');
+      this.$store.dispatch('pointclouds/refresh');
+      this.$store.dispatch('vectordbs/refresh');
+      this.$store.dispatch('poi_groups/refresh');
+      this.$store.dispatch('roi_groups/refresh');
+      this.$store.dispatch('layer_tags/refresh');
     },  
   },
   computed: {
