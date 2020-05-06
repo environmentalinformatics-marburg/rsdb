@@ -501,10 +501,13 @@ public class Broker implements AutoCloseable {
 		if(Files.exists(pointcloudPath)) {
 			log.info("delete PointCloud: " + name + " in   " + pointcloudPath);
 			try {
-				boolean r1 = Files.deleteIfExists(pointcloudPath.resolve("pointcloud.dat"));
-				boolean r2 = Files.deleteIfExists(pointcloudPath.resolve("pointcloud.yml"));
-				boolean r3 = Files.deleteIfExists(pointcloudPath);
-				log.info(r1 + "  " + r2 + "  " + r3);
+				boolean r1 = Files.deleteIfExists(pointcloudPath.resolve("pointcloud.dat")); // type: RasterUnit
+				boolean r2 = Files.deleteIfExists(pointcloudPath.resolve("pointcloud.idx")); // type: TileStorage
+				boolean r3 = Files.deleteIfExists(pointcloudPath.resolve("pointcloud.tst")); // type: TileStorage
+				boolean r4 = Files.deleteIfExists(pointcloudPath.resolve("pointcloud.DIRTY")); // type: TileStorage
+				boolean r5 = Files.deleteIfExists(pointcloudPath.resolve("pointcloud.yml")); // meta data
+				boolean r6 = Files.deleteIfExists(pointcloudPath);
+				log.info(r1 + "  " + r2 + "  " + r3 + "  " + r4 + "  " + r5 + "  " + r6);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);

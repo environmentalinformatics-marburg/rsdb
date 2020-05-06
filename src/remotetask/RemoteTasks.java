@@ -65,6 +65,7 @@ public class RemoteTasks {
 		put(remotetask.pointcloud.Task_verify.class);
 		put(remotetask.pointcloud.Task_rebuild.class);
 		put(remotetask.pointcloud.Task_index_raster.class);
+		put(remotetask.pointcloud.Task_coverage.class);
 
 		//task_vectordb
 		put(RefreshCatalogEntryRemoteTask.class);
@@ -149,12 +150,12 @@ public class RemoteTasks {
 	}
 	
 	private static Vec<RemoteTaskParameter> getParams(Class<?> clazz) {
-		log.info("getParams");
+		//log.info("getParams");
 		Vec<RemoteTaskParameter> params = new Vec<RemoteTaskParameter>();
 		Param[] ps = clazz.getAnnotationsByType(Param.class);
 		for(Param p:ps) {
 			RemoteTaskParameter param = RemoteTaskParameter.of(p);
-			log.info("add param");
+			//log.info("add param");
 			params.add(param);
 		}
 		return params;

@@ -319,6 +319,18 @@ public class APIHandler_pointcloud {
 					pointcloud.setAssociatedRoiGroups(JsonUtil.optStringTrimmedList(jsonAssociated, "roi_groups"));
 					break;
 				}
+				case "delete_pointcloud": {
+					pointcloud.checkMod(userIdentity);
+					updateCatalog = false; // will be updated by delete pointcloud
+					String pointcloud_name = meta.getString("delete_pointcloud");
+					if(!pointcloud_name.equals(pointcloud.getName())) {
+						throw new RuntimeException("wrong parameters for delete pointcloud: " + pointcloud_name);
+					}
+					log.info("delete pointcloud " + pointcloud_name);
+					broker.deletePointCloud(pointcloud.getName());
+					pointcloud = null;
+					break;
+				}
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}

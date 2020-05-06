@@ -717,7 +717,62 @@ public class TileStorage implements RasterUnitStorage {
 	}
 
 	@Override
-	public Collection<Tile> readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax) {
+	public Range2d getTileRange(BandKey bandKey) {
+		int xmin = Integer.MAX_VALUE;
+		int ymin = Integer.MAX_VALUE;
+		int xmax = Integer.MIN_VALUE;
+		int ymax = Integer.MIN_VALUE;
+		NavigableSet<TileKey> subset = map.keySet().subSet(bandKey.toTileKeyMin(), true, bandKey.toTileKeyMax(), true);
+		if(subset.isEmpty()) {
+			return null;
+		}
+		for(TileKey tileKey:subset) {
+			int x = tileKey.x;
+			int y = tileKey.y;
+			if(x<xmin) {
+				xmin = x;
+			}
+			if(y<ymin) {
+				ymin = y;
+			}
+			if(xmax<x) {
+				xmax = x;
+			}
+			if(ymax<y) {
+				ymax = y;
+			}				
+		}
+		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
+		return tileRange.isEmptyMarker() ? null : tileRange;
+	}
+
+	@Override
+	public Range2d getTileRangeOfSubset(BandKey bandKey, Range2d subsetTileRange) {
+		int xmin = Integer.MAX_VALUE;
+		int xmax = Integer.MIN_VALUE;
+		NavigableSet<TileKey> mapKeys = map.keySet();		
+		NavigableSet<RowKey> subsetRowKeys = getRowKeys(bandKey.t, bandKey.b, subsetTileRange.ymin, subsetTileRange.ymax);
+		if(subsetRowKeys.isEmpty()) {
+			return null;
+		}
+		for(RowKey rowKey : subsetRowKeys) {			
+			NavigableSet<TileKey> row = mapKeys.subSet(rowKey.toTileKey(subsetTileRange.xmin), true, rowKey.toTileKey(subsetTileRange.xmax), true);
+			if(!row.isEmpty()) {
+				TileKey minKey = row.first();
+				if(minKey.x < xmin) {
+					xmin = minKey.x;
+				}
+				TileKey maxKey = row.last();
+				if(xmax < maxKey.x) {
+					xmax = maxKey.x;
+				}
+			}
+		}
+		return xmin == Integer.MAX_VALUE || xmax == Integer.MIN_VALUE ? null : new Range2d(xmin, subsetRowKeys.first().y, xmax, subsetRowKeys.last().y);
+	}	
+
+	@Override
+	public TileCollection readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax) {
 		Collection<RowKey> rows = getRowKeys(t, b, ymin, ymax);
 		TileCollection tileCollection = new TileCollection(this, rows, xmin, xmax);
 		//log.info("read tile rows for t" + t + " b" + b + ":   " +  tileCollection.rowCount());
@@ -817,36 +872,6 @@ public class TileStorage implements RasterUnitStorage {
 	}
 
 	@Override
-	public Range2d getTileRange(BandKey bandKey) {
-		int xmin = Integer.MAX_VALUE;
-		int ymin = Integer.MAX_VALUE;
-		int xmax = Integer.MIN_VALUE;
-		int ymax = Integer.MIN_VALUE;
-		NavigableSet<TileKey> subset = map.keySet().subSet(bandKey.toTileKeyMin(), true, bandKey.toTileKeyMax(), true);
-		if(subset.isEmpty()) {
-			return null;
-		}
-		for(TileKey tileKey:subset) {
-			int x = tileKey.x;
-			int y = tileKey.y;
-			if(x<xmin) {
-				xmin = x;
-			}
-			if(y<ymin) {
-				ymin = y;
-			}
-			if(xmax<x) {
-				xmax = x;
-			}
-			if(ymax<y) {
-				ymax = y;
-			}				
-		}
-		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
-		return tileRange.isEmptyMarker() ? null : tileRange;
-	}
-
-	@Override
 	public int getTileCount() {
 		return map.size();
 	}
@@ -895,5 +920,7 @@ public class TileStorage implements RasterUnitStorage {
 			refreshDerivedKeys();
 			flushLock.writeLock().unlock();
 		}	
-	}	
+	}
+
+
 }

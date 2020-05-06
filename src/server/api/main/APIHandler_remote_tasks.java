@@ -71,6 +71,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.value(id);
 			res.endObject();
 			res.endObject();
+			return;
 		}
 
 		response.setContentType("text/plain");	
@@ -208,6 +209,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.value(id);
 			res.endObject();
 			res.endObject();
+			return;
 		}
 
 		response.setStatus(HttpServletResponse.SC_OK);

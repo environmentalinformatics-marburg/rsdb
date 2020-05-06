@@ -1,8 +1,6 @@
 package rasterunit;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.NavigableSet;
 import java.util.function.Consumer;
 
 class TileKeyIterator implements Iterator<TileKey> {

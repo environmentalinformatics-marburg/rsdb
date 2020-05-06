@@ -2,6 +2,7 @@ package pointcloud;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Stream;
@@ -23,7 +24,9 @@ import griddb.GridDB;
 import griddb.GridDB.ExtendedMeta;
 import pointcloud.CellTable.ChainedFilterFunc;
 import pointcloud.CellTable.FilterFunc;
+import rasterunit.BandKey;
 import rasterunit.Tile;
+import rasterunit.TileCollection;
 import rasterunit.TileKey;
 import util.Range2d;
 import util.collections.ReadonlyNavigableSetView;
@@ -225,7 +228,7 @@ public class PointCloud implements AutoCloseable {
 		}
 		byte[] cellData = Cell.createData(attributes, columns, column_count);
 		Tile tile = griddb.createTile(cx, cy, cellData);
-		log.info("create cell cx: " + cx + " cy: " + cy + " columns: " + column_count + " rows: " + cellTable.rows + " compressed: " + cellData.length);
+		//log.info("create cell cx: " + cx + " cy: " + cy + " columns: " + column_count + " rows: " + cellTable.rows + " compressed: " + cellData.length);
 		return tile;
 	}
 
@@ -385,6 +388,22 @@ public class PointCloud implements AutoCloseable {
 		}
 	}
 
+	public TileCollection getTiles(double xmin, double ymin, double xmax, double ymax) {
+		if(celloffset == null) {
+			log.warn("no cell offset in PointCloud " + config.name);
+			return null;
+		} else {
+			double xcelloffset = celloffset.x;
+			double ycelloffset = celloffset.y;
+			int xcellmin = (int) (Math.floor(xmin / cellsize) - xcelloffset);
+			int xcellmax = (int) (Math.floor(xmax / cellsize) - xcelloffset);
+			int ycellmin = (int) (Math.floor(ymin / cellsize) - ycelloffset);
+			int ycellmax = (int) (Math.floor(ymax / cellsize) - ycelloffset);
+			//log.info(xcellmin + " " + ycellmin + " " + xcellmax + " " + ycellmax);
+			return griddb.getTiles(xcellmin, ycellmin, xcellmax, ycellmax);		
+		}
+	}
+
 	public int countCells(double xmin, double ymin, double xmax, double ymax) {
 		if(celloffset == null) {
 			log.warn("no cell offset in PointCloud " + config.name);
@@ -431,7 +450,7 @@ public class PointCloud implements AutoCloseable {
 		}
 		if(selector.returnNumber) {
 			cellTable.returnNumber = cell.getByte(attr_returnNumber);
-			log.info("cellTable.returnNumber " + cellTable.returnNumber + "   " + attr_returnNumber);
+			//log.info("cellTable.returnNumber " + cellTable.returnNumber + "   " + attr_returnNumber);
 		}
 		if(selector.returns) {
 			cellTable.returns = cell.getByte(attr_returns);
@@ -634,6 +653,10 @@ public class PointCloud implements AutoCloseable {
 	 */
 	public Range2d getCellRange() {
 		return griddb.getTileRange();
+	}
+
+	public Range2d getCellRangeOfSubset(Range2d subsetCellRange) {
+		return griddb.getTileRangeOfSubset(new BandKey(0, 0), subsetCellRange);
 	}
 
 	public String getCode() {

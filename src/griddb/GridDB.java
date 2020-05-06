@@ -21,9 +21,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
+import rasterunit.BandKey;
 import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
+import rasterunit.TileCollection;
 import rasterunit.TileKey;
 import rasterunit.TileStorage;
 import rasterunit.TileStorageConfig;
@@ -148,7 +150,7 @@ public class GridDB implements AutoCloseable {
 		return tile == null ? null : tileToCell(tile);
 	}
 
-	public Collection<Tile> getTiles(int xcellmin, int ycellmin, int xcellmax, int ycellmax) {
+	public TileCollection getTiles(int xcellmin, int ycellmin, int xcellmax, int ycellmax) {
 		return storage().readTiles(0, 0, ycellmin, ycellmax, xcellmin, xcellmax);
 	}
 
@@ -267,6 +269,10 @@ public class GridDB implements AutoCloseable {
 	public Range2d getTileRange() {
 		return storage().getTileRange();
 	}
+	
+	public Range2d getTileRangeOfSubset(BandKey bandKey, Range2d subsetTileRange) {
+		return storage().getTileRangeOfSubset(bandKey, subsetTileRange);
+	}
 
 	public ReadonlyNavigableSetView<TileKey> getTileKeys() {
 		return storage().tileKeysReadonly();
@@ -283,4 +289,6 @@ public class GridDB implements AutoCloseable {
 	public RasterUnitStorage getStorage() {
 		return storage;		
 	}
+
+
 }

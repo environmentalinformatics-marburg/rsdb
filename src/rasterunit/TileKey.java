@@ -101,5 +101,13 @@ public class TileKey {
 			return false;
 		return true;
 	}
+	
+	public boolean hasBandKey(BandKey bandKey) {
+		return t == bandKey.t && b == bandKey.b;		
+	}
+	
+	public boolean hasRowKey(RowKey rowKey) {
+		return t == rowKey.t && b == rowKey.b && y == rowKey.y;		
+	}
 
 }

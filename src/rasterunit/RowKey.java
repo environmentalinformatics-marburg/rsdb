@@ -14,6 +14,18 @@ public class RowKey {
 		this.y = y;
 	}
 	
+	public TileKey toTileKey(int x) {
+		return new TileKey(t, b, y, x);
+	}
+	
+	public TileKey toTileKeyMin() {
+		return toTileKey(Integer.MIN_VALUE);
+	}
+	
+	public TileKey toTileKeyMax() {
+		return toTileKey(Integer.MAX_VALUE);
+	}
+	
 	public static final Comparator<RowKey> COMPARATOR = new Comparator<RowKey>() {
 		@Override
 		public int compare(RowKey k1, RowKey k2) {

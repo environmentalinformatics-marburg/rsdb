@@ -15,7 +15,7 @@ public interface RasterUnitStorage extends AutoCloseable {
 	
 	Tile readTile(TileKey tileKey) throws IOException;
 	Tile readTile(int t, int b, int y, int x) throws IOException;
-	Collection<Tile> readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax);
+	TileCollection readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax);
 	NavigableSet<TileKey> getTileKeys(int t, int b, int y, int xmin, int xmax);
 	Collection<Tile> getTiles(TileKey keyXmin, TileKey keyXmax);
 	NavigableSet<RowKey> getRowKeys(int t, int b, int ymin, int ymax);
@@ -31,6 +31,12 @@ public interface RasterUnitStorage extends AutoCloseable {
 	 * @return range or null
 	 */	
 	Range2d getTileRange(BandKey bandKey);
+	
+	/**
+	 * 
+	 * @return range or null
+	 */
+	Range2d getTileRangeOfSubset(BandKey bandKey, Range2d subsetTileRange);
 	
 	void writeTile(Tile tile) throws IOException;
 	

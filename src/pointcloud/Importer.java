@@ -26,11 +26,14 @@ public class Importer {
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
 	private final PointCloud pointcloud;
+	
+	private final DoubleRect filterRect;
 
 	private static final int READ_MAX_BYTES = 1_000_000_000;
 
-	public Importer(PointCloud pointcloud) {
+	public Importer(PointCloud pointcloud, DoubleRect filterRect) {
 		this.pointcloud = pointcloud;
+		this.filterRect = filterRect;
 	}
 
 	/**
@@ -56,7 +59,7 @@ public class Importer {
 					String filename = path.getFileName().toString().toLowerCase();
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(ext.trim().toLowerCase().equals("las") || ext.trim().toLowerCase().equals("laz")) {
-						log.info("import file "+path);					
+						//log.info("import file "+path);					
 						importFile(path);
 					} else {
 						//log.info("skip file "+path);	
@@ -144,8 +147,21 @@ public class Importer {
 		double ylasmin = isLas ? las.min[1] : laz.min[1];
 		double xlasmax = isLas ? las.max[0] : laz.max[0];
 		double ylasmax = isLas ? las.max[1] : laz.max[1];
-
-
+		
+		if(filterRect != null) {
+			if(xlasmin < filterRect.xmin) {
+				xlasmin = filterRect.xmin;
+			}
+			if(ylasmin < filterRect.ymin) {
+				ylasmin = filterRect.ymin;
+			}
+			if(xlasmax > filterRect.xmax) {
+				xlasmax = filterRect.xmax;
+			}
+			if(ylasmax > filterRect.ymax) {
+				ylasmax = filterRect.ymax;
+			}
+		}
 
 		DoublePoint celloffset = pointcloud.getOrSetCelloffset(Math.floor(xlasmin / xcellsize), Math.floor(ylasmin / ycellsize));
 		double xcelloffset = celloffset.x;
@@ -161,13 +177,13 @@ public class Importer {
 		int ylascellmax = (int) (Math.floor(ylasmax / ycellsize) - ycelloffset);
 
 		long pos = 0;
+		int subdividedLen = 0;  // 0 == no subdivision
 		while(pos < las_number_of_point_records) {
-			long current_long_len = las_number_of_point_records - pos;
+			long current_long_len = subdividedLen > 0 ? subdividedLen : las_number_of_point_records - pos;
 			int len = current_long_len >= record_count_max ? record_count_max : (int) current_long_len;
 			Timer.resume("get records");
 			CellTable recordTable = isLas ? las.getRecords(pos, len) : laz.getRecords(pos, len);
-			log.info(Timer.stop("get records"));
-			pos += len;
+			//log.info(Timer.stop("get records"));
 
 			Timer.resume("convert records");
 
@@ -239,10 +255,20 @@ public class Importer {
 
 			int xcellrange = xcellmax - xcellmin + 1;
 			int ycellrange = ycellmax - ycellmin + 1;
+			long totalCellCount = ((long) xcellrange) * ((long) ycellrange);
+			log.info("cell "+xcellmin+" "+ycellmin+" "+xcellmax+" "+ycellmax+"     "+xcellrange+" "+ycellrange + "   " + totalCellCount);
+			int maxCellCountPerBatch = 1024*1024;
+			if(totalCellCount > maxCellCountPerBatch) {
+				subdividedLen = len / 2;
+				if(subdividedLen < 1) {
+					subdividedLen = 1;
+				}
+				continue; // process smaller set of point records	
+			}
+			subdividedLen = 0; // no subdivision
+			pos += len; // process len point records
 
-			log.info("cell "+xcellmin+" "+ycellmin+" "+xcellmax+" "+ycellmax+"     "+xcellrange+" "+ycellrange);
-
-			Timer.start("cell count");
+			//Timer.start("cell count");
 			int[][] cellcnt = new int[ycellrange][xcellrange]; // upper bound of point count of cell
 			for (int i = 0; i < len; i++) {
 				double x = (xs[i] * xscale) + xoff;
@@ -253,7 +279,7 @@ public class Importer {
 					cellcnt[ycell][xcell]++;
 				}
 			}
-			log.info(Timer.stop("cell count"));
+			//log.info(Timer.stop("cell count"));
 
 			CellTable[][] cells = new CellTable[ycellrange][xcellrange];
 			boolean useIntensity = intensity != null;
@@ -315,7 +341,7 @@ public class Importer {
 					}
 				}
 			}
-			log.info(Timer.stop("cell init")+"  "+cellTotalCount+" cells of "+(ycellrange * xcellrange));
+			//log.info(Timer.stop("cell init")+"  "+cellTotalCount+" cells of "+(ycellrange * xcellrange));
 
 
 
@@ -384,7 +410,7 @@ public class Importer {
 				}
 			}
 
-			log.info(Timer.stop("convert records"));
+			//log.info(Timer.stop("convert records"));
 
 			for (int y = 0; y < ycellrange; y++) {
 				for (int x = 0; x < xcellrange; x++) {
@@ -406,7 +432,7 @@ public class Importer {
 						}
 						//Timer.resume("create tile");
 						Tile tile = pointcloud.createTile(cellTable, tx, ty);
-						
+
 						/*pointcloud.getGriddb();
 						CellTable newCellTable = pointcloud.getCellTable(GridDB.tileToCell(tile), new AttributeSelector(true));
 						if(newCellTable.returnNumber != null && newCellTable.returnNumber.length > 0) {
@@ -416,14 +442,14 @@ public class Importer {
 						if(newPointTable.returnNumber != null && newPointTable.returnNumber.length > 0) {
 							log.info("newPointTable.returnNumber " + newPointTable.returnNumber[0]);								
 						}*/
-						
+
 						//log.info(Timer.stop("create tile"));
 						//log.info(tile);
 						//Timer.resume("write tile");
 						pointcloud.writeTile(tile);
 						//log.info(Timer.stop("write tile"));
-						
-						
+
+
 						/*double px = (pointcloud.getCelloffset().x + x) * pointcloud.getCellsize();
 						double py = (pointcloud.getCelloffset().y + y) * pointcloud.getCellsize();
 						log.info("tps" + px + "   " + py);
@@ -440,9 +466,9 @@ public class Importer {
 			pointcloud.commit();
 
 		}
-		log.info("done");
+		//log.info("done");
 		log.info(Timer.stop("import"));	
-		log.info(Timer.toStringAll());
+		//log.info(Timer.toStringAll());
 	}
 
 	public static double floorMod(double x, double y) {

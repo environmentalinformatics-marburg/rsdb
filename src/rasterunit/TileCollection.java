@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.Spliterator;
 
-class TileCollection extends AbstractCollection<Tile> {
+public class TileCollection extends AbstractCollection<Tile> {
 	private final RasterUnitStorage rasterUnit;
 	private final int xmin;
 	private final int xmax;

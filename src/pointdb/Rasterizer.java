@@ -18,7 +18,6 @@ import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 
 public class Rasterizer {

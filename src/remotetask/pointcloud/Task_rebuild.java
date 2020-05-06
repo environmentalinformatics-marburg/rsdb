@@ -56,6 +56,8 @@ public class Task_rebuild extends CancelableRemoteTask {
 		setMessage("rebuild");
 		rebuild.run();
 		setMessage("done");
+		broker.refreshPointcloudConfigs();
+		broker.catalog.updateCatalog();
 	}
 
 

@@ -835,9 +835,9 @@ public class Las {
 			helperBuffer = java.nio.ByteBuffer.allocateDirect((int) fileBytes);
 		}
 		helperBuffer.rewind();
-		Timer.resume("read records");
+		//Timer.resume("read records");
 		int ret = filechannel.read(helperBuffer, filePosStart);
-		log.info(Timer.stop("read records"));
+		//log.info(Timer.stop("read records"));
 		helperBuffer.rewind();
 		if(ret!=fileBytes) {
 			throw new RuntimeException("file read error");

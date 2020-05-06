@@ -6,10 +6,12 @@ import java.nio.file.Paths;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
 import broker.acl.EmptyACL;
+import pointcloud.DoubleRect;
 import pointcloud.Importer;
 import pointcloud.PointCloud;
 import remotetask.Context;
@@ -30,6 +32,7 @@ import org.locationtech.proj4j.CoordinateReferenceSystem;
 @Param(name="storage_type", desc="storage type of new PointCloud: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="epsg", desc="EPSG projection code (If epsg is left empty and proj4 parameter is set a automatic epsg search will be tried. Note: multiple epsg may refer to one proj4)", format="number", example="25832", required=false)
 @Param(name="proj4", desc="PROJ4 projection (If proj4 is left empty and epsg parameter is set a automatic proj4 generation will be tried.)", format="text", example="+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
+@Param(name="rect", type="number_rect", desc="only points inside of rect are imported - prevents import of points with erroneous x,y coordinates", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
 public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
@@ -44,7 +47,18 @@ public class Task_import extends RemoteTask {
 	}
 
 	@Override
-	public void process() throws IOException {		
+	public void process() throws IOException {
+		
+		DoubleRect filterRect = null;
+		JSONArray rect_Text = task.optJSONArray("rect");
+		if(rect_Text != null) {
+			double rect_xmin = rect_Text.getDouble(0);
+			double rect_ymin = rect_Text.getDouble(1);
+			double rect_xmax = rect_Text.getDouble(2);
+			double rect_ymax = rect_Text.getDouble(3);
+			filterRect = new DoubleRect(rect_xmin, rect_ymin, rect_xmax, rect_ymax);
+		}
+		
 		String name = task.getString("pointcloud");
 		String storage_type = task.optString("storage_type", "RasterUnit");
 		boolean transactions = task.optBoolean("transactions", false);
@@ -88,7 +102,7 @@ public class Task_import extends RemoteTask {
 		}
 
 
-		Importer imprter = new Importer(pointcloud);
+		Importer imprter = new Importer(pointcloud, filterRect);
 		String source = task.getString("source");
 		Path root = Paths.get(source);
 

@@ -155,7 +155,16 @@
             <div class="meta-content">
                 <v-btn @click="app_lidar_indices"><v-icon>folder_open</v-icon>&nbsp;LiDAR indices processing</v-btn>
                 <a :href="this.urlPrefix + '../../web/lidar_indices_description/lidar_indices_description.html'" target="_blank">Indices Description</a>
-            </div>            
+            </div>
+
+                        <v-divider class="meta-divider"></v-divider>
+            <h3 class="subheading mb-0"> 
+                Actions
+            </h3>            
+            <div class="meta-content" v-if="modify">
+                <admin-pointcloud-dialog-delete :meta="meta" @changed="refresh" />
+            </div>
+
         </div>
     </div>
 </template>
@@ -168,6 +177,7 @@ import adminPointcloudDialogSetInfo from './admin-pointcloud-dialog-set-info.vue
 import adminPointcloudDialogSetProjection from './admin-pointcloud-dialog-set-projection.vue'
 import adminPointcloudDialogSetAssociated from './admin-pointcloud-dialog-set-associated.vue'
 import adminPointcloudDialogSetAcl from './admin-pointcloud-dialog-set-acl.vue'
+import adminPointcloudDialogDelete from './admin-pointcloud-dialog-delete'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
 
@@ -178,6 +188,7 @@ export default {
         'admin-pointcloud-dialog-set-projection': adminPointcloudDialogSetProjection,
         'admin-pointcloud-dialog-set-associated': adminPointcloudDialogSetAssociated,
         'admin-pointcloud-dialog-set-acl': adminPointcloudDialogSetAcl,
+        'admin-pointcloud-dialog-delete': adminPointcloudDialogDelete,
         PulseLoader,        
     },
     props: ['pointcloud'],

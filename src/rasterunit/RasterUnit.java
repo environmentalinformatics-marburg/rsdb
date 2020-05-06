@@ -210,7 +210,7 @@ public class RasterUnit implements RasterUnitStorage {
 		return rowKeys.subSet(rowKeyYmin, true, rowKeyYmax, true);
 	}	
 
-	public Collection<Tile> readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax) {
+	public TileCollection readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax) {
 		Collection<RowKey> rows = getRowKeys(t, b, ymin, ymax);
 		return new TileCollection(this, rows, xmin, xmax);
 	}
@@ -293,7 +293,31 @@ public class RasterUnit implements RasterUnitStorage {
 		}
 		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
 		return tileRange.isEmptyMarker() ? null : tileRange;
-	}	
+	}
+	
+	@Override
+	public Range2d getTileRangeOfSubset(BandKey bandKey, Range2d subsetTileRange) {
+		int xmin = Integer.MAX_VALUE;
+		int xmax = Integer.MIN_VALUE;
+		NavigableSet<RowKey> subsetRowKeys = getRowKeys(bandKey.t, bandKey.b, subsetTileRange.ymin, subsetTileRange.ymax);
+		if(subsetRowKeys.isEmpty()) {
+			return null;
+		}
+		for(RowKey rowKey : subsetRowKeys) {			
+			NavigableSet<TileKey> row = tileKeys.subSet(rowKey.toTileKey(subsetTileRange.xmin), true, rowKey.toTileKey(subsetTileRange.xmax), true);
+			if(!row.isEmpty()) {
+				TileKey minKey = row.first();
+				if(minKey.x < xmin) {
+					xmin = minKey.x;
+				}
+				TileKey maxKey = row.last();
+				if(xmax < maxKey.x) {
+					xmax = maxKey.x;
+				}
+			}
+		}
+		return xmin == Integer.MAX_VALUE || xmax == Integer.MIN_VALUE ? null : new Range2d(xmin, subsetRowKeys.first().y, xmax, subsetRowKeys.last().y);
+	}
 
 
 	private static final int cacheHeader = 0xcaac;

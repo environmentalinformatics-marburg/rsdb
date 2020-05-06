@@ -12,7 +12,6 @@ import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import util.Range2d;
 
@@ -47,8 +46,16 @@ public class Rasterizer {
 		informal.description = "ratserized poindcloud " + pointcloud.getName();
 		rasterdb.setInformal(informal.build());
 		rasterdb.writeMeta();
-		
+
 		pointcloud.setAssociatedRasterDB(rasterdb.config.getName());
+		
+		Range2d cellrange = pointcloud.getCellRange();
+		DoublePoint celloffset = pointcloud.getCelloffset();
+		double cellsize = pointcloud.getCellsize();
+		double pointcloud_xmin = (celloffset.x + cellrange.xmin) * cellsize;
+		double pointcloud_ymin = (celloffset.y + cellrange.ymin) * cellsize;		
+		log.info("set raster to pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin);
+		rasterdb.setPixelSize(raster_pixel_size, raster_pixel_size, pointcloud_xmin, pointcloud_ymin);
 
 		selectorElevation = new AttributeSelector();
 		selectorElevation.setXY();
@@ -88,12 +95,44 @@ public class Rasterizer {
 		}
 	}
 
-
 	private void run(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing) throws IOException {
 		Range2d cellrange = pointcloud.getCellRange();
 		if(cellrange == null) {
 			return;
 		}
+		log.info("cellRange: " + cellrange);
+		runCellRange(selectedBand, selector, pointProcessing, cellrange);
+	}
+
+
+	private void runCellRange(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing, Range2d cellrange) throws IOException {
+		if(cellrange == null) {
+			return;
+		}
+		log.info("pre  " + cellrange);
+		cellrange = pointcloud.getCellRangeOfSubset(cellrange);
+		log.info("post " + cellrange);
+		if(cellrange == null) {
+			return;
+		}
+		int cellrangeY = cellrange.getHeight();
+		if(cellrangeY > 32) {
+			log.info("subdiv Y " + cellrangeY);
+			int middleY = (int) ((((long)cellrange.ymin) + ((long)cellrange.ymax)) / 2);
+			runCellRange(selectedBand, selector, pointProcessing, new Range2d(cellrange.xmin, cellrange.ymin, cellrange.xmax, middleY));
+			runCellRange(selectedBand, selector, pointProcessing, new Range2d(cellrange.xmin, middleY + 1, cellrange.xmax, cellrange.ymax));
+			return;
+		}
+		
+		int cellrangeX = cellrange.getWidth();
+		if(cellrangeX > 32) {
+			log.info("subdiv X " + cellrangeX);
+			int middleX = (int) ((((long)cellrange.xmin) + ((long)cellrange.xmax)) / 2);
+			runCellRange(selectedBand, selector, pointProcessing, new Range2d(cellrange.xmin, cellrange.ymin, middleX, cellrange.ymax));
+			runCellRange(selectedBand, selector, pointProcessing, new Range2d(middleX + 1, cellrange.ymin, cellrange.xmax, cellrange.ymax));
+			return;
+		}		
+
 		DoublePoint celloffset = pointcloud.getCelloffset();
 		double cellsize = pointcloud.getCellsize();
 		double cellscale1d = 1 / pointcloud.getCellscale();
@@ -101,8 +140,7 @@ public class Rasterizer {
 		double pointcloud_ymin = (celloffset.y + cellrange.ymin) * cellsize;
 		double pointcloud_xmax = (celloffset.x + cellrange.xmax + 1) * cellsize - cellscale1d;
 		double pointcloud_ymax = (celloffset.y + cellrange.ymax + 1) * cellsize - cellscale1d;		
-		log.info("pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin+"   pointcloud_xmax " + pointcloud_xmax + " pointcloud_ymax " + pointcloud_ymax);
-		rasterdb.setPixelSize(raster_pixel_size, raster_pixel_size, pointcloud_xmin, pointcloud_ymin);
+		log.info("local pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin+"   pointcloud_xmax " + pointcloud_xmax + " pointcloud_ymax " + pointcloud_ymax);
 		GeoReference ref = rasterdb.ref();
 		int raster_xmin = ref.geoXToPixel(pointcloud_xmin);
 		int raster_ymin = ref.geoYToPixel(pointcloud_ymin);
@@ -116,7 +154,7 @@ public class Rasterizer {
 			int xmin = raster_xmin;
 			while(xmin <= raster_xmax) {
 				int xmax = xmin + raster_pixel_per_batch_row - 1;
-				log.info("xmin " + xmin + " ymin " + ymin+"   xmax " + xmax + " ymax " + ymax);
+				//log.info("xmin " + xmin + " ymin " + ymin+"   xmax " + xmax + " ymax " + ymax);
 
 				int bxmin = xmin - border_pixels;
 				int bymin = ymin - border_pixels;
@@ -127,7 +165,7 @@ public class Rasterizer {
 				double qymin = ref.pixelYToGeo(bymin);
 				double qxmax = ref.pixelXToGeo(bxmax + 1) - cellscale1d;
 				double qymax = ref.pixelYToGeo(bymax + 1) - cellscale1d;
-				log.info("qxmin " + qxmin + " qymin " + qymin+"   qxmax " + qxmax + " qymax " + qymax);
+				//log.info("qxmin " + qxmin + " qymin " + qymin+"   qxmax " + qxmax + " qymax " + qymax);
 
 				int cellCount = pointcloud.countCells(qxmin, qymin, qxmax, qymax);
 				log.info("cell count "+cellCount);
@@ -194,7 +232,7 @@ public class Rasterizer {
 			}
 		});
 	}
-	
+
 	private static void processRed(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels) {
 		//log.info("processRed " + qxmin + "  " + qymin);
 		pointTables.forEach(p->{
@@ -219,7 +257,7 @@ public class Rasterizer {
 			}
 		});
 	}
-	
+
 	private static void processGreen(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels) {
 		pointTables.forEach(p->{
 			char[] green = p.green;
@@ -240,7 +278,7 @@ public class Rasterizer {
 			}
 		});
 	}
-	
+
 	private static void processBlue(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels) {
 		pointTables.forEach(p->{
 			char[] blue = p.blue;
