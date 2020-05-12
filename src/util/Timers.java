@@ -23,7 +23,7 @@ public class Timers implements Serializable {
 	}
 
 	/**
-	 * Stop a started timer.
+	 * Stop a started timer. It can be resumed.
 	 * @param name
 	 * @return interval of time
 	 */
@@ -31,6 +31,11 @@ public class Timers implements Serializable {
 		return get(name).stop();
 	}
 	
+	/**
+	 * Start a new timer or resume an existing timer.
+	 * @param name
+	 * @return
+	 */
 	public Timer resume(String name) {
 		Timer timer = map.get(name);
 		if(timer == null) {

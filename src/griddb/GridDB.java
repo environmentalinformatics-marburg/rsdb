@@ -80,7 +80,7 @@ public class GridDB implements AutoCloseable {
 		metaFileTemp = metaPathTemp.toFile();
 	}
 
-	private RasterUnitStorage storage() {
+	public RasterUnitStorage storage() {
 		RasterUnitStorage s = storage;
 		return s == null ? loadStorage() : s;
 	}
@@ -285,10 +285,4 @@ public class GridDB implements AutoCloseable {
 	public String getStorageType() {
 		return storageType;
 	}
-
-	public RasterUnitStorage getStorage() {
-		return storage;		
-	}
-
-
 }

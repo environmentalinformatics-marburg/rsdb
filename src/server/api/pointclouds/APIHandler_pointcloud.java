@@ -19,6 +19,7 @@ import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import broker.group.PoiGroup;
 import broker.group.RoiGroup;
+import pointcloud.DoublePoint;
 import pointcloud.DoubleRect;
 import pointcloud.PointCloud;
 import util.JsonUtil;
@@ -119,6 +120,10 @@ public class APIHandler_pointcloud {
 
 		boolean requestPoiGroups = request.getParameter("poi_groups") != null;
 		boolean requestRoiGroups = request.getParameter("roi_groups") != null;
+		boolean requestInternalStorageInternalFreeSize = request.getParameter("storage_internal_free_size") != null;
+		boolean requestStorageSize = request.getParameter("storage_size") != null;
+		boolean requestCellCount = request.getParameter("cell_count") != null;
+		boolean requestCellSizeStats = request.getParameter("cell_size_stats") != null;
 
 
 		response.setStatus(HttpServletResponse.SC_OK);
@@ -156,6 +161,34 @@ public class APIHandler_pointcloud {
 				json.value(cell_range.xmax);
 				json.value(cell_range.ymax);
 				json.endArray();
+			}
+			if(cell_range != null) {
+				json.key("cell_range");
+				json.object();
+				json.key("x");
+				json.value(cell_range.xmax - cell_range.xmin + 1);
+				json.key("y");
+				json.value(cell_range.ymax - cell_range.ymin + 1);
+				json.endObject();
+			}
+			if(cell_range != null) {
+				json.key("range");
+				json.object();
+				json.key("x");
+				json.value((cell_range.xmax - cell_range.xmin + 1) * pointcloud.getCellsize());
+				json.key("y");
+				json.value((cell_range.ymax - cell_range.ymin + 1) * pointcloud.getCellsize());
+				json.endObject();
+			}
+			DoublePoint cell_offset = pointcloud.getCelloffset();
+			if(cell_offset != null) {
+				json.key("cell_offset");
+				json.object();
+				json.key("x");
+				json.value(cell_offset.x * pointcloud.getCellsize());
+				json.key("y");
+				json.value(cell_offset.y * pointcloud.getCellsize());
+				json.endObject();
 			}
 		}
 		json.key("raster_types");
@@ -216,6 +249,35 @@ public class APIHandler_pointcloud {
 				}
 			}
 			json.endArray();
+		}
+		if(requestInternalStorageInternalFreeSize) {
+			json.key("storage_internal_free_size");
+			long internal_free_size = pointcloud.getGriddb().storage().calculateInternalFreeSize();
+			json.value(internal_free_size);
+		}
+		if(requestStorageSize) {
+			json.key("storage_size");
+			long storage_size = pointcloud.getGriddb().storage().calculateStorageSize();
+			json.value(storage_size);
+		}
+		if(requestCellCount) {
+			json.key("cell_count");
+			int cell_count = pointcloud.getGriddb().storage().calculateTileCount();
+			json.value(cell_count);
+		}
+		if(requestCellSizeStats) {
+			long[] stats = pointcloud.getGriddb().storage().calculateTileSizeStats();
+			if(stats != null) {
+				json.key("cell_size_stats");
+				json.object();
+				json.key("min");
+				json.value(stats[0]);		
+				json.key("mean");
+				json.value(stats[1]);		
+				json.key("max");
+				json.value(stats[2]);		
+				json.endObject();		
+			}
 		}
 		json.endObject(); // pointcloud
 		json.endObject(); // JSON

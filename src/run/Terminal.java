@@ -771,7 +771,7 @@ public class Terminal {
 				Importer importer = new Importer(pointcloud, null);
 				Timer.start("total import");
 				importer.importDirectory(root);
-				pointcloud.getGriddb().getStorage().flush();
+				pointcloud.getGriddb().storage().flush();
 				log.info(Timer.stop("total import"));
 			} catch (Exception e) {
 				e.printStackTrace();

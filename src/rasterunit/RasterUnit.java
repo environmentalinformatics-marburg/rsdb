@@ -21,6 +21,7 @@ import org.mapdb.DB;
 import org.mapdb.DB.BTreeMapMaker;
 import org.mapdb.DBMaker;
 import org.mapdb.DBMaker.Maker;
+import org.mapdb.Store;
 import org.xerial.snappy.Snappy;
 
 import me.lemire.integercompression.FastPFOR;
@@ -120,7 +121,7 @@ public class RasterUnit implements RasterUnitStorage {
 		if(!loadCache()) {
 			cacheFileOutdated = true;
 			refreshKeys();
-		}
+		}		
 	}
 
 	public void commit() {
@@ -542,5 +543,25 @@ public class RasterUnit implements RasterUnitStorage {
 	@Override
 	public ReadonlyNavigableSetView<Integer> timeKeysReadonly() {
 		return timeKeysReadonly;
+	}
+
+	@Override
+	public long calculateInternalFreeSize() {		
+		return Store.forDB(tileMapDb).getFreeSize();		
+	}
+
+	@Override
+	public long calculateStorageSize() {
+		return Store.forDB(tileMapDb).getCurrSize();
+	}
+
+	@Override
+	public int calculateTileCount() {
+		return tileKeys.size();
+	}
+
+	@Override
+	public long[] calculateTileSizeStats() {
+		return null;
 	}
 }

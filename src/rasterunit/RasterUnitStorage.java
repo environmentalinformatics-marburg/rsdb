@@ -55,4 +55,14 @@ public interface RasterUnitStorage extends AutoCloseable {
 	}
 	long removeAllTilesOfTimestamp(int t) throws IOException;
 	long removeAllTilesOfBand(int b) throws IOException;
+	
+	long calculateInternalFreeSize();
+	long calculateStorageSize();
+	int calculateTileCount();
+	
+	/**
+	 * stats or null
+	 * @return
+	 */
+	long[] calculateTileSizeStats();
 }

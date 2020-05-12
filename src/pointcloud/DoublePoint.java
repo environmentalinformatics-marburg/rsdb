@@ -2,6 +2,8 @@ package pointcloud;
 
 import java.util.LinkedHashMap;
 
+import org.json.JSONWriter;
+
 import util.yaml.YamlMap;
 
 public class DoublePoint {
@@ -29,5 +31,13 @@ public class DoublePoint {
 	}
 	public DoublePoint mul(double a) {
 		return new DoublePoint(x * a, y * a);
+	}
+	public void toJSON(JSONWriter json) {
+		json.object();
+		json.key("x");
+		json.value(x);
+		json.key("y");
+		json.value(y);
+		json.endObject();		
 	}
 }

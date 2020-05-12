@@ -108,7 +108,7 @@ public class Task_import extends RemoteTask {
 
 		setMessage("start import");
 		imprter.importDirectory(root);
-		pointcloud.getGriddb().getStorage().flush();
+		pointcloud.getGriddb().storage().flush();
 		setMessage("finished import");
 	}
 }

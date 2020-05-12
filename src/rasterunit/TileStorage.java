@@ -9,7 +9,9 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.AbstractCollection;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.NavigableSet;
@@ -19,6 +21,7 @@ import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -28,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import griddb.Encoding;
 import util.Range2d;
 import util.Serialisation;
+import util.Timer;
 import util.collections.ReadonlyNavigableSetView;
 
 public class TileStorage implements RasterUnitStorage {
@@ -37,8 +41,9 @@ public class TileStorage implements RasterUnitStorage {
 	private final FileChannel tileFileChannel;
 	private final ConcurrentSkipListMap<TileKey, TileSlot> map;
 	private final AtomicLong fileLimit;
+	private final AtomicInteger freeSetAddCounter;
 	private final ConcurrentSkipListSet<FreeSlot> freeSet;
-	private boolean dirty; // only read/write inside of flushLock
+	private volatile boolean dirty; // only read/write inside of flushLock
 	private final ReentrantReadWriteLock flushLock = new ReentrantReadWriteLock(true);
 
 	public final ReadonlyNavigableSetView<TileKey> tileKeysReadonly;
@@ -91,6 +96,7 @@ public class TileStorage implements RasterUnitStorage {
 		timeKeysReadonly = new ReadonlyNavigableSetView<Integer>(timeKeys);
 		fileLimit = new AtomicLong(Long.MIN_VALUE);
 		freeSet = new ConcurrentSkipListSet<FreeSlot>(FreeSlot.LEN_POS_COMPARATOR);
+		freeSetAddCounter = new AtomicInteger(0);
 		open();
 	}
 
@@ -123,6 +129,7 @@ public class TileStorage implements RasterUnitStorage {
 	}
 
 	public void writeTile(Tile tile) throws IOException {
+		optionalConsolidateFreeSlots();
 		flushLock.readLock().lock();
 		try {
 			setDirty();
@@ -204,13 +211,148 @@ public class TileStorage implements RasterUnitStorage {
 			addKey(key);
 			if(freeSlotFull != null) {
 				freeSet.add(freeSlotFull);
+				freeSetAddCounter.getAndIncrement();
 			}
 			if(freeSlotPart != null) {
 				freeSet.add(freeSlotPart);
+				freeSetAddCounter.getAndIncrement();
 			}
 		} finally {
 			flushLock.readLock().unlock();
 		}
+	}
+
+	private int countAdjacentFreeSlots() {
+		flushLock.readLock().lock();
+		try {	
+			HashSet<Long> nextPosSet = new HashSet<Long>(freeSet.size());
+			for(FreeSlot slot : freeSet) {
+				long nextPos = slot.nextPos();
+				if(!nextPosSet.add(nextPos)) {
+					throw new RuntimeException("free slot set inconsistent");
+				}					
+			}
+			int adjacentFreeSlotCount = 0;
+			for(FreeSlot slot : freeSet) {
+				if(nextPosSet.contains(slot.pos)) {
+					adjacentFreeSlotCount++;
+				}
+			}
+			return adjacentFreeSlotCount;
+		} finally {
+			flushLock.readLock().unlock();
+		}
+	}
+
+	private int consolidateFreeSlotsDirect() {
+		Timer.resume("consolidateFreeSlots");
+		flushLock.writeLock().lock();
+		try {		
+			FreeSlot[] orderedFreeSlots = freeSet.stream().toArray(FreeSlot[]::new);
+			Arrays.sort(orderedFreeSlots, FreeSlot.POS_COMPARATOR);
+
+			int consolidatedFreeSlotsCount = 0;
+			FreeSlot prev = null;
+			long nextPos = -1;
+			for(FreeSlot curr: orderedFreeSlots) {
+				if(curr.pos == nextPos) {
+					FreeSlot consolidatedFreeSlot = new FreeSlot(prev.pos, prev.len + curr.len);
+					if(!freeSet.remove(prev)) {
+						throw new RuntimeException("freeSet consolidate error");
+					}
+					if(!freeSet.remove(curr)) {
+						throw new RuntimeException("freeSet consolidate error");
+					}
+					if(!freeSet.add(consolidatedFreeSlot)) {
+						throw new RuntimeException("freeSet consolidate error");
+					}
+					consolidatedFreeSlotsCount++;
+					prev = consolidatedFreeSlot;
+					nextPos = consolidatedFreeSlot.nextPos();
+				} else {
+					prev = curr;
+					nextPos = curr.nextPos();
+				}
+			}			
+
+			return consolidatedFreeSlotsCount;
+		} finally {
+			flushLock.writeLock().unlock();
+			Timer.stop("consolidateFreeSlots");
+		}
+	}
+
+	private void optionalConsolidateFreeSlots() {
+			if(freeSetAddCounter.get() >= 256) {
+			/*int adjacentFreeSlotCount = countAdjacentFreeSlots();
+			if(adjacentFreeSlotCount >= 16) {
+				consolidateFreeSlots();
+			} else {
+				freeSetAddCounter.setRelease(0);
+			}*/
+			//log.info("pre  " + freeSet.toString());
+			int consolidatedFreeSlotsCount = consolidateFreeSlotsDirect();
+			//log.info("post " + freeSet.toString());
+			/*if(consolidatedFreeSlotsCount > 0) {
+				log.info("consolidatedFreeSlotsCount " + consolidatedFreeSlotsCount);
+			}*/
+			freeSetAddCounter.setRelease(0);
+		}
+	}
+
+	private void consolidateFreeSlots() {
+		Timer.resume("consolidateFreeSlots");
+		//log.info("consolidateFreeSlots start " + "   " + freeSet);
+		flushLock.writeLock().lock();
+		//log.info("consolidateFreeSlots locked");
+		try {
+			/*int tileSlotSize = map.size();
+			TileSlot[] tileSlots = new TileSlot[tileSlotSize]; 
+			int tileSlotPos = 0;
+			for(TileSlot tileSlot:map.values()) {
+				tileSlots[tileSlotPos++] = tileSlot;
+			}
+			freeSet.clear();
+			freeSetAddCounter.setRelease(0);
+			long pos = refreshFreeSet(tileSlots, freeSet);*/		
+
+			/*TileSlot[] tileSlots = map.values().toArray(new TileSlot[0]);
+			freeSet.clear();
+			freeSetAddCounter.setRelease(0);
+			long pos = refreshFreeSet(tileSlots, freeSet);*/
+
+			TileSlot[] tileSlots = map.values().stream().toArray(TileSlot[]::new);
+			freeSet.clear();
+			freeSetAddCounter.setRelease(0);
+			long pos = refreshFreeSet(tileSlots, freeSet);
+
+			/*TreeSet<TileSlot> slotSet = new TreeSet<TileSlot>(TileSlot.POS_LEN_REV_COMPARATOR);		
+			for(TileSlot tileSlot:map.values()) {
+				slotSet.add(tileSlot);
+			}			
+			freeSet.clear();
+			freeSetAddCounter.setRelease(0);
+			long pos = refreshFreeSet(slotSet, freeSet);*/
+
+			fileLimit.set(pos);
+			try {
+				long tileFileLen = tileFileChannel.size();
+				if(tileFileLen < pos) {
+					throw new RuntimeException("tile file error");
+				}
+				if(pos < tileFileLen) {
+					log.info("truncate " + tileFileLen + " to " + pos);
+					tileFileChannel.truncate(pos);
+				}
+			} catch (IOException e) {
+				log.warn(e);
+			}
+		} finally {
+			flushLock.writeLock().unlock();
+			//log.info("consolidateFreeSlots unlocked");
+		}	
+		//log.info("consolidateFreeSlots end " + Timer.stop("consolidateFreeSlots") + "   " + freeSet);
+		Timer.stop("consolidateFreeSlots");
 	}
 
 	private FreeSlot pollFreeSlot(int len) {
@@ -218,7 +360,7 @@ public class TileStorage implements RasterUnitStorage {
 		try {
 			FreeSlot fromElement = new FreeSlot(0, len);
 			FreeSlot toElement = new FreeSlot(Long.MAX_VALUE, Integer.MAX_VALUE);
-			return freeSet.subSet(fromElement, true, toElement, true).pollFirst();
+			return freeSet.subSet(fromElement, true, toElement, true).pollFirst();			
 		} finally {
 			flushLock.readLock().unlock();
 		}
@@ -351,6 +493,7 @@ public class TileStorage implements RasterUnitStorage {
 				tileFileChannel.close();
 				fileLimit.set(Long.MIN_VALUE);
 				freeSet.clear();
+				freeSetAddCounter.set(0);
 				map.clear();
 			}
 		} finally {
@@ -649,12 +792,34 @@ public class TileStorage implements RasterUnitStorage {
 		return pos;
 	}
 
+	public static long refreshFreeSet(TileSlot[] slots, ConcurrentSkipListSet<FreeSlot> freeSet) {
+		Arrays.sort(slots, TileSlot.POS_LEN_REV_COMPARATOR);
+		long pos = 0;
+		for(TileSlot tileSlot:slots) {
+			long slotPos = tileSlot.pos;
+			if(slotPos < pos) {
+				throw new RuntimeException("internal error: pos=" + pos + "   " + tileSlot);
+			}
+			long lenDiff = slotPos - pos;
+			while(lenDiff > 0) {
+				int freeSlotLen = lenDiff > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) lenDiff;
+				FreeSlot freeSlot = new FreeSlot(pos, freeSlotLen);
+				freeSet.add(freeSlot);
+				pos += freeSlotLen;
+				lenDiff = slotPos - pos;
+			}
+			pos = tileSlot.pos + tileSlot.len;
+		}
+		return pos;
+	}
+
 	private void open() throws IOException {
 		flushLock.writeLock().lock();
 		try {
 			map.clear();
 			fileLimit.set(Long.MIN_VALUE);
 			freeSet.clear();
+			freeSetAddCounter.set(0);
 			if(config.indexPath.toFile().exists()) {
 				TreeSet<TileSlot> slotSet = readIndex(config.indexPath, map);
 				refreshDerivedKeys();
@@ -921,6 +1086,39 @@ public class TileStorage implements RasterUnitStorage {
 			flushLock.writeLock().unlock();
 		}	
 	}
+	
+	@Override
+	public long calculateInternalFreeSize() {
+		return freeSet.stream().mapToLong(freeSlot -> (long)freeSlot.len).sum();
+	}
 
-
+	@Override
+	public long calculateStorageSize() {
+		return fileLimit.get();
+	}
+	
+	@Override
+	public int calculateTileCount() {
+		return map.size();
+	}
+	
+	@Override
+	public long[] calculateTileSizeStats() {
+		long min = Long.MAX_VALUE;
+		long max = Long.MIN_VALUE;		
+		long cnt = 0;
+		long sum = 0;
+		for(TileSlot tileSlot:map.values()) {
+			int len = tileSlot.len;
+			if(len < min) {
+				min = len;
+			}
+			if(max < len) {
+				max = len;
+			}
+			sum += len;
+			cnt++;
+		}		
+		return cnt == 0 ? null : new long[] {min, sum/cnt, max};
+	}
 }

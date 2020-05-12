@@ -20,6 +20,13 @@ public class FreeSlot {
 		}		
 	};
 	
+	public static final Comparator<FreeSlot> POS_COMPARATOR = new Comparator<FreeSlot>() {
+		@Override
+		public int compare(FreeSlot o1, FreeSlot o2) {
+			return Long.compare(o1.pos, o2.pos);
+		}		
+	};
+	
 	@Override
 	public int hashCode() {
 		return Objects.hash(len, pos);
@@ -40,5 +47,9 @@ public class FreeSlot {
 	@Override
 	public String toString() {
 		return "FreeSlot [pos=" + pos + ", len=" + len + "]";
+	}
+	
+	public long nextPos() {
+		return pos + len;
 	}
 }

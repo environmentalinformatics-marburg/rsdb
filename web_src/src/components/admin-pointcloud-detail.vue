@@ -117,8 +117,19 @@
                 <b></b> 
                 <table>
                     <tr><td><b>point attributes:</b></td><td><span v-for="name in meta.attributes" :key="name"><span class="point-attributes">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></td></tr>
-                    <tr><td><b>point resolution:</b></td><td>{{1 / meta.cell_scale}}</td></tr>
-                    <tr><td><b>tile size:</b></td><td>{{meta.cell_size}}</td></tr>
+                    <tr><td><b>point resolution:</b></td><td>{{1 / meta.cell_scale}} <span class="unit">projection units</span></td></tr>
+                    <tr><td><b>cell size:</b></td><td>{{meta.cell_size}} <span class="unit">projection units</span></td></tr>
+                    <tr v-if="meta.extent !== undefined"><td><b>extent:</b></td><td>{{meta.extent}} <span class="unit">projection coordinates</span></td></tr>
+                    <tr v-if="meta.extent !== undefined"><td><b>range:</b></td><td>x: {{meta.range.x}} y:  {{meta.range.y}} <span class="unit">projection units</span></td></tr>
+                    <tr v-if="meta.cell_offset !== undefined"><td><b>cell offset:</b></td><td>x: {{meta.cell_offset.x}} y:  {{meta.cell_offset.y}} <span class="unit">projection units</span></td></tr>
+                    <tr v-if="meta.cell_extent !== undefined"><td><b>cell extent:</b></td><td>{{meta.cell_extent}} <span class="unit">cell coordinates</span></td></tr>
+                    <tr v-if="meta.extent !== undefined"><td><b>cell range:</b></td><td>x: {{meta.cell_range.x}} y:  {{meta.cell_range.y}} <span class="unit">cells</span></td></tr>
+                    <tr v-if="meta.cell_count !== undefined"><td><b>cell count:</b></td><td>{{meta.cell_count}} <span class="unit">cells</span></td></tr>
+                    <tr v-if="meta.storage_internal_free_size === undefined"><td></td><td><v-btn @click="refresh(true)"><v-icon>arrow_drop_down</v-icon>&nbsp;more</v-btn></td></tr>
+                    <tr v-if="meta.storage_size !== undefined"><td><b>storage size:</b></td><td>{{meta.storage_size}} <span class="unit">bytes</span></td></tr>
+                    <tr v-if="meta.storage_internal_free_size !== undefined"><td><b>storage internal free size:</b></td><td>{{meta.storage_internal_free_size}} <span class="unit">bytes</span></td></tr>
+                    <tr v-if="meta.cell_size_stats !== undefined"><td><b>cell storage size stats:</b></td><td>min: {{meta.cell_size_stats.min}}&nbsp;&nbsp;&nbsp;  mean: {{meta.cell_size_stats.mean}}&nbsp;&nbsp;&nbsp;  max: {{meta.cell_size_stats.max}}&nbsp;&nbsp;&nbsp; <span class="unit">bytes</span></td></tr>
+
                 </table>
             
             </div>
@@ -202,15 +213,23 @@ export default {
         }
     },
     methods: {
-        refresh() { 
+        refresh(more_details) { 
             var self = this;
             this.$store.dispatch('pointclouds/refresh');
             var url = this.$store.getters.apiUrl('pointclouds/' + self.pointcloud);
+            var params = {};
+            if(more_details) {
+                params.extent = true;
+                params.cell_count = true;               
+                params.storage_size = true;
+                params.storage_internal_free_size = true;
+                params.cell_size_stats = true;
+            }
             self.metaError = false;
             self.metaErrorMessage = undefined;
             self.busy = true;
             self.busyMessage = "loading ...";
-            axios.get(url)
+            axios.get(url, {params: params})
                 .then(function(response) {
                     self.meta = response.data.pointcloud;
                     self.busy = false;
@@ -323,6 +342,7 @@ export default {
     border-width: 2px;
     color: #544141;
     border-radius: 5px;
+    margin: 3px;
 }
 
 .thumbnail {
@@ -335,6 +355,13 @@ export default {
     border-color: rgba(0, 0, 0, 0.1);
     border-style: solid;
     border-width: 1px;
+}
+
+.unit {
+    color: #000000c9;
+    background-color: rgb(240, 240, 240);
+    padding: 2px;
+    border-radius: 5px;
 }
 
 </style>
