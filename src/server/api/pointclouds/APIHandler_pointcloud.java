@@ -12,6 +12,10 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.locationtech.proj4j.CRSFactory;
+import org.locationtech.proj4j.CoordinateReferenceSystem;
+import org.locationtech.proj4j.proj.Projection;
+import org.locationtech.proj4j.units.Unit;
 
 import broker.Broker;
 import broker.Informal.Builder;
@@ -120,8 +124,8 @@ public class APIHandler_pointcloud {
 
 		boolean requestPoiGroups = request.getParameter("poi_groups") != null;
 		boolean requestRoiGroups = request.getParameter("roi_groups") != null;
-		boolean requestInternalStorageInternalFreeSize = request.getParameter("storage_internal_free_size") != null;
 		boolean requestStorageSize = request.getParameter("storage_size") != null;
+		boolean requestInternalStorageInternalFreeSize = request.getParameter("storage_internal_free_size") != null;
 		boolean requestCellCount = request.getParameter("cell_count") != null;
 		boolean requestCellSizeStats = request.getParameter("cell_size_stats") != null;
 
@@ -139,6 +143,43 @@ public class APIHandler_pointcloud {
 		json.value(pointcloud.getCode());
 		json.key("proj4");
 		json.value(pointcloud.getProj4());
+
+
+
+		Unit unit = null;
+		if(pointcloud.hasProj4()) {
+			try {
+				CoordinateReferenceSystem crs = new CRSFactory().createFromParameters(null, pointcloud.getProj4());
+				if(crs != null) {
+					Projection projection = crs.getProjection();
+					if(projection != null) {
+						unit = projection.getUnits();
+					}
+				}
+			} catch(Exception e) {
+				log.warn(e);
+			}
+		}
+		if(unit == null && pointcloud.hasCode()) {
+			try {
+				CoordinateReferenceSystem crs = new CRSFactory().createFromName(pointcloud.getCode());
+				if(crs != null) {
+					Projection projection = crs.getProjection();
+					if(projection != null) {
+						unit = projection.getUnits();
+					}
+				}
+			} catch(Exception e) {
+				log.warn(e);
+			}
+		}
+		if(unit != null) {
+			json.key("projection_unit");
+			json.object();
+			json.key("name");
+			json.value(unit.name);
+			json.endObject();
+		}
 		json.key("cell_size");
 		json.value(pointcloud.getCellsize());
 		json.key("cell_scale");
@@ -250,15 +291,15 @@ public class APIHandler_pointcloud {
 			}
 			json.endArray();
 		}
-		if(requestInternalStorageInternalFreeSize) {
-			json.key("storage_internal_free_size");
-			long internal_free_size = pointcloud.getGriddb().storage().calculateInternalFreeSize();
-			json.value(internal_free_size);
-		}
 		if(requestStorageSize) {
 			json.key("storage_size");
 			long storage_size = pointcloud.getGriddb().storage().calculateStorageSize();
 			json.value(storage_size);
+		}
+		if(requestInternalStorageInternalFreeSize) {
+			json.key("storage_internal_free_size");
+			long internal_free_size = pointcloud.getGriddb().storage().calculateInternalFreeSize();
+			json.value(internal_free_size);
 		}
 		if(requestCellCount) {
 			json.key("cell_count");

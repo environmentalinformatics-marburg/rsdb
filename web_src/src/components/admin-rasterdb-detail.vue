@@ -48,7 +48,7 @@
                             <span v-if="optArray(meta.tags).length === 0" style="color: grey;">(none)</span>
                         </td>
                     </tr>
-                </table>
+                </table>               
             </div>
             <v-divider class="meta-divider"></v-divider> 
             <h3 class="subheading mb-0"> 
@@ -141,26 +141,75 @@
                     Details
             </h3>
             
-            <div class="meta-content">
+            <div class="meta-content" v-if="meta.ref !== undefined">
+                <table class="table-details" style="display: inline-block;">
+                    <thead>
+                        <tr>                            
+                            <th>Pixel size <div class="header-unit">{{projection_units}}</div></th>
+                            <th>Extent <div class="header-unit">pixel</div></th>
+                            <th>Extent <div class="header-unit">{{projection_units}}</div></th>
+                            <th>Extent <div class="header-unit">coordinates</div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{pixelSizeText}}</td>
+                            <td v-if="meta.ref.internal_rasterdb_extent !== undefined">{{meta.ref.internal_rasterdb_extent[2] - meta.ref.internal_rasterdb_extent[0] + 1}} <b>x</b> {{meta.ref.internal_rasterdb_extent[3] - meta.ref.internal_rasterdb_extent[1] + 1}}</td>
+                            <td v-else>none</td>
+                            <td v-if="meta.ref.internal_rasterdb_extent !== undefined && meta.ref.pixel_size !== undefined">{{((meta.ref.internal_rasterdb_extent[2] - meta.ref.internal_rasterdb_extent[0] + 1) * meta.ref.pixel_size.x).toPrecision(8)}} <b>x</b> {{((meta.ref.internal_rasterdb_extent[3] - meta.ref.internal_rasterdb_extent[1] + 1) * meta.ref.pixel_size.y).toPrecision(8)}}</td>
+                            <td v-else>none</td> 
+                            <td v-if="meta.ref.extent !== undefined">{{meta.ref.extent[0].toPrecision(8)}}<b>,</b> {{meta.ref.extent[1].toPrecision(8)}} <b>-</b> {{meta.ref.extent[2].toPrecision(8)}}<b>,</b> {{meta.ref.extent[3].toPrecision(8)}}</td>
+                            <td v-else>none</td>                            
+                        </tr>                    
+                    </tbody>
+                </table>
 
-            <table class="table-details" v-if="meta.ref !== undefined">
-                <thead>
-                    <tr>
-                        <th>projected extent</th>
-                        <th>projected pixel size</th>
-                        <th>pixel extent</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td v-if="meta.ref.extent !== undefined">{{meta.ref.extent[0].toPrecision(8)}}<b>,</b> {{meta.ref.extent[1].toPrecision(8)}} <b>-</b> {{meta.ref.extent[2].toPrecision(8)}}<b>,</b> {{meta.ref.extent[3].toPrecision(8)}}</td>
-                        <td v-else>none</td> 
-                        <td>{{pixelSizeText}}</td>
-                        <td v-if="meta.ref.internal_rasterdb_extent !== undefined">{{meta.ref.internal_rasterdb_extent[2] - meta.ref.internal_rasterdb_extent[0] + 1}} <b>x</b> {{meta.ref.internal_rasterdb_extent[3] - meta.ref.internal_rasterdb_extent[1] + 1}}</td>
-                        <td v-else>none</td> 
-                    </tr>                    
-                </tbody>
-            </table>
+                <v-btn v-if="meta.tile_count === undefined" @click="refresh(true)" style="vertical-align: top;"><v-icon>arrow_drop_down</v-icon>&nbsp;more</v-btn>
+                
+                <div v-if="meta.tile_count !== undefined">
+                    <table class="table-details" style="display: inline-block;">
+                        <thead>
+                            <tr>
+                                <th>Tiles <div class="header-unit">count</div></th>
+                                <th>Tile size <div class="header-unit">pixel</div></th>                                
+                                <th>Tile reference point <div class="header-unit">coordinates</div></th>                                
+                                <th>Internal extent <div class="header-unit">pixel</div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td v-if="meta.tile_count !== undefined">{{meta.tile_count}}</td>
+                                <td v-else>none</td>  
+                                <td>256 <b>x</b> 256</td>                                
+                                <td v-if="meta.ref.internal_rasterdb_offset !== undefined">{{meta.ref.internal_rasterdb_offset.x.toPrecision(8)}}<b>,</b> {{meta.ref.internal_rasterdb_offset.y.toPrecision(8)}}</td>
+                                <td v-else>none</td>                                 
+                                <td v-if="meta.ref.internal_rasterdb_extent !== undefined">{{meta.ref.internal_rasterdb_extent[0]}}<b>,</b> {{meta.ref.internal_rasterdb_extent[1]}} <b>-</b> {{meta.ref.internal_rasterdb_extent[2]}}<b>,</b> {{meta.ref.internal_rasterdb_extent[3]}}</td>
+                                <td v-else>none</td>                                                              
+                            </tr>                    
+                        </tbody>
+                    </table>
+
+                    <table class="table-details">
+                        <thead>
+                            <tr>
+                                <th>Storage size <div class="header-unit">bytes</div></th>
+                                <th>Storage internal free size <div class="header-unit">bytes</div></th>
+                                <th>Tile size <div class="header-unit">bytes</div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td v-if="meta.storage_size !== undefined">{{meta.storage_size}}</td>
+                                <td v-else>none</td>
+                                 <td v-if="meta.storage_internal_free_size !== undefined">{{meta.storage_internal_free_size}}</td>
+                                <td v-else>none</td>  
+                                 <td v-if="meta.tile_size_stats !== undefined">min: {{meta.tile_size_stats.min}}&nbsp;&nbsp;&nbsp;  mean: {{meta.tile_size_stats.mean}}&nbsp;&nbsp;&nbsp;  max: {{meta.tile_size_stats.max}}</td>
+                                <td v-else>none</td>                                                             
+                            </tr>                    
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
 
             <v-divider class="meta-divider"></v-divider>  
@@ -181,7 +230,7 @@
                 <tr>
                     <td><b>modify roles:</b></td>
                     <td>
-                            <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                        <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
                         <span v-if="meta.acl_mod.length === 0" style="color: grey;">(none)</span>
                     </td>
                 </tr>
@@ -252,15 +301,22 @@ export default {
         }
     },
     methods: {
-        refresh() {
+        refresh(more_details) {
             var self = this;
             this.$store.dispatch('rasterdbs/refresh');
             var url = this.$store.getters.apiUrl('rasterdb/' + self.rasterdb + '/meta.json');
+            var params = {};
+            if(more_details) {
+                params.tile_count = true;
+                params.storage_size = true;
+                params.storage_internal_free_size = true;
+                params.tile_size_stats = true;                
+            }
             self.metaError = false;
             self.metaErrorMessage = undefined;
             self.busy = true;
             self.busyMessage = "loading ...";
-            axios.get(url)
+            axios.get(url, {params: params})
                 .then(function(response) {
                     self.meta = response.data;
                     self.busy = false;
@@ -309,7 +365,7 @@ export default {
             if (this.meta === undefined || this.meta.ref === undefined || this.meta.ref.pixel_size === undefined) {
                 return 'not set';
             } else {
-                return this.meta.ref.pixel_size.x === this.meta.ref.pixel_size.y ? (+this.meta.ref.pixel_size.x.toPrecision(8)) : (+this.meta.ref.pixel_size.x.toPrecision(8)) + ' x ' + (+this.meta.ref.pixel_size.y.toPrecision(8));
+                return this.meta.ref.pixel_size.x === this.meta.ref.pixel_size.y ? ((+this.meta.ref.pixel_size.x.toPrecision(8)) + ' x ' + (+this.meta.ref.pixel_size.x.toPrecision(8))) : (+this.meta.ref.pixel_size.x.toPrecision(8)) + ' x ' + (+this.meta.ref.pixel_size.y.toPrecision(8));
             }
         },
         modify() {
@@ -317,6 +373,12 @@ export default {
         },
         urlPrefix() {
             return this.$store.state.identity.urlPrefix;
+        },
+        projection_units() {
+            return this.meta !== undefined 
+                && this.meta.ref !== undefined
+                && this.meta.ref.unit !== undefined
+                && this.meta.ref.unit.name !== undefined ? this.meta.ref.unit.name :  'projection units';
         },
     },
     mounted() {
@@ -402,6 +464,18 @@ export default {
     padding: 3px;
     background-color: rgb(233, 233, 233);
     text-align: center;
+}
+
+.unit {
+    color: #000000c9;
+    background-color: rgb(240, 240, 240);
+    padding: 2px;
+    border-radius: 5px;
+}
+
+.header-unit {
+    color: rgba(0, 0, 0, 0.68); 
+    font-weight:normal;
 }
 
 </style>

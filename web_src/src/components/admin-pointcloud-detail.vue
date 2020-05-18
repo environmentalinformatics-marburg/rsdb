@@ -114,24 +114,69 @@
                 Details
             </h3>
             <div class="meta-content">
-                <b></b> 
-                <table>
-                    <tr><td><b>point attributes:</b></td><td><span v-for="name in meta.attributes" :key="name"><span class="point-attributes">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></td></tr>
-                    <tr><td><b>point resolution:</b></td><td>{{1 / meta.cell_scale}} <span class="unit">projection units</span></td></tr>
-                    <tr><td><b>cell size:</b></td><td>{{meta.cell_size}} <span class="unit">projection units</span></td></tr>
-                    <tr v-if="meta.extent !== undefined"><td><b>extent:</b></td><td>{{meta.extent}} <span class="unit">projection coordinates</span></td></tr>
-                    <tr v-if="meta.extent !== undefined"><td><b>range:</b></td><td>x: {{meta.range.x}} y:  {{meta.range.y}} <span class="unit">projection units</span></td></tr>
-                    <tr v-if="meta.cell_offset !== undefined"><td><b>cell offset:</b></td><td>x: {{meta.cell_offset.x}} y:  {{meta.cell_offset.y}} <span class="unit">projection units</span></td></tr>
-                    <tr v-if="meta.cell_extent !== undefined"><td><b>cell extent:</b></td><td>{{meta.cell_extent}} <span class="unit">cell coordinates</span></td></tr>
-                    <tr v-if="meta.extent !== undefined"><td><b>cell range:</b></td><td>x: {{meta.cell_range.x}} y:  {{meta.cell_range.y}} <span class="unit">cells</span></td></tr>
-                    <tr v-if="meta.cell_count !== undefined"><td><b>cell count:</b></td><td>{{meta.cell_count}} <span class="unit">cells</span></td></tr>
-                    <tr v-if="meta.storage_internal_free_size === undefined"><td></td><td><v-btn @click="refresh(true)"><v-icon>arrow_drop_down</v-icon>&nbsp;more</v-btn></td></tr>
-                    <tr v-if="meta.storage_size !== undefined"><td><b>storage size:</b></td><td>{{meta.storage_size}} <span class="unit">bytes</span></td></tr>
-                    <tr v-if="meta.storage_internal_free_size !== undefined"><td><b>storage internal free size:</b></td><td>{{meta.storage_internal_free_size}} <span class="unit">bytes</span></td></tr>
-                    <tr v-if="meta.cell_size_stats !== undefined"><td><b>cell storage size stats:</b></td><td>min: {{meta.cell_size_stats.min}}&nbsp;&nbsp;&nbsp;  mean: {{meta.cell_size_stats.mean}}&nbsp;&nbsp;&nbsp;  max: {{meta.cell_size_stats.max}}&nbsp;&nbsp;&nbsp; <span class="unit">bytes</span></td></tr>
 
+                <div style="padding-bottom: 10px;"><b>point attributes:</b><span v-for="name in meta.attributes" :key="name"><span class="point-attributes">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></div>
+
+                <table class="table-details" style="display: inline-block;">
+                    <thead>
+                        <tr>
+                            <th>Point precision <div class="header-unit">{{projection_units}}</div></th>
+                            <th>Tile size <div class="header-unit">{{projection_units}}</div></th>
+                            <th v-if="meta.range !== undefined">Extent <div class="header-unit">{{projection_units}}</div></th>
+                            <th v-if="meta.extent !== undefined">Extent <div class="header-unit">coordinates</div></th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{1 / meta.cell_scale}}</td>
+                            <td>{{meta.cell_size}} <b>x</b> {{meta.cell_size}}</td>
+                            <td v-if="meta.range !== undefined">{{meta.range.x}} <b>x</b> {{meta.range.y}}</td>
+                            <td v-if="meta.extent !== undefined">{{meta.extent[0].toPrecision(8)}}<b>,</b> {{meta.extent[1].toPrecision(8)}} <b>-</b> {{meta.extent[2].toPrecision(8)}}<b>,</b> {{meta.extent[3].toPrecision(8)}}</td>
+                        </tr>                    
+                    </tbody>
                 </table>
-            
+
+                <v-btn v-if="meta.storage_internal_free_size === undefined" @click="refresh(true)" style="vertical-align: top;"><v-icon>arrow_drop_down</v-icon>&nbsp;more</v-btn>
+
+                <table v-if="meta.storage_internal_free_size !== undefined" class="table-details">
+                    <thead>
+                        <tr>
+                            <th v-if="meta.cell_count !== undefined">Tiles <div class="header-unit">count</div></th>
+                            <th v-if="meta.cell_offset !== undefined">Tile reference point <div class="header-unit">coordinates</div></th>
+                            <th v-if="meta.cell_range !== undefined">Extent <div class="header-unit">tiles</div></th>
+                            <th v-if="meta.cell_extent !== undefined">Extent <div class="header-unit">tile coordinates</div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td v-if="meta.cell_count !== undefined">{{meta.cell_count}}</td>
+                            <td v-if="meta.cell_offset !== undefined">{{meta.cell_offset.x.toPrecision(8)}}<b>,</b> {{meta.cell_offset.y.toPrecision(8)}}</td>
+                            <td v-if="meta.cell_range !== undefined">{{meta.cell_range.x}} <b>x</b> {{meta.cell_range.y}}</td> 
+                            <td v-if="meta.cell_extent !== undefined">{{meta.cell_extent[0]}}<b>,</b> {{meta.cell_extent[1]}} <b>-</b> {{meta.cell_extent[2]}}<b>,</b> {{meta.cell_extent[3]}}</td>
+                        </tr>                    
+                    </tbody>
+                </table>
+                <div>.</div>
+                <table v-if="meta.storage_internal_free_size !== undefined" class="table-details">
+                        <thead>
+                            <tr>
+                                <th>Storage size <div class="header-unit">bytes</div></th>
+                                <th>Storage internal free size <div class="header-unit">bytes</div></th>
+                                <th>Tile size <div class="header-unit">bytes</div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td v-if="meta.storage_size !== undefined">{{meta.storage_size}}</td>
+                                <td v-else>none</td>
+                                 <td v-if="meta.storage_internal_free_size !== undefined">{{meta.storage_internal_free_size}}</td>
+                                <td v-else>none</td>  
+                                 <td v-if="meta.cell_size_stats !== undefined">min: {{meta.cell_size_stats.min}}&nbsp;&nbsp;&nbsp;  mean: {{meta.cell_size_stats.mean}}&nbsp;&nbsp;&nbsp;  max: {{meta.cell_size_stats.max}}</td>
+                                <td v-else>none</td>                                                             
+                            </tr>                    
+                        </tbody>
+                </table>            
             </div>
 
             <v-divider class="meta-divider"></v-divider>  
@@ -272,6 +317,10 @@ export default {
         urlPrefix() {
             return this.$store.state.identity.urlPrefix;
         },
+        projection_units() {
+            return this.meta.projection_unit !== undefined
+                && this.meta.projection_unit.name !== undefined ? this.meta.projection_unit.name :  'projection units';
+        },
     },
     watch: {
         pointcloud() {
@@ -362,6 +411,22 @@ export default {
     background-color: rgb(240, 240, 240);
     padding: 2px;
     border-radius: 5px;
+}
+
+.table-details th {
+    padding: 3px;
+    background-color: #d7d7d7;
+}
+
+.table-details td {
+    padding: 3px;
+    background-color: rgb(233, 233, 233);
+    text-align: center;
+}
+
+.header-unit {
+    color: rgba(0, 0, 0, 0.68); 
+    font-weight:normal;
 }
 
 </style>

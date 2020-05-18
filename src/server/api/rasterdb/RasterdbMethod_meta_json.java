@@ -10,9 +10,12 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
+import org.locationtech.proj4j.CRSFactory;
+import org.locationtech.proj4j.CoordinateReferenceSystem;
+import org.locationtech.proj4j.proj.Projection;
+import org.locationtech.proj4j.units.Unit;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
@@ -33,6 +36,10 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 		//log.info(request);
 		request.setHandled(true);
 		try {
+			boolean requestTileCount = request.getParameter("tile_count") != null;
+			boolean requestTileSizeStats = request.getParameter("tile_size_stats") != null;
+			boolean requestStorageSize = request.getParameter("storage_size") != null;
+			boolean requestInternalStorageInternalFreeSize = request.getParameter("storage_internal_free_size") != null;			
 
 			GeoReference ref = rasterdb.ref();
 
@@ -73,14 +80,55 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 					json.value(localRange.ymax);
 					json.endArray();
 				}
+				if(Double.isFinite(ref.offset_x) && Double.isFinite(ref.offset_y)) {
+					json.key("internal_rasterdb_offset");
+					json.object();
+					json.key("x");
+					json.value(ref.offset_x);
+					json.key("y");
+					json.value(ref.offset_y);
+					json.endObject();
+				}
+			}
+			Unit unit = null;
+			if(ref.has_proj4()) {
+				json.key("proj4");
+				json.value(ref.proj4);
+				try {
+					CoordinateReferenceSystem crs = new CRSFactory().createFromParameters(null, ref.proj4);
+					if(crs != null) {
+						Projection projection = crs.getProjection();
+						if(projection != null) {
+							unit = projection.getUnits();
+						}
+					}
+				} catch(Exception e) {
+					log.warn(e);
+				}
 			}
 			if(ref.has_code()) {
 				json.key("code");
 				json.value(ref.code);
-			}			
-			if(ref.has_proj4()) {
-				json.key("proj4");
-				json.value(ref.proj4);
+				if(unit == null) {
+					try {
+						CoordinateReferenceSystem crs = new CRSFactory().createFromName(ref.code);
+						if(crs != null) {
+							Projection projection = crs.getProjection();
+							if(projection != null) {
+								unit = projection.getUnits();
+							}
+						}
+					} catch(Exception e) {
+						log.warn(e);
+					}
+				}
+			}
+			if(unit != null) {
+				json.key("unit");
+				json.object();
+				json.key("name");
+				json.value(unit.name);
+				json.endObject();
 			}
 			String projectionTitle = ref.getProjectionTitle();
 			if(projectionTitle != null) {
@@ -166,7 +214,43 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				}
 				json.endArray();
 			}
-
+			if(requestTileCount) {
+				json.key("tile_count");
+				int tile_count = rasterdb.hasRasterUnit() ? rasterdb.rasterUnit().calculateTileCount() : 0;
+				json.value(tile_count);
+			}
+			if(requestTileSizeStats && rasterdb.hasRasterUnit()) {
+				long[] stats = rasterdb.rasterUnit().calculateTileSizeStats();
+				if(stats != null) {
+					json.key("tile_size_stats");
+					json.object();
+					json.key("min");
+					json.value(stats[0]);		
+					json.key("mean");
+					json.value(stats[1]);		
+					json.key("max");
+					json.value(stats[2]);		
+					json.endObject();		
+				}
+			}
+			if(requestStorageSize && rasterdb.hasRasterUnit()) {
+				long storage_size = rasterdb.rasterUnit().calculateStorageSize();
+				storage_size += rasterdb.rasterPyr1Unit().calculateStorageSize();
+				storage_size += rasterdb.rasterPyr2Unit().calculateStorageSize();
+				storage_size += rasterdb.rasterPyr3Unit().calculateStorageSize();
+				storage_size += rasterdb.rasterPyr4Unit().calculateStorageSize();
+				json.key("storage_size");
+				json.value(storage_size);
+			}
+			if(requestInternalStorageInternalFreeSize) {				
+				long storage_internal_free_size = rasterdb.hasRasterUnit() ? rasterdb.rasterUnit().calculateInternalFreeSize() : 0;
+				storage_internal_free_size += rasterdb.rasterPyr1Unit().calculateInternalFreeSize();
+				storage_internal_free_size += rasterdb.rasterPyr2Unit().calculateInternalFreeSize();
+				storage_internal_free_size += rasterdb.rasterPyr3Unit().calculateInternalFreeSize();
+				storage_internal_free_size += rasterdb.rasterPyr4Unit().calculateInternalFreeSize();
+				json.key("storage_internal_free_size");
+				json.value(storage_internal_free_size);
+			}
 			json.endObject(); // end full object
 		} catch(Exception e) {
 			e.printStackTrace();
