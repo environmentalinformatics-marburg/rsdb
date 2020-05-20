@@ -28,12 +28,11 @@ import util.Timer;
 import util.collections.vec.Vec;
 
 @task_pointdb("to_pointcloud")
-@Description("create pointcloud layer from pointdb layer")
-@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)", example="pointdb1")
-@Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer (target) (if layer exists, delete)", example="pointcloud1")
-@Param(name="transactions", type="boolean", desc="use power failer safe (and) slow PointCloud operation mode (default false) (obsolete for TileStorage)", example="false", required=false)
-@Param(name="storage_type", desc="storage type of new PointCloud: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
-
+@Description("Create pointcloud layer from pointdb layer.")
+@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer. (source)", example="pointdb1")
+@Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer. (target) (if layer exists, delete)", example="pointcloud1")
+@Param(name="storage_type", desc="Storage type of new PointCloud. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) PointCloud operation mode. (RasterUnit only, default false)", example="false", required=false)
 public class Task_to_pointcloud extends RemoteTask{
 	private static final Logger log = LogManager.getLogger();
 
@@ -114,7 +113,7 @@ public class Task_to_pointcloud extends RemoteTask{
 				throw new RuntimeException("missing parameter 'pointcloud'");
 			}
 			String pointcloud_name = task.getString("pointcloud");
-			String storage_type = task.optString("storage_type", "RasterUnit");
+			String storage_type = task.optString("storage_type", "TileStorage");
 			boolean transactions = task.optBoolean("transactions", false);
 			setMessage("prepare pointcloud layer");
 			broker.deletePointCloud(pointcloud_name);

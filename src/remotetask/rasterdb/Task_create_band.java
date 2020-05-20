@@ -10,10 +10,10 @@ import remotetask.Param;
 import remotetask.RemoteTask;
 
 @task_rasterdb("create_band")
-@Description("create new band in existing rasterdb layer.")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="raster1")
-@Param(name="type", type="integer", desc="band data type", example="1")
-@Param(name="title", desc="band title", format="informal text", example="infrared", required=false)
+@Description("Create new band in existing rasterdb layer.")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="raster1")
+@Param(name="type", type="integer", desc="Band data type.", example="1")
+@Param(name="title", desc="Band title.", format="informal text", example="infrared", required=false)
 public class Task_create_band extends RemoteTask {
 	
 	private final Broker broker;

@@ -63,7 +63,7 @@ public class RasterDB implements AutoCloseable {
 	public final RasterdbConfig config;
 
 	private final Path path;
-	private String storageType = "RasterUnit";
+	private String storageType = "TileStorage";
 
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
@@ -74,7 +74,7 @@ public class RasterDB implements AutoCloseable {
 		bandMap = new TreeMap<Integer, Band>();
 
 		this.metaPath = path.resolve("meta.yaml");
-		this.storageType = config.preferredStorageType == null ? "RasterUnit" : config.preferredStorageType;
+		this.storageType = config.preferredStorageType == null ? "TileStorage" : config.preferredStorageType;
 		readMeta(); // possibly overwrite storage_type from meta
 	}
 

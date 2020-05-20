@@ -20,7 +20,7 @@ import util.raster.GdalReader;
 
 public class ImportSpec {
 	private static final Logger log = LogManager.getLogger();
-	
+
 	public double pixel_size_x = Double.NaN;
 	public double pixel_size_y = Double.NaN;
 	public double rasterdb_geo_offset_x = Double.NaN;
@@ -36,13 +36,13 @@ public class ImportSpec {
 	public boolean update_pyramid = true;
 	public boolean update_catalog = true;
 	public int generalTimestamp = 0;
-	public String storage_type = "RasterUnit";
-	
+	public String storage_type = "TileStorage";
+
 	public ImportSpec() {		
 	}
-	
+
 	public void parse(JSONObject specification) {
-			
+
 
 		Iterator<String> specIt = specification.keys();
 		while(specIt.hasNext()) {
@@ -206,8 +206,17 @@ public class ImportSpec {
 							break;
 						}
 						case "no_data_value": {
-							Double v = band.get("no_data_value").toString().trim().isEmpty() ? null : band.getDouble("no_data_value");
-							bandSpec.no_data_value = v;
+							String no_data_value = band.get("no_data_value").toString().trim();
+							try {
+								if(!no_data_value.isEmpty()) {
+									String lowercase = no_data_value.toLowerCase();
+									if((!lowercase.equals("nan")) && (!lowercase.equals("na"))) {
+										bandSpec.no_data_value = band.getDouble("no_data_value");
+									}
+								}
+							} catch(Exception e) {
+								throw new RuntimeException("specified 'no data value' is not a number: " + no_data_value + "    " + e.getMessage());
+							}
 							break;
 						}
 						case "timestamp": {

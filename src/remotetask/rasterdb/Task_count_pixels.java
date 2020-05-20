@@ -2,8 +2,6 @@ package remotetask.rasterdb;
 
 import java.util.Collection;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -13,7 +11,6 @@ import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterdb.tile.TileShort;
 import rasterunit.BandKey;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
 import rasterunit.TileKey;
@@ -24,9 +21,9 @@ import remotetask.RemoteTask;
 
 @task_rasterdb("count_pixels")
 @Description("Count all pixels that are not NA. Just pixels of first band are counted.")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="raster1")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="raster1")
 public class Task_count_pixels extends RemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	//private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
 	private final JSONObject task;

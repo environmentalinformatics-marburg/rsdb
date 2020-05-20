@@ -2,6 +2,10 @@
 main:
   - title: "Documentation"
     url: /docs/documentation/
+  - title: "Wiki"
+    url: https://github.com/environmentalinformatics-marburg/rsdb/wiki    
+  - title: "Example"
+    url: https://github.com/environmentalinformatics-marburg/rsdb-data/blob/master/README.md    
   - title: "Source"
     url: https://github.com/environmentalinformatics-marburg/rsdb    
   - title: "About"

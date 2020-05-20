@@ -14,12 +14,12 @@ import remotetask.Param;
 import remotetask.RemoteTask;
 
 @task_pointcloud("rasterize")
-@Description("create visualisation raster of PointCloud layer")
-@Param(name="pointcloud", type="pointcloud", desc="ID of PointCloud layer (source)", example="pointcloud1")
-@Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer (target, default: [pointcloud]_rasterized) ", example="pointcloud1_rasterized", required=false)
-@Param(name="transactions", type="boolean", desc="use power failer safe (and) slow RasterDB operation mode (default) (obsolete for TileStorage)", example="false", required=false)
-@Param(name="storage_type", desc="storage type of new RasterDB: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
-@Param(name="associate", type="boolean", desc="set the created raster layer as map visualisation for this point cloud layer (default: true)", example="false", required=false)
+@Description("Create visualisation raster of PointCloud layer.")
+@Param(name="pointcloud", type="pointcloud", desc="ID of PointCloud layer. (source)", example="pointcloud1")
+@Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (target, default: [pointcloud]_rasterized) ", example="pointcloud1_rasterized", required=false)
+@Param(name="associate", type="boolean", desc="Set the created raster layer as map visualisation for this point cloud layer. (default: true)", example="false", required=false)
+@Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) RasterDB operation mode. (RasterUnit only, default false)", example="false", required=false)
 public class Task_rasterize extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 

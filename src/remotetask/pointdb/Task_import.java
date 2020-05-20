@@ -15,9 +15,9 @@ import remotetask.RemoteTask;
 import run.RunImport;
 
 @task_pointdb("import")
-@Description("import directory with LAS/LAZ files (recursive)")
-@Param(name="pointdb", type="layer_id", desc="ID of existing (possibly empty) PointDB layer", example="pointdb1")
-@Param(name="source", desc="source directory of files (located on server)", format="path", example="las/folder1")
+@Description("Import directory with LAS/LAZ files. (recursive)")
+@Param(name="pointdb", type="layer_id", desc="ID of existing (possibly empty) PointDB layer.", example="pointdb1")
+@Param(name="source", desc="Source directory of files. (located on server)", format="path", example="las/folder1")
 public class Task_import extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 

@@ -23,16 +23,16 @@ import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 
 @task_pointcloud("import")
-@Description("import directory of files into new PointCloud layer")
-@Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer (target)", example="pointcloud1")
-@Param(name="source", format="path", desc="folder with *.las / *.laz files to import (located on server) (recursive)", example="las/folder1")
-@Param(name="transactions", type="boolean", desc="use power failer safe (and slow) PointCloud operation mode (default false) (obsolete for TileStorage)", example="false", required=false)
-@Param(name="cellsize", type="number", desc="size of cells (default: 100 -> 100 meter)", example="10", required=false)
-@Param(name="cellscale", type="number", desc="resolution of points (default: 100 -> resolution of points 1/100 = 0.01 meter)", example="1000", required=false)
-@Param(name="storage_type", desc="storage type of new PointCloud: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
-@Param(name="epsg", desc="EPSG projection code (If epsg is left empty and proj4 parameter is set a automatic epsg search will be tried. Note: multiple epsg may refer to one proj4)", format="number", example="25832", required=false)
-@Param(name="proj4", desc="PROJ4 projection (If proj4 is left empty and epsg parameter is set a automatic proj4 generation will be tried.)", format="text", example="+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
-@Param(name="rect", type="number_rect", desc="only points inside of rect are imported - prevents import of points with erroneous x,y coordinates", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
+@Description("Import all *.las and *.laz files at a folder (and subfolders) on the server into a new PointCloud layer.")
+@Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer (target).", example="pointcloud1")
+@Param(name="source", format="path", desc="Folder located on server with *.las / *.laz files to import including subfolders.", example="las/folder1")
+@Param(name="epsg", desc="EPSG projection code. If epsg is left empty and proj4 parameter is set a automatic EPSG search will be tried, multiple EPSG codes may refer to one proj4.", format="number", example="25832", required=false)
+@Param(name="proj4", desc="PROJ4 projection. If proj4 is left empty and epsg parameter is set a automatic proj4 generation will be tried.", format="text", example="+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
+@Param(name="rect", type="number_rect", desc="Only points inside of rect are imported - prevents import of points with erroneous x,y coordinates.", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
+@Param(name="cellsize", type="number", desc="Size of cells. (default: 100 -> 100 meter)", example="10", required=false)
+@Param(name="cellscale", type="number", desc="Resolution of points. (default: 100 -> 1/100 = 0.01 meter precision)", example="1000", required=false)
+@Param(name="storage_type", desc="Storage type of new PointCloud. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) PointCloud operation mode. (RasterUnit only, default false)", example="false", required=false)
 public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
@@ -60,7 +60,7 @@ public class Task_import extends RemoteTask {
 		}
 		
 		String name = task.getString("pointcloud");
-		String storage_type = task.optString("storage_type", "RasterUnit");
+		String storage_type = task.optString("storage_type", "TileStorage");
 		boolean transactions = task.optBoolean("transactions", false);
 		PointCloud pointcloud = broker.createNewPointCloud(name, storage_type, transactions);
 		double cellsize = task.optDouble("cellsize", 100);

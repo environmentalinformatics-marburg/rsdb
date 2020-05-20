@@ -1,7 +1,7 @@
 ---
 title: Tasks of category task_pointdb
 ---
-Note: More tasks are present on the web interface.
+*Note: More tasks are present on the web interface.*
 
 | task_pointdb | description |
 | ------------- | ------------- |

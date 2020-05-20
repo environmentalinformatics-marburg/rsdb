@@ -25,16 +25,16 @@ public class RemoteTaskParameter {
 		if(format.isEmpty()) {
 			switch(type) {
 			case "rasterdb":
-				format = "ID of existing RasterDB layer";
+				format = "RasterDB ID";
 				break;
 			case "pointdb":
-				format = "ID of existing PointDB layer";
+				format = "PointDB ID";
 				break;
 			case "pointcloud":
-				format = "ID of existing PointCloud layer";
+				format = "PointCloud ID";
 				break;
 			case "vectordb":
-				format = "ID of existing VectorDB layer";
+				format = "VectorDB ID";
 				break;
 			case "string":
 				format = "-";

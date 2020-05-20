@@ -18,6 +18,7 @@
             <span class="component"><a :href="indices_processing_url" target="_blank"><div><img src="images/lidar_indices_processing.png" /></div><div class="component-text">LiDAR indices processing</div></a></span>
             <span class="component"><a :href="indices_documentation_url" target="_blank"><div><img src="images/lidar_indices_documentation.png" /></div><div class="component-text">LiDAR indices documentation</div></a></span>
             <span class="component"><a href="https://environmentalinformatics-marburg.github.io/rsdb" target="_blank"><div><img src="images/rsdb_documentation.png" /></div><div class="component-text">RSDB documentation</div></a></span>
+            <span class="component"><a href="https://github.com/environmentalinformatics-marburg/rsdb/wiki" target="_blank"><div><img src="images/rsdb_wiki.png" /></div><div class="component-text">RSDB wiki</div></a></span>
 
           </v-card-title>
         </v-card>

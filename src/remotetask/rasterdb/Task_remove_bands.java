@@ -9,9 +9,9 @@ import util.JsonUtil;
 import util.TimeUtil;
 
 @task_rasterdb("remove_bands")
-@Description("Remove all pixel data of some bands at all timestamps")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="rasterdb1")
-@Param(name="bands", type="integer_array", desc="array of integer band numbers", example="1, 2, 3")
+@Description("Remove all pixel data of some bands at all timestamps.")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="rasterdb1")
+@Param(name="bands", type="integer_array", desc="Array of integer band numbers.", example="1, 2, 3")
 public class Task_remove_bands extends RemoteTask {
 
 	//private final Broker broker;

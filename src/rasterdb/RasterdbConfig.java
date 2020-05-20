@@ -3,13 +3,10 @@ package rasterdb;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import util.yaml.YamlMap;
 
 public class RasterdbConfig {
-	private static final Logger log = LogManager.getLogger();
+	//private static final Logger log = LogManager.getLogger();
 
 	private Path path;
 	private String name;

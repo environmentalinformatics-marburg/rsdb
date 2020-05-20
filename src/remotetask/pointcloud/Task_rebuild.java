@@ -16,10 +16,10 @@ import remotetask.Description;
 import remotetask.Param;
 
 @task_pointcloud("rebuild")
-@Description("create new pointcloud (without fragmented free space, with ordered cells, with other storage type and/or with recompressed data) form source pointcloud and with name [source]_rebuild")
-@Param(name="pointcloud", type="pointcloud", desc="ID of PointCloud layer (source)", example="pointcloud1")
-@Param(name="storage_type", desc="storage type of new PointCloud: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
-@Param(name="compression_level", type="integer", desc="level of compression (0 to 100) if missing no recompression is applied", example="1", required=false)
+@Description("Create new pointcloud (without fragmented free space, with ordered cells, with other storage type and/or with recompressed data) form source pointcloud and with name [source]_rebuild.")
+@Param(name="pointcloud", type="pointcloud", desc="ID of PointCloud layer. (source)", example="pointcloud1")
+@Param(name="compression_level", type="integer", desc="Level of compression. (0 to 100) If missing no recompression is applied.", example="1", required=false)
+@Param(name="storage_type", desc="Storage type of new PointCloud. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 public class Task_rebuild extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
@@ -36,7 +36,7 @@ public class Task_rebuild extends CancelableRemoteTask {
 		src = broker.getPointCloud(name);
 		src.check(ctx.userIdentity);
 		EmptyACL.ADMIN.check(ctx.userIdentity);
-		storage_type = task.optString("storage_type", "RasterUnit");
+		storage_type = task.optString("storage_type", "TileStorage");
 		log.info("set storage type: " + storage_type);
 		compression_level = task.optInt("compression_level", Integer.MIN_VALUE);
 	}

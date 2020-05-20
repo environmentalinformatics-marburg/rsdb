@@ -15,9 +15,9 @@ import remotetask.Description;
 import remotetask.Param;
 
 @task_rasterdb("rebuild")
-@Description("create new RasterDB (possibly with other storage type) form source RasterDB and with name [source]_rebuild")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer (source)", example="rasterdb1")
-@Param(name="storage_type", desc="storage type of new RasterDB: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Description("Create new RasterDB (possibly with other storage type) form source RasterDB and with name [source]_rebuild.")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer. (source)", example="rasterdb1")
+@Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 public class Task_rebuild extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
@@ -33,7 +33,7 @@ public class Task_rebuild extends CancelableRemoteTask {
 		src = broker.getRasterdb(name);
 		src.check(ctx.userIdentity);
 		EmptyACL.ADMIN.check(ctx.userIdentity);
-		storage_type = task.optString("storage_type", "RasterUnit");
+		storage_type = task.optString("storage_type", "TileStorage");
 	}
 
 	@Override

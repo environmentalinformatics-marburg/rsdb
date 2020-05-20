@@ -745,7 +745,7 @@ public class Terminal {
 		if(args.length >= 3) {
 			try(Broker broker = new Broker()) {
 				String name = args[1];
-				String storage_type = "RasterUnit";
+				String storage_type = "TileStorage";
 				String source = args[2];	
 				PointCloud pointcloud = broker.createNewPointCloud(name, storage_type, false);
 				for (int i = 3; i < args.length; i++) {
@@ -842,7 +842,7 @@ public class Terminal {
 		if(args.length == 2) {
 			try(Broker broker = new Broker()) {
 				PointCloud pointcloud = broker.getPointCloud(args[1]);
-				String stroage_type = "RasterUnit";
+				String stroage_type = "TileStorage";
 				boolean recompress = true;
 				int comression_level = 100;
 				Timer.start("recompress");

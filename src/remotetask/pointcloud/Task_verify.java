@@ -19,8 +19,8 @@ import remotetask.Description;
 import remotetask.Param;
 
 @task_pointcloud("verify")
-@Description("check point data")
-@Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer", example="pointcloud1")
+@Description("Check point data.")
+@Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer.", example="pointcloud1")
 public class Task_verify extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 

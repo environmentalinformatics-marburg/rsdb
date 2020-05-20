@@ -18,8 +18,8 @@ import remotetask.Description;
 import remotetask.Param;
 
 @task_pointdb("verify")
-@Description("check point data")
-@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer", example="pointdb1")
+@Description("Check point data.")
+@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer.", example="pointdb1")
 public class Task_verify extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 

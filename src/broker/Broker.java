@@ -394,7 +394,7 @@ public class Broker implements AutoCloseable {
 	}
 	
 	public synchronized RasterDB createOrGetRasterdb(String name, boolean transaction) {
-		return createOrGetRasterdb(name, transaction, "RasterUnit");
+		return createOrGetRasterdb(name, transaction, "TileStorage");
 	}
 
 	public synchronized RasterDB createOrGetRasterdb(String name, boolean transaction, String storage_type) {

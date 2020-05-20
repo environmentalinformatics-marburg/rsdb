@@ -13,13 +13,13 @@ import remotetask.Param;
 import remotetask.RemoteTask;
 
 @task_rasterdb("create")
-@Description("create new rasterdb layer.")
-@Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer", example="raster1")
-@Param(name="pixel_size", type="number_array" , desc="size of pixels in projection units", format="size or x_size, y_size", example="10, 15.1", required=false)
-@Param(name="offset", type="number_array", desc="offset to projection origin", format="x_offset, y_offset", example="0.5, -0.5", required=false)
-@Param(name="code", desc="projection code", format="EPSG:code", example="EPSG:32632", required=false)
-@Param(name="proj4", desc="projection", format="PROJ4", example="+proj=utm +zone=32 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
-@Param(name="storage_type", desc="storage type of new RasterDB: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Description("Create new rasterdb layer.")
+@Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer.", example="raster1")
+@Param(name="pixel_size", type="number_array" , desc="Size of pixels in projection units.", format="size or x_size, y_size", example="10, 15.1", required=false)
+@Param(name="offset", type="number_array", desc="Offset to projection origin.", format="x_offset, y_offset", example="0.5, -0.5", required=false)
+@Param(name="code", desc="Projection code.", format="EPSG:code", example="EPSG:32632", required=false)
+@Param(name="proj4", desc="Projection.", format="PROJ4", example="+proj=utm +zone=32 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
+@Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 public class Task_create extends RemoteTask {
 	
 	private final Broker broker;

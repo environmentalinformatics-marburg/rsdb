@@ -15,11 +15,11 @@ import remotetask.Param;
 import remotetask.RemoteTask;
 
 @task_pointdb("rasterize")
-@Description("create visualisation raster of PointDB layer")
-@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer (source)", example="pointdb1")
-@Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer (target)", example="rasterdb1")
-@Param(name="transactions", type="boolean", desc="use power failer safe (and) slow RasterDB operation mode (default) (obsolete for TileStorage)", example="false", required=false)
-@Param(name="storage_type", desc="storage type of new RasterDB: RasterUnit (default) or TileStorage", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Description("Create visualisation raster of PointDB layer.")
+@Param(name="pointdb", type="pointdb", desc="ID of PointDB layer. (source)", example="pointdb1")
+@Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (target)", example="rasterdb1")
+@Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) RasterDB operation mode. (RasterUnit only, default false)", example="false", required=false)
 public class Task_rasterize extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 

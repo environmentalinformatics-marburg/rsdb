@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import rasterdb.RasterDB;
 import remotetask.Context;
 import remotetask.Description;
@@ -13,8 +12,8 @@ import remotetask.Param;
 import remotetask.RemoteTask;
 
 @task_rasterdb("rebuild_pyramid")
-@Description("Recreate pyramid of scaled down rasters for visualisation")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer", example="rasterdb1")
+@Description("Recreate pyramid of scaled down rasters for visualisation.")
+@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="rasterdb1")
 public class Task_rebuild_pyramid extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 	

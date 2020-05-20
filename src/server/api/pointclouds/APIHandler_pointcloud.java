@@ -292,14 +292,22 @@ public class APIHandler_pointcloud {
 			json.endArray();
 		}
 		if(requestStorageSize) {
-			json.key("storage_size");
-			long storage_size = pointcloud.getGriddb().storage().calculateStorageSize();
-			json.value(storage_size);
+			try {
+				long storage_size = pointcloud.getGriddb().storage().calculateStorageSize();
+				json.key("storage_size");
+				json.value(storage_size);
+			} catch(Exception e) {
+				log.warn(e);
+			}
 		}
 		if(requestInternalStorageInternalFreeSize) {
-			json.key("storage_internal_free_size");
-			long internal_free_size = pointcloud.getGriddb().storage().calculateInternalFreeSize();
-			json.value(internal_free_size);
+			try {
+				long internal_free_size = pointcloud.getGriddb().storage().calculateInternalFreeSize();
+				json.key("storage_internal_free_size");
+				json.value(internal_free_size);
+			} catch(Exception e) {
+				log.warn(e);
+			}
 		}
 		if(requestCellCount) {
 			json.key("cell_count");

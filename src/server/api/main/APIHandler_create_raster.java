@@ -28,7 +28,7 @@ public class APIHandler_create_raster extends APIHandler {
 			throw new RuntimeException("missing name parameter");
 		}
 		boolean transaction = true;
-		String storage_type = "RasterUnit";
+		String storage_type = "TileStorage";
 		String storage_type_parameter = request.getParameter("storage_type");
 		if(storage_type_parameter != null && !storage_type_parameter.isEmpty()) {
 			log.info("set storage_type" + storage_type_parameter);
