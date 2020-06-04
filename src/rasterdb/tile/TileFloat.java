@@ -116,21 +116,38 @@ public class TileFloat {
 		return cnt;
 	}
 	
-	public static short[][] floatToShort(float[][] targetDataFloat, short[][] targetDataShort, short na) {
-		int w = targetDataFloat[0].length;
-		int h = targetDataFloat.length;
-		if(targetDataShort == null || targetDataShort.length != h || targetDataShort[0].length != w) {
-			targetDataShort = new short[h][w];
+	public static short[][] floatToShort(float[][] sourceFloat, short[][] targeShort, short targetNA) {
+		int w = sourceFloat[0].length;
+		int h = sourceFloat.length;
+		if(targeShort == null || targeShort.length != h || targeShort[0].length != w) {
+			targeShort = new short[h][w];
 		}
 		for (int y = 0; y < h; y++) {
-			float[] a = targetDataFloat[y];
-			short[] b = targetDataShort[y];
+			float[] a = sourceFloat[y];
+			short[] b = targeShort[y];
 			for (int x = 0; x < w; x++) {
 				float v = a[x];
-				b[x] = Float.isFinite(v) ? (short) v : na;
+				b[x] = Float.isFinite(v) ? (short) v : targetNA;
 			}
 		}
-		return targetDataShort;
+		return targeShort;
+	}
+
+	public static short[][] floatToShort(float[][] sourceFloat, short[][] targeShort, float sourceNA, short targetNA) {
+		int w = sourceFloat[0].length;
+		int h = sourceFloat.length;
+		if(targeShort == null || targeShort.length != h || targeShort[0].length != w) {
+			targeShort = new short[h][w];
+		}
+		for (int y = 0; y < h; y++) {
+			float[] a = sourceFloat[y];
+			short[] b = targeShort[y];
+			for (int x = 0; x < w; x++) {
+				float v = a[x];
+				b[x] = Float.isFinite(v) && v != sourceNA ? (short) v : targetNA;
+			}
+		}
+		return targeShort;
 	}
 	
 }

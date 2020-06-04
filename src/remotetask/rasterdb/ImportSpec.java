@@ -96,6 +96,9 @@ public class ImportSpec {
 							case "float":
 								bandSpec.rastedb_band_data_type = 2;
 								break;
+							case "int16":
+								bandSpec.rastedb_band_data_type = 3;
+								break;								
 							default:
 								log.warn("unknown band type: " + rastedb_band_data_type_name);
 							}
@@ -168,6 +171,9 @@ public class ImportSpec {
 							case "float":
 								bandSpec.rastedb_band_data_type = 2;
 								break;
+							case "int16":
+								bandSpec.rastedb_band_data_type = 3;
+								break;							
 							default:
 								log.warn("unknown band type: " + rastedb_band_data_type_name);
 							}

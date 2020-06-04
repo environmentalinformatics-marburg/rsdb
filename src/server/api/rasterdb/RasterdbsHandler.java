@@ -93,7 +93,7 @@ public class RasterdbsHandler extends AbstractHandler {
 							json.key("title");
 							json.value(band.has_title() ? band.title : "band"+band.index);
 							json.key("datatype");
-							json.value(band.getDatatypeName());
+							json.value(band.getPixelTypeName());
 							if(band.has_vis_min()) {
 								json.key("vis_min");
 								json.value(band.vis_min);

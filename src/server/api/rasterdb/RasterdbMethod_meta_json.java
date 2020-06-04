@@ -164,7 +164,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				json.key("title");
 				json.value(band.has_title() ? band.title : "band"+band.index);
 				json.key("datatype");
-				json.value(band.getDatatypeName());
+				json.value(band.getPixelTypeName());
 				if(band.has_visualisation()) {
 					json.key("visualisation");
 					json.value(band.visualisation);

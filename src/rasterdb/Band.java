@@ -3,6 +3,7 @@ package rasterdb;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import rasterdb.cell.CellType;
 import rasterdb.tile.TilePixel;
 import util.yaml.YamlMap;
 
@@ -156,32 +157,34 @@ public class Band {
 		return min <= checkWavelength && checkWavelength <= max; 
 	}
 	
-	public boolean isTypeShortOrExactConvertible() {
-		return isTypeShort();
+	public boolean isPixelTypeInt16OrExactConvertible() {
+		return isPixelTypeInt16();
 	}
 	
-	public boolean isTypeFloatOrExactConvertible() {
-		return isTypeFloat() || isTypeShort();
+	public boolean isPixelTypeFloat32OrExactConvertible() {
+		return isPixelTypeFloat32() || isPixelTypeInt16();
 	}
 	
-	public boolean isTypeShort() {
-		return type == TilePixel.TYPE_SHORT;
+	public boolean isPixelTypeInt16() {
+		return type == TilePixel.TYPE_SHORT || type == CellType.INT16;
 	}
 	
-	public boolean isTypeFloat() {
+	public boolean isPixelTypeFloat32() {
 		return type == TilePixel.TYPE_FLOAT;
 	}
 	
-	public short getShortNA() {
+	public short getInt16NA() {
 		return 0;
 	}
 	
-	public String getDatatypeName() {
+	public String getPixelTypeName() {
 		switch (type) {
 		case TilePixel.TYPE_SHORT:
 			return "int16";
 		case TilePixel.TYPE_FLOAT:
-			return "float32";			
+			return "float32";
+		case CellType.INT16:
+			return "int16";
 		default:
 			return "unknown";
 		}

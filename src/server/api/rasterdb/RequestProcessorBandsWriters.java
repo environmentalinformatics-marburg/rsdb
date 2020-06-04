@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import rasterdb.GeoReference;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
+import rasterdb.cell.CellType;
 import rasterdb.tile.NullFillTileYReverseIterator;
 import rasterdb.tile.TileFloatToFloatIterator;
 import rasterdb.tile.TileFloatToShortIterator;
@@ -72,6 +73,7 @@ public class RequestProcessorBandsWriters {
 		for(TimeBand timeband : processingBands) {
 			switch (timeband.band.type) {
 			case TilePixel.TYPE_SHORT:
+			case CellType.INT16:
 				// nothing
 				break;
 			case TilePixel.TYPE_FLOAT:
@@ -98,7 +100,7 @@ public class RequestProcessorBandsWriters {
 			case INT16:
 				rdatWriter.addRdatBand(RdatBand.ofInt16(dstWidth, dstHeight, bandMeta, ()->processor.getShortFrame(timeband).data));
 				if(noDataValue == null) {
-					noDataValue = timeband.band.getShortNA();
+					noDataValue = timeband.band.getInt16NA();
 				}
 				break;
 			case FLOAT32:
@@ -135,6 +137,7 @@ public class RequestProcessorBandsWriters {
 		for(TimeBand timeband : processingBands) {
 			switch (timeband.band.type) {
 			case TilePixel.TYPE_SHORT:
+			case CellType.INT16:
 				// nothing
 				break;
 			case TilePixel.TYPE_FLOAT:
@@ -153,7 +156,7 @@ public class RequestProcessorBandsWriters {
 			case INT16:
 				tiffWriter.addTiffBand(TiffBand.ofInt16(dstWidth, dstHeight, ()->processor.getShortFrame(timeband).data));
 				if(noDataValue == null) {
-					noDataValue = timeband.band.getShortNA();
+					noDataValue = timeband.band.getInt16NA();
 				}
 				break;
 			case FLOAT32:
@@ -200,6 +203,7 @@ public class RequestProcessorBandsWriters {
 		for(TimeBand timeband : processingBands) {
 			switch (timeband.band.type) {
 			case TilePixel.TYPE_SHORT:
+			case CellType.INT16:
 				// nothing
 				break;
 			case TilePixel.TYPE_FLOAT:
@@ -244,7 +248,7 @@ public class RequestProcessorBandsWriters {
 					throw new RuntimeException("unknown band type");
 				}				
 				if(noDataValue == null) {
-					noDataValue = timeband.band.getShortNA();
+					noDataValue = timeband.band.getInt16NA();
 				}
 				break;
 			case FLOAT32:
@@ -252,7 +256,7 @@ public class RequestProcessorBandsWriters {
 				case TilePixel.TYPE_SHORT: {
 					TiffTiledBandFloat32 tiffTiledBand = TiffTiledBand.ofFloat32Iterator(dstWidth, dstHeight, 256, 256, () -> {						
 						float[][] empty = new float[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
-						return new TileShortToFloatIterator(tileIterator.get(), empty, timeband.band.getShortNA());
+						return new TileShortToFloatIterator(tileIterator.get(), empty, timeband.band.getInt16NA());
 					});
 					tiffWriter.addTiffTiledBand(tiffTiledBand);
 					break;

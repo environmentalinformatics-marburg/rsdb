@@ -164,7 +164,7 @@ public class Task_coverage extends RemoteTask {
 				int xcellmin = (int) (Math.floor(pointcloud_xmin / cellsize) - xcelloffset);
 				int ycellmin = (int) (Math.floor(pointcloud_ymin / cellsize) - ycelloffset);
 				
-				short na = band.getShortNA();
+				short na = band.getInt16NA();
 				short[][] pixels = ProcessingShort.createEmpty(raster_xmax - raster_xmin + 1, raster_ymax - raster_ymin + 1, na);
 				Iterator<TileKey> it = tileCollection.keyIterator();
 				while(it.hasNext()) {

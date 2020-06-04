@@ -7,11 +7,12 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import rasterdb.cell.CellInt16;
+import rasterdb.cell.CellType;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingQuery;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TilePixel;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import util.Range2d;
 import util.frame.BooleanFrame;
@@ -95,6 +96,7 @@ public class TimeBandProcessor {
 	}
 
 	private void setScale(int scale) {
+		log.info("scale " + scale);
 		switch(scale) {
 		case 1:
 			pyramid_rasterUnit = rasterdb.rasterUnit();
@@ -105,8 +107,11 @@ public class TimeBandProcessor {
 		case 2:
 			pyramid_rasterUnit = rasterdb.rasterUnit();
 			pyramid_dstRange = range2d.floorDiv(2);
-			pyramid_srcRange = pyramid_dstRange.mul(2);
 			pyramidDiv = 2;
+			pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidDiv);
+			//log.info("pyramid_dstRange " + pyramid_dstRange);
+			//log.info("pyramid_srcRange " + pyramid_srcRange);
+			//log.info("pyramidDiv " + pyramidDiv);
 			break;			
 		case 4:
 			pyramid_rasterUnit = rasterdb.rasterPyr1Unit();
@@ -117,7 +122,7 @@ public class TimeBandProcessor {
 		case 8:
 			pyramid_rasterUnit = rasterdb.rasterPyr1Unit();
 			pyramid_dstRange = range2d.floorDiv(8);
-			pyramid_srcRange = pyramid_dstRange.mul(2);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(2);
 			pyramidDiv = 2;
 			break;			
 		case 16:
@@ -129,7 +134,7 @@ public class TimeBandProcessor {
 		case 32:
 			pyramid_rasterUnit = rasterdb.rasterPyr2Unit();
 			pyramid_dstRange = range2d.floorDiv(32);
-			pyramid_srcRange = pyramid_dstRange.mul(2);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(2);
 			pyramidDiv = 2;
 			break;			
 		case 64:
@@ -141,7 +146,7 @@ public class TimeBandProcessor {
 		case 128:
 			pyramid_rasterUnit = rasterdb.rasterPyr3Unit();
 			pyramid_dstRange = range2d.floorDiv(128);
-			pyramid_srcRange = pyramid_dstRange.mul(2);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(2);
 			pyramidDiv = 2;
 			break;			
 		case 256:
@@ -153,54 +158,59 @@ public class TimeBandProcessor {
 		case 512:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(512);
-			pyramid_srcRange = pyramid_dstRange.mul(2);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(2);
 			pyramidDiv = 2;
 			break;
 		case 1024:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(1024);
-			pyramid_srcRange = pyramid_dstRange.mul(4);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(4);
 			pyramidDiv = 4;
 			break;
 		case 2048:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(2048);
-			pyramid_srcRange = pyramid_dstRange.mul(8);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(8);
 			pyramidDiv = 8;
 			break;
 		case 4096:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(4096);
-			pyramid_srcRange = pyramid_dstRange.mul(16);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(16);
 			pyramidDiv = 16;
 			break;
 		case 8192:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(8192);
-			pyramid_srcRange = pyramid_dstRange.mul(32);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(32);
 			pyramidDiv = 32;
 			break;
 		case 16384:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(16384);
-			pyramid_srcRange = pyramid_dstRange.mul(64);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(64);
 			pyramidDiv = 64;
 			break;
 		case 32768:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(32768);
-			pyramid_srcRange = pyramid_dstRange.mul(128);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(128);
 			pyramidDiv = 128;
 			break;
 		case 65536:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(65536);
-			pyramid_srcRange = pyramid_dstRange.mul(256);
+			pyramid_srcRange = pyramid_dstRange.mulExpand(256);
 			pyramidDiv = 256;
 			break;
 		default:
 			throw new RuntimeException("unknown scale " + scale);
 		}
+	}
+	
+	private short[][] readInt16(int timestamp, Band band) {
+		CellInt16 cellInt16 = new CellInt16(pyramid_rasterUnit.getTilePixelLen());
+		return cellInt16.read(pyramid_rasterUnit, timestamp, band, pyramid_srcRange, pyramidDiv);	
 	}
 	
 	
@@ -235,6 +245,9 @@ public class TimeBandProcessor {
 			short na_target = 0;
 			return ShortFrame.ofFloats(FloatFrame.of(readFloat(timestamp, band), range2d), na_target);
 		}
+		case CellType.INT16: {
+			return ShortFrame.of(readInt16(timestamp, band), range2d);
+		}
 		default:
 			throw new RuntimeException("unknown tile type: "+tileType);
 		}
@@ -247,9 +260,10 @@ public class TimeBandProcessor {
 	public FloatFrame getFloatFrame(int timestamp, Band band) {
 		int tileType = band.type;
 		switch(tileType) {
-		case TilePixel.TYPE_SHORT: {
-			short na = band.getShortNA();			
-			return FloatFrame.ofShortsWithNA(ShortFrame.of(readShort(timestamp, band), range2d), na);
+		case TilePixel.TYPE_SHORT:
+		case CellType.INT16: {
+			short na = band.getInt16NA();			
+			return FloatFrame.ofShortsWithNA(getShortFrame(timestamp, band), na);
 		}
 		case TilePixel.TYPE_FLOAT: {			
 			return FloatFrame.of(readFloat(timestamp, band), range2d);
@@ -266,9 +280,10 @@ public class TimeBandProcessor {
 	public DoubleFrame getDoubleFrame(int timestamp, Band band) {
 		int tileType = band.type;
 		switch(tileType) {
-		case TilePixel.TYPE_SHORT: {
-			short na = band.getShortNA();			
-			return DoubleFrame.ofShortsWithNA(ShortFrame.of(readShort(timestamp, band), range2d), na);
+		case TilePixel.TYPE_SHORT:
+		case CellType.INT16: {
+			short na = band.getInt16NA();			
+			return DoubleFrame.ofShortsWithNA(getShortFrame(timestamp, band), na);
 		}
 		case TilePixel.TYPE_FLOAT: {			
 			return DoubleFrame.ofFloats(readFloat(timestamp, band), range2d);
@@ -285,8 +300,9 @@ public class TimeBandProcessor {
 	public BooleanFrame getMask(int timestamp, Band band) {
 		int tileType = band.type;
 		switch(tileType) {
-		case TilePixel.TYPE_SHORT: {
-			short na = band.getShortNA();
+		case TilePixel.TYPE_SHORT:
+		case CellType.INT16: {
+			short na = band.getInt16NA();
 			ShortFrame shortFrame = getShortFrame(timestamp, band);
 			return shortFrame.toMask(na);
 		}

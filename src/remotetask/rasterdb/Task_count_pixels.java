@@ -7,6 +7,8 @@ import org.json.JSONObject;
 import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
+import rasterdb.cell.CellInt16;
+import rasterdb.cell.CellType;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterdb.tile.TileShort;
@@ -55,7 +57,7 @@ public class Task_count_pixels extends RemoteTask {
 			int[] raw = new int[TilePixel.PIXELS_PER_TILE];
 			for(Tile tile:tiles) {
 				TileShort.decode_raw(tile.data, raw);  
-				cnt += TileShort.countNotNa_raw(raw, 0);
+				cnt += TileShort.countNotNa_raw(raw, band.getInt16NA());
 			}
 			break;
 		}
@@ -66,6 +68,13 @@ public class Task_count_pixels extends RemoteTask {
 				TileShort.decode_raw(tile.data, raw);  
 				TileFloat.decode_raw(raw, dst);
 				cnt += TileFloat.countNotNa_raw(dst);
+			}
+			break;
+		}
+		case CellType.INT16: {
+			for(Tile tile:tiles) {
+				short[] raw = CellInt16.dec(tile.data);
+				cnt += CellInt16.countNotNa_raw(raw, band.getInt16NA());
 			}
 			break;
 		}

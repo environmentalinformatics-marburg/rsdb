@@ -13,11 +13,12 @@ import org.apache.logging.log4j.Logger;
 import rasterdb.Band;
 import rasterdb.BandProcessing;
 import rasterdb.RasterDB;
+import rasterdb.cell.CellInt16;
+import rasterdb.cell.CellType;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import util.TimeUtil;
 import util.Timer;
@@ -320,12 +321,15 @@ public class RasterDBimporter {
 					log.warn("convert float32/64 raster data to int16");
 				case GdalReader.GDAL_BYTE:
 				case GdalReader.GDAL_UINT16:
-				case GdalReader.GDAL_INT16: {				
+				case GdalReader.GDAL_INT16: {
+					if(gdalRasterDataType == GdalReader.GDAL_UINT16) {
+						log.warn("cast uint16 raster data to int16");						
+					}
 					if(gdalRasterDataType == GdalReader.GDAL_BYTE) {
 						targetDataShort = gdalreader.getDataShortOfByte(fileBandIndex, targetDataShort);
 						if(noDataValueHolder[0] != null) {
 							short gdalNa = noDataValueHolder[0].shortValue();
-							short bandNA = band.getShortNA();
+							short bandNA = band.getInt16NA();
 							if(gdalNa != bandNA) {
 								log.info("convert no data value " + gdalNa +" to " + bandNA);
 								ProcessingShort.convertNA(targetDataShort, gdalNa, bandNA);
@@ -343,7 +347,7 @@ public class RasterDBimporter {
 						targetDataShort = gdalreader.getDataShort(fileBandIndex, targetDataShort);
 						if(noDataValueHolder[0] != null) {
 							short gdalNa = noDataValueHolder[0].shortValue();
-							short bandNA = band.getShortNA();
+							short bandNA = band.getInt16NA();
 							if(gdalNa != bandNA) {
 								log.info("convert no data value " + gdalNa +" to " + bandNA);
 								ProcessingShort.convertNA(targetDataShort, gdalNa, bandNA);
@@ -387,7 +391,59 @@ public class RasterDBimporter {
 				break;
 			}
 			default:
-				throw new RuntimeException("band data type not implemented "+band.type);			
+				throw new RuntimeException("band data type not implemented "+band.type);
+			case CellType.INT16: {
+				switch(gdalRasterDataType) {
+				case GdalReader.GDAL_FLOAT64:
+				case GdalReader.GDAL_FLOAT32:
+					log.warn("convert float32/64 raster data to int16");
+				case GdalReader.GDAL_BYTE:
+				case GdalReader.GDAL_UINT16:
+				case GdalReader.GDAL_INT16: {
+					if(gdalRasterDataType == GdalReader.GDAL_UINT16) {
+						log.warn("cast uint16 raster data to int16");						
+					}
+					if(gdalRasterDataType == GdalReader.GDAL_BYTE) {
+						targetDataShort = gdalreader.getDataShortOfByte(fileBandIndex, targetDataShort);
+						if(noDataValueHolder[0] != null) {
+							short gdalNa = noDataValueHolder[0].shortValue();
+							short bandNA = band.getInt16NA();
+							if(gdalNa != bandNA) {
+								log.info("convert no data value " + gdalNa +" to " + bandNA);
+								ProcessingShort.convertNA(targetDataShort, gdalNa, bandNA);
+							}
+						}
+					} else if(gdalRasterDataType == GdalReader.GDAL_FLOAT32 || gdalRasterDataType == GdalReader.GDAL_FLOAT64) {
+						if(noDataValueHolder[0] != null) {
+							float noDataValue = noDataValueHolder[0].floatValue();
+							targetDataFloat = gdalreader.getDataFloat(fileBandIndex, targetDataFloat, noDataValue);
+						} else {
+							targetDataFloat = gdalreader.getDataFloat(fileBandIndex, targetDataFloat);
+						}
+						targetDataShort = TileFloat.floatToShort(targetDataFloat, targetDataShort, (short)0);
+					} else {
+						targetDataShort = gdalreader.getDataShort(fileBandIndex, targetDataShort);
+						if(noDataValueHolder[0] != null) {
+							short gdalNa = noDataValueHolder[0].shortValue();
+							short bandNA = band.getInt16NA();
+							if(gdalNa != bandNA) {
+								log.info("convert no data value " + gdalNa +" to " + bandNA);
+								ProcessingShort.convertNA(targetDataShort, gdalNa, bandNA);
+							}
+						}
+					}
+					targetDataShort = Util.flipRows(targetDataShort);
+					CellInt16 cellInt16 = new CellInt16(rasterUnit.getTilePixelLen());
+					int cnt = cellInt16.writeMerge(rasterUnit, timestamp, band, targetDataShort, pixelYmin, pixelXmin);					
+					log.info(targetDataShort.length + " x " + targetDataShort[0].length+" b "+fileBandIndex+"->"+band.index+" t "+timestamp+" tiles "+cnt);
+					rasterUnit.commit();
+					break;
+				}
+				default:
+					throw new RuntimeException("gdal data type not implemented for band type CellType.INT16 "+gdalRasterDataType);				
+				}
+				break;
+			}
 			}
 		}
 	}

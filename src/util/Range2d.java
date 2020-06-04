@@ -45,6 +45,11 @@ public class Range2d {
 	public Range2d mul(int f) {
 		return new Range2d(xmin * f, ymin * f, xmax * f, ymax * f);
 	}
+	
+	public Range2d mulExpand(int f) {
+		int expand = f - 1;
+		return new Range2d(xmin * f, ymin * f, xmax * f + expand, ymax * f + expand);
+	}
 
 	public Range2d transposed() {
 		return new Range2d(ymin, xmin, ymax, xmax);

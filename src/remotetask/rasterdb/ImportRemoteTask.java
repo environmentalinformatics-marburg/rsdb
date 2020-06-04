@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
+import rasterdb.cell.CellInt16;
+import rasterdb.cell.CellType;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TileFloat;
@@ -128,224 +130,106 @@ public class ImportRemoteTask extends RemoteTask {
 		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
 		switch(bandSpec.rastedb_band_data_type) {
 		case TilePixel.TYPE_SHORT: {
-			short[][] dataShort = null;
-			if(bandSpec.no_data_value == null) {
-				switch(bandSpec.gdal_raster_data_type) {
-				case GdalReader.GDAL_FLOAT64:
-				case GdalReader.GDAL_FLOAT32:
-				case GdalReader.GDAL_BYTE:
-				case GdalReader.GDAL_UINT16:
-				case GdalReader.GDAL_INT16: {
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
-						log.warn("convert float64 raster data to int16");
-					}
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
-						log.warn("convert float32 raster data to int16");
-					}
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
-						log.warn("convert uint16 raster data to int16");
-					}					
-					dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null, yoff, ysize);					
-					break;
-				}
-				default:
-					throw new RuntimeException("gdal data type not implemented for band type TYPE_SHORT " + bandSpec.gdal_raster_data_type);				
-				}				
-			} else {
-				short bandNaShort = rasterdbBand.getShortNA();
-				switch(bandSpec.gdal_raster_data_type) {
-				case GdalReader.GDAL_BYTE:
-				case GdalReader.GDAL_UINT16:
-				case GdalReader.GDAL_INT16: {
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
-						log.warn("convert uint16 raster data to int16");
-					}
-					dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null, yoff, ysize);
-					short gdalNaShort = bandSpec.no_data_value.shortValue();
-					if(bandSpec.no_data_value < Short.MIN_VALUE) { // gdal mapping of uint16 to int16
-						gdalNaShort = Short.MIN_VALUE;
-					}
-					if(bandSpec.no_data_value > Short.MAX_VALUE) { // gdal mapping of uint16 to int16
-						gdalNaShort = Short.MAX_VALUE;
-					}
-					if(gdalNaShort != bandNaShort) {
-						log.info("convert file no data value float "+bandSpec.no_data_value + " ==>   short " + gdalNaShort + " to band short " + bandNaShort);
-						ProcessingShort.convertNA(dataShort, gdalNaShort, bandNaShort);
-					}
-					break;
-				}
-				case GdalReader.GDAL_FLOAT64:
-				case GdalReader.GDAL_FLOAT32: {
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
-						log.warn("convert float64 raster data to int16");
-					}
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
-						log.warn("convert float32 raster data to int16");
-					}
-					float gdalNaFloat = bandSpec.no_data_value.floatValue();
-					short gdalNaFloatToShort = (short) gdalNaFloat;
-					if(gdalNaFloat == ((float)gdalNaFloatToShort)) { // exact conversion
-						dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null, yoff, ysize);
-						if(gdalNaFloatToShort != bandNaShort) {
-							log.info("convert no data value " + gdalNaFloatToShort + " to " + bandNaShort);
-							ProcessingShort.convertNA(dataShort, gdalNaFloatToShort, bandNaShort);
-						}
-					} else {
-						log.info("convert no data value " + gdalNaFloat + " to " + bandNaShort);
-						float[][] dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, gdalNaFloat, yoff, ysize);
-						dataShort = TileFloat.floatToShort(dataFloat, null, bandNaShort);
-					}
-					break;
-				}
-				default:
-					throw new RuntimeException("gdal data type not implemented for band type TYPE_SHORT " + bandSpec.gdal_raster_data_type);				
-				}					
-			}			
-			dataShort = Util.flipRows(dataShort);
-			int cnt = ProcessingShort.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);
-			rasterUnit.commit();
+			importBand_TYPE_SHORT(bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize, false);
 			break;
 		}
 		case TilePixel.TYPE_FLOAT: {
-			switch(bandSpec.gdal_raster_data_type) {
-			case GdalReader.GDAL_FLOAT64:
-				log.warn("convert float64 raster data to float32");
-			case GdalReader.GDAL_FLOAT32:
-			case GdalReader.GDAL_BYTE:
-			case GdalReader.GDAL_UINT16:
-			case GdalReader.GDAL_INT16: {
-				float[][] dataFloat;
-				if(bandSpec.no_data_value == null) {
-					dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, yoff, ysize);					
-				} else {
-					dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, bandSpec.no_data_value.floatValue(), yoff, ysize);
-				}
-				dataFloat = Util.flipRows(dataFloat);
-				int cnt = ProcessingFloat.writeMerge(rasterUnit, timestamp, rasterdbBand, dataFloat, pixelYmin, pixelXmin);
-				rasterUnit.commit();
-				break;
-			}
-			default:
-				throw new RuntimeException("gdal data type not implemented for band type TYPE_FLOAT " + bandSpec.gdal_raster_data_type);				
-			}
+			importBand_TYPE_FLOAT(bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize);
+			break;
+		}
+		case CellType.INT16: {
+			importBand_TYPE_SHORT(bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize, true);
 			break;
 		}
 		default:
 			throw new RuntimeException("RasterDB band data type not implemented " + bandSpec.rastedb_band_data_type);			
 		}
 	}
-
-	/*private static void importBand(RasterDB rasterdb, GdalReader gdalreader, BandSpec bandSpec, int pixelXmin, int pixelYmin, int timestamp) throws IOException {
-		org.gdal.gdal.Band gdalRasterBand = gdalreader.dataset.GetRasterBand(bandSpec.file_band_index);
-		Band rasterdbBand = rasterdb.getBandByNumber(bandSpec.rasterdb_band_index);
-		if(rasterdbBand.type != bandSpec.rastedb_band_data_type) {
-			throw new RuntimeException("wrong rastedb_band_data_type");
-		}
-		int gdalRasterDataType = gdalRasterBand.GetRasterDataType();
-		if(gdalRasterDataType != bandSpec.gdal_raster_data_type) {
-			throw new RuntimeException("wrong rasterdb_band_data_type");
-		}
-		RasterUnit rasterUnit = rasterdb.rasterUnit();
-		switch(bandSpec.rastedb_band_data_type) {
-		case TilePixel.TYPE_SHORT: {
-			short[][] dataShort = null;
-			if(bandSpec.no_data_value == null) {
-				switch(bandSpec.gdal_raster_data_type) {
-				case GdalReader.GDAL_FLOAT64:
-				case GdalReader.GDAL_FLOAT32:
-				case GdalReader.GDAL_BYTE:
-				case GdalReader.GDAL_UINT16:
-				case GdalReader.GDAL_INT16: {
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
-						log.warn("convert float64 raster data to int16");
-					}
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
-						log.warn("convert float32 raster data to int16");
-					}
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
-						log.warn("convert uint16 raster data to int16");
-					}					
-					dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null);					
-					break;
+	
+	private static void importBand_TYPE_SHORT(BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize, boolean isCellInt16) throws IOException {
+		short[][] dataShort = null;		
+		switch(bandSpec.gdal_raster_data_type) {
+		case GdalReader.GDAL_BYTE:
+		case GdalReader.GDAL_UINT16:
+		case GdalReader.GDAL_INT16: {
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
+				log.warn("convert uint16 raster data to int16");
+			}
+			dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null, yoff, ysize);			
+			if(bandSpec.no_data_value != null) {
+				short bandNaShort = rasterdbBand.getInt16NA();
+				short gdalNaShort = bandSpec.no_data_value.shortValue();
+				if(bandSpec.no_data_value < Short.MIN_VALUE) { // gdal mapping of uint16 to int16
+					gdalNaShort = Short.MIN_VALUE;
 				}
-				default:
-					throw new RuntimeException("gdal data type not implemented for band type TYPE_SHORT " + bandSpec.gdal_raster_data_type);				
+				if(bandSpec.no_data_value > Short.MAX_VALUE) { // gdal mapping of uint16 to int16
+					gdalNaShort = Short.MAX_VALUE;
+				}
+				if(gdalNaShort != bandNaShort) {
+					log.info("convert file no data value float "+bandSpec.no_data_value + " ==>   short " + gdalNaShort + " to band short " + bandNaShort);
+					ProcessingShort.convertNA(dataShort, gdalNaShort, bandNaShort);
 				}				
-			} else {
-				short bandNaShort = rasterdbBand.getShortNA();
-				switch(bandSpec.gdal_raster_data_type) {
-				case GdalReader.GDAL_BYTE:
-				case GdalReader.GDAL_UINT16:
-				case GdalReader.GDAL_INT16: {
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
-						log.warn("convert uint16 raster data to int16");
-					}
-					dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null);
-					short gdalNaShort = bandSpec.no_data_value.shortValue();
-					if(gdalNaShort != bandNaShort) {
-						log.info("convert no data value " + gdalNaShort + " to " + bandNaShort);
-						ProcessingShort.convertNA(dataShort, gdalNaShort, bandNaShort);
-					}
-					break;
-				}
-				case GdalReader.GDAL_FLOAT64:
-				case GdalReader.GDAL_FLOAT32: {
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
-						log.warn("convert float64 raster data to int16");
-					}
-					if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
-						log.warn("convert float32 raster data to int16");
-					}
-					float gdalNaFloat = bandSpec.no_data_value.floatValue();
-					short gdalNaFloatToShort = (short) gdalNaFloat;
-					if(gdalNaFloat == ((float)gdalNaFloatToShort)) { // exact conversion
-						dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null);
-						if(gdalNaFloatToShort != bandNaShort) {
-							log.info("convert no data value " + gdalNaFloatToShort + " to " + bandNaShort);
-							ProcessingShort.convertNA(dataShort, gdalNaFloatToShort, bandNaShort);
-						}
-					} else {
-						log.info("convert no data value " + gdalNaFloat + " to " + bandNaShort);
-						float[][] dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, gdalNaFloat);
-						dataShort = TileFloat.floatToShort(dataFloat, null, bandNaShort);
-					}
-					break;
-				}
-				default:
-					throw new RuntimeException("gdal data type not implemented for band type TYPE_SHORT " + bandSpec.gdal_raster_data_type);				
-				}					
 			}			
-			dataShort = Util.flipRows(dataShort);
-			int cnt = ProcessingShort.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);
-			rasterUnit.commit();
 			break;
 		}
-		case TilePixel.TYPE_FLOAT: {
-			switch(bandSpec.gdal_raster_data_type) {
-			case GdalReader.GDAL_FLOAT64:
-				log.warn("convert float64 raster data to float32");
-			case GdalReader.GDAL_FLOAT32:
-			case GdalReader.GDAL_BYTE:
-			case GdalReader.GDAL_UINT16:
-			case GdalReader.GDAL_INT16: {
-				float[][] dataFloat;
-				if(bandSpec.no_data_value == null) {
-					dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null);					
-				} else {
-					dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, bandSpec.no_data_value.floatValue());
-				}
-				dataFloat = Util.flipRows(dataFloat);
-				int cnt = ProcessingFloat.writeMerge(rasterUnit, timestamp, rasterdbBand, dataFloat, pixelYmin, pixelXmin);
-				rasterUnit.commit();
-				break;
+		case GdalReader.GDAL_FLOAT64:
+		case GdalReader.GDAL_FLOAT32: {
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
+				log.warn("convert float64 raster data to int16");
 			}
-			default:
-				throw new RuntimeException("gdal data type not implemented for band type TYPE_FLOAT " + bandSpec.gdal_raster_data_type);				
-			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
+				log.warn("convert float32 raster data to int16");
+			}			
+			float[][] dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, yoff, ysize);
+			short bandNaShort = rasterdbBand.getInt16NA();
+			if(bandSpec.no_data_value == null) {				
+				dataShort = TileFloat.floatToShort(dataFloat, null, bandNaShort);						
+			} else {
+				float gdalNaFloat = bandSpec.no_data_value.floatValue();
+				log.info("convert no data value " + gdalNaFloat + " to " + bandNaShort);
+				dataShort = TileFloat.floatToShort(dataFloat, null, gdalNaFloat, bandNaShort);
+			}			
 			break;
 		}
 		default:
-			throw new RuntimeException("RasterDB band data type not implemented " + bandSpec.rastedb_band_data_type);			
+			throw new RuntimeException("gdal data type not implemented for band type TYPE_SHORT " + bandSpec.gdal_raster_data_type);				
+		}			
+		dataShort = Util.flipRows(dataShort);
+		int cnt;
+		if(isCellInt16) {
+			CellInt16 cellInt16 = new CellInt16(rasterUnit.getTilePixelLen());
+			cnt = cellInt16.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);			
+		} else {
+			cnt = ProcessingShort.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);
+		}		
+		rasterUnit.commit();
+		log.info("tiles written: " + cnt);
+	}
+	
+	private static void importBand_TYPE_FLOAT(BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize) throws IOException {
+		switch(bandSpec.gdal_raster_data_type) {
+		case GdalReader.GDAL_FLOAT64:
+			log.warn("convert float64 raster data to float32");
+		case GdalReader.GDAL_FLOAT32:
+		case GdalReader.GDAL_BYTE:
+		case GdalReader.GDAL_UINT16:
+		case GdalReader.GDAL_INT16: {
+			float[][] dataFloat;
+			if(bandSpec.no_data_value == null) {
+				dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, yoff, ysize);					
+			} else {
+				dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, bandSpec.no_data_value.floatValue(), yoff, ysize);
+			}
+			dataFloat = Util.flipRows(dataFloat);
+			int cnt = ProcessingFloat.writeMerge(rasterUnit, timestamp, rasterdbBand, dataFloat, pixelYmin, pixelXmin);
+			rasterUnit.commit();
+			log.info("tiles written: " + cnt);
+			break;
 		}
-	}*/
+		default:
+			throw new RuntimeException("gdal data type not implemented for band type TYPE_FLOAT " + bandSpec.gdal_raster_data_type);				
+		}
+	}
+
+
 }

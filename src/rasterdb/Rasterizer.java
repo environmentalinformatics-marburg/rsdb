@@ -21,10 +21,10 @@ public class Rasterizer {
 
 	public static ImageBufferARGB rasterizeRGB(TimeBandProcessor processor, TimeBand[] bands, int width, int height, double gamma, double[] range, boolean syncBands, Interruptor interruptor) {
 		Timer.start("load");
-		if(bands[0].band.isTypeShortOrExactConvertible() && bands[1].band.isTypeShortOrExactConvertible() && bands[2].band.isTypeShortOrExactConvertible()) {
+		if(bands[0].band.isPixelTypeInt16OrExactConvertible() && bands[1].band.isPixelTypeInt16OrExactConvertible() && bands[2].band.isPixelTypeInt16OrExactConvertible()) {
 			if((bands[0].band.index == bands[1].band.index && bands[1].band.index != bands[2].band.index) || (bands[1].band.index == bands[2].band.index && bands[2].band.index != bands[0].band.index)) {
-				short naR = bands[0].band.getShortNA();
-				short naB = bands[2].band.getShortNA();
+				short naR = bands[0].band.getInt16NA();
+				short naB = bands[2].band.getInt16NA();
 				Interruptor.checkInterrupted(interruptor);
 				ShortFrame frameR = processor.getShortFrame(bands[0]);
 				Interruptor.checkInterrupted(interruptor);
@@ -33,9 +33,9 @@ public class Rasterizer {
 				Interruptor.checkInterrupted(interruptor);
 				return Renderer.renderRbShort(frameR, frameB, naR, naB, width, height, gamma, range, syncBands);			
 			} else {
-				short naR = bands[0].band.getShortNA();
-				short naG = bands[1].band.getShortNA();
-				short naB = bands[2].band.getShortNA();
+				short naR = bands[0].band.getInt16NA();
+				short naG = bands[1].band.getInt16NA();
+				short naB = bands[2].band.getInt16NA();
 				Interruptor.checkInterrupted(interruptor);
 				ShortFrame frameR = processor.getShortFrame(bands[0]);
 				Interruptor.checkInterrupted(interruptor);
@@ -46,7 +46,7 @@ public class Rasterizer {
 				Interruptor.checkInterrupted(interruptor);
 				return Renderer.renderRgbShort(frameR, frameG, frameB, naR, naG, naB, width, height, gamma, range, syncBands);				
 			}			
-		} else if(bands[0].band.isTypeFloatOrExactConvertible() && bands[1].band.isTypeFloatOrExactConvertible() && bands[2].band.isTypeFloatOrExactConvertible()) {
+		} else if(bands[0].band.isPixelTypeFloat32OrExactConvertible() && bands[1].band.isPixelTypeFloat32OrExactConvertible() && bands[2].band.isPixelTypeFloat32OrExactConvertible()) {
 			if((bands[0].band.index == bands[1].band.index && bands[1].band.index != bands[2].band.index) || (bands[1].band.index == bands[2].band.index && bands[2].band.index != bands[0].band.index)) {
 				Interruptor.checkInterrupted(interruptor);
 				FloatFrame frameR = processor.getFloatFrame(bands[0]);
@@ -90,13 +90,13 @@ public class Rasterizer {
 	}
 
 	public static ImageBufferARGB rasterizeGrey(TimeBandProcessor processor, TimeBand timeband, int width, int height, double gamma, double[] range, Interruptor interruptor) {
-		if(timeband.band.isTypeShortOrExactConvertible())  {
-			short na = timeband.band.getShortNA();
+		if(timeband.band.isPixelTypeInt16OrExactConvertible())  {
+			short na = timeband.band.getInt16NA();
 			Interruptor.checkInterrupted(interruptor);
 			ShortFrame frame = processor.getShortFrame(timeband);
 			Interruptor.checkInterrupted(interruptor);
 			return Renderer.renderGreyShort(frame, na, width, height, gamma, range);
-		} else if(timeband.band.isTypeFloatOrExactConvertible())  {
+		} else if(timeband.band.isPixelTypeFloat32OrExactConvertible())  {
 			Interruptor.checkInterrupted(interruptor);
 			FloatFrame frame = processor.getFloatFrame(timeband);
 			Interruptor.checkInterrupted(interruptor);
@@ -110,13 +110,13 @@ public class Rasterizer {
 	}
 	
 	public static ImageBufferARGB rasterizePalette(TimeBandProcessor processor, TimeBand timeband, int width, int height, double gamma, double[] range, int[] palette, Interruptor interruptor) {
-		if(timeband.band.isTypeShortOrExactConvertible())  {
-			short na = timeband.band.getShortNA();
+		if(timeband.band.isPixelTypeInt16OrExactConvertible())  {
+			short na = timeband.band.getInt16NA();
 			Interruptor.checkInterrupted(interruptor);
 			ShortFrame frame = processor.getShortFrame(timeband);
 			Interruptor.checkInterrupted(interruptor);
 			return Renderer.renderPaletteShort(frame, na, width, height, gamma, range, palette);
-		} else if(timeband.band.isTypeFloatOrExactConvertible())  {
+		} else if(timeband.band.isPixelTypeFloat32OrExactConvertible())  {
 			Interruptor.checkInterrupted(interruptor);
 			FloatFrame frame = processor.getFloatFrame(timeband);
 			Interruptor.checkInterrupted(interruptor);

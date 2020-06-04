@@ -7,8 +7,9 @@ import org.apache.logging.log4j.Logger;
 
 import rasterdb.Band;
 import rasterdb.RasterDB;
+import rasterdb.cell.CellInt16;
+import rasterdb.cell.CellType;
 import rasterunit.BandKey;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 
 public class Processing {
@@ -62,7 +63,11 @@ public class Processing {
 				break;
 			case TilePixel.TYPE_FLOAT:
 				ProcessingFloat.writeRasterUnitBandDiv4(rasterUnitStorage, targetUnit, bandKey, band, commiter);				
-				break;				
+				break;
+			case CellType.INT16:
+				CellInt16 cellInt16 = new CellInt16(targetUnit.getTilePixelLen());
+				cellInt16.writeRasterUnitBandDiv4(rasterUnitStorage, targetUnit, bandKey, band, commiter);		
+				break;
 			default:
 				throw new RuntimeException("unknown band type");
 			}

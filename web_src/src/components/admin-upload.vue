@@ -170,7 +170,7 @@
           </tr>
           <tr v-if="isNaturalNumber(band.rasterdb_band_index)">
             <td><b>file band data type ({{band.gdal_raster_data_type}}) ==> </b></td>
-            <td v-if="existing_bands_map[band.rasterdb_band_index] === undefined"><v-select v-model="band.rastedb_band_data_type" :items="['short', 'float']" /></td>
+            <td v-if="existing_bands_map[band.rasterdb_band_index] === undefined"><v-select v-model="band.rastedb_band_data_type" :items="['short', 'float', 'int16']" /></td>
             <td v-if="existing_bands_map[band.rasterdb_band_index] !== undefined">{{band.rastedb_band_data_type}}</td>
           </tr>
           <tr v-if="isNaturalNumber(band.rasterdb_band_index)">

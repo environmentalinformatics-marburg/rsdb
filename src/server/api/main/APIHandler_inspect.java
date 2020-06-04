@@ -19,6 +19,7 @@ import org.json.JSONWriter;
 import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
+import rasterdb.cell.CellType;
 import rasterdb.tile.TilePixel;
 import server.api.APIHandler;
 import server.api.main.ChunkedUploader.ChunkedUpload;
@@ -408,6 +409,9 @@ public class APIHandler_inspect extends APIHandler {
 					break;
 				case TilePixel.TYPE_FLOAT:
 					json.value("float");
+					break;
+				case CellType.INT16:
+					json.value("int16");
 					break;
 				default:
 					throw new RuntimeException("unknown band type: "+ band.type);

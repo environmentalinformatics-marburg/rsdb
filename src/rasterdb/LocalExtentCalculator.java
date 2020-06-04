@@ -3,6 +3,8 @@ package rasterdb;
 import java.io.IOException;
 import java.util.Set;
 
+import rasterdb.cell.CellInt16;
+import rasterdb.cell.CellType;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterdb.tile.TileShort;
@@ -28,7 +30,7 @@ public class LocalExtentCalculator {
 			short[] bandShortNAs = new short[bandMaxIndex + 1];
 			for(Band band : rasterdb.bandMap.values()) {
 				bandTypes[band.index] = band.type;
-				bandShortNAs[band.index] = band.getShortNA();
+				bandShortNAs[band.index] = band.getInt16NA();
 			}
 
 			RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
@@ -36,8 +38,8 @@ public class LocalExtentCalculator {
 			if(tileRange == null) {
 				return null;
 			}
-			int lxmin = TilePixel.PIXELS_PER_ROW_1;
-			int lymin = TilePixel.PIXELS_PER_ROW_1;
+			int lxmin = rasterUnit.getTilePixelLen() - 1;
+			int lymin = rasterUnit.getTilePixelLen() - 1;
 			int lxmax = 0;
 			int lymax = 0;
 
@@ -124,19 +126,64 @@ public class LocalExtentCalculator {
 					}
 					break;
 				}
+				case CellType.INT16: {
+					CellInt16 cellInt16 = new CellInt16(rasterUnit.getTilePixelLen());
+					short na = (short) bandShortNAs[tileKey.b];
+					short[][] pixels = null;
+					if(lxmin > 0 && tileRange.xmin == tileKey.x) {
+						if(pixels == null) {
+							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey).data);
+						}
+						int cxmin = getXmin(pixels, na);
+						if(cxmin < lxmin) {
+							lxmin = cxmin;
+						}
+					}
+					if(lymin > 0 && tileRange.ymin == tileKey.y) {
+						if(pixels == null) {
+							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey).data);
+						}
+						int cymin = getYmin(pixels, na);
+						if(cymin < lymin) {
+							lymin = cymin;
+						}
+					}
+					int PIXELS_PER_ROW_1 = cellInt16.pixel_len - 1;
+					if(lxmax < PIXELS_PER_ROW_1 && tileRange.xmax == tileKey.x) {
+						if(pixels == null) {
+							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey).data);
+						}
+						int cxmax = getXmax(pixels, na);
+						if(cxmax > lxmax) {
+							lxmax = cxmax;
+						}
+					}
+					if(lymax < PIXELS_PER_ROW_1 && tileRange.ymax == tileKey.y) {
+						if(pixels == null) {
+							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey).data);
+						}
+						int cymax = getYmax(pixels, na);
+						if(cymax > lymax) {
+							lymax = cymax;
+						}
+					}
+					break;
+				}
 				default:
 					throw new RuntimeException("unknown type " + bandTypes[tileKey.b]);
 				}
 			}		
-			return tileRange.mul(TilePixel.PIXELS_PER_ROW).add(lxmin, lymin, lxmax, lymax);
+			return tileRange.mul(rasterUnit.getTilePixelLen()).add(lxmin, lymin, lxmax, lymax);
 		} catch(IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	public static int getXmin(short[][] pixels, short na) { // no check for all na
-		int xmin = TilePixel.PIXELS_PER_ROW_1;
-		for(int y = 0; y < TilePixel.PIXELS_PER_ROW; y++) {
+		int w1 = pixels[0].length - 1;
+		int h = pixels.length;
+		int xmin = w1;
+		for(int y = 0; y < h; y++) {
 			short[] row = pixels[y];				
 			for(int x = 0; x < xmin; x++) {
 				if(row[x] != na) {
@@ -149,22 +196,26 @@ public class LocalExtentCalculator {
 	}
 
 	public static int getYmin(short[][] pixels, short na) { // no check for all na
-		for(int y = 0; y < TilePixel.PIXELS_PER_ROW_1; y++) {
+		int w = pixels[0].length;
+		int h1 = pixels.length - 1;
+		for(int y = 0; y < h1; y++) {
 			short[] row = pixels[y];				
-			for(int x = 0; x < TilePixel.PIXELS_PER_ROW; x++) {
+			for(int x = 0; x < w; x++) {
 				if(row[x] != na) {
 					return y;
 				}
 			}
 		}
-		return TilePixel.PIXELS_PER_ROW_1;
+		return h1;
 	}
 
 	public static int getXmax(short[][] pixels, short na) { // no check for all na
+		int w1 = pixels[0].length - 1;
+		int h = pixels.length;
 		int xmax = 0;
-		for(int y = 0; y < TilePixel.PIXELS_PER_ROW; y++) {
+		for(int y = 0; y < h; y++) {
 			short[] row = pixels[y];				
-			for(int x = TilePixel.PIXELS_PER_ROW_1; x > xmax ; x--) {
+			for(int x = w1; x > xmax ; x--) {
 				if(row[x] != na) {
 					xmax = x;
 					break;
@@ -175,9 +226,11 @@ public class LocalExtentCalculator {
 	}
 
 	public static int getYmax(short[][] pixels, short na) { // no check for all na
-		for(int y = TilePixel.PIXELS_PER_ROW_1; y > 0 ; y--) {
+		int w = pixels[0].length;
+		int h1 = pixels.length - 1;
+		for(int y = h1; y > 0 ; y--) {
 			short[] row = pixels[y];				
-			for(int x = 0; x < TilePixel.PIXELS_PER_ROW; x++) {
+			for(int x = 0; x < w; x++) {
 				if(row[x] != na) {
 					return y;
 				}
@@ -187,8 +240,10 @@ public class LocalExtentCalculator {
 	}
 
 	public static int getXmin(float[][] pixels) { // no check for all na
-		int xmin = TilePixel.PIXELS_PER_ROW_1;
-		for(int y = 0; y < TilePixel.PIXELS_PER_ROW; y++) {
+		int w1 = pixels[0].length - 1;
+		int h = pixels.length;
+		int xmin = w1;
+		for(int y = 0; y < h; y++) {
 			float[] row = pixels[y];				
 			for(int x = 0; x < xmin; x++) {
 				if(Float.isFinite(row[x])) {
@@ -201,22 +256,26 @@ public class LocalExtentCalculator {
 	}
 
 	public static int getYmin(float[][] pixels) { // no check for all na
-		for(int y = 0; y < TilePixel.PIXELS_PER_ROW_1; y++) {
+		int w = pixels[0].length;
+		int h1 = pixels.length - 1;
+		for(int y = 0; y < h1; y++) {
 			float[] row = pixels[y];				
-			for(int x = 0; x < TilePixel.PIXELS_PER_ROW; x++) {
+			for(int x = 0; x < w; x++) {
 				if(Float.isFinite(row[x])) {
 					return y;
 				}
 			}
 		}
-		return TilePixel.PIXELS_PER_ROW_1;
+		return h1;
 	}
 
 	public static int getXmax(float[][] pixels) { // no check for all na
+		int w1 = pixels[0].length - 1;
+		int h = pixels.length;
 		int xmax = 0;
-		for(int y = 0; y < TilePixel.PIXELS_PER_ROW; y++) {
+		for(int y = 0; y < h; y++) {
 			float[] row = pixels[y];				
-			for(int x = TilePixel.PIXELS_PER_ROW_1; x > xmax ; x--) {
+			for(int x = w1; x > xmax ; x--) {
 				if(Float.isFinite(row[x])) {
 					xmax = x;
 					break;
@@ -227,15 +286,16 @@ public class LocalExtentCalculator {
 	}
 
 	public static int getYmax(float[][] pixels) { // no check for all na
-		for(int y = TilePixel.PIXELS_PER_ROW_1; y > 0 ; y--) {
+		int w = pixels[0].length;
+		int h1 = pixels.length - 1;
+		for(int y = h1; y > 0 ; y--) {
 			float[] row = pixels[y];				
-			for(int x = 0; x < TilePixel.PIXELS_PER_ROW; x++) {
+			for(int x = 0; x < w; x++) {
 				if(Float.isFinite(row[x])) {
 					return y;
 				}
 			}
 		}
 		return 0;
-	}	
-
+	}
 }

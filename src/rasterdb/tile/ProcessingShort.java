@@ -250,7 +250,7 @@ public class ProcessingShort {
 	public static short[][] readTiles(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
 		int rxlen = TilePixel.tileToPixel(xmax - xmin + 1);
 		int rylen = TilePixel.tileToPixel(ymax - ymin + 1);
-		short na = band.getShortNA();
+		short na = band.getInt16NA();
 		short[][] data = createEmpty(rxlen, rylen, na); // na fill: not all pixels may be written
 		Collection<Tile> tiles = pyramid_rasterUnit.readTiles(t, band.index, ymin, ymax, xmin, xmax);
 		if(!parallel) {
@@ -277,7 +277,7 @@ public class ProcessingShort {
 	public static short[][] readTilesDiv2(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
 		int rxlen = TilePixel.tileDiv2ToPixel(xmax - xmin + 1);
 		int rylen = TilePixel.tileDiv2ToPixel(ymax - ymin + 1);
-		short na = band.getShortNA();
+		short na = band.getInt16NA();
 		short[][] data = createEmpty(rxlen, rylen, na); // na fill: not all pixels may be written
 		Collection<Tile> tiles = pyramid_rasterUnit.readTiles(t, band.index, ymin, ymax, xmin, xmax);
 		if(!parallel) {
@@ -310,7 +310,7 @@ public class ProcessingShort {
 	public static short[][] readTilesDiv4(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax) {
 		int rxlen = TilePixel.tileDiv4ToPixel(xmax - xmin + 1);
 		int rylen = TilePixel.tileDiv4ToPixel(ymax - ymin + 1);
-		short na = band.getShortNA();
+		short na = band.getInt16NA();
 		short[][] data = createEmpty(rxlen, rylen, na); // na fill: not all pixels may be written
 		Collection<Tile> tiles = pyramid_rasterUnit.readTiles(t, band.index, ymin, ymax, xmin, xmax);
 		if(!parallel) {
@@ -335,7 +335,7 @@ public class ProcessingShort {
 	public static short[][] readTilesDiv(RasterUnitStorage pyramid_rasterUnit, int t, Band band, int ymin, int ymax, int xmin, int xmax, int div) {
 		int rxlen = TilePixel.tileDivToPixel(xmax - xmin + 1, div);
 		int rylen = TilePixel.tileDivToPixel(ymax - ymin + 1, div);
-		short na = band.getShortNA();
+		short na = band.getInt16NA();
 		short[][] data = createEmpty(rxlen, rylen, na); // na fill: not all pixels may be written
 		Collection<Tile> tiles = pyramid_rasterUnit.readTiles(t, band.index, ymin, ymax, xmin, xmax);
 		if(!parallel) {
@@ -367,7 +367,7 @@ public class ProcessingShort {
 		int tileYmin = TilePixel.pixelToTile(pixelYmin);
 		int tileXmax = TilePixel.pixelToTile(pixelXmax);
 		int tileYmax = TilePixel.pixelToTile(pixelYmax);
-		short na = band.getShortNA();
+		short na = band.getInt16NA();
 		for(int tileY = tileYmin; tileY <= tileYmax; tileY++) {
 			for(int tileX = tileXmin; tileX <= tileXmax; tileX++) {
 				int xMin = TilePixel.tileToPixel(tileX) - pixelXmin;
@@ -406,7 +406,7 @@ public class ProcessingShort {
 	}
 
 	public static boolean writeTileMerge(RasterUnitStorage rasterUnit, int t, Band band, int y, int x, short[][] tilePixels) throws IOException {
-		short na = band.getShortNA();
+		short na = band.getInt16NA();
 		if(TileShort.isNotAllNa(tilePixels, na)) {
 			TileKey tileKey = new TileKey(t, band.index, y, x);
 			Tile tile = rasterUnit.readTile(tileKey);
@@ -432,7 +432,7 @@ public class ProcessingShort {
 		int xmax = Math.floorDiv(range.xmax, 4);
 		int ymax = Math.floorDiv(range.ymax, 4);
 
-		short na = band.getShortNA();
+		short na = band.getInt16NA();
 
 		for(int y=ymin;y<=ymax;y++) {
 			int tymin = 4*y;
