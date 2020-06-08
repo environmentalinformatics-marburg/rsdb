@@ -46,7 +46,12 @@ public final class Serialisation {
 	}
 
 	public static short encodeZigZag(short v) {
-		return (short) ((v << 1) ^ (v >> 15));
+		return (short) ((v << 1) ^ (v >> 31));
+	}
+	
+	public static short decodeZigZag(short v) {
+		int i = v & 0xFFFF;
+		return (short) ((i >>> 1) ^ ((i << 31) >> 31));
 	}
 
 	public static int decodeZigZag(int v) {
@@ -192,9 +197,27 @@ public final class Serialisation {
 			data[i] = curr;
 		}
 	}
+	
+	public static void decodeDelta(short[] data) {
+		short curr = 0;
+		final int SIZE = data.length;
+		for (int i = 0; i < SIZE; i++) {
+			curr += data[i];
+			data[i] = curr;
+		}
+	}
 
 	public static void decodeDeltaZigZag(int[] data) {
 		int curr = 0;
+		final int SIZE = data.length;
+		for (int i = 0; i < SIZE; i++) {
+			curr += decodeZigZag(data[i]);
+			data[i] = curr;
+		}
+	}
+	
+	public static void decodeDeltaZigZag(short[] data) {
+		short curr = 0;
 		final int SIZE = data.length;
 		for (int i = 0; i < SIZE; i++) {
 			curr += decodeZigZag(data[i]);
@@ -255,6 +278,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
+	
 	public static byte[] intToByteArray(int[] data, int len) {
 		byte[] result = new byte[len << 2];
 		int pos=0;
@@ -313,6 +337,24 @@ public final class Serialisation {
 			buf[pos+7] = (byte) (v >> 56);
 			pos += 8;
 		}
+	}
+	
+	public static int[] castShortToInt(short[] data) {
+		int len = data.length;
+		int[] result = new int[len];
+		for (int i = 0; i < len; i++) {
+			result[i] = data[i];
+		}
+		return result;
+	}
+	
+	public static short[] castIntToShort(int[] data) {
+		int len = data.length;
+		short[] result = new short[len];
+		for (int i = 0; i < len; i++) {
+			result[i] = (short) data[i];
+		}
+		return result;
 	}
 
 	public static int[] byteToIntArray(byte[] data) {
@@ -503,6 +545,19 @@ public final class Serialisation {
 			result[pos+1] = (byte)  v;
 			result[pos] = (byte)   (v >> 8);
 			pos+=2;
+		}
+		return result;
+	}
+	
+	public static byte[] shortToByteArray(short[] data) {
+		int SIZE_SHORTS = data.length;
+		byte[] result = new byte[SIZE_SHORTS*2];
+		int pos = 0;
+		for(int i = 0; i < SIZE_SHORTS; i++) {
+			short v = data[i];
+			result[pos] = (byte) v;
+			result[pos + 1] = (byte) (v >> 8);
+			pos += 2;
 		}
 		return result;
 	}

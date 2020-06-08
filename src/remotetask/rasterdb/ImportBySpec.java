@@ -69,7 +69,7 @@ public class ImportBySpec {
 
 		if(spec.addBands != null) {
 			for(BandSpec bandSpec:spec.addBands) {
-				if(!rasterdb.bandMap.containsKey(bandSpec.rasterdb_band_index)) {
+				if(!rasterdb.bandMapReadonly.containsKey(bandSpec.rasterdb_band_index)) {
 					Band band = Band.ofSpectralBand(bandSpec.rastedb_band_data_type, bandSpec.rasterdb_band_index, bandSpec.wavelength, bandSpec.fwhm, bandSpec.band_name, bandSpec.visualisation);
 					rasterdb.setBand(band);
 				}
@@ -79,11 +79,11 @@ public class ImportBySpec {
 		if(spec.bandSpecs != null) {
 			for(BandSpec bandSpec:spec.bandSpecs) {
 				if(bandSpec.import_band) {
-					if(!rasterdb.bandMap.containsKey(bandSpec.rasterdb_band_index)) {
+					if(!rasterdb.bandMapReadonly.containsKey(bandSpec.rasterdb_band_index)) {
 						Band band = Band.ofSpectralBand(bandSpec.rastedb_band_data_type, bandSpec.rasterdb_band_index, bandSpec.wavelength, bandSpec.fwhm, bandSpec.band_name, bandSpec.visualisation);
 						rasterdb.setBand(band);
 					}
-					Band refBand = rasterdb.bandMap.get(bandSpec.rasterdb_band_index); // correct potential user spec errors
+					Band refBand = rasterdb.bandMapReadonly.get(bandSpec.rasterdb_band_index); // correct potential user spec errors
 					bandSpec.band_name = refBand.title;
 					bandSpec.rastedb_band_data_type = refBand.type;
 					bandSpec.wavelength = refBand.wavelength;

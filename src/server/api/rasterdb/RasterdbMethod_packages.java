@@ -112,7 +112,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 				}).collect(Collectors.toList());
 				spec.bands = processingBands;
 			} else {
-				spec.bands = rasterdb.bandMap.values();
+				spec.bands = rasterdb.bandMapReadonly.values();
 			}
 
 			if(meta.has("timestamps")) {

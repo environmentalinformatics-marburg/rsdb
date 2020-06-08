@@ -65,8 +65,4 @@ public interface RasterUnitStorage extends AutoCloseable {
 	 * @return
 	 */
 	long[] calculateTileSizeStats();
-	
-	default int getTilePixelLen() {
-		return 256;
-	}
 }

@@ -21,14 +21,14 @@ public class LocalExtentCalculator {
 	 */
 	public static Range2d calc(RasterDB rasterdb) {
 		try {
-			Set<Integer> keys = rasterdb.bandMap.keySet();
+			Set<Integer> keys = rasterdb.bandMapReadonly.keySet();
 			if(keys.isEmpty()) {
 				return null;
 			}
 			int bandMaxIndex = keys.stream().mapToInt(i->i).max().getAsInt();
 			int[] bandTypes = new int[bandMaxIndex + 1];
 			short[] bandShortNAs = new short[bandMaxIndex + 1];
-			for(Band band : rasterdb.bandMap.values()) {
+			for(Band band : rasterdb.bandMapReadonly.values()) {
 				bandTypes[band.index] = band.type;
 				bandShortNAs[band.index] = band.getInt16NA();
 			}
@@ -38,8 +38,8 @@ public class LocalExtentCalculator {
 			if(tileRange == null) {
 				return null;
 			}
-			int lxmin = rasterUnit.getTilePixelLen() - 1;
-			int lymin = rasterUnit.getTilePixelLen() - 1;
+			int lxmin = rasterdb.getTilePixelLen() - 1;
+			int lymin = rasterdb.getTilePixelLen() - 1;
 			int lxmax = 0;
 			int lymax = 0;
 
@@ -127,7 +127,7 @@ public class LocalExtentCalculator {
 					break;
 				}
 				case CellType.INT16: {
-					CellInt16 cellInt16 = new CellInt16(rasterUnit.getTilePixelLen());
+					CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
 					short na = (short) bandShortNAs[tileKey.b];
 					short[][] pixels = null;
 					if(lxmin > 0 && tileRange.xmin == tileKey.x) {
@@ -173,7 +173,7 @@ public class LocalExtentCalculator {
 					throw new RuntimeException("unknown type " + bandTypes[tileKey.b]);
 				}
 			}		
-			return tileRange.mul(rasterUnit.getTilePixelLen()).add(lxmin, lymin, lxmax, lymax);
+			return tileRange.mul(rasterdb.getTilePixelLen()).add(lxmin, lymin, lxmax, lymax);
 		} catch(IOException e) {
 			throw new RuntimeException(e);
 		}

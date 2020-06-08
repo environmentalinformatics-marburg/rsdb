@@ -135,7 +135,7 @@ public class WmsCapabilities {
 	public void addLayer(Element root, String code, RasterDB rasterdb) {
 		String name = rasterdb.config.getName();
 		String description = rasterdb.informal().description;
-		int bandCount = rasterdb.bandMap.size();
+		int bandCount = rasterdb.bandMapReadonly.size();
 		Element eLayer = addElement(root, "Layer");
 		addElement(eLayer, "Name", name);
 		addElement(eLayer, "Title", name + " - " + description);
@@ -199,16 +199,16 @@ public class WmsCapabilities {
 
 	public static List<WmsStyle> getWmsStyles(RasterDB rasterdb) {
 		ArrayList<WmsStyle> list = new ArrayList<WmsStyle>();
-		if (rasterdb.bandMap.size() > 1) {
+		if (rasterdb.bandMapReadonly.size() > 1) {
 			list.add(new WmsStyle("color", "color", "best fitting rgb visualisation"));
-			if (rasterdb.bandMap.values().stream().anyMatch(Band::has_wavelength)) {
+			if (rasterdb.bandMapReadonly.values().stream().anyMatch(Band::has_wavelength)) {
 				list.add(new WmsStyle("ndvi", "NDVI", "ndvi"));
 				list.add(new WmsStyle("evi", "EVI", "evi"));
 				list.add(new WmsStyle("evi2", "EVI2", "evi2"));
 				list.add(new WmsStyle("savi", "SAVI", "savi"));
 			}
 		}
-		for (Band band : rasterdb.bandMap.values()) {
+		for (Band band : rasterdb.bandMapReadonly.values()) {
 			String bandName = "band" + band.index;
 			String bandTitle = band.has_title() ? band.title
 					: band.has_wavelength() ? band.wavelength + " nm wavelength" : bandName;

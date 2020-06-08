@@ -12,6 +12,7 @@ public class RasterdbConfig {
 	private String name;
 	private boolean fast_unsafe_import;
 	public String preferredStorageType; // nullable if rasterdb is existing
+	public int tilePixelLen = 256;
 
 	private RasterdbConfig() {
 		fast_unsafe_import = false;

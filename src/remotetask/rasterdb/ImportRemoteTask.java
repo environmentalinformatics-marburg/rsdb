@@ -130,15 +130,15 @@ public class ImportRemoteTask extends RemoteTask {
 		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
 		switch(bandSpec.rastedb_band_data_type) {
 		case TilePixel.TYPE_SHORT: {
-			importBand_TYPE_SHORT(bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize, false);
+			importBand_TYPE_SHORT(rasterdb, bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize, false);
 			break;
 		}
 		case TilePixel.TYPE_FLOAT: {
-			importBand_TYPE_FLOAT(bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize);
+			importBand_TYPE_FLOAT(rasterdb, bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize);
 			break;
 		}
 		case CellType.INT16: {
-			importBand_TYPE_SHORT(bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize, true);
+			importBand_TYPE_SHORT(rasterdb, bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize, true);
 			break;
 		}
 		default:
@@ -146,7 +146,7 @@ public class ImportRemoteTask extends RemoteTask {
 		}
 	}
 	
-	private static void importBand_TYPE_SHORT(BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize, boolean isCellInt16) throws IOException {
+	private static void importBand_TYPE_SHORT(RasterDB rasterdb, BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize, boolean isCellInt16) throws IOException {
 		short[][] dataShort = null;		
 		switch(bandSpec.gdal_raster_data_type) {
 		case GdalReader.GDAL_BYTE:
@@ -197,7 +197,7 @@ public class ImportRemoteTask extends RemoteTask {
 		dataShort = Util.flipRows(dataShort);
 		int cnt;
 		if(isCellInt16) {
-			CellInt16 cellInt16 = new CellInt16(rasterUnit.getTilePixelLen());
+			CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
 			cnt = cellInt16.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);			
 		} else {
 			cnt = ProcessingShort.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);
@@ -206,7 +206,7 @@ public class ImportRemoteTask extends RemoteTask {
 		log.info("tiles written: " + cnt);
 	}
 	
-	private static void importBand_TYPE_FLOAT(BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize) throws IOException {
+	private static void importBand_TYPE_FLOAT(RasterDB rasterdb, BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize) throws IOException {
 		switch(bandSpec.gdal_raster_data_type) {
 		case GdalReader.GDAL_FLOAT64:
 			log.warn("convert float64 raster data to float32");

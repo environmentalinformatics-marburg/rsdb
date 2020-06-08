@@ -53,6 +53,8 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			json.key("name");
 			json.value(rasterdb.config.getName());
 			rasterdb.informal().writeJson(json);
+			json.key("tile_pixel_len");
+			json.value(rasterdb.getTilePixelLen());
 			json.key("ref");
 			json.object();
 			if(ref.has_pixel_size()) {
@@ -149,7 +151,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			json.endArray();
 			json.key("bands");
 			json.array();
-			for(Band band:rasterdb.bandMap.values()) {
+			for(Band band:rasterdb.bandMapReadonly.values()) {
 				json.object();
 				json.key("index");
 				json.value(band.index);

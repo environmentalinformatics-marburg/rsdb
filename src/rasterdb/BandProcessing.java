@@ -17,7 +17,7 @@ public class BandProcessing {
 	 * @return null if not found
 	 */
 	public static Band matchSpectralBand(RasterDB rasterdb, double wavelength, double fwhm, double tolerance) {
-		for(Band band:rasterdb.bandMap.values()) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
 			if(band.has_wavelength()) {
 				if(NumberUtil.equalsWithTolerance(band.wavelength, wavelength, tolerance)) { 
 					if(NumberUtil.equalsWithTolerance(band.fwhm, fwhm, tolerance)) {
@@ -39,7 +39,7 @@ public class BandProcessing {
 		double minDiff = Double.POSITIVE_INFINITY;
 		//double minFwhm = Double.POSITIVE_INFINITY;
 		Band minBand = null;
-		for(Band band:rasterdb.bandMap.values()) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
 			if(band.has_wavelength()) {
 				//double diff = band.getAbsDiff(wavelength);
 				double diff = band.getRelevanceDiff(wavelength);
@@ -57,7 +57,7 @@ public class BandProcessing {
 	public static Band getBestSpectralBandWithinFwhm(RasterDB rasterdb, double wavelength) {
 		Band bestBand = null;
 		double minFwhm = Double.MAX_VALUE;
-		for(Band band:rasterdb.bandMap.values()) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
 			if(band.isInFwhm(wavelength)) {
 				if(band.fwhm < minFwhm) {
 					bestBand = band;
@@ -82,7 +82,7 @@ public class BandProcessing {
 	 */
 	public static Band getNextLessSpectralBand(RasterDB rasterdb, Band m, double targetWavelength) {
 		Band r = null;
-		for(Band band:rasterdb.bandMap.values()) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
 			if(band.has_wavelength()) {
 				double wv = band.wavelength;
 				if(wv < m.wavelength) {
@@ -103,7 +103,7 @@ public class BandProcessing {
 	 */
 	public static Band getNextGreaterSpectralBand(RasterDB rasterdb, Band m, double targetWavelength) {
 		Band r = null;
-		for(Band band:rasterdb.bandMap.values()) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
 			if(band.has_wavelength()) {
 				double wv = band.wavelength;
 				if(wv > m.wavelength) {
@@ -150,7 +150,7 @@ public class BandProcessing {
 				b = getNextLessSpectralBand(rasterdb, b, WV_B); 
 			}
 			if(r.index == g.index && g.index == b.index) {
-				Iterator<Band> it = rasterdb.bandMap.values().iterator();
+				Iterator<Band> it = rasterdb.bandMapReadonly.values().iterator();
 				if(it.hasNext()) {
 					r = g = b = it.next();
 				}
@@ -162,7 +162,7 @@ public class BandProcessing {
 				}
 			}		
 		} else { // no spectral bands
-			Iterator<Band> it = rasterdb.bandMap.values().iterator();
+			Iterator<Band> it = rasterdb.bandMapReadonly.values().iterator();
 			if(it.hasNext()) {
 				r = g = b = it.next();
 			}
@@ -176,7 +176,7 @@ public class BandProcessing {
 		boolean rSet = false;
 		boolean gSet = false;
 		boolean bSet = false;
-		for(Band band:rasterdb.bandMap.values()) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
 			if(band.visualisation != null) {
 				switch(band.visualisation) {
 				case "red":
@@ -195,7 +195,7 @@ public class BandProcessing {
 			}
 		}
 		if(!(rSet && bSet && gSet)) {
-			for(Band band:rasterdb.bandMap.values()) {
+			for(Band band:rasterdb.bandMapReadonly.values()) {
 				if(!rSet && band.has_title() && band.title.toLowerCase().equals("red")) {
 					r = band;					
 					rSet = true;

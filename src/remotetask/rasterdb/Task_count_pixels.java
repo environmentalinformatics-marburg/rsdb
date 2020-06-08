@@ -44,7 +44,7 @@ public class Task_count_pixels extends RemoteTask {
 		RasterUnitStorage rasterunit = rasterdb.rasterUnit();
 		BandKey bandKey = rasterunit.bandKeysReadonly().first();
 
-		Band band = rasterdb.bandMap.get(bandKey.b);
+		Band band = rasterdb.bandMapReadonly.get(bandKey.b);
 
 		TileKey keyXmin = bandKey.toTileKeyMin();
 		TileKey keyXmax = bandKey.toTileKeyMax();
@@ -73,7 +73,8 @@ public class Task_count_pixels extends RemoteTask {
 		}
 		case CellType.INT16: {
 			for(Tile tile:tiles) {
-				short[] raw = CellInt16.dec(tile.data);
+				CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
+				int[] raw = cellInt16.dec(tile.data);
 				cnt += CellInt16.countNotNa_raw(raw, band.getInt16NA());
 			}
 			break;

@@ -293,7 +293,7 @@ public class RasterDBimporter {
 			int gdalRasterDataType = gdalRasterBand.GetRasterDataType();
 			Band band = existingBand;
 			if(band == null && useExistingBandsOrCreate) {
-				band = rasterdb.bandMap.get(fileBandIndex);
+				band = rasterdb.bandMapReadonly.get(fileBandIndex);
 			}
 			if(band == null) {
 				int tileDataType = TilePixel.TYPE_SHORT;
@@ -433,7 +433,7 @@ public class RasterDBimporter {
 						}
 					}
 					targetDataShort = Util.flipRows(targetDataShort);
-					CellInt16 cellInt16 = new CellInt16(rasterUnit.getTilePixelLen());
+					CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
 					int cnt = cellInt16.writeMerge(rasterUnit, timestamp, band, targetDataShort, pixelYmin, pixelXmin);					
 					log.info(targetDataShort.length + " x " + targetDataShort[0].length+" b "+fileBandIndex+"->"+band.index+" t "+timestamp+" tiles "+cnt);
 					rasterUnit.commit();

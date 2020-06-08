@@ -1,21 +1,22 @@
 package rasterdb.cell;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.github.luben.zstd.Zstd;
-
+import me.lemire.integercompression.FastPFOR;
+import me.lemire.integercompression.IntWrapper;
 import rasterdb.Band;
-import rasterdb.tile.TilePixel;
 import rasterdb.tile.Processing.Commiter;
 import rasterunit.BandKey;
 import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
 import rasterunit.TileKey;
 import util.Range2d;
+import util.Serialisation;
 
 public class CellInt16 {
 	private static final Logger log = LogManager.getLogger();
@@ -205,7 +206,7 @@ public class CellInt16 {
 	}
 
 	public byte[] encodeCell(short[][] pixels) {		
-		short[] raw = new short[cell_pixel_count];
+		int[] raw = new int[cell_pixel_count];
 		int destPos = 0;
 		for(int i = 0; i < pixel_len; i++) {
 			short[] src = pixels[i];				
@@ -234,7 +235,7 @@ public class CellInt16 {
 	}
 
 	private void decodeCell(Tile tile, short[][] target, Range2d targetRange) {
-		short[] raw = dec(tile.data);
+		int[] raw = dec(tile.data);
 
 		//log.info("decodeCell target  " + targetRange.xmin + " " + targetRange.ymin + "   " + targetRange.xmax + " " + targetRange.ymax);
 
@@ -246,19 +247,19 @@ public class CellInt16 {
 		if(targetRange.xmin <= cxmin && targetRange.ymin <= cymin && cxmax <= targetRange.xmax && cymax <= targetRange.ymax) {
 			int xTargetStart = cxmin - targetRange.xmin;
 			int yTargetStart = cymin - targetRange.ymin;
-			//int xTargetEnd = cxmax - targetRange.xmin;
-			//int yTargetEnd = cymax - targetRange.ymin;
-			
-			/*int cellPos = 0;
+			int xTargetEnd = cxmax - targetRange.xmin;
+			int yTargetEnd = cymax - targetRange.ymin;
+
+			int cellPos = 0;
 			for(int y = yTargetStart; y <= yTargetEnd; y++) {
 				short[] dst = target[y];				
 				for(int x = xTargetStart; x <= xTargetEnd; x++) {
-					dst[x] = raw[cellPos++];
+					dst[x] = (short) raw[cellPos++];
 				}
-			}*/
-			for(int y = 0; y < pixel_len; y++) {
-				System.arraycopy(raw, pixel_len * y, target[yTargetStart + y], xTargetStart, pixel_len);
 			}
+			/*for(int y = 0; y < pixel_len; y++) {
+				System.arraycopy(raw, pixel_len * y, target[yTargetStart + y], xTargetStart, pixel_len);
+			}*/
 		} else {
 			//log.info("decodeCell cell    " + cxmin + " " + cymin + "   " + cxmax + " " + cymax);
 
@@ -291,7 +292,7 @@ public class CellInt16 {
 			for(int y = yTargetStart; y <= yTargetEnd; y++) {
 				short[] dst = target[y];				
 				for(int x = xTargetStart; x <= xTargetEnd; x++) {
-					dst[x] = raw[cellPos++];
+					dst[x] = (short) raw[cellPos++];
 				}
 				cellPos += xCellSkip;
 			}
@@ -300,13 +301,13 @@ public class CellInt16 {
 
 
 	public void decodeCellMerge(byte[] data, short[][] cellPixels, short na) {
-		short[] raw = dec(data);
+		int[] raw = dec(data);
 		int srcPos = 0;
 		for(int i=0; i < pixel_len; i++) {
 			short[] dst = cellPixels[i];				
 			for(int c = 0; c < pixel_len; c++) {
 				if(dst[c] == na) {
-					dst[c] = raw[srcPos]; 
+					dst[c] = (short) raw[srcPos]; 
 				}
 				srcPos++;
 			}
@@ -314,18 +315,76 @@ public class CellInt16 {
 	}
 
 
-	public static byte[] enc(short[] data) {
-		byte[] transformed = encInt16_split(data);
+	/*public static byte[] enc(short[] data) {
+		//Serialisation.encodeDelta(data);
+		Serialisation.encodeDeltaZigZag(data);
+		byte[] transformed = Serialisation.shortToByteArray(data);
+		//byte[] transformed = encInt16_split(data);
 		//byte[] result = Zstd.compress(transformed, 1); // default
-		byte[] result = Zstd.compress(transformed, 100); // default
+		byte[] result = Zstd.compress(transformed, 1);
 		return result;
 	}
 
 	public static short[] dec(byte[] data) {
 		int len = (int) Zstd.decompressedSize(data);
 		byte[] inter = Zstd.decompress(data, len);
-		short[] result = decInt16_split(inter);
+		//short[] result = decInt16_split(inter);
+		short[] result = Serialisation.byteToShortArray(inter);
+		//Serialisation.decodeDelta(result);
+		Serialisation.decodeDeltaZigZag(result);
 		return result;
+	}*/
+
+	private static ThreadLocal<FastPFOR> threadLocal_fastPFOR = new ThreadLocal<FastPFOR>() {
+		@Override
+		protected FastPFOR initialValue() {
+			return new FastPFOR();
+		}		
+	};
+
+	public byte[] enc(int[] data) {
+		//int[] data2 = Serialisation.castShortToInt(data);		
+		Serialisation.encodeDeltaZigZag(data);
+		IntWrapper inpos = new IntWrapper();
+		int[] compressed_raw = new int[cell_pixel_count + 256];
+		IntWrapper outpos = new IntWrapper();
+		threadLocal_fastPFOR.get().headlessCompress(data, inpos, cell_pixel_count, compressed_raw, outpos);
+		byte[] transformed = Serialisation.intToByteArray(compressed_raw, outpos.get());
+		return transformed;
+		//byte[] result = Zstd.compress(transformed, 1);
+		/*try {
+			byte[] result = Snappy.rawCompress(compressed_raw, outpos.get() * 4);
+			return result;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+		//return null;
+	}
+
+	public int[] dec(byte[] data) {
+		//int len = (int) Zstd.decompressedSize(data);
+		//byte[] inter = Zstd.decompress(data, len);
+		//int[] inter2 = Serialisation.byteToIntArray(inter);
+		//int[] inter2 = Serialisation.byteToIntArray(data);
+		int SIZE_INTS = data.length/4;
+		int[] inter2 = new int[SIZE_INTS];
+		java.nio.ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(inter2);
+		/*int[] inter2 = null;
+		try {
+			inter2 = Snappy.uncompressIntArray(data);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+		IntWrapper inpos = new IntWrapper();
+		int[] result = new int[cell_pixel_count];
+		IntWrapper outpos = new IntWrapper();
+		threadLocal_fastPFOR.get().headlessUncompress(inter2, inpos, inter2.length, result, outpos, cell_pixel_count);
+		Serialisation.decodeDeltaZigZag(result);
+		return result;
+		//short[] result2 = Serialisation.castIntToShort(result);
+		//return result2;
 	}
 
 
@@ -352,36 +411,44 @@ public class CellInt16 {
 	}
 
 	public short[][] decodeCell(byte[] data) {
-		short[] raw = dec(data);
+		int[] raw = dec(data);
 		short[][] cellPixels = new short[pixel_len][pixel_len];
 		int srcPos = 0;
 		for(int i=0; i < pixel_len; i++) {
 			short[] dst = cellPixels[i];				
 			for(int c = 0; c < pixel_len; c++) {
-				dst[c] = raw[srcPos++]; 
+				dst[c] = (short) raw[srcPos++]; 
 			}
 		}
 		return cellPixels;
 	}
 
-	public void writeRasterUnitBandDiv4(RasterUnitStorage rasterUnitStorage, RasterUnitStorage targetUnit, BandKey bandKey, Band band, Commiter counter) throws IOException {
-		Range2d range = rasterUnitStorage.getTileRange(bandKey);
+	public void writeStorageBandDiv(Band band, int div, RasterUnitStorage srcStorage, BandKey srcBandKey, RasterUnitStorage dstStorage, BandKey dstBandKey, Commiter counter) throws IOException {
+		if(div < 2 ) {
+			throw new RuntimeException("invalid div: " + div);
+		}
+		if(pixel_len % div != 0) {
+			throw new RuntimeException("invalid div: " + div + "  for pixel_len");
+		}
+		Range2d range = srcStorage.getTileRange(srcBandKey);
 		if(range == null) {
 			return;
 		}
 
-		int xmin = Math.floorDiv(range.xmin, 4);
-		int ymin = Math.floorDiv(range.ymin, 4);
-		int xmax = Math.floorDiv(range.xmax, 4);
-		int ymax = Math.floorDiv(range.ymax, 4);
+		int divm1 = div - 1;
+
+		int xmin = Math.floorDiv(range.xmin, div);
+		int ymin = Math.floorDiv(range.ymin, div);
+		int xmax = Math.floorDiv(range.xmax, div);
+		int ymax = Math.floorDiv(range.ymax, div);
 
 		short na = band.getInt16NA();
 
-		int pixel_len_div4 = pixel_len / 4;
+		int pixel_len_div = pixel_len / div;
 
 		for(int y=ymin;y<=ymax;y++) {
-			int tymin = 4*y;
-			int tymax = tymin + 3;
+			int tymin = div * y;
+			int tymax = tymin + divm1;
 			int x = xmin;
 			int tilesWrittenInRow = 0;
 			while(x <= xmax) {
@@ -389,24 +456,24 @@ public class CellInt16 {
 				int remaining_tiles = xmax - x + 1;
 				int batch_size = BATCH_SIZE_MAX <= remaining_tiles ? BATCH_SIZE_MAX : remaining_tiles;
 				short[][][] target = new short[batch_size][][];
-				int txmin = 4 * x;
-				int txmax = txmin + 4 * batch_size - 1;
-				Collection<Tile> tiles = rasterUnitStorage.readTiles(bandKey.t, bandKey.b, tymin, tymax, txmin, txmax);
+				int txmin = div * x;
+				int txmax = txmin + div * batch_size - 1;
+				Collection<Tile> tiles = srcStorage.readTiles(srcBandKey.t, srcBandKey.b, tymin, tymax, txmin, txmax);
 				for(Tile tile:tiles) {
-					int targetIndex = Math.floorDiv(tile.x - txmin, 4);
+					int targetIndex = Math.floorDiv(tile.x - txmin, div);
 					if(target[targetIndex] == null) {
 						target[targetIndex] = createEmptyCell(na); // na fill: not all pixels may be written
 					}
 					short[][] pixels = decodeCell(tile.data);
 					int iy = tile.y - tymin;
-					int ix = tile.x - txmin - targetIndex * 4;
-					copyDiv(pixels, 4, na, target[targetIndex], ix * pixel_len_div4, iy * pixel_len_div4);
+					int ix = tile.x - txmin - targetIndex * div;
+					copyDiv(pixels, div, na, target[targetIndex], ix * pixel_len_div, iy * pixel_len_div);
 				}				
 				for (int targetIndex = 0; targetIndex < target.length; targetIndex++) {
 					if(target[targetIndex] != null) {
-						TileKey tileKey = bandKey.toTileKey(y, x + targetIndex);
+						TileKey tileKey = dstBandKey.toTileKey(y, x + targetIndex);
 						byte[] data = encodeCell(target[targetIndex]);
-						targetUnit.writeTile(new Tile(tileKey, CellType.INT16, data));
+						dstStorage.writeTile(new Tile(tileKey, CellType.INT16, data));
 						tilesWrittenInRow++;
 					}
 				}
@@ -417,6 +484,17 @@ public class CellInt16 {
 	}
 
 	public static int countNotNa_raw(short[] raw, short na) {
+		int len = raw.length;
+		int cnt = 0;
+		for(int i = 0; i < len; i++) {
+			if(raw[i] != na) {
+				cnt++;
+			}
+		}
+		return cnt;
+	}
+
+	public static int countNotNa_raw(int[] raw, int na) {
 		int len = raw.length;
 		int cnt = 0;
 		for(int i = 0; i < len; i++) {

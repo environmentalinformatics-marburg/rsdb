@@ -78,7 +78,7 @@ public class RasterdbsHandler extends AbstractHandler {
 					if(includeBands) {
 						json.key("bands");
 						json.array();
-						for(Band band:rasterdb.bandMap.values()) {
+						for(Band band:rasterdb.bandMapReadonly.values()) {
 							json.object();
 							json.key("index");
 							json.value(band.index);

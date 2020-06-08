@@ -114,7 +114,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 
 
 			int bandIndex = Integer.parseInt(request.getParameter("band"));
-			Band band = rasterdb.bandMap.get(bandIndex);
+			Band band = rasterdb.bandMapReadonly.get(bandIndex);
 			if(band == null) {
 				String band_title = request.getParameter("band_title"); // nullable
 				band = Band.of(TilePixel.TYPE_SHORT, bandIndex, band_title, null);

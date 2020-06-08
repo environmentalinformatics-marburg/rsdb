@@ -180,7 +180,8 @@
                             <tr>
                                 <td v-if="meta.tile_count !== undefined">{{meta.tile_count}}</td>
                                 <td v-else>none</td>  
-                                <td>256 <b>x</b> 256</td>                                
+                                <td v-if="meta.tile_pixel_len !== undefined">{{meta.tile_pixel_len}} <b>x</b> {{meta.tile_pixel_len}}</td> 
+                                <td v-else>none</td>                               
                                 <td v-if="meta.ref.internal_rasterdb_offset !== undefined">{{meta.ref.internal_rasterdb_offset.x.toPrecision(8)}}<b>,</b> {{meta.ref.internal_rasterdb_offset.y.toPrecision(8)}}</td>
                                 <td v-else>none</td>                                 
                                 <td v-if="meta.ref.internal_rasterdb_extent !== undefined">{{meta.ref.internal_rasterdb_extent[0]}}<b>,</b> {{meta.ref.internal_rasterdb_extent[1]}} <b>-</b> {{meta.ref.internal_rasterdb_extent[2]}}<b>,</b> {{meta.ref.internal_rasterdb_extent[3]}}</td>

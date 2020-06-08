@@ -10,12 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,7 +43,8 @@ public class RasterDB implements AutoCloseable {
 
 	private static final String TYPE = "RasterDB";
 
-	public NavigableMap<Integer, Band> bandMap;
+	private final ConcurrentSkipListMap<Integer, Band> bandMap;
+	public final  NavigableMap<Integer, Band> bandMapReadonly;
 
 	private RasterUnitStorage rasterUnit = null;
 	private RasterUnitStorage rasterPyr1Unit = null;
@@ -63,7 +66,8 @@ public class RasterDB implements AutoCloseable {
 	public final RasterdbConfig config;
 
 	private final Path path;
-	private String storageType = "TileStorage";
+	private String storageType = null;
+	private int tilePixelLen = 0;
 
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
@@ -71,10 +75,12 @@ public class RasterDB implements AutoCloseable {
 		this.config = config;
 		path = config.getPath();
 		path.toFile().mkdirs();
-		bandMap = new TreeMap<Integer, Band>();
+		bandMap = new ConcurrentSkipListMap<Integer, Band>();
+		bandMapReadonly = Collections.unmodifiableNavigableMap(bandMap);
 
 		this.metaPath = path.resolve("meta.yaml");
 		this.storageType = config.preferredStorageType == null ? "TileStorage" : config.preferredStorageType;
+		this.tilePixelLen = config.tilePixelLen; // will be overwritten if already exists in meta
 		readMeta(); // possibly overwrite storage_type from meta
 	}
 
@@ -131,16 +137,16 @@ public class RasterDB implements AutoCloseable {
 	public void rebuildPyramid(boolean flush) throws IOException {
 		getLocalRange(true);
 		log.info("build map 1:4");
-		long c1 = Processing.writeRasterUnitDiv4(this, rasterUnit(), rasterPyr1Unit());
+		long c1 = Processing.writeStorageDiv(this, rasterUnit(), rasterPyr1Unit(), 4);
 		log.info("tiles written " + c1);
 		log.info("build map 1:16");
-		long c2 = Processing.writeRasterUnitDiv4(this, rasterPyr1Unit(), rasterPyr2Unit());
+		long c2 = Processing.writeStorageDiv(this, rasterPyr1Unit(), rasterPyr2Unit(), 4);
 		log.info("tiles written " + c2);
 		log.info("build map 1:64");
-		long c3 = Processing.writeRasterUnitDiv4(this, rasterPyr2Unit(), rasterPyr3Unit());
+		long c3 = Processing.writeStorageDiv(this, rasterPyr2Unit(), rasterPyr3Unit(), 4);
 		log.info("tiles written " + c3);
 		log.info("build map 1:256");
-		long c4 = Processing.writeRasterUnitDiv4(this, rasterPyr3Unit(), rasterPyr4Unit());
+		long c4 = Processing.writeStorageDiv(this, rasterPyr3Unit(), rasterPyr4Unit(), 4);
 		log.info("tiles written " + c4);
 		if(flush) {		
 			flush();
@@ -170,6 +176,7 @@ public class RasterDB implements AutoCloseable {
 				map.put("local_extent", local_extent.toYaml());
 			}
 			map.put("storage_type", storageType);
+			map.put("tile_pixel_len", tilePixelLen);
 			Yaml yaml = new Yaml();
 			Path writepath = Paths.get(metaPath.toString()+"_temp");
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(writepath.toFile())));
@@ -220,6 +227,7 @@ public class RasterDB implements AutoCloseable {
 					local_extent = null;
 				}
 				storageType = yamlMap.optString("storage_type", "RasterUnit");
+				tilePixelLen = yamlMap.optInt("tile_pixel_len", tilePixelLen);
 			}
 			//log.info("*** ref *** " + ref + "    of   " + metaPath);
 		} catch (Exception e) {
@@ -507,5 +515,9 @@ public class RasterDB implements AutoCloseable {
 			throw new RuntimeException("unknown storage_type");
 		}	
 
+	}
+	
+	public int getTilePixelLen() {
+		return tilePixelLen;
 	}
 }

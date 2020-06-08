@@ -218,15 +218,15 @@ public class APIHandler_inspect extends APIHandler {
 		json.array();
 
 		int rastedbIndex = 1;
-		if(strategy.isExistingAdd() && !rasterdb.bandMap.isEmpty()) {
-			rastedbIndex = rasterdb.bandMap.lastKey() + 1;			
+		if(strategy.isExistingAdd() && !rasterdb.bandMapReadonly.isEmpty()) {
+			rastedbIndex = rasterdb.bandMapReadonly.lastKey() + 1;			
 		}
 		int cnt = gdalreader.getRasterCount();
 		for (int i = 0; i < cnt; i++) {
 			int fileIndex = i + 1;
 
 			if(strategy.isExistingAdd()) {
-				while(rasterdb.bandMap.get(rastedbIndex) != null) {
+				while(rasterdb.bandMapReadonly.get(rastedbIndex) != null) {
 					rastedbIndex++;
 				}
 			}
@@ -398,7 +398,7 @@ public class APIHandler_inspect extends APIHandler {
 		if(strategy.isExisting()) {
 			json.key("existing_bands");
 			json.array();
-			for(Band band:rasterdb.bandMap.values()) {
+			for(Band band:rasterdb.bandMapReadonly.values()) {
 				json.object();
 				json.key("index");
 				json.value(band.index);

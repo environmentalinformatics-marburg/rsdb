@@ -64,7 +64,7 @@ public class Rebuild {
 				batchCnt = 0;
 			}
 			dstStorage.flush();
-			for(Band band:src.bandMap.values()) {
+			for(Band band:src.bandMapReadonly.values()) {
 				dst.setBand(band);
 			}
 			dst.rebuildPyramid(true);

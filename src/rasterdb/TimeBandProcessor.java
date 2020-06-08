@@ -209,7 +209,7 @@ public class TimeBandProcessor {
 	}
 	
 	private short[][] readInt16(int timestamp, Band band) {
-		CellInt16 cellInt16 = new CellInt16(pyramid_rasterUnit.getTilePixelLen());
+		CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
 		return cellInt16.read(pyramid_rasterUnit, timestamp, band, pyramid_srcRange, pyramidDiv);	
 	}
 	
@@ -330,7 +330,7 @@ public class TimeBandProcessor {
 	}	
 
 	public Collection<Band> getBands() {
-		return rasterdb.bandMap.values();		
+		return rasterdb.bandMapReadonly.values();		
 	}
 	
 	public List<TimeBand> getTimeBands(int timestamp) {
@@ -338,7 +338,7 @@ public class TimeBandProcessor {
 	}
 
 	public Band getBand(int index) {
-		return rasterdb.bandMap.get(index);		
+		return rasterdb.bandMapReadonly.get(index);		
 	}
 	
 	public TimeBand getTimeBand(int timestamp, int bandIndex) {

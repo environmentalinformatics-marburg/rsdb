@@ -227,6 +227,20 @@ public class ProcessingShort {
 			}
 		}
 	}
+	
+	public static void copyTileDivSelect(short[][] tilePixels, short na, short[][] target, int ymin, int xmin, int div) {
+		switch(div) {
+		case 2:
+			copyTileDiv2(tilePixels, na, target, ymin, xmin);
+			break;
+		case 4:
+			copyTileDiv4(tilePixels, na, target, ymin, xmin);
+			break;
+		default:
+			copyTileDiv(tilePixels, na, target, ymin, xmin, div);
+			break;
+		}
+	}
 
 	private static final boolean parallel = true;
 
@@ -421,22 +435,33 @@ public class ProcessingShort {
 		}
 	}
 
-	public static void writeRasterUnitBandDiv4(RasterUnitStorage rasterUnitStorage, RasterUnitStorage targetUnit, BandKey bandKey, Band band, Commiter counter) throws IOException {
-		Range2d range = rasterUnitStorage.getTileRange(bandKey);
+	public static void writeStorageBandDiv(Band band, int div, RasterUnitStorage srcStorage, BandKey srcBandKey, RasterUnitStorage dstStorage, BandKey dstBandKey, Commiter counter) throws IOException {
+		int pixel_len = TilePixel.PIXELS_PER_ROW;
+		if(div < 2 ) {
+			throw new RuntimeException("invalid div: " + div);
+		}
+		if(pixel_len % div != 0) {
+			throw new RuntimeException("invalid div: " + div + "  for 256");
+		}
+		Range2d range = srcStorage.getTileRange(srcBandKey);
 		if(range == null) {
 			return;
 		}
+		
+		int divm1 = div - 1;
 
-		int xmin = Math.floorDiv(range.xmin, 4);
-		int ymin = Math.floorDiv(range.ymin, 4);
-		int xmax = Math.floorDiv(range.xmax, 4);
-		int ymax = Math.floorDiv(range.ymax, 4);
+		int xmin = Math.floorDiv(range.xmin, div);
+		int ymin = Math.floorDiv(range.ymin, div);
+		int xmax = Math.floorDiv(range.xmax, div);
+		int ymax = Math.floorDiv(range.ymax, div);
 
 		short na = band.getInt16NA();
+		
+		int pixel_len_div = pixel_len / div;
 
 		for(int y=ymin;y<=ymax;y++) {
-			int tymin = 4*y;
-			int tymax = tymin + 3;
+			int tymin = div * y;
+			int tymax = tymin + divm1;
 			int x = xmin;
 			int tilesWrittenInRow = 0;
 			while(x<=xmax) {
@@ -444,24 +469,24 @@ public class ProcessingShort {
 				int remaining_tiles = xmax - x + 1;
 				int batch_size = BATCH_SIZE_MAX <= remaining_tiles ? BATCH_SIZE_MAX : remaining_tiles;
 				short[][][] target = new short[batch_size][][];
-				int txmin = 4*x;
-				int txmax = txmin + 4*batch_size - 1;
-				Collection<Tile> tiles = rasterUnitStorage.readTiles(bandKey.t, bandKey.b, tymin, tymax, txmin, txmax);
+				int txmin = div * x;
+				int txmax = txmin + div * batch_size - 1;
+				Collection<Tile> tiles = srcStorage.readTiles(srcBandKey.t, srcBandKey.b, tymin, tymax, txmin, txmax);
 				for(Tile tile:tiles) {
-					int targetIndex = Math.floorDiv(tile.x - txmin, 4);
+					int targetIndex = Math.floorDiv(tile.x - txmin, div);
 					if(target[targetIndex] == null) {
 						target[targetIndex] = createEmpty(TilePixel.PIXELS_PER_ROW, TilePixel.PIXELS_PER_ROW, na); // na fill: not all pixels may be written
 					}
 					short[][] pixels = TileShort.decode(tile.data);
 					int iy = tile.y - tymin;
-					int ix = tile.x - txmin - targetIndex*4;
-					copyTileDiv4(pixels, na, target[targetIndex], iy*64, ix*64);
+					int ix = tile.x - txmin - targetIndex * div;
+					copyTileDivSelect(pixels, na, target[targetIndex], iy * pixel_len_div, ix * pixel_len_div, div);
 				}				
 				for (int targetIndex = 0; targetIndex < target.length; targetIndex++) {
 					if(target[targetIndex] != null) {
-						TileKey tileKey = bandKey.toTileKey(y, x + targetIndex);
+						TileKey tileKey = dstBandKey.toTileKey(y, x + targetIndex);
 						byte[] data = TileShort.encode(target[targetIndex]);
-						targetUnit.writeTile(new Tile(tileKey, TilePixel.TYPE_SHORT, data));
+						dstStorage.writeTile(new Tile(tileKey, TilePixel.TYPE_SHORT, data));
 						tilesWrittenInRow++;
 					}
 				}
