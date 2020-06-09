@@ -9,10 +9,12 @@ import org.apache.logging.log4j.Logger;
 
 import rasterdb.cell.CellInt16;
 import rasterdb.cell.CellType;
+import rasterdb.tile.Processing;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingQuery;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TilePixel;
+import rasterunit.BandKey;
 import rasterunit.RasterUnitStorage;
 import util.Range2d;
 import util.frame.BooleanFrame;
@@ -25,12 +27,13 @@ public class TimeBandProcessor {
 
 	public final RasterDB rasterdb;
 	public final Range2d range2d;
-	private final int scale;
-	
+	private int scale;
+
 	private RasterUnitStorage pyramid_rasterUnit;
 	private Range2d pyramid_srcRange;
 	private Range2d pyramid_dstRange;
-	int pyramidDiv;
+	private int pyramidDiv;
+	private int pyramid;
 
 
 	public TimeBandProcessor(RasterDB rasterdb, Range2d range2d) {
@@ -40,6 +43,7 @@ public class TimeBandProcessor {
 		this.pyramid_srcRange = range2d;
 		this.pyramid_dstRange = range2d;
 		this.pyramidDiv = 1;
+		this.pyramid = 0;
 		this.scale = 1;
 	}
 
@@ -47,17 +51,22 @@ public class TimeBandProcessor {
 		this.rasterdb = rasterdb;
 		this.range2d = range2d;
 		this.scale = scale;
-		setScale(scale);
+		if(rasterdb.isInternalPyramid()) {
+			setScaleInternalPyramid(scale);
+		} else {
+			this.pyramid = 0;
+			setScale(scale);
+		}
 	}
 
 	public TimeBandProcessor(RasterDB rasterdb, Range2d range2d, int reqWidth, int reqHeight) {
 		this(rasterdb, range2d, calcScale(range2d, reqWidth, reqHeight));
 	}
-	
+
 	public static int calcScale(Range2d range2d, int reqWidth, int reqHeight) {
 		return factorToScale(calcFactor(range2d.getWidth(), range2d.getHeight(), reqWidth, reqHeight));
 	}
-	
+
 	private static int calcFactor(int srcWidth, int srcHeight, int reqWidth, int reqHeight) {
 		if(reqWidth > 0) {
 			if(reqHeight > 0) {
@@ -109,9 +118,6 @@ public class TimeBandProcessor {
 			pyramid_dstRange = range2d.floorDiv(2);
 			pyramidDiv = 2;
 			pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidDiv);
-			//log.info("pyramid_dstRange " + pyramid_dstRange);
-			//log.info("pyramid_srcRange " + pyramid_srcRange);
-			//log.info("pyramidDiv " + pyramidDiv);
 			break;			
 		case 4:
 			pyramid_rasterUnit = rasterdb.rasterPyr1Unit();
@@ -208,28 +214,67 @@ public class TimeBandProcessor {
 		}
 	}
 	
+	private void setScaleInternalPyramid(int scale) {
+		int maxDiv = rasterdb.getTilePixelLen();
+		int optimal_pyramid = 31 - Integer.numberOfLeadingZeros(scale);
+		if(optimal_pyramid == 0) {
+			pyramid_rasterUnit = rasterdb.rasterUnit();
+			pyramid_dstRange = range2d;
+			pyramid_srcRange = range2d;
+			pyramidDiv = 1;
+			pyramid = 0;
+			this.scale = pyramidDiv;
+		} else {
+			pyramid_rasterUnit = rasterdb.rasterPyr1Unit();			
+			int tmax = Processing.getTFromPyramidTimestamp(optimal_pyramid, Processing.TIMESTAMP_MAX);
+			BandKey maxPyramidBandKey = pyramid_rasterUnit.bandKeysReadonly().floor(BandKey.toBandKeyMax(tmax));
+			if(maxPyramidBandKey == null) {
+				pyramid_rasterUnit = rasterdb.rasterUnit();
+				pyramidDiv = scale > maxDiv ? maxDiv : scale;
+				pyramid_dstRange = range2d.floorDiv(pyramidDiv);
+				pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidDiv);
+				pyramid = 0;
+				this.scale = pyramidDiv;
+			} else {
+				pyramid = Processing.getPyramidFromT(maxPyramidBandKey.t);
+				int div = scale >>> pyramid;
+				pyramidDiv = div > maxDiv ? maxDiv : div;
+				this.scale = pyramidDiv << pyramid; 
+				pyramid_dstRange = range2d.floorDiv(pyramidDiv * this.scale);
+				pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidDiv);
+				
+			}
+		}		
+	}
+
 	private short[][] readInt16(int timestamp, Band band) {
 		CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
-		return cellInt16.read(pyramid_rasterUnit, timestamp, band, pyramid_srcRange, pyramidDiv);	
+		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
+		return cellInt16.read(pyramid_rasterUnit, t, band, pyramid_srcRange, pyramidDiv);	
 	}
-	
-	
+
+
 	private short[][] readShort(int timestamp, Band band) {
-		return ProcessingShort.readPixels(pyramidDiv, pyramid_rasterUnit, timestamp, band, pyramid_srcRange);		
+		log.info("get from pyramid " + pyramid + "   div " + pyramidDiv);
+		log.info("src " + pyramid_srcRange);
+		log.info("src " + pyramid_dstRange);
+		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
+		return ProcessingShort.readPixels(pyramidDiv, pyramid_rasterUnit, t, band, pyramid_srcRange);		
 	}
-	
+
 	private short[][] readShort(TimeBand timeband) {
 		return readShort(timeband.timestamp, timeband.band);	
 	}
-	
+
 	private float[][] readFloat(int timestamp, Band band) {
-		return ProcessingFloat.readPixels(pyramidDiv, pyramid_rasterUnit, timestamp, band, pyramid_srcRange);	
+		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
+		return ProcessingFloat.readPixels(pyramidDiv, pyramid_rasterUnit, t, band, pyramid_srcRange);	
 	}
-	
+
 	private float[][] readFloat(TimeBand timeband) {
 		return readFloat(timeband.timestamp, timeband.band);	
 	}
-	
+
 	public ShortFrame getShortFrame(TimeBand timeband) {
 		return getShortFrame(timeband.timestamp, timeband.band);
 	}
@@ -252,7 +297,7 @@ public class TimeBandProcessor {
 			throw new RuntimeException("unknown tile type: "+tileType);
 		}
 	}
-	
+
 	public FloatFrame getFloatFrame(TimeBand timeband) {
 		return getFloatFrame(timeband.timestamp, timeband.band);
 	}
@@ -296,7 +341,7 @@ public class TimeBandProcessor {
 	public BooleanFrame getMask(TimeBand timeband) {
 		return getMask(timeband.timestamp, timeband.band);
 	}
-	
+
 	public BooleanFrame getMask(int timestamp, Band band) {
 		int tileType = band.type;
 		switch(tileType) {
@@ -314,13 +359,14 @@ public class TimeBandProcessor {
 			throw new RuntimeException("unknown tile type: "+tileType);
 		}
 	}
-	
+
 	public boolean mayHavePixels(TimeBand timeband) {	
 		return mayHavePixels(timeband.timestamp, timeband.band);
 	}
-	
-	public boolean mayHavePixels(int timestamp, Band band) {		
-		return ProcessingQuery.mayHavePixels(pyramid_rasterUnit, timestamp, band, pyramid_srcRange);
+
+	public boolean mayHavePixels(int timestamp, Band band) {
+		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
+		return ProcessingQuery.mayHavePixels(pyramid_rasterUnit, t, band, pyramid_srcRange);
 	}
 
 	public DoubleFrame getDoubleFrameConst(double value) {		
@@ -332,7 +378,7 @@ public class TimeBandProcessor {
 	public Collection<Band> getBands() {
 		return rasterdb.bandMapReadonly.values();		
 	}
-	
+
 	public List<TimeBand> getTimeBands(int timestamp) {
 		return toTimeBands(timestamp, getBands());
 	}
@@ -340,12 +386,12 @@ public class TimeBandProcessor {
 	public Band getBand(int index) {
 		return rasterdb.bandMapReadonly.get(index);		
 	}
-	
+
 	public TimeBand getTimeBand(int timestamp, int bandIndex) {
 		Band band = getBand(bandIndex);		
 		return band == null ? null : new TimeBand(timestamp, band);		
 	}
-	
+
 	public Range2d getSrcRange() {
 		return pyramid_srcRange;
 	}
@@ -353,15 +399,15 @@ public class TimeBandProcessor {
 	public Range2d getDstRange() {
 		return pyramid_dstRange;
 	}
-	
+
 	public int getScale() {
 		return scale;
 	}
-	
+
 	public List<TimeBand> toTimeBands(int timestamp, Band[] bands) {
 		return TimeBand.of(timestamp, Arrays.stream(bands));
 	}
-	
+
 	public List<TimeBand> toTimeBands(int timestamp, Collection<Band> bands) {
 		return TimeBand.of(timestamp, bands.stream());
 	}

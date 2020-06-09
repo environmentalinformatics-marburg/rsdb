@@ -475,6 +475,21 @@ public class RasterUnit implements RasterUnitStorage {
 	public boolean isEmpty() {
 		return tileMap.isEmpty();
 	}
+	
+	@Override
+	public long removeAllTiles() throws IOException {
+		try {
+			long cnt = tileKeys.size();
+			tileMap.clear();			
+			return cnt;
+		} finally {
+			log.info("refresh keys");
+			refreshKeys();
+			tilesWritten = true;
+			log.info("commit");
+			commit();
+		}
+	}
 
 	@Override
 	public long removeAllTilesOfTimestamp(int t) {

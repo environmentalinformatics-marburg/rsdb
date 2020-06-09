@@ -283,7 +283,7 @@ public class TileStorage implements RasterUnitStorage {
 	}
 
 	private void optionalConsolidateFreeSlots() {
-			if(freeSetAddCounter.get() >= 256) {
+		if(freeSetAddCounter.get() >= 256) {
 			/*int adjacentFreeSlotCount = countAdjacentFreeSlots();
 			if(adjacentFreeSlotCount >= 16) {
 				consolidateFreeSlots();
@@ -1042,6 +1042,22 @@ public class TileStorage implements RasterUnitStorage {
 	}
 
 	@Override
+	public long removeAllTiles() throws IOException {
+		flushLock.writeLock().lock();
+		try {
+			long cnt = map.size();
+			setDirty();
+			map.clear(); // remove all tile entries
+			flush(); // write removed entries to file
+			open(); // regenerate free slot list
+			return cnt;
+		} finally {
+			refreshDerivedKeys();
+			flushLock.writeLock().unlock();
+		}	
+	}
+
+	@Override
 	public long removeAllTilesOfTimestamp(int t) throws IOException {
 		flushLock.writeLock().lock();
 		try {
@@ -1050,6 +1066,7 @@ public class TileStorage implements RasterUnitStorage {
 			ConcurrentNavigableMap<TileKey, TileSlot> tmap = map.subMap(min, true, max, true);
 			long cnt = tmap.size();
 			if(cnt > 0) {
+				setDirty();
 				tmap.clear(); // remove all tile entries of timestamp
 				flush(); // write removed entries to file
 				open(); // regenerate free slot list
@@ -1072,6 +1089,7 @@ public class TileStorage implements RasterUnitStorage {
 				ConcurrentNavigableMap<TileKey, TileSlot> tmap = map.subMap(min, true, max, true);
 				int subSize = tmap.size();				
 				if(subSize > 0) {
+					setDirty();
 					tmap.clear(); // remove all tile entries of timestamp
 					cnt += subSize;
 				}
@@ -1086,7 +1104,7 @@ public class TileStorage implements RasterUnitStorage {
 			flushLock.writeLock().unlock();
 		}	
 	}
-	
+
 	@Override
 	public long calculateInternalFreeSize() {
 		return freeSet.stream().mapToLong(freeSlot -> (long)freeSlot.len).sum();
@@ -1096,12 +1114,12 @@ public class TileStorage implements RasterUnitStorage {
 	public long calculateStorageSize() {
 		return fileLimit.get();
 	}
-	
+
 	@Override
 	public int calculateTileCount() {
 		return map.size();
 	}
-	
+
 	@Override
 	public long[] calculateTileSizeStats() {
 		long min = Long.MAX_VALUE;

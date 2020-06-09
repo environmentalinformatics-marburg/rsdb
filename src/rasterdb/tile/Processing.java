@@ -1,6 +1,7 @@
 package rasterdb.tile;
 
 import java.io.IOException;
+import java.util.NavigableSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +13,7 @@ import rasterdb.cell.CellType;
 import rasterdb.tile.Processing.Commiter;
 import rasterunit.BandKey;
 import rasterunit.RasterUnitStorage;
+import util.Range2d;
 
 public class Processing {
 	private static final Logger log = LogManager.getLogger();	
@@ -80,6 +82,72 @@ public class Processing {
 			break;
 		default:
 			throw new RuntimeException("unknown band type");
+		}
+	}
+
+
+	public static long rebuildPyramid(RasterDB rasterdb, RasterUnitStorage srcStorage, RasterUnitStorage dstStorage, int div) throws IOException {
+		Commiter commiter = new Commiter(dstStorage);
+		rebuildPyramid(rasterdb, srcStorage, 0, dstStorage, 1, div, commiter);
+		commiter.checkFinishCommit();
+		return commiter.getTotalWriteCount();
+	}
+
+	public static int getTimestampFromT(int t) {
+		return t & 0xfffffff;
+	}
+
+	public static int getPyramidFromT(int t) {
+		return t >>> 28;
+	}
+
+	public static int getTFromPyramidTimestamp(int pyramid, int timestamp) {
+		if((0xfffffff0 & pyramid) != 0) {
+			throw new RuntimeException("invalid pyramid number: " + pyramid);
+		}
+		if((0xf0000000 & timestamp) != 0) {
+			throw new RuntimeException("invalid timestamp number: " + timestamp);
+		}
+		return (pyramid << 28) | timestamp;
+	}
+
+	public static final int PYRAMID_MIN = 0x0;
+	public static final int PYRAMID_MAX = 0xf;
+	public static final int TIMESTAMP_MIN = 0x00000000;
+	public static final int TIMESTAMP_MAX = 0x0fffffff;
+
+
+	public static void rebuildPyramid(RasterDB rasterdb, RasterUnitStorage srcStorage, int srcPyramid, RasterUnitStorage dstStorage, int dstPyramid, int div, Commiter commiter) throws IOException {
+
+		int tmin = getTFromPyramidTimestamp(srcPyramid, TIMESTAMP_MIN);
+		int tmax = getTFromPyramidTimestamp(srcPyramid, TIMESTAMP_MAX);
+		NavigableSet<BandKey> srcBandKeys = srcStorage.bandKeysReadonly().subSet(BandKey.toBandKeyMin(tmin), true, BandKey.toBandKeyMax(tmax), true);
+
+		boolean needProcessing = false;
+		for(BandKey srcBandKey : srcBandKeys) {
+			Range2d range = srcStorage.getTileRange(srcBandKey);
+			if(range != null && ( range.getWidth() > 2 || range.getHeight() > 2)) {
+				log.info("pyramid " + srcPyramid + " size " + range);
+				needProcessing = true;
+				break;
+			}
+		}
+
+		if(needProcessing) {
+			if(dstPyramid > PYRAMID_MAX) {
+				log.info("process pyramid limit reached" + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid) + " processing stopped.");
+				return;
+			}
+			log.info("process pyramid " + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid));
+			for(BandKey srcBandKey : srcBandKeys) {
+				Band band = rasterdb.bandMapReadonly.get(srcBandKey.b);
+				int srcTimestamp = getTimestampFromT(srcBandKey.t); 
+				int dstT = getTFromPyramidTimestamp(dstPyramid, srcTimestamp);
+				BandKey dstBandKey = new BandKey(dstT, srcBandKey.b);
+				writeStorageBandDiv(rasterdb, band, div, srcStorage, srcBandKey, dstStorage, dstBandKey , commiter);
+			}
+
+			rebuildPyramid(rasterdb, dstStorage, dstPyramid, dstStorage, dstPyramid + 1, div, commiter);
 		}
 	}
 }

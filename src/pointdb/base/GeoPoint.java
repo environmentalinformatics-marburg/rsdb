@@ -178,11 +178,16 @@ public class GeoPoint {
 	}
 	
 	public boolean isVegetaion() {
-		return classification == 3 || classification == 4 || classification == 5 || classification == 13;
+		return classification == 3 // low vegetation
+				|| classification == 4  // medium vegetation
+				|| classification == 5  // high vegetation 
+				|| classification == 13  // wire - guard
+				|| classification == 1; // unassigned
 	}
 	
 	public boolean isGround() {
-		return classification == 2 || classification == 8;
+		return classification == 2 // ground
+				|| classification == 8; // model key/reserved
 	}
 	
 	/**

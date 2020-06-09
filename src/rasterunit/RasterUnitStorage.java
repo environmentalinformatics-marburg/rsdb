@@ -53,6 +53,8 @@ public interface RasterUnitStorage extends AutoCloseable {
 		Collection<RowKey> rows = getRowKeysReverse(t, b, ymin, ymax);
 		return new TileCollection(this, rows, xmin, xmax);
 	}
+	
+	long removeAllTiles() throws IOException;
 	long removeAllTilesOfTimestamp(int t) throws IOException;
 	long removeAllTilesOfBand(int b) throws IOException;
 	

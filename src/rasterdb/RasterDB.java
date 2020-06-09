@@ -134,20 +134,32 @@ public class RasterDB implements AutoCloseable {
 		writeMeta();
 	}
 
+	public boolean isInternalPyramid() {
+		return false;
+	}
+
 	public void rebuildPyramid(boolean flush) throws IOException {
 		getLocalRange(true);
-		log.info("build map 1:4");
-		long c1 = Processing.writeStorageDiv(this, rasterUnit(), rasterPyr1Unit(), 4);
-		log.info("tiles written " + c1);
-		log.info("build map 1:16");
-		long c2 = Processing.writeStorageDiv(this, rasterPyr1Unit(), rasterPyr2Unit(), 4);
-		log.info("tiles written " + c2);
-		log.info("build map 1:64");
-		long c3 = Processing.writeStorageDiv(this, rasterPyr2Unit(), rasterPyr3Unit(), 4);
-		log.info("tiles written " + c3);
-		log.info("build map 1:256");
-		long c4 = Processing.writeStorageDiv(this, rasterPyr3Unit(), rasterPyr4Unit(), 4);
-		log.info("tiles written " + c4);
+
+		if(isInternalPyramid()) {
+			RasterUnitStorage dstStorage = rasterPyr1Unit();
+			dstStorage.removeAllTiles();
+			Processing.rebuildPyramid(this, rasterUnit(), dstStorage, 2);
+		} else {
+			log.info("build map 1:4");
+			long c1 = Processing.writeStorageDiv(this, rasterUnit(), rasterPyr1Unit(), 4);
+			log.info("tiles written " + c1);
+			log.info("build map 1:16");
+			long c2 = Processing.writeStorageDiv(this, rasterPyr1Unit(), rasterPyr2Unit(), 4);
+			log.info("tiles written " + c2);
+			log.info("build map 1:64");
+			long c3 = Processing.writeStorageDiv(this, rasterPyr2Unit(), rasterPyr3Unit(), 4);
+			log.info("tiles written " + c3);
+			log.info("build map 1:256");
+			long c4 = Processing.writeStorageDiv(this, rasterPyr3Unit(), rasterPyr4Unit(), 4);
+			log.info("tiles written " + c4);
+		}		
+
 		if(flush) {		
 			flush();
 		}
@@ -516,7 +528,7 @@ public class RasterDB implements AutoCloseable {
 		}	
 
 	}
-	
+
 	public int getTilePixelLen() {
 		return tilePixelLen;
 	}
