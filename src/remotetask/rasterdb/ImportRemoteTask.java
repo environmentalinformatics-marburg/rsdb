@@ -198,7 +198,9 @@ public class ImportRemoteTask extends RemoteTask {
 		int cnt;
 		if(isCellInt16) {
 			CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
-			cnt = cellInt16.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);			
+			int xlen = dataShort[0].length;
+			int ylen = dataShort.length;
+			cnt = cellInt16.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin, xlen, ylen);			
 		} else {
 			cnt = ProcessingShort.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);
 		}		

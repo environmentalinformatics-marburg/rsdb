@@ -434,7 +434,9 @@ public class RasterDBimporter {
 					}
 					targetDataShort = Util.flipRows(targetDataShort);
 					CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
-					int cnt = cellInt16.writeMerge(rasterUnit, timestamp, band, targetDataShort, pixelYmin, pixelXmin);					
+					int xlen = targetDataShort[0].length;
+					int ylen = targetDataShort.length;
+					int cnt = cellInt16.writeMerge(rasterUnit, timestamp, band, targetDataShort, pixelYmin, pixelXmin, xlen, ylen);					
 					log.info(targetDataShort.length + " x " + targetDataShort[0].length+" b "+fileBandIndex+"->"+band.index+" t "+timestamp+" tiles "+cnt);
 					rasterUnit.commit();
 					break;

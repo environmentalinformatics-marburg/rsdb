@@ -9,6 +9,7 @@ import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.cell.CellInt16;
 import rasterdb.cell.CellType;
+import rasterdb.cell.Int16;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterdb.tile.TileShort;
@@ -75,7 +76,7 @@ public class Task_count_pixels extends RemoteTask {
 			for(Tile tile:tiles) {
 				CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
 				int[] raw = cellInt16.dec(tile.data);
-				cnt += CellInt16.countNotNa_raw(raw, band.getInt16NA());
+				cnt += Int16.countNotNa_raw(raw, band.getInt16NA());
 			}
 			break;
 		}

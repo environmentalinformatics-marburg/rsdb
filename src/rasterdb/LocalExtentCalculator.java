@@ -132,7 +132,7 @@ public class LocalExtentCalculator {
 					short[][] pixels = null;
 					if(lxmin > 0 && tileRange.xmin == tileKey.x) {
 						if(pixels == null) {
-							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey).data);
+							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey));
 						}
 						int cxmin = getXmin(pixels, na);
 						if(cxmin < lxmin) {
@@ -141,7 +141,7 @@ public class LocalExtentCalculator {
 					}
 					if(lymin > 0 && tileRange.ymin == tileKey.y) {
 						if(pixels == null) {
-							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey).data);
+							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey));
 						}
 						int cymin = getYmin(pixels, na);
 						if(cymin < lymin) {
@@ -151,7 +151,7 @@ public class LocalExtentCalculator {
 					int PIXELS_PER_ROW_1 = cellInt16.pixel_len - 1;
 					if(lxmax < PIXELS_PER_ROW_1 && tileRange.xmax == tileKey.x) {
 						if(pixels == null) {
-							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey).data);
+							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey));
 						}
 						int cxmax = getXmax(pixels, na);
 						if(cxmax > lxmax) {
@@ -160,7 +160,7 @@ public class LocalExtentCalculator {
 					}
 					if(lymax < PIXELS_PER_ROW_1 && tileRange.ymax == tileKey.y) {
 						if(pixels == null) {
-							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey).data);
+							pixels = cellInt16.decodeCell(rasterUnit.readTile(tileKey));
 						}
 						int cymax = getYmax(pixels, na);
 						if(cymax > lymax) {
