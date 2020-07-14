@@ -17,22 +17,28 @@ import util.Range2d;
 
 public class Rasterizer {
 	private static final Logger log = LogManager.getLogger();
+	
+	public static final double DEFAULT_POINT_SCALE = 4;
 
 	protected final PointCloud pointcloud;
 	protected final RasterDB rasterdb;
 	protected final RasterUnitStorage rasterUnit;
+	
+	private final double point_scale;
+	private final double raster_pixel_size;
+	
 	private Band bandIntensity;
 	private  Band bandElevation;
 
-	private static final double tile_scale = 4;
-	private static final double raster_pixel_size = 1d / tile_scale;
 	private static final int raster_pixel_per_batch_row = TilePixel.PIXELS_PER_ROW * 32;
 	private static final int border_pixels = 3;
 
 	private AttributeSelector selectorIntensity;
 	private AttributeSelector selectorElevation;
 
-	public Rasterizer(PointCloud pointcloud, RasterDB rasterdb) {
+	public Rasterizer(PointCloud pointcloud, RasterDB rasterdb, double point_scale) {
+		this.point_scale = point_scale;
+		this.raster_pixel_size = 1d / point_scale;
 		this.pointcloud = pointcloud;
 		this.rasterdb = rasterdb;
 		this.rasterUnit = rasterdb.rasterUnit();
@@ -172,7 +178,7 @@ public class Rasterizer {
 				if(cellCount > 0) {
 					Stream<PointTable> pointTables = pointcloud.getPointTables(qxmin, qymin, qxmax, qymax, selector);
 					float[][] pixels = ProcessingFloat.createEmpty(bxmax - bxmin + 1, bymax - bymin + 1);
-					pointProcessing.process(pointTables, qxmin, qymin, pixels);
+					pointProcessing.process(pointTables, qxmin, qymin, pixels, point_scale);
 					pointdb.Rasterizer.fill(pixels);
 					pixels = removeBorder(pixels, border_pixels);
 					ProcessingFloat.writeMerge(rasterUnit, 0, selectedBand, pixels, ymin, xmin);
@@ -187,20 +193,19 @@ public class Rasterizer {
 	}
 
 	private interface PointProcessing {
-		void process(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels);
+		void process(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels, double point_scale);
 	}
 
-	private static void processIntensity(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels) {
+	private static void processIntensity(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels, double point_scale) {
 		pointTables.forEach(p->{
 			char[] intensity = p.intensity;
 			if(intensity != null) {
 				int len = p.rows;
-				double scale = Rasterizer.tile_scale;
 				double[] xs = p.x;
 				double[] ys = p.y;
 				for (int i = 0; i < len; i++) {
-					int x = (int) ((xs[i] - qxmin) * scale);
-					int y = (int) ((ys[i] - qymin) * scale);
+					int x = (int) ((xs[i] - qxmin) * point_scale);
+					int y = (int) ((ys[i] - qymin) * point_scale);
 					float prev = pixels[y][x];
 					float v = intensity[i];
 					if(!Float.isFinite(prev) || prev < v) {
@@ -211,18 +216,17 @@ public class Rasterizer {
 		});
 	}
 
-	private static void processElevation(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels) {
+	private static void processElevation(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels, double point_scale) {
 		pointTables.forEach(p->{
 			double[] z = p.z;
 			if(z != null) {
 				int len = p.rows;
-				double scale = Rasterizer.tile_scale;
 				double[] xs = p.x;
 				double[] ys = p.y;
 				for (int i = 0; i < len; i++) {
 					//log.info("pos " + xs[i] + "  " + ys[i]);
-					int x = (int) ((xs[i] - qxmin) * scale);
-					int y = (int) ((ys[i] - qymin) * scale);
+					int x = (int) ((xs[i] - qxmin) * point_scale);
+					int y = (int) ((ys[i] - qymin) * point_scale);
 					float prev = pixels[y][x];
 					float v = (float) z[i];
 					if(!Float.isFinite(prev) || prev < v) {
@@ -233,20 +237,19 @@ public class Rasterizer {
 		});
 	}
 
-	private static void processRed(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels) {
+	private static void processRed(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels, double point_scale) {
 		//log.info("processRed " + qxmin + "  " + qymin);
 		pointTables.forEach(p->{
 			char[] red = p.red;
 			if(red != null) {
 				int len = p.rows;
 				//log.info("row points " + len);
-				double scale = Rasterizer.tile_scale;
 				double[] xs = p.x;
 				double[] ys = p.y;
 				for (int i = 0; i < len; i++) {
 					//log.info("processRed point " + xs[i] + "  " + ys[i]);
-					int x = (int) ((xs[i] - qxmin) * scale);
-					int y = (int) ((ys[i] - qymin) * scale);
+					int x = (int) ((xs[i] - qxmin) * point_scale);
+					int y = (int) ((ys[i] - qymin) * point_scale);
 					float prev = pixels[y][x];
 					float v = red[i];
 					if(!Float.isFinite(prev) || prev < v) {
@@ -258,17 +261,16 @@ public class Rasterizer {
 		});
 	}
 
-	private static void processGreen(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels) {
+	private static void processGreen(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels, double point_scale) {
 		pointTables.forEach(p->{
 			char[] green = p.green;
 			if(green != null) {
 				int len = p.rows;
-				double scale = Rasterizer.tile_scale;
 				double[] xs = p.x;
 				double[] ys = p.y;
 				for (int i = 0; i < len; i++) {
-					int x = (int) ((xs[i] - qxmin) * scale);
-					int y = (int) ((ys[i] - qymin) * scale);
+					int x = (int) ((xs[i] - qxmin) * point_scale);
+					int y = (int) ((ys[i] - qymin) * point_scale);
 					float prev = pixels[y][x];
 					float v = green[i];
 					if(!Float.isFinite(prev) || prev < v) {
@@ -279,17 +281,16 @@ public class Rasterizer {
 		});
 	}
 
-	private static void processBlue(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels) {
+	private static void processBlue(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels, double point_scale) {
 		pointTables.forEach(p->{
 			char[] blue = p.blue;
 			if(blue != null) {
 				int len = p.rows;
-				double scale = Rasterizer.tile_scale;
 				double[] xs = p.x;
 				double[] ys = p.y;
 				for (int i = 0; i < len; i++) {
-					int x = (int) ((xs[i] - qxmin) * scale);
-					int y = (int) ((ys[i] - qymin) * scale);
+					int x = (int) ((xs[i] - qxmin) * point_scale);
+					int y = (int) ((ys[i] - qymin) * point_scale);
 					float prev = pixels[y][x];
 					float v = blue[i];
 					if(!Float.isFinite(prev) || prev < v) {

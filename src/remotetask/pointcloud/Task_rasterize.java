@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import broker.Broker;
 import broker.acl.EmptyACL;
 import pointcloud.PointCloud;
+import pointcloud.Rasterizer;
 import rasterdb.RasterDB;
 import remotetask.Context;
 import remotetask.Description;
@@ -20,6 +21,7 @@ import remotetask.RemoteTask;
 @Param(name="associate", type="boolean", desc="Set the created raster layer as map visualisation for this point cloud layer. (default: true)", example="false", required=false)
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) RasterDB operation mode. (RasterUnit only, default false)", example="false", required=false)
+@Param(name="point_scale", type="number", desc="point coordinates to pixel scale factor (default: 4, results in 0.25 units pixel size)", example="4", required=false)
 public class Task_rasterize extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 
@@ -54,7 +56,10 @@ public class Task_rasterize extends RemoteTask {
 		} else {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
 		}
-		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb);
+		
+		double point_scale = task.optDouble("point_scale", Rasterizer.DEFAULT_POINT_SCALE);
+		
+		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb, point_scale);
 		rasterizer.run();
 		rasterdb.rebuildPyramid(true);
 		if(associate) {

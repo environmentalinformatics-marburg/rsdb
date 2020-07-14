@@ -203,6 +203,9 @@ public class Laz {
 		BitSet edgeOfFlightLine = new BitSet(record_count);
 		byte[] classification = new byte[record_count];
 		byte[] scanAngleRank = new byte[record_count];
+		char[] red = new char[record_count];
+		char[] green = new char[record_count];
+		char[] blue = new char[record_count];		
 
 		int cnt = 0;
 		LASpoint mutablePoint = internalReader.point;
@@ -224,6 +227,9 @@ public class Laz {
 			}
 			classification[cnt] = mutablePoint.getClassification();
 			scanAngleRank[cnt] = mutablePoint.getScan_angle_rank();
+			red[cnt] = mutablePoint.get_R();
+			green[cnt] = mutablePoint.get_G();
+			blue[cnt] = mutablePoint.get_B();
 
 			cnt++;
 		}
@@ -242,6 +248,10 @@ public class Laz {
 		recordTable.edgeOfFlightLine = edgeOfFlightLine;
 		recordTable.classification = classification;
 		recordTable.scanAngleRank = scanAngleRank;
+		recordTable.red = red;
+		recordTable.green = green;
+		recordTable.blue = blue;
+		
 
 		recordTable.cleanup();
 

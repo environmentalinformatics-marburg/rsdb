@@ -824,7 +824,7 @@ public class Terminal {
 			try(Broker broker = new Broker()) {
 				PointCloud pointdb = broker.getPointCloud(args[1]);
 				RasterDB rasterdb = broker.createNewRasterdb(args[2], false);
-				pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointdb, rasterdb);
+				pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointdb, rasterdb, pointcloud.Rasterizer.DEFAULT_POINT_SCALE);
 				rasterizer.run();
 				rasterdb.flush();
 				rasterdb.rebuildPyramid(true);
