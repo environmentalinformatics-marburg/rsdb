@@ -240,7 +240,7 @@ public class Laz {
 			internalReader = null;
 		}
 
-		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		CellTable recordTable = new CellTable(0, 0, 0, record_count, xs, ys, zs);
 		recordTable.intensity = intensity;
 		recordTable.returnNumber = returnNumber;
 		recordTable.returns = returns;
@@ -305,7 +305,7 @@ public class Laz {
 		}
 		lasPointIteratorPos += cnt;
 
-		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		CellTable recordTable = new CellTable(0, 0, 0, record_count, xs, ys, zs);
 		recordTable.intensity = intensity;
 		recordTable.returnNumber = returnNumber;
 		recordTable.returns = returns;

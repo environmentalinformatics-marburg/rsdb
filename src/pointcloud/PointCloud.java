@@ -40,7 +40,6 @@ public class PointCloud implements AutoCloseable {
 
 	private static final AttributeSelector ATTRIBUTE_SELECTOR_ALL = new AttributeSelector().all();
 
-
 	private final GridDB griddb;
 	private Attribute attr_x;
 	private Attribute attr_y;
@@ -162,7 +161,7 @@ public class PointCloud implements AutoCloseable {
 		}
 	}
 
-	public Tile createTile(CellTable cellTable, int cx, int cy) throws IOException {
+	public Tile createTile(CellTable cellTable, int cx, int cy, int cz) throws IOException {
 		AttributeSelector selector = cellTable.toSelector();
 		creatMissingAttributes(selector);
 		int column_count = selector.count();
@@ -226,7 +225,7 @@ public class PointCloud implements AutoCloseable {
 			attributes[column_index++] = attr_blue;
 		}
 		byte[] cellData = Cell.createData(attributes, columns, column_count);
-		Tile tile = griddb.createTile(cx, cy, cellData);
+		Tile tile = griddb.createTile(cx, cy, cz, cellData);
 		//log.info("create cell cx: " + cx + " cy: " + cy + " columns: " + column_count + " rows: " + cellTable.rows + " compressed: " + cellData.length);
 		return tile;
 	}
@@ -420,8 +419,8 @@ public class PointCloud implements AutoCloseable {
 	}
 
 
-	public CellTable getCellTable(int cx, int cy) throws IOException {
-		Cell cell = griddb.getCell(cx, cy);
+	public CellTable getCellTable(int cx, int cy, int cz) throws IOException {
+		Cell cell = griddb.getCell(cx, cy, cz);
 		if(cell == null) {
 			return null;
 		} else {
@@ -429,8 +428,8 @@ public class PointCloud implements AutoCloseable {
 		}
 	}
 
-	public CellTable getCellTable(int cx, int cy, AttributeSelector selector) throws IOException {
-		Cell cell = griddb.getCell(cx, cy);
+	public CellTable getCellTable(int cx, int cy, int cz, AttributeSelector selector) throws IOException {
+		Cell cell = griddb.getCell(cx, cy, cz);
 		if(cell == null) {
 			return null;
 		} else {
@@ -443,7 +442,7 @@ public class PointCloud implements AutoCloseable {
 		int[] x = selector.x ? cell.getInt(attr_x) : null;
 		int[] y = selector.y ? cell.getInt(attr_y) : null;
 		int[] z = selector.z ? cell.getInt(attr_z) : null;
-		CellTable cellTable = new CellTable(cell.x, cell.y, x.length, x, y, z);
+		CellTable cellTable = new CellTable(cell.x, cell.y, cell.z, x.length, x, y, z);
 		if(selector.intensity) {
 			cellTable.intensity = cell.getChar(attr_intensity);
 		}

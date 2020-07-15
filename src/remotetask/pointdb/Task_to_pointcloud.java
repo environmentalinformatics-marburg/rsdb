@@ -217,21 +217,22 @@ public class Task_to_pointcloud extends RemoteTask{
 							}
 							int cell_pos_x = (int) (Math.floor(utm_cell_min_x / cellsize) - celloffset.x);
 							int cell_pos_y = (int) (Math.floor(utm_cell_min_y / cellsize) - celloffset.y);
+							int cell_pos_z = 0;
 							log.info("cellpos "+cell_pos_x+"  "+cell_pos_y);
-							CellTable cellTable = new CellTable(cell_pos_x, cell_pos_y, len, xs, ys, zs);
+							CellTable cellTable = new CellTable(cell_pos_x, cell_pos_y, cell_pos_z, len, xs, ys, zs);
 							cellTable.intensity = intensity;
 							cellTable.returnNumber = returnNumber;
 							cellTable.returns = returns;
 							cellTable.scanAngleRank = scanAngleRank;
 							cellTable.classification = classification;
 							cellTable.cleanup();
-							CellTable oldCellTable = pointcloud.getCellTable(cellTable.cx, cellTable.cy);
+							CellTable oldCellTable = pointcloud.getCellTable(cellTable.cx, cellTable.cy, cellTable.cz);
 							if(oldCellTable != null) {
 								log.warn("merge with existing cell");
 								cellTable = CellTable.merge(oldCellTable, cellTable);
 							}
 							Timer.start("to_pointdb create tile");
-							rasterunit.Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy);
+							rasterunit.Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy, cellTable.cz);
 							log.info(Timer.stop("to_pointdb create tile"));
 							Timer.start("to_pointdb write");
 							pointcloud.writeTile(tile);

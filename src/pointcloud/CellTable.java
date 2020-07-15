@@ -12,6 +12,7 @@ public class CellTable {
 	public int rows;
 	public int cx;
 	public int cy;
+	public int cz;
 
 	public int[] x;
 	public int[] y;
@@ -82,15 +83,17 @@ public class CellTable {
 		}		
 	}
 
-	public CellTable(int cx, int cy, int rows) {
+	public CellTable(int cx, int cy, int cz, int rows) {
 		this.cx = cx;
 		this.cy = cy;
+		this.cz = cz;
 		this.rows = rows;
 	}
 
-	public CellTable(int cx, int cy, int rows, int[] x, int[] y, int[] z) {
+	public CellTable(int cx, int cy, int cz, int rows, int[] x, int[] y, int[] z) {
 		this.cx = cx;
 		this.cy = cy;
+		this.cz = cz;
 		this.rows = rows;
 		this.x = x;
 		this.y = y;
@@ -111,7 +114,7 @@ public class CellTable {
 		int[] z = Arrays.copyOf(a.z, clen);
 		System.arraycopy(b.z, 0, z, alen, blen);
 
-		CellTable c = new CellTable(a.cx, a.cy, clen, x, y, z);
+		CellTable c = new CellTable(a.cx, a.cy, a.cz, clen, x, y, z);
 
 		if(a.intensity != null || b.intensity != null) {
 			c.intensity = a.intensity != null ? Arrays.copyOf(a.intensity, clen) : new char[clen];

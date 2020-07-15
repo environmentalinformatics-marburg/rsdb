@@ -113,14 +113,14 @@ public class GridDB implements AutoCloseable {
 
 	public static Cell tileToCell(Tile tile) {
 		try {
-			return new Cell(tile.x, tile.y, tile.data);
+			return new Cell(tile.x, tile.y, tile.b, tile.data);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public Tile createTile(int cx, int cy, byte[] cellData) throws IOException {		
-		return new Tile(0, 0, cy, cx, TILE_TYPE_CELL, cellData);		
+	public Tile createTile(int cx, int cy, int cz, byte[] cellData) throws IOException {		
+		return new Tile(0, cz, cy, cx, TILE_TYPE_CELL, cellData);		
 	}
 
 	public void writeTile(Tile tile) throws IOException {
@@ -141,12 +141,12 @@ public class GridDB implements AutoCloseable {
 		}
 	}
 
-	private Tile getTile(int tx, int ty) throws IOException {
-		return storage().readTile(0, 0, ty, tx);		
+	private Tile getTile(int tx, int ty, int tz) throws IOException {
+		return storage().readTile(0, tz, ty, tx);		
 	}
 
-	public Cell getCell(int x, int y) throws IOException {
-		Tile tile = getTile(x, y);
+	public Cell getCell(int x, int y, int z) throws IOException {
+		Tile tile = getTile(x, y, z);
 		return tile == null ? null : tileToCell(tile);
 	}
 

@@ -296,13 +296,14 @@ public class Importer {
 
 			Timer.start("cell init");
 			int cellTotalCount = 0;
-			for (int y = 0; y < ycellrange; y++) {
-				for (int x = 0; x < xcellrange; x++) {
-					int cnt = cellcnt[y][x];
+			int cz = 0;
+			for (int cy = 0; cy < ycellrange; cy++) {
+				for (int cx = 0; cx < xcellrange; cx++) {
+					int cnt = cellcnt[cy][cx];
 					if(cnt > 0) {
 						//log.info(x+" "+y+"  cnt "+cnt);
 						//cellcnt[y][x] = 0;
-						CellTable cell = new CellTable(x, y, 0, new int[cnt], new int[cnt], new int[cnt]);
+						CellTable cell = new CellTable(cx, cy, cz, 0, new int[cnt], new int[cnt], new int[cnt]);
 						if(useIntensity) {
 							cell.intensity = new char[cnt];
 						}
@@ -336,7 +337,7 @@ public class Importer {
 						if(useBlue) {
 							cell.blue = new char[cnt];
 						}
-						cells[y][x] = cell;
+						cells[cy][cx] = cell;
 						cellTotalCount++;
 					}
 				}
@@ -419,8 +420,9 @@ public class Importer {
 						cellTable.cleanup();
 						int tx = x + xcellmin;
 						int ty = y + ycellmin;
+						int tz = 0;
 						//Timer.resume("get old CellTable");
-						CellTable oldCellTable = pointcloud.getCellTable(tx, ty);
+						CellTable oldCellTable = pointcloud.getCellTable(tx, ty, tz);
 						//log.info(Timer.stop("get old CellTable"));
 						if(oldCellTable != null) {
 							//Timer.resume("merge CellTable");
@@ -431,7 +433,7 @@ public class Importer {
 							//log.info(Timer.stop("merge CellTable"));
 						}
 						//Timer.resume("create tile");
-						Tile tile = pointcloud.createTile(cellTable, tx, ty);
+						Tile tile = pointcloud.createTile(cellTable, tx, ty, tz);
 
 						/*pointcloud.getGriddb();
 						CellTable newCellTable = pointcloud.getCellTable(GridDB.tileToCell(tile), new AttributeSelector(true));

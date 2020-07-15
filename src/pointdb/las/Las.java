@@ -879,7 +879,7 @@ public class Las {
 			byte userData = byteBuffer.get();
 			char pointSourceID = byteBuffer.getChar();
 		}
-		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		CellTable recordTable = new CellTable(0, 0, 0, record_count, xs, ys, zs);
 		recordTable.intensity = intensity;
 		recordTable.returnNumber = returnNumber;
 		recordTable.returns = returns;
@@ -954,7 +954,7 @@ public class Las {
 			double gpsTimeRaw = byteBuffer.getDouble();
 			gpsTime[i] = (long) (gpsTimeRaw * 1_000_000_000d);
 		}
-		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		CellTable recordTable = new CellTable(0, 0, 0, record_count, xs, ys, zs);
 		recordTable.intensity = intensity;
 		recordTable.returnNumber = returnNumber;
 		recordTable.returns = returns;
@@ -1034,7 +1034,7 @@ public class Las {
 			blue[i] = byteBuffer.getChar();
 
 		}
-		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		CellTable recordTable = new CellTable(0, 0, 0, record_count, xs, ys, zs);
 		recordTable.intensity = intensity;
 		recordTable.returnNumber = returnNumber;
 		recordTable.returns = returns;
@@ -1118,7 +1118,7 @@ public class Las {
 			green[i] = byteBuffer.getChar();
 			blue[i] = byteBuffer.getChar();
 		}
-		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		CellTable recordTable = new CellTable(0, 0, 0, record_count, xs, ys, zs);
 		recordTable.intensity = intensity;
 		recordTable.returnNumber = returnNumber;
 		recordTable.returns = returns;
@@ -1204,7 +1204,7 @@ public class Las {
 			double gpsTimeRaw = byteBuffer.getDouble();
 			gpsTime[i] = (long) (gpsTimeRaw * 1_000_000_000d);
 		}
-		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		CellTable recordTable = new CellTable(0, 0, 0, record_count, xs, ys, zs);
 		recordTable.intensity = intensity;
 		recordTable.returnNumber = returnNumber;
 		recordTable.returns = returns;
@@ -1293,7 +1293,7 @@ public class Las {
 			green[i] = byteBuffer.getChar();
 			blue[i] = byteBuffer.getChar();
 		}
-		CellTable recordTable = new CellTable(0, 0, record_count, xs, ys, zs);
+		CellTable recordTable = new CellTable(0, 0, 0, record_count, xs, ys, zs);
 		recordTable.intensity = intensity;
 		recordTable.returnNumber = returnNumber;
 		recordTable.returns = returns;
