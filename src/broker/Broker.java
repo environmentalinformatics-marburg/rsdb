@@ -513,6 +513,11 @@ public class Broker implements AutoCloseable {
 				throw new RuntimeException(e);
 			}
 		}
+		try {
+			Thread.sleep(100); // wait for filesystem update
+		} catch (InterruptedException e) {
+			log.warn(e);
+		}
 		refreshPointcloudConfigs();
 		catalog.updateCatalog();
 	}

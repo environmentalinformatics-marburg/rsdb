@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -133,7 +134,7 @@ public class VoxelDB implements AutoCloseable {
 		}		
 	}
 
-	public double getCellsize() {
+	public int getCellsize() {
 		return cellsize;
 	}
 
@@ -302,5 +303,52 @@ public class VoxelDB implements AutoCloseable {
 	public void writeVoxelCell(VoxelCell voxelCell) throws IOException {
 		Tile tile = voxelCellToTile(voxelCell);
 		griddb.writeTile(tile);
+	}
+
+	public Stream<VoxelCell> getVoxelCells() {
+		return griddb.getTileKeys().stream().map(tileKey -> {
+			try {
+				return griddb.storage().readTile(tileKey);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		})
+		.map(GridDB::tileToCell)
+		.map(this::cellToVoxelCell);
+		
+	}
+
+	public void setProj4(String proj4) {		
+		geoRef = geoRef.withProj4(proj4);
+		griddb.writeMeta();
+	}
+
+	public void setEpsg(int epsg) {
+		geoRef = geoRef.withEpsg(epsg);
+		griddb.writeMeta();
+	}
+	
+	public boolean trySetCellsize(int cellsize) {
+		synchronized (griddb) {
+			if(griddb.isEmpty()) {
+				this.cellsize = cellsize;
+				griddb.writeMeta();
+				return true;
+			} else {
+				return false;
+			}
+		}		
+	}
+	
+	public boolean trySetVoxelsize(double voxelsize) {
+		synchronized (griddb) {
+			if(griddb.isEmpty()) {
+				geoRef = geoRef.withVoxelSize(voxelsize);
+				griddb.writeMeta();
+				return true;
+			} else {
+				return false;
+			}
+		}		
 	}
 }

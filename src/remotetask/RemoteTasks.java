@@ -66,6 +66,8 @@ public class RemoteTasks {
 		put(remotetask.pointcloud.Task_rebuild.class);
 		put(remotetask.pointcloud.Task_index_raster.class);
 		put(remotetask.pointcloud.Task_coverage.class);
+		put(remotetask.pointcloud.Task_to_voxel.class);
+		put(remotetask.pointcloud.Task_voxel_to_pointcloud.class);
 
 		//task_vectordb
 		put(RefreshCatalogEntryRemoteTask.class);

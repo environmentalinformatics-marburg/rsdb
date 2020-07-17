@@ -14,4 +14,8 @@ public class VoxelCell {
 		this.cnt = cnt;
 	}
 
+	@Override
+	public String toString() {
+		return "VoxelCell [x=" + x + ", y=" + y + ", z=" + z + "]";
+	}
 }

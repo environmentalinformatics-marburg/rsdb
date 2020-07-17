@@ -44,20 +44,24 @@ public class Task_to_voxel extends CancelableRemoteTask {
 
 	@Override
 	public void process() {
-		
+
 		VoxeldbConfig config = new VoxeldbConfig("voxeldb", Paths.get("c:/temp_TLS/voxeldb"), "TileStorage", false);
 		VoxelDB voxeldb = new VoxelDB(config);
-		
+		voxeldb.setProj4(pointcloud.getProj4());
+		voxeldb.setEpsg(pointcloud.getEPSGcode());
+		voxeldb.trySetVoxelsize(0.4);
+		voxeldb.trySetCellsize(200);
+
 		setMessage("query count of tiles");		
 		long total = pointcloud.getTileKeys().size();
 		setMessage("start processing " + total + " tiles");
 		Stream<PointTable> pointTables = pointcloud.getPointTables(-Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, new AttributeSelector().setXYZ());
 
 		StreamConsumer consumer = new StreamConsumer(total, voxeldb);
-		pointTables.forEach(consumer);
-		
+		pointTables.sequential().forEach(consumer);
+
 		voxeldb.close();
-		
+
 		if(consumer.getCnt() == total) {
 			setMessage("all " + total + " tiles processed");
 		} else {
@@ -132,14 +136,16 @@ public class Task_to_voxel extends CancelableRemoteTask {
 				if(zmax < z) {
 					zmax = z;
 				}
-			}
+			}			
+			log.info("PointTable " + xmin + " " + ymin + " " + zmin + "   " + xmax + " "+ ymax + " " + zmax + "     " + len);
 
-			double xorigin = 0;
-			double yorigin = 0;
-			double zorigin = 0;
-			double xvoxelsize = 1;
-			double yvoxelsize = 1;
-			double zvoxelsize = 1;
+			int cellsize = voxeldb.getCellsize();
+			double xorigin = voxeldb.geoRef().originX;
+			double yorigin = voxeldb.geoRef().originY;
+			double zorigin = voxeldb.geoRef().originZ;
+			double xvoxelsize = voxeldb.geoRef().voxelSizeX;
+			double yvoxelsize = voxeldb.geoRef().voxelSizeY;
+			double zvoxelsize = voxeldb.geoRef().voxelSizeZ;
 			long vxmin = (long) Math.floor((xmin - xorigin) / xvoxelsize); 
 			long vymin = (long) Math.floor((ymin - yorigin) / yvoxelsize); 
 			long vzmin = (long) Math.floor((zmin - zorigin) / zvoxelsize);			
@@ -152,15 +158,44 @@ public class Task_to_voxel extends CancelableRemoteTask {
 			long vcount = vxrange * vyrange * vzrange;
 
 			if(vcount <= MAX_VOXEL_COUNT) {
-				int[][][] cnt = new int[(int) vzrange][(int) vyrange][(int) vxrange];
-				for(int i = 0; i < len; i++) {
-					int x = (int) Math.floor((xs[i] - xorigin) / xvoxelsize) - (int)vxmin;
-					int y = (int) Math.floor((ys[i] - yorigin) / yvoxelsize) - (int)vymin;
-					int z = (int) Math.floor((zs[i] - zorigin) / zvoxelsize) - (int)vzmin;
-					cnt[z][y][x]++;
-				}
+				int ixmin = Integer.MAX_VALUE;
+				int iymin = Integer.MAX_VALUE;
+				int izmin = Integer.MAX_VALUE;
+				int ixmax = Integer.MIN_VALUE;
+				int iymax = Integer.MIN_VALUE;
+				int izmax = Integer.MIN_VALUE;
 
-				int cellsize = 100;
+				int[][][] cnt = new int[(int) vzrange][(int) vyrange][(int) vxrange];
+				int counter = 0;
+				for(int i = 0; i < len; i++) {
+					int x = (int) (Math.floor((xs[i] - xorigin) / xvoxelsize) - vxmin);
+					int y = (int) (Math.floor((ys[i] - yorigin) / yvoxelsize) - vymin);
+					int z = (int) (Math.floor((zs[i] - zorigin) / zvoxelsize) - vzmin);
+					//log.info("  " + xs[i] + " " + ys[i] + " " + zs[i] +" -> " + x + " " + y + " " + z + "     " + xorigin +  "  " + xvoxelsize + " " + vxmin);
+					cnt[z][y][x]++;
+
+					if(x < ixmin) {
+						ixmin = x;
+					}
+					if(ixmax < x) {
+						ixmax = x;
+					}
+					if(y < iymin) {
+						iymin = y;
+					}
+					if(iymax < y) {
+						iymax = y;
+					}
+					if(z < izmin) {
+						izmin = z;
+					}
+					if(izmax < z) {
+						izmax = z;
+					}
+					counter++;
+				}
+				log.info("i " + ixmin + " " + iymin + " " + izmin + "   " + ixmax + " "+ iymax + " " + izmax + "    " + counter);
+
 				int cxmin = (int) Math.floorDiv(vxmin, cellsize);
 				int cymin = (int) Math.floorDiv(vymin, cellsize);
 				int czmin = (int) Math.floorDiv(vzmin, cellsize);
@@ -172,6 +207,46 @@ public class Task_to_voxel extends CancelableRemoteTask {
 						for(int cx = cxmin; cx <= cxmax; cx++) {							
 							VoxelCell oldVoxelCell = voxeldb.getVoxelCell(cx, cy, cz);							
 							int[][][] ccnt = oldVoxelCell == null ? new int[cellsize][cellsize][cellsize] : oldVoxelCell.cnt;
+							
+							/*{
+								int sxmin = Integer.MAX_VALUE;
+								int symin = Integer.MAX_VALUE;
+								int szmin = Integer.MAX_VALUE;
+								int sxmax = Integer.MIN_VALUE;
+								int symax = Integer.MIN_VALUE;
+								int szmax = Integer.MIN_VALUE;
+								int sum = 0;
+								for(int z = 0; z < cellsize; z++) {
+									for(int y = 0; y < cellsize; y++) {
+										for(int x = 0; x < cellsize; x++) {
+											int v = ccnt[z][y][x];
+											if(v > 0) {
+												sum++;
+												if(x < sxmin) {
+													sxmin = x;
+												}
+												if(sxmax < x) {
+													sxmax = x;
+												}
+												if(y < symin) {
+													symin = y;
+												}
+												if(symax < y) {
+													symax = y;
+												}
+												if(z < szmin) {
+													szmin = z;
+												}
+												if(szmax < z) {
+													szmax = z;
+												}
+											}
+										}
+									}
+								}
+								log.info("vc " + sxmin + " " + symin + " " + szmin + "   " + sxmax + " "+ symax + " " + szmax + "     " + sum);
+							}*/
+							
 							int cvxmin = (cx * cellsize);
 							int cvymin = (cy * cellsize);
 							int cvzmin = (cz * cellsize);
@@ -191,6 +266,46 @@ public class Task_to_voxel extends CancelableRemoteTask {
 									}
 								}
 							}
+							
+							/*{
+								int sxmin = Integer.MAX_VALUE;
+								int symin = Integer.MAX_VALUE;
+								int szmin = Integer.MAX_VALUE;
+								int sxmax = Integer.MIN_VALUE;
+								int symax = Integer.MIN_VALUE;
+								int szmax = Integer.MIN_VALUE;
+								int sum = 0;
+								for(int z = 0; z < cellsize; z++) {
+									for(int y = 0; y < cellsize; y++) {
+										for(int x = 0; x < cellsize; x++) {
+											int v = ccnt[z][y][x];
+											if(v > 0) {
+												sum++;
+												if(x < sxmin) {
+													sxmin = x;
+												}
+												if(sxmax < x) {
+													sxmax = x;
+												}
+												if(y < symin) {
+													symin = y;
+												}
+												if(symax < y) {
+													symax = y;
+												}
+												if(z < szmin) {
+													szmin = z;
+												}
+												if(szmax < z) {
+													szmax = z;
+												}
+											}
+										}
+									}
+								}
+								log.info("vc " + sxmin + " " + symin + " " + szmin + "   " + sxmax + " "+ symax + " " + szmax + "     " + sum);
+							}*/
+							
 							VoxelCell voxelCell = new VoxelCell(cx, cy, cz, ccnt);
 							voxeldb.writeVoxelCell(voxelCell);
 						}
