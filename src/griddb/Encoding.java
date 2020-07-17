@@ -235,7 +235,7 @@ public class Encoding {
 		}
 	}
 
-	public static byte[] createIntData(int encoding, int[] data, int rows) throws IOException {
+	public static byte[] createIntData(int encoding, int[] data, int rows) {
 		switch(encoding) {
 		case ENCODING_INT32:
 			return Encoding.encInt32(data, rows);

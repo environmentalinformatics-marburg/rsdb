@@ -119,7 +119,7 @@ public class GridDB implements AutoCloseable {
 		}
 	}
 
-	public Tile createTile(int cx, int cy, int cz, byte[] cellData) throws IOException {		
+	public Tile createTile(int cx, int cy, int cz, byte[] cellData) {		
 		return new Tile(0, cz, cy, cx, TILE_TYPE_CELL, cellData);		
 	}
 
