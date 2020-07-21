@@ -41,6 +41,8 @@ import util.Timer;
 import util.Util;
 import vectordb.VectorDB;
 import vectordb.VectordbConfig;
+import voxeldb.VoxelDB;
+import voxeldb.VoxeldbConfig;
 
 /**
  * Broker manages a set of DBs.
@@ -56,17 +58,20 @@ public class Broker implements AutoCloseable {
 	private static final Path rasterdb_root = Paths.get("rasterdb");
 	private static final Path pointcloud_root = Paths.get("pointcloud");
 	private static final Path vectordb_root = Paths.get("vectordb");
+	private static final Path voxeldb_root = Paths.get("voxeldb");
 
 	private static final Path REALM_PROPERTIES_PATH = Paths.get("realm.properties");
 
 	ConcurrentSkipListMap<String, RasterdbConfig> rasterdbConfigMap = new ConcurrentSkipListMap<String, RasterdbConfig>();
 	ConcurrentSkipListMap<String, PointCloudConfig> pointcloudConfigMap = new ConcurrentSkipListMap<String, PointCloudConfig>();
 	ConcurrentSkipListMap<String, VectordbConfig> vectordbConfigMap = new ConcurrentSkipListMap<String, VectordbConfig>();
+	ConcurrentSkipListMap<String, VoxeldbConfig> voxeldbConfigMap = new ConcurrentSkipListMap<String, VoxeldbConfig>();
 
 	ConcurrentSkipListMap<String,PointDB> pointdbMap = new ConcurrentSkipListMap<String, PointDB>();
 	ConcurrentSkipListMap<String, RasterDB> rasterdbMap = new ConcurrentSkipListMap<String, RasterDB>();
 	ConcurrentSkipListMap<String, PointCloud> pointcloudMap = new ConcurrentSkipListMap<String, PointCloud>();
 	ConcurrentSkipListMap<String, VectorDB> vectordbMap = new ConcurrentSkipListMap<String, VectorDB>();
+	ConcurrentSkipListMap<String, VoxelDB> voxeldbMap = new ConcurrentSkipListMap<String, VoxelDB>();
 
 	TreeMap<String, PoiGroup> poiGroupMap = new TreeMap<String, PoiGroup>();
 	TreeMap<String, RoiGroup> roiGroupMap = new TreeMap<String, RoiGroup>(); 
@@ -280,6 +285,14 @@ public class Broker implements AutoCloseable {
 					exe.execute(()->{/*log.info("run close pointcloud "+name);*/pointcloud.close();/*log.info("pointcloud closed "+name);*/});
 				}
 			}
+			
+			if(voxeldbMap!=null) {
+				for(Entry<String, VoxelDB> e : voxeldbMap.entrySet()) {
+					String name = e.getKey();
+					VoxelDB voxeldb = e.getValue();
+					exe.execute(()->{/*log.info("run close voxeldb "+name);*/voxeldb.close();/*log.info("voxeldb closed "+name);*/});
+				}
+			}
 
 			try {
 				exe.shutdown();
@@ -328,6 +341,24 @@ public class Broker implements AutoCloseable {
 				map.put(config.name, config);
 			}
 			pointcloudConfigMap = map;
+		} catch (Exception e) {
+			log.error(e);
+		}
+	}
+	
+	public void refreshVoxeldbConfigs() {
+		if(!voxeldb_root.toFile().exists()) {
+			log.trace("no voxeldb layers: voxeldb folder missing");
+			return;
+		}
+		try {
+			ConcurrentSkipListMap<String, VoxeldbConfig> map = new ConcurrentSkipListMap<String, VoxeldbConfig>();
+			Path[] paths = Util.getPaths(voxeldb_root);
+			for(Path path:paths) {
+				VoxeldbConfig config = VoxeldbConfig.ofPath(path, null, true);
+				map.put(config.name, config);
+			}
+			voxeldbConfigMap = map;
 		} catch (Exception e) {
 			log.error(e);
 		}
@@ -446,6 +477,16 @@ public class Broker implements AutoCloseable {
 			pointcloudMap.remove(name);
 		}
 	}
+	
+	public synchronized void closeVoxeldb(String name) {
+		log.info("try close VoxelDB " + name);
+		VoxelDB voxeldb = voxeldbMap.get(name);
+		if(voxeldb != null) {
+			log.info("close voxeldb " + name);
+			voxeldb.close();
+			voxeldbMap.remove(name);
+		}
+	}
 
 	public synchronized void deleteRasterdb(String name) {
 		Util.checkStrictID(name);
@@ -522,6 +563,35 @@ public class Broker implements AutoCloseable {
 		catalog.updateCatalog();
 	}
 	
+	public synchronized void deleteVoxeldb(String name) {
+		log.info("check " + name + "   " + voxeldbMap.get(name));
+		closeVoxeldb(name);
+		Path voxeldbPath = voxeldb_root.resolve(name);
+		if(Files.exists(voxeldbPath)) {
+			log.info("delete VoxelDB: " + name + " in   " + voxeldbPath);
+			try {
+				boolean r1 = Files.deleteIfExists(voxeldbPath.resolve("voxeldb.dat")); // type: RasterUnit
+				boolean r2 = Files.deleteIfExists(voxeldbPath.resolve("voxeldb.idx")); // type: TileStorage
+				boolean r3 = Files.deleteIfExists(voxeldbPath.resolve("voxeldb.tst")); // type: TileStorage
+				boolean r4 = Files.deleteIfExists(voxeldbPath.resolve("voxeldb.DIRTY")); // type: TileStorage
+				boolean r5 = Files.deleteIfExists(voxeldbPath.resolve("voxeldb.yml")); // meta data
+				boolean r6 = Files.deleteIfExists(voxeldbPath);
+				log.info(r1 + "  " + r2 + "  " + r3 + "  " + r4 + "  " + r5 + "  " + r6);
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		}
+		try {
+			Thread.sleep(100); // wait for filesystem update
+		} catch (InterruptedException e) {
+			log.warn(e);
+		}
+		refreshVoxeldbConfigs();
+		catalog.updateCatalog();
+	}
+	
+	
 	public synchronized RasterDB createNewRasterdb(String name, boolean transaction, String storage_type) {
 		deleteRasterdb(name);
 		return createOrGetRasterdb(name, transaction, storage_type);
@@ -550,6 +620,14 @@ public class Broker implements AutoCloseable {
 		}
 		return openPointCloud(name);
 	}
+	
+	public VoxelDB getVoxeldb(String name) {
+		VoxelDB voxeldb = voxeldbMap.get(name);
+		if(voxeldb != null) {
+			return voxeldb;
+		}
+		return openVoxeldb(name);
+	}
 
 	private synchronized PointCloud openPointCloud(String name) { // guarantee to load each PointDB once only
 		PointCloud pointcloud = pointcloudMap.get(name);
@@ -571,11 +649,38 @@ public class Broker implements AutoCloseable {
 		}
 		return pointcloud;
 	}
+	
+	private synchronized VoxelDB openVoxeldb(String name) { // guarantee to load each VoxelDB once only
+		VoxelDB voxeldb = voxeldbMap.get(name);
+		if(voxeldb != null) {
+			return voxeldb;
+		}
+		VoxeldbConfig config = voxeldbConfigMap.get(name);
+		if(config==null) {			
+			refreshVoxeldbConfigs();
+			config = voxeldbConfigMap.get(name);
+			if(config==null) {
+				throw new PdbException("VoxelDB not found: "+name);
+			}
+		}
+		voxeldb = new VoxelDB(config);
+		VoxelDB ret = voxeldbMap.put(name, voxeldb);
+		if(ret!=null) {
+			throw new PdbException("double load: "+name);
+		}
+		return voxeldb;
+	}
 
 	public synchronized PointCloud getOrCreatePointCloud(String name, String storageType, boolean transactions) {
 		PointCloudConfig config = PointCloudConfig.ofPath(pointcloud_root.resolve(name), storageType, transactions);
 		pointcloudConfigMap.put(config.name, config);
 		return getPointCloud(name);
+	}
+	
+	public synchronized VoxelDB getOrCreateVoxeldb(String name, String storageType, boolean transactions) {
+		VoxeldbConfig config = VoxeldbConfig.ofPath(voxeldb_root.resolve(name), storageType, transactions);
+		voxeldbConfigMap.put(config.name, config);
+		return getVoxeldb(name);
 	}
 
 	public synchronized PointCloud createNewPointCloud(String name, String storageType, boolean transactions) {
@@ -583,6 +688,13 @@ public class Broker implements AutoCloseable {
 			throw new RuntimeException("PointCloud already exist: "+name);
 		}
 		return getOrCreatePointCloud(name, storageType, transactions);
+	}
+	
+	public synchronized VoxelDB createNewVoxeldb(String name, String storageType, boolean transactions) {
+		if(voxeldbConfigMap.containsKey(name)) {
+			throw new RuntimeException("VoxelDB already exist: "+name);
+		}
+		return getOrCreateVoxeldb(name, storageType, transactions);
 	}
 
 	public ACL getPointCloudACL(String name) {

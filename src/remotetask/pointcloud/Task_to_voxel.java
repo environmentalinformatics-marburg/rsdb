@@ -44,13 +44,16 @@ public class Task_to_voxel extends CancelableRemoteTask {
 
 	@Override
 	public void process() {
-
-		VoxeldbConfig config = new VoxeldbConfig("voxeldb", Paths.get("c:/temp_TLS/voxeldb"), "TileStorage", false);
-		VoxelDB voxeldb = new VoxelDB(config);
+		String voxeldb_name = task.optString("voxeldb", pointcloud.getName() + "_voxels");
+		
+		String storage_type = task.optString("storage_type", "TileStorage");
+		boolean transactions = task.optBoolean("transactions", false);
+		broker.deleteVoxeldb(voxeldb_name);
+		VoxelDB voxeldb = broker.createNewVoxeldb(voxeldb_name, storage_type, transactions);
 		voxeldb.setProj4(pointcloud.getProj4());
 		voxeldb.setEpsg(pointcloud.getEPSGcode());
-		voxeldb.trySetVoxelsize(0.4);
-		voxeldb.trySetCellsize(200);
+		voxeldb.trySetVoxelsize(4);
+		voxeldb.trySetCellsize(10);
 
 		setMessage("query count of tiles");		
 		long total = pointcloud.getTileKeys().size();
@@ -58,7 +61,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		Stream<PointTable> pointTables = pointcloud.getPointTables(-Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, new AttributeSelector().setXYZ());
 
 		StreamConsumer consumer = new StreamConsumer(total, voxeldb);
-		pointTables.sequential().forEach(consumer);
+		pointTables.sequential().forEachOrdered(consumer);
 
 		voxeldb.close();
 
@@ -102,6 +105,14 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		}
 
 		private void process(PointTable t) throws IOException {
+			int cellsize = voxeldb.getCellsize();
+			double xorigin = voxeldb.geoRef().originX;
+			double yorigin = voxeldb.geoRef().originY;
+			double zorigin = voxeldb.geoRef().originZ;
+			double xvoxelsize = voxeldb.geoRef().voxelSizeX;
+			double yvoxelsize = voxeldb.geoRef().voxelSizeY;
+			double zvoxelsize = voxeldb.geoRef().voxelSizeZ;			
+			
 			int len = t.rows;
 			double[] xs = t.x;
 			double[] ys = t.y;
@@ -139,13 +150,6 @@ public class Task_to_voxel extends CancelableRemoteTask {
 			}			
 			log.info("PointTable " + xmin + " " + ymin + " " + zmin + "   " + xmax + " "+ ymax + " " + zmax + "     " + len);
 
-			int cellsize = voxeldb.getCellsize();
-			double xorigin = voxeldb.geoRef().originX;
-			double yorigin = voxeldb.geoRef().originY;
-			double zorigin = voxeldb.geoRef().originZ;
-			double xvoxelsize = voxeldb.geoRef().voxelSizeX;
-			double yvoxelsize = voxeldb.geoRef().voxelSizeY;
-			double zvoxelsize = voxeldb.geoRef().voxelSizeZ;
 			long vxmin = (long) Math.floor((xmin - xorigin) / xvoxelsize); 
 			long vymin = (long) Math.floor((ymin - yorigin) / yvoxelsize); 
 			long vzmin = (long) Math.floor((zmin - zorigin) / zvoxelsize);			
@@ -204,7 +208,8 @@ public class Task_to_voxel extends CancelableRemoteTask {
 				int czmax = (int) Math.floorDiv(vzmax, cellsize);
 				for(int cz = czmin; cz <= czmax; cz++) {
 					for(int cy = cymin; cy <= cymax; cy++) {
-						for(int cx = cxmin; cx <= cxmax; cx++) {							
+						for(int cx = cxmin; cx <= cxmax; cx++) {
+							log.info("cx " + cx + "  cy " + cy + "  cz " + cz);
 							VoxelCell oldVoxelCell = voxeldb.getVoxelCell(cx, cy, cz);							
 							int[][][] ccnt = oldVoxelCell == null ? new int[cellsize][cellsize][cellsize] : oldVoxelCell.cnt;
 							
@@ -259,6 +264,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 							int lvxmax = cvxmax >= vxmax ? (int) vxmax : cvxmax;
 							int lvymax = cvymax >= vymax ? (int) vymax : cvymax;
 							int lvzmax = cvzmax >= vzmax ? (int) vzmax : cvzmax;
+							log.info("lvxmin " + lvxmin + "  lvymin " + lvymin + "  lvzmin " + lvzmin + "  lvxmax " + lvxmax + "  lvymax " + lvymax + "  lvzmax " + lvzmax +  "  xr " + (lvxmax - lvxmin + 1) +  "  yr " + (lvymax - lvymin + 1) +  "  zr " + (lvzmax - lvzmin + 1));
 							for(int z = lvzmin; z <= lvzmax; z++) {
 								for(int y = lvymin; y <= lvymax; y++) {
 									for(int x = lvxmin; x <= lvxmax; x++) {

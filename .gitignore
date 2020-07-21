@@ -16,6 +16,7 @@
 /storage
 /temp
 /vectordb
+/voxeldb
 /webfiles
 
 /.classpath

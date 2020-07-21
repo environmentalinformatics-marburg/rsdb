@@ -54,6 +54,14 @@ public class RemoteTaskExecutor {
 		}
 		return createTask_RemoteTask(rti, ctx);
 	}
+	
+	public static RemoteTask createTask_voxeldb(String name, Context ctx) {
+		RemoteTaskInfo rti = RemoteTasks.task_voxeldbMap.get(name);
+		if(rti == null) {
+			throw new RuntimeException("voxeldb_task not found: " + name);
+		}
+		return createTask_RemoteTask(rti, ctx);
+	}
 
 	public static RemoteTask createTask_vectordb(String name, Context ctx) {
 		RemoteTaskInfo rti = RemoteTasks.task_vectordbMap.get(name);
@@ -68,14 +76,17 @@ public class RemoteTaskExecutor {
 		String task_pointdb = ctx.task.optString("task_pointdb", null);
 		String task_pointcloud = ctx.task.optString("task_pointcloud", null);
 		String task_vectordb = ctx.task.optString("task_vectordb", null);
-		if(task_rasterdb != null && task_pointdb == null && task_pointcloud == null && task_vectordb == null) {
+		String task_voxeldb = ctx.task.optString("task_voxeldb", null);
+		if(task_rasterdb != null && task_pointdb == null && task_pointcloud == null && task_vectordb == null && task_voxeldb == null) {
 			return createTask_rasterdb(task_rasterdb, ctx);
-		} else if(task_rasterdb == null && task_pointdb != null && task_pointcloud == null && task_vectordb == null) {
+		} else if(task_rasterdb == null && task_pointdb != null && task_pointcloud == null && task_vectordb == null && task_voxeldb == null) {
 			return createTask_pointdb(task_pointdb, ctx);
-		} else if(task_rasterdb == null && task_pointdb == null && task_pointcloud != null && task_vectordb == null) {
+		} else if(task_rasterdb == null && task_pointdb == null && task_pointcloud != null && task_vectordb == null && task_voxeldb == null) {
 			return createTask_pointcloud(task_pointcloud, ctx);
-		} else if(task_rasterdb == null && task_pointdb == null && task_pointcloud == null && task_vectordb != null) {
+		} else if(task_rasterdb == null && task_pointdb == null && task_pointcloud == null && task_vectordb != null && task_voxeldb == null) {
 			return createTask_vectordb(task_vectordb, ctx);
+		} else if(task_rasterdb == null && task_pointdb == null && task_pointcloud == null && task_vectordb == null && task_voxeldb != null) {
+			return createTask_voxeldb(task_voxeldb, ctx);
 		} else {
 			throw new RuntimeException("unknown task type: " + ctx.task);
 		}

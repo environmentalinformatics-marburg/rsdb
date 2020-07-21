@@ -1,7 +1,4 @@
-package remotetask.pointcloud;
-
-import java.io.IOException;
-import java.nio.file.Paths;
+package remotetask.voxeldb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,10 +13,10 @@ import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
 import voxeldb.VoxelDB;
-import voxeldb.VoxeldbConfig;
 
-@task_pointcloud("voxel_to_pointcloud")
+@task_voxeldb("voxel_to_pointcloud")
 @Description("Convert voxels to pointcloud.")
+@Param(name="voxeldb", type="layer_id", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer. (target) (if layer exists, delete)", example="pointcloud1")
 public class Task_voxel_to_pointcloud extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
@@ -34,9 +31,9 @@ public class Task_voxel_to_pointcloud extends CancelableRemoteTask {
 
 	@Override
 	public void process() {
-
-		VoxeldbConfig config = new VoxeldbConfig("voxeldb", Paths.get("c:/temp_TLS/voxeldb"), "TileStorage", false);
-		VoxelDB voxeldb = new VoxelDB(config);
+		String voxeldb_name = task.getString("voxeldb");
+		VoxelDB voxeldb = broker.getVoxeldb(voxeldb_name);
+		
 		int cellsize = voxeldb.getCellsize();
 
 		if(!task.has("pointcloud")) {

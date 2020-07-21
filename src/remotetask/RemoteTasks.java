@@ -27,6 +27,7 @@ import remotetask.rasterdb.Task_remove_timestamps;
 import remotetask.rasterdb.task_rasterdb;
 import remotetask.vectordb.RefreshCatalogEntryRemoteTask;
 import remotetask.vectordb.task_vectordb;
+import remotetask.voxeldb.task_voxeldb;
 import util.collections.vec.Vec;
 
 public class RemoteTasks {
@@ -37,6 +38,7 @@ public class RemoteTasks {
 	final static Map<String, RemoteTaskInfo> task_rasterdbMap = new ConcurrentHashMap<>();
 	final static Map<String, RemoteTaskInfo> task_pointdbMap = new ConcurrentHashMap<>();
 	final static Map<String, RemoteTaskInfo> task_pointcloudMap = new ConcurrentHashMap<>();
+	final static Map<String, RemoteTaskInfo> task_voxeldbMap = new ConcurrentHashMap<>();
 	final static Map<String, RemoteTaskInfo> task_vectordbMap = new ConcurrentHashMap<>();
 
 	static {
@@ -58,7 +60,6 @@ public class RemoteTasks {
 		put(Task_to_pointcloud.class);
 		put(Task_verify.class);
 
-
 		//task_pointcloud
 		put(remotetask.pointcloud.Task_import.class);
 		put(Task_rasterize.class);
@@ -67,7 +68,9 @@ public class RemoteTasks {
 		put(remotetask.pointcloud.Task_index_raster.class);
 		put(remotetask.pointcloud.Task_coverage.class);
 		put(remotetask.pointcloud.Task_to_voxel.class);
-		put(remotetask.pointcloud.Task_voxel_to_pointcloud.class);
+		
+		//task_voxeldb
+		put(remotetask.voxeldb.Task_voxel_to_pointcloud.class);
 
 		//task_vectordb
 		put(RefreshCatalogEntryRemoteTask.class);
@@ -111,6 +114,20 @@ public class RemoteTasks {
 					log.warn("task with name already inserted, overwrite: " + name);
 				}
 				task_pointcloudMap.put(name, rti);
+				inserted = true;
+			} catch(Exception e) {
+				log.error("could not put task: "+ clazz.getName() + e);
+			}
+		}
+		
+		if(clazz.isAnnotationPresent(task_voxeldb.class)) {
+			try {
+				String name = clazz.getAnnotation(task_voxeldb.class).value();
+				RemoteTaskInfo rti = createRTI(clazz, name);
+				if(task_voxeldbMap.containsKey(name)) {
+					log.warn("task with name already inserted, overwrite: " + name);
+				}
+				task_voxeldbMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
 				log.error("could not put task: "+ clazz.getName() + e);
@@ -174,6 +191,7 @@ public class RemoteTasks {
 		map.put("task_rasterdb", collectAsTreeMap(task_rasterdbMap));
 		map.put("task_pointdb", collectAsTreeMap(task_pointdbMap));
 		map.put("task_pointcloud", collectAsTreeMap(task_pointcloudMap));
+		map.put("task_voxeldb", collectAsTreeMap(task_voxeldbMap));
 		map.put("task_vectordb", collectAsTreeMap(task_vectordbMap));
 		return map;
 	}

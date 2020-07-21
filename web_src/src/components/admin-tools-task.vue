@@ -228,6 +228,8 @@ export default {
           return "PointCloud";
         case "task_vectordb":
           return "VectorDB";
+        case "task_voxeldb":
+          return "VoxelDB";          
         default:
           return c;
       }
