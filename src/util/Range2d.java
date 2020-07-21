@@ -18,6 +18,12 @@ public class Range2d {
 		int ymax = ymin + height - 1;
 		return new Range2d(xmin, ymin, xmax, ymax);		
 	}
+	
+	public static Range2d ofCorner(int xmin, int ymin, int width, int height) {
+		int xmax = xmin + width - 1;
+		int ymax = ymin + height - 1;
+		return new Range2d(xmin, ymin, xmax, ymax);		
+	}
 
 	public Range2d(int xmin, int ymin, int xmax, int ymax) {
 		this.xmin = xmin;

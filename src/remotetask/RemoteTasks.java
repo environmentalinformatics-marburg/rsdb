@@ -71,6 +71,7 @@ public class RemoteTasks {
 		
 		//task_voxeldb
 		put(remotetask.voxeldb.Task_voxel_to_pointcloud.class);
+		put(remotetask.voxeldb.Task_rasterize.class);
 
 		//task_vectordb
 		put(RefreshCatalogEntryRemoteTask.class);

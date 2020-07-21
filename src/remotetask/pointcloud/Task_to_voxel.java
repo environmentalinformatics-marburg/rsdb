@@ -48,12 +48,13 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		
 		String storage_type = task.optString("storage_type", "TileStorage");
 		boolean transactions = task.optBoolean("transactions", false);
+		double voxel_size = task.optNumber("voxel_size", 1).doubleValue();
 		broker.deleteVoxeldb(voxeldb_name);
 		VoxelDB voxeldb = broker.createNewVoxeldb(voxeldb_name, storage_type, transactions);
 		voxeldb.setProj4(pointcloud.getProj4());
 		voxeldb.setEpsg(pointcloud.getEPSGcode());
-		voxeldb.trySetVoxelsize(4);
-		voxeldb.trySetCellsize(10);
+		voxeldb.trySetVoxelsize(voxel_size);
+		voxeldb.trySetCellsize(50);
 
 		setMessage("query count of tiles");		
 		long total = pointcloud.getTileKeys().size();

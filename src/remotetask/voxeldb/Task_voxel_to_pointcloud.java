@@ -48,7 +48,7 @@ public class Task_voxel_to_pointcloud extends CancelableRemoteTask {
 		pointcloud.setProj4(voxeldb.geoRef().proj4);
 		pointcloud.setCodeEPSG(voxeldb.geoRef().epsg);
 		double cellscale = voxeldb.geoRef().voxelSizeX;
-		pointcloud.trySetCellscale(cellscale);
+		pointcloud.trySetCellscale(1d / cellscale);
 		pointcloud.trySetCellsize(cellsize * cellscale);
 		pointcloud.getOrSetCelloffset(0, 0);
 

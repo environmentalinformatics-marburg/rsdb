@@ -73,7 +73,7 @@ public class FloatFrame {
 		shortToFloat(source.data, target.data, source.width, source.height, na);
 		return target;
 	}
-	
+
 	public static void shortToFloat(short[][] src, float[][] dst, int width, int height, short na) {
 		for (int y = 0; y < height; y++) {
 			short[] s = src[y];
@@ -309,7 +309,7 @@ public class FloatFrame {
 		}
 		return frameG;
 	}
-	
+
 	public BooleanFrame toMask() {
 		boolean[][] mask = new boolean[height][width];
 		for(int y = 0;y < height; y++) {
@@ -320,5 +320,25 @@ public class FloatFrame {
 			}
 		}
 		return new BooleanFrame(mask, local_min_x, local_min_y, local_max_x, local_max_y);		
+	}
+
+	public void drawBorder(float v) {
+		{
+			float[] y0 = data[0];
+			float[] y1 = data[height - 1];
+			for(int i = 0; i < width; i++) {
+				y0[i] = v;
+				y1[i] = v;
+			}
+		}
+		{
+			int x1 = width - 1;
+			for(int i = 0; i < height; i++) {
+				float[] y = data[i];
+				y[0] = v;
+				y[x1] = v;
+			}
+		}
+
 	}
 }
