@@ -60,6 +60,7 @@ import server.api.rasterdb.RasterdbsHandler;
 import server.api.rasterdb.WmsHandler;
 import server.api.roi_groups.APIHandler_roi_groups;
 import server.api.vectordbs.VectordbsHandler;
+import server.api.voxeldbs.APIHandler_voxeldbs;
 import util.Table;
 import util.Table.ColumnReaderString;
 import util.Util;
@@ -78,6 +79,7 @@ public class RSDBServer {
 	private static final String WEBCONTENT_URL = "/web";
 	private static final String WEBFILES_URL = "/files";
 	private static final String POINTCLOUDS_URL = "/pointclouds";
+	private static final String VOXELDBS_URL = "/voxeldbs";
 	private static final String VECTORDBS_URL = "/vectordbs";
 	private static final String POI_GROUPS_URL = "/poi_groups";
 	private static final String ROI_GROUPS_URL = "/roi_groups";
@@ -352,6 +354,7 @@ public class RSDBServer {
 				//createContext(SPECTRALDB_API_URL, new SpectraldbAPICollectionHandler(broker)),
 				createContext(RASTERDB_API_URL, new RasterdbHandler(broker)),
 				createContext(POINTCLOUDS_URL, true, new APIHandler_pointclouds(broker)),
+				createContext(VOXELDBS_URL, true, new APIHandler_voxeldbs(broker)),
 				createContext(VECTORDBS_URL, true, new VectordbsHandler(broker)),
 				createContext(POI_GROUPS_URL, true, new APIHandler_poi_groups(broker)),
 				createContext(ROI_GROUPS_URL, true, new APIHandler_roi_groups(broker)),

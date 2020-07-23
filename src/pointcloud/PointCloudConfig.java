@@ -44,7 +44,7 @@ public class PointCloudConfig {
 	}
 
 	public ACL readACL() {
-		String fileMetaName = name + ".yml";
+		String fileMetaName = "pointcloud.yml";
 		Path metaPath = path.resolve(fileMetaName);
 		File metaFile = metaPath.toFile();
 		try {

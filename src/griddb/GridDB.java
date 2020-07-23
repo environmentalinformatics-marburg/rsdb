@@ -57,6 +57,8 @@ public class GridDB implements AutoCloseable {
 	private final String fileDataName;
 	private final String fileDataCache;
 	private final boolean transaction;
+	
+	private volatile boolean unsavedMetaChanges = false;
 
 	public interface ExtendedMeta {
 		public void read(YamlMap map);
@@ -139,6 +141,7 @@ public class GridDB implements AutoCloseable {
 			storage.close();
 			storage = null;
 		}
+		writeMetaIfNeeded();
 	}
 
 	private Tile getTile(int tx, int ty, int tz) throws IOException {
@@ -184,7 +187,20 @@ public class GridDB implements AutoCloseable {
 				throw new RuntimeException("id overflow");
 			}
 			attributes.add(new Attribute((byte)id, encoding, name));
+			setUnsavedMetaChanges();
 		}
+	}
+	
+	public synchronized void setUnsavedMetaChanges() {
+		unsavedMetaChanges = true;		
+	}
+	
+	private synchronized void unsetUnsavedMetaChanges() {
+		unsavedMetaChanges = false;
+	}
+	
+	public synchronized boolean hasUnsavedMetaChanges() {
+		return unsavedMetaChanges;		
 	}
 
 	public synchronized Attribute getOrAddAttribute(String name, int encoding) {
@@ -219,8 +235,15 @@ public class GridDB implements AutoCloseable {
 			yaml.dump(map, out);
 			out.close();
 			Files.move(metaPathTemp, metaPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+			unsetUnsavedMetaChanges();
 		} catch (Exception e) {
 			log.warn(e);
+		}
+	}
+	
+	public synchronized void writeMetaIfNeeded() {
+		if(hasUnsavedMetaChanges()) {
+			writeMeta();
 		}
 	}
 
@@ -250,6 +273,8 @@ public class GridDB implements AutoCloseable {
 					map = YamlMap.ofObject(new Yaml().load(in));
 				}
 				yamlToMeta(map);
+			} else {
+				setUnsavedMetaChanges(); // mark for initial meta write
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

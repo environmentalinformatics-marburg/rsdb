@@ -44,7 +44,7 @@ public class VoxeldbConfig {
 	}
 
 	public ACL readACL() {
-		String fileMetaName = name + ".yml";
+		String fileMetaName = "voxeldb.yml";
 		Path metaPath = path.resolve(fileMetaName);
 		File metaFile = metaPath.toFile();
 		try {
@@ -64,7 +64,7 @@ public class VoxeldbConfig {
 	}
 
 	public Informal readInformal() {
-		String fileMetaName = "pointcloud.yml";
+		String fileMetaName = "voxeldb.yml";
 		Path metaPath = path.resolve(fileMetaName);
 		File metaFile = metaPath.toFile();
 		try {

@@ -19,7 +19,6 @@ import griddb.Cell;
 import griddb.Encoding;
 import griddb.GridDB;
 import griddb.GridDB.ExtendedMeta;
-import pointcloud.AttributeSelector;
 import rasterunit.BandKey;
 import rasterunit.Tile;
 import rasterunit.TileKey;
@@ -46,9 +45,9 @@ public class VoxelDB implements AutoCloseable {
 	private int version_patch = CURRENT_VERSION_PATCH;
 
 	public final VoxeldbConfig config;
-	
+
 	private VoxelGeoRef geoRef = VoxelGeoRef.DEFAULT;
-	
+
 	private Attribute attr_count;
 
 	public VoxelDB(VoxeldbConfig config) {
@@ -56,7 +55,7 @@ public class VoxelDB implements AutoCloseable {
 		griddb = new GridDB(config.path, "voxeldb", new ExtendedMetaHook(), config.preferredStorageType, config.transaction);
 		griddb.readMeta();
 		attr_count = griddb.getOrAddAttribute("count", Encoding.ENCODING_INT32);
-		griddb.writeMeta();
+		griddb.writeMetaIfNeeded();
 	}
 
 	public GridDB getGriddb() {
@@ -200,14 +199,6 @@ public class VoxelDB implements AutoCloseable {
 		griddb.writeMeta();		
 	}
 
-	public AttributeSelector getSelector() {
-		AttributeSelector selector = new AttributeSelector();
-		for(Attribute attribute : griddb.getAttributes()) {
-			selector.set(attribute.name);
-		}
-		return selector;
-	}
-
 	public Associated getAssociated() {
 		return associated;
 	}
@@ -256,11 +247,11 @@ public class VoxelDB implements AutoCloseable {
 		}
 		return true;
 	}
-	
+
 	public VoxelGeoRef geoRef() {
 		return geoRef;
 	}
-	
+
 	private VoxelCell cellToVoxelCell(Cell cell) {
 		int[] flat_cnt = cell.getInt(attr_count);
 		int[][][] cnt = new int[cellsize][cellsize][cellsize];
@@ -275,7 +266,7 @@ public class VoxelDB implements AutoCloseable {
 		VoxelCell voxelCell = new VoxelCell(cell.x, cell.y, cell.z, cnt);
 		return voxelCell;
 	}
-	
+
 	private Tile voxelCellToTile(VoxelCell voxelCell) {
 		int len = cellsize * cellsize * cellsize;
 		int[] flat_cnt = new int[len];
@@ -289,17 +280,17 @@ public class VoxelDB implements AutoCloseable {
 			}
 		}
 		byte[] data_cnt = Encoding.createIntData(attr_count.encoding, flat_cnt, len);
-		
+
 		byte[] cellData = Cell.createData(new Attribute[] {attr_count}, new byte[][] {data_cnt}, 1);
 		Tile tile = griddb.createTile(voxelCell.x, voxelCell.y, voxelCell.z, cellData);
 		return tile;
 	}
-	
+
 	public VoxelCell getVoxelCell(int x, int y, int z) throws IOException {		
 		Cell cell = griddb.getCell(x, y, z);
 		return cell == null ? null : cellToVoxelCell(cell);
 	}
-	
+
 	public void writeVoxelCell(VoxelCell voxelCell) throws IOException {
 		Tile tile = voxelCellToTile(voxelCell);
 		griddb.writeTile(tile);
@@ -313,9 +304,9 @@ public class VoxelDB implements AutoCloseable {
 				throw new RuntimeException(e);
 			}
 		})
-		.map(GridDB::tileToCell)
-		.map(this::cellToVoxelCell);
-		
+				.map(GridDB::tileToCell)
+				.map(this::cellToVoxelCell);
+
 	}
 
 	public void setProj4(String proj4) {		
@@ -339,7 +330,7 @@ public class VoxelDB implements AutoCloseable {
 			}
 		}		
 	}
-	
+
 	public boolean trySetVoxelsize(double voxelsize) {
 		synchronized (griddb) {
 			if(griddb.isEmpty()) {

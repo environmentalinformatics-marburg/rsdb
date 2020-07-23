@@ -87,6 +87,7 @@ public class Broker implements AutoCloseable {
 		}		
 		refreshRasterdbConfigs();
 		refreshPointcloudConfigs();
+		refreshVoxeldbConfigs();
 		refreshVectordbConfigs();
 		this.catalog = new Catalog(this);
 		refreshPoiGroupMap();
@@ -612,6 +613,10 @@ public class Broker implements AutoCloseable {
 	public NavigableSet<String> getPointCloudNames() {
 		return pointcloudConfigMap.keySet();
 	}
+	
+	public NavigableSet<String> getVoxeldbNames() {
+		return voxeldbConfigMap.keySet();
+	}
 
 	public PointCloud getPointCloud(String name) {
 		PointCloud pointcloud = pointcloudMap.get(name);
@@ -708,6 +713,18 @@ public class Broker implements AutoCloseable {
 		}
 		return EmptyACL.ADMIN;
 	}
+	
+	public ACL getVoxeldbACL(String name) {
+		VoxelDB voxeldb = voxeldbMap.get(name);
+		if(voxeldb != null) {
+			return voxeldb.getACL();
+		}
+		VoxeldbConfig voxeldbConfig = voxeldbConfigMap.get(name);
+		if(voxeldbConfig != null) {
+			return voxeldbConfig.readACL();
+		}
+		return EmptyACL.ADMIN;
+	}
 
 	public Informal getPointCloudInformal(String name) {
 		PointCloud pointcloud = pointcloudMap.get(name);
@@ -720,6 +737,20 @@ public class Broker implements AutoCloseable {
 			return pointcloudConfig.readInformal();
 		}
 		log.warn("missing PointCloudConfig: " + name);
+		return Informal.EMPTY;
+	}
+	
+	public Informal getVoxeldbInformal(String name) {
+		VoxelDB voxeldb = voxeldbMap.get(name);
+		if(voxeldb != null) {
+			return voxeldb.informal();
+		}
+		VoxeldbConfig voxeldbConfig = voxeldbConfigMap.get(name);
+		if(voxeldbConfig != null) {
+			//log.info("readInformal: " + name);
+			return voxeldbConfig.readInformal();
+		}
+		log.warn("missing VoxeldbConfig: " + name);
 		return Informal.EMPTY;
 	}
 

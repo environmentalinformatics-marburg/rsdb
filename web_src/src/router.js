@@ -7,6 +7,7 @@ import adminLayers from './components/admin-layers.vue'
 import adminLayersOverview from './components/admin-layers-overview.vue'
 import adminRasterdbDetail from './components/admin-rasterdb-detail.vue'
 import adminPointcloudDetail from './components/admin-pointcloud-detail.vue'
+import adminVoxeldbDetail from './components/admin-voxeldb-detail.vue'
 import adminVectordbDetail from './components/admin-vectordb-detail.vue'
 import adminPointdbDetail from './components/admin-pointdb-detail.vue'
 import adminPoi_groupsDetail from './components/admin-poi_groups-detail.vue'
@@ -35,6 +36,7 @@ export default new Router({
         {path: 'rasterdbs/:rasterdb', component: adminRasterdbDetail, props: true},
         {path: 'pointdbs/:pointdb', component: adminPointdbDetail, props: true},
         {path: 'pointclouds/:pointcloud', component: adminPointcloudDetail, props: true},
+        {path: 'voxeldbs/:voxeldb', component: adminVoxeldbDetail, props: true},
         {path: 'vectordbs/:vectordb', component: adminVectordbDetail, props: true},
         {path: 'poi_groups/:poi_group', component: adminPoi_groupsDetail, props: true},
         {path: 'roi_groups/:roi_group', component: adminRoi_groupsDetail, props: true},

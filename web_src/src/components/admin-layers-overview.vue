@@ -38,6 +38,15 @@
 
           <v-flex xs12>
             <v-card>
+              <v-card-title primary-title><h3 class="headline mb-0"><v-icon style="font-size: 1em;">view_module</v-icon>&nbsp;VoxelDB</h3> </v-card-title>
+              <v-card-text>
+                Layers of this type store <b>voxels</b>.
+              </v-card-text>
+            </v-card>
+          </v-flex>
+
+          <v-flex xs12>
+            <v-card>
               <v-card-title primary-title>
                 <h3 class="headline mb-0"><v-icon style="font-size: 1em;">category</v-icon>&nbsp;VectorDB</h3> 
               </v-card-title>

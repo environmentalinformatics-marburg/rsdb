@@ -28,7 +28,7 @@
         style="display: inline-block;"
       />
 
-      <div v-if="filteredRasterdbs.length === 0 && filteredPointdbs.length === 0 && filteredPointclouds.length === 0 && filteredPoi_groups.length === 0 && filteredRoi_groups.length === 0">
+      <div v-if="filteredRasterdbs.length === 0 && filteredPointdbs.length === 0 && filteredPointclouds.length === 0 && filteredVoxeldbs.length === 0 && filteredPoi_groups.length === 0 && filteredRoi_groups.length === 0">
         no layers
       </div>
 
@@ -79,6 +79,22 @@
           </v-list-tile-content>
         </v-list-tile>
       </v-list-group>
+
+      <v-list-group v-if="filteredVoxeldbs.length !== 0">
+        <v-list-tile slot="activator">
+            <v-list-tile-content>
+              <v-list-tile-title><v-icon style="font-size: 1em;">view_module</v-icon>&nbsp;<b>Voxeldbs</b> ({{filteredVoxeldbs.length}})</v-list-tile-title>
+            </v-list-tile-content>
+        </v-list-tile>
+        <v-list-tile v-for="item in filteredVoxeldbs" :key="item.name" @click="navigation = 'voxeldbs/' + item.name;" :class="{activeNavigation: navigation === 'voxeldbs/' + item.name}" :to="'/layers/voxeldbs/' + item.name" replace>
+          <v-list-tile-action>
+            <v-icon>view_module</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>{{ item.title !== undefined ? item.title : item.name }}</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list-group>      
 
       <v-list-group v-if="filteredVectordbs.length !== 0">
         <v-list-tile slot="activator">
@@ -156,6 +172,15 @@
         Could not load pointclouds.
       </v-list-tile>
 
+      <v-list-tile v-if="voxeldbsMode === 'init' || voxeldbsMode === 'load'">
+        <ring-loader color="#000000" size="20px" />
+        loading voxeldbs...
+      </v-list-tile>
+      <v-list-tile v-if="voxeldbsMode === 'error'">
+        <v-icon>error</v-icon>
+        Could not load voxeldbs.
+      </v-list-tile>      
+
       <v-list-tile v-if="vectordbsMode === 'init' || vectordbsMode === 'load'">
         <ring-loader color="#000000" size="20px" />
         loading vectordbs...
@@ -227,6 +252,7 @@ export default {
       this.$store.dispatch('rasterdbs/refresh');
       this.$store.dispatch('pointdbs/refresh');
       this.$store.dispatch('pointclouds/refresh');
+      this.$store.dispatch('voxeldbs/refresh');
       this.$store.dispatch('vectordbs/refresh');
       this.$store.dispatch('poi_groups/refresh');
       this.$store.dispatch('roi_groups/refresh');
@@ -356,7 +382,30 @@ export default {
       },
     },
     pointcloudsErrorMessage() {
-      return this.$store.state.rasterdbs.message;
+      return this.$store.state.pointclouds.message;
+    },
+
+    filteredVoxeldbs() {
+      return this.voxeldbs === undefined ? [] : this.voxeldbs.filter(this.filterFun).sort(layerComparator);
+    },    
+    voxeldbs() {
+      return this.$store.state.voxeldbs.data;
+    },
+    voxeldbsMode() {
+      return this.$store.state.voxeldbs.mode;
+    },
+    voxeldbsError: {
+      get() {
+        return this.$store.state.voxeldbs.mode === 'error' && this.$store.state.voxeldbs.messageActive; 
+      },
+      set(v) {
+        if(v == false) {
+          this.$store.commit('voxeldbs/closeMessage');
+        }
+      },
+    },
+    voxeldbsErrorMessage() {
+      return this.$store.state.voxeldbs.message;
     },
 
     filteredVectordbs() {
@@ -432,6 +481,7 @@ export default {
     this.$store.dispatch('rasterdbs/init');
     this.$store.dispatch('pointdbs/init');
     this.$store.dispatch('pointclouds/init');
+    this.$store.dispatch('voxeldbs/init');
     this.$store.dispatch('vectordbs/init');
     this.$store.dispatch('poi_groups/init');
     this.$store.dispatch('roi_groups/init');

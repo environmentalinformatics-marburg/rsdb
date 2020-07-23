@@ -50,6 +50,7 @@ import rasterunit.TileKey;
 import util.Range2d;
 import util.Timer;
 import vectordb.VectorDB;
+import voxeldb.VoxelDB;
 
 public class Catalog {
 	private static final Logger log = LogManager.getLogger();
@@ -736,5 +737,10 @@ public class Catalog {
 				.map(key -> map.get(key))
 				.filter(entry -> entry.acl.isAllowed(userIdentity))
 				.sorted(CATALOG_ENTRY_COMPARATOR);
+	}
+
+	public void update(VoxelDB voxeldb, boolean updateCatalogPoints) {
+		// TODO Auto-generated method stub
+		
 	}
 }

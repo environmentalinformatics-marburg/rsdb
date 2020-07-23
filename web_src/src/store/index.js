@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 
 import rasterdbs from './rasterdbs'
 import pointclouds from './pointclouds'
+import voxeldbs from './voxeldbs'
 import vectordbs from './vectordbs'
 import pointdbs from './pointdbs'
 import identity from './identity'
@@ -19,6 +20,7 @@ const isDev = process.env.NODE_ENV !== 'production'
 const modules = {
     rasterdbs,
     pointclouds,
+    voxeldbs,
     vectordbs,
     pointdbs,
     identity,
