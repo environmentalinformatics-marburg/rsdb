@@ -5,10 +5,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.BitSet;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.github.luben.zstd.Zstd;
+import com.oracle.tools.packager.Log;
 
 public class Cell {
-	//private static final Logger log = LogManager.getLogger();
+	private static final Logger log = LogManager.getLogger();
 
 	public final int x;
 	public final int y;
@@ -69,6 +73,7 @@ public class Cell {
 		for (int i = 0; i < column_count; i++) {
 			byteBuffer.put(columns[i]);
 		}
+		log.info("compress: " + result.length);
 		byte[] result_compressed = Zstd.compress(result, 1); // default
 		//byte[] result_compressed = Zstd.compress(result, 6); // best size / speed ratio
 		//byte[] result_compressed = Zstd.compress(result, 22); // maximum

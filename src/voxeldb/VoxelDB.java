@@ -19,13 +19,25 @@ import griddb.Cell;
 import griddb.Encoding;
 import griddb.GridDB;
 import griddb.GridDB.ExtendedMeta;
-import rasterunit.BandKey;
 import rasterunit.Tile;
 import rasterunit.TileKey;
-import util.Range2d;
 import util.collections.ReadonlyNavigableSetView;
 import util.yaml.YamlMap;
 
+/**
+cell.x -> voxelcell.z
+<br>
+cell.y -> voxelcell.x
+<br>
+cell.b -> voxelcell.y
+<br>
+<br>
+voxelcell.z -> cell.x
+<br>
+voxelcell.x -> cell.y
+<br>
+voxelcell.y -> cell.b
+ **/
 public class VoxelDB implements AutoCloseable {
 	private static final Logger log = LogManager.getLogger();
 
@@ -135,18 +147,6 @@ public class VoxelDB implements AutoCloseable {
 
 	public int getCellsize() {
 		return cellsize;
-	}
-
-	/**
-	 * 
-	 * @return range or null
-	 */
-	public Range2d getCellRange() {
-		return griddb.getTileRange2d();
-	}
-
-	public Range2d getCellRangeOfSubset(Range2d subsetCellRange) {
-		return griddb.getTileRange2dOfSubset(new BandKey(0, 0), subsetCellRange);
 	}
 
 	public File getMetaFile() {
@@ -263,7 +263,7 @@ public class VoxelDB implements AutoCloseable {
 				}
 			}
 		}
-		VoxelCell voxelCell = new VoxelCell(cell.x, cell.y, cell.b, cnt);
+		VoxelCell voxelCell = new VoxelCell(cell.y, cell.b, cell.x, cnt);
 		return voxelCell;
 	}
 
@@ -282,12 +282,12 @@ public class VoxelDB implements AutoCloseable {
 		byte[] data_cnt = Encoding.createIntData(attr_count.encoding, flat_cnt, len);
 
 		byte[] cellData = Cell.createData(new Attribute[] {attr_count}, new byte[][] {data_cnt}, 1);
-		Tile tile = griddb.createTile(voxelCell.x, voxelCell.y, voxelCell.z, cellData);
+		Tile tile = griddb.createTile(voxelCell.z, voxelCell.x, voxelCell.y, cellData);
 		return tile;
 	}
 
 	public VoxelCell getVoxelCell(int x, int y, int z) throws IOException {		
-		Cell cell = griddb.getCell(x, y, z);
+		Cell cell = griddb.getCell(z, x, y);
 		return cell == null ? null : cellToVoxelCell(cell);
 	}
 
@@ -318,7 +318,7 @@ public class VoxelDB implements AutoCloseable {
 		geoRef = geoRef.withEpsg(epsg);
 		griddb.writeMeta();
 	}
-	
+
 	public boolean trySetCellsize(int cellsize) {
 		synchronized (griddb) {
 			if(griddb.isEmpty()) {
@@ -341,5 +341,17 @@ public class VoxelDB implements AutoCloseable {
 				return false;
 			}
 		}		
+	}
+	
+	public boolean trySetOrigin(double originX, double originY, double originZ) {
+		synchronized (griddb) {
+			if(griddb.isEmpty()) {
+				geoRef = geoRef.withOrigin(originX, originY, originZ);
+				griddb.writeMeta();
+				return true;
+			} else {
+				return false;
+			}
+		}			
 	}
 }

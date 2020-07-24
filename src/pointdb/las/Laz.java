@@ -342,7 +342,7 @@ public class Laz {
 				break;
 			}			
 			}			
-			log.info("len re " + ((int)e.key_id) + "   " + ((int)e.count) + "   " + ((int)e.tiff_tag_location) + "  " + ((int) e.value_offset));
+			//log.info("len re " + ((int)e.key_id) + "   " + ((int)e.count) + "   " + ((int)e.tiff_tag_location) + "  " + ((int) e.value_offset));
 		}
 		return epsg;
 	}

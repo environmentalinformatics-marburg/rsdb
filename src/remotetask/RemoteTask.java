@@ -54,6 +54,12 @@ public abstract class RemoteTask implements Runnable {
 			setMessage("Error: " + e.getMessage());
 			log.error(e.getMessage());
 			e.printStackTrace();
+		} catch(Throwable e) {
+			status = Status.ERROR;
+			setMessage("Error: " + e.getMessage());
+			log.error(e.getMessage());
+			e.printStackTrace();
+			throw e;
 		} finally {
 			close();
 			tend = System.currentTimeMillis(); 

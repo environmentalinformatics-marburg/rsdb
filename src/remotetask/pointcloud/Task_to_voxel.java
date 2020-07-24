@@ -1,7 +1,6 @@
 package remotetask.pointcloud;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -21,7 +20,6 @@ import remotetask.Description;
 import remotetask.Param;
 import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
-import voxeldb.VoxeldbConfig;
 
 @task_pointcloud("to_voxel")
 @Description("Convert pointcloud to voxels.")

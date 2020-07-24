@@ -5,15 +5,12 @@ import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 
-import griddb.Cell;
-import griddb.GridDB;
 import pointdb.las.Las;
 import pointdb.las.Laz;
 import rasterunit.Tile;

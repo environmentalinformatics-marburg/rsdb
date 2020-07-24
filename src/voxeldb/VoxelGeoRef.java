@@ -93,4 +93,8 @@ public class VoxelGeoRef {
 	public VoxelGeoRef withVoxelSize(double voxelsize) {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelsize, voxelsize, voxelsize);
 	}
+	
+	public VoxelGeoRef withOrigin(double originX, double originY, double originZ) {
+		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
+	}
 }
