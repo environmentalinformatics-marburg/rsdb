@@ -185,7 +185,7 @@ public abstract class Cell<T> {
 		if(pixel_len % div != 0) {
 			throw new RuntimeException("invalid div: " + div + "  for pixel_len");
 		}
-		Range2d range = srcStorage.getTileRange(srcBandKey);
+		Range2d range = srcStorage.getTileRange2d(srcBandKey);
 		if(range == null) {
 			return;
 		}

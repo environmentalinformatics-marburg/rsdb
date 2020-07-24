@@ -34,7 +34,7 @@ public class LocalExtentCalculator {
 			}
 
 			RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
-			Range2d tileRange = rasterUnit.getTileRange();
+			Range2d tileRange = rasterUnit.getTileRange2d();
 			if(tileRange == null) {
 				return null;
 			}

@@ -308,7 +308,7 @@ public class RasterDB implements AutoCloseable {
 							writeMeta();
 						}
 					} else {
-						Range2d tileRange = rasterUnit().getTileRange();
+						Range2d tileRange = rasterUnit().getTileRange2d();
 						if(tileRange == null) {
 							if(local_extent != null) {
 								local_extent = null;

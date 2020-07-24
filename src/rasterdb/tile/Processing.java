@@ -125,7 +125,7 @@ public class Processing {
 
 		boolean needProcessing = false;
 		for(BandKey srcBandKey : srcBandKeys) {
-			Range2d range = srcStorage.getTileRange(srcBandKey);
+			Range2d range = srcStorage.getTileRange2d(srcBandKey);
 			if(range != null && ( range.getWidth() > 2 || range.getHeight() > 2)) {
 				log.info("pyramid " + srcPyramid + " size " + range);
 				needProcessing = true;

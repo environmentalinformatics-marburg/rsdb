@@ -116,7 +116,7 @@ public class Rasterizer {
 			return;
 		}
 		log.info("pre  " + cellrange);
-		cellrange = pointcloud.getCellRangeOfSubset(cellrange);
+		cellrange = pointcloud.getCellRange2dOfSubset(cellrange);
 		log.info("post " + cellrange);
 		if(cellrange == null) {
 			return;

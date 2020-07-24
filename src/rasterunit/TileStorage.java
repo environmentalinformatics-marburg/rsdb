@@ -856,33 +856,8 @@ public class TileStorage implements RasterUnitStorage {
 		return map.isEmpty();
 	}
 
-	public Range2d getTileRange() {
-		int xmin = Integer.MAX_VALUE;
-		int ymin = Integer.MAX_VALUE;
-		int xmax = Integer.MIN_VALUE;
-		int ymax = Integer.MIN_VALUE;
-		for(TileKey tileKey:map.keySet()) {
-			int x = tileKey.x;
-			int y = tileKey.y;
-			if(x<xmin) {
-				xmin = x;
-			}
-			if(y<ymin) {
-				ymin = y;
-			}
-			if(xmax<x) {
-				xmax = x;
-			}
-			if(ymax<y) {
-				ymax = y;
-			}			
-		}
-		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
-		return tileRange.isEmptyMarker() ? null : tileRange;
-	}
-
 	@Override
-	public Range2d getTileRange(BandKey bandKey) {
+	public Range2d getTileRange2d(BandKey bandKey) {
 		int xmin = Integer.MAX_VALUE;
 		int ymin = Integer.MAX_VALUE;
 		int xmax = Integer.MIN_VALUE;
@@ -912,7 +887,7 @@ public class TileStorage implements RasterUnitStorage {
 	}
 
 	@Override
-	public Range2d getTileRangeOfSubset(BandKey bandKey, Range2d subsetTileRange) {
+	public Range2d getTileRange2dOfSubset(BandKey bandKey, Range2d subsetTileRange) {
 		int xmin = Integer.MAX_VALUE;
 		int xmax = Integer.MIN_VALUE;
 		NavigableSet<TileKey> mapKeys = map.keySet();		
@@ -1138,5 +1113,75 @@ public class TileStorage implements RasterUnitStorage {
 			cnt++;
 		}		
 		return cnt == 0 ? null : new long[] {min, sum/cnt, max};
+	}
+	
+	@Override
+	public Range2d getTileRange2d() {
+		int xmin = Integer.MAX_VALUE;
+		int ymin = Integer.MAX_VALUE;
+		int xmax = Integer.MIN_VALUE;
+		int ymax = Integer.MIN_VALUE;
+		for(TileKey tileKey:map.keySet()) {
+			int x = tileKey.x;
+			int y = tileKey.y;
+			if(x<xmin) {
+				xmin = x;
+			}
+			if(y<ymin) {
+				ymin = y;
+			}
+			if(xmax<x) {
+				xmax = x;
+			}
+			if(ymax<y) {
+				ymax = y;
+			}			
+		}
+		Range2d tileRange = new Range2d(xmin, ymin, xmax, ymax);
+		return tileRange.isEmptyMarker() ? null : tileRange;
+	}
+	
+	@Override
+	public KeyRange getKeyRange() {
+		int xmin = Integer.MAX_VALUE;
+		int ymin = Integer.MAX_VALUE;
+		int bmin = Integer.MAX_VALUE;
+		int tmin = Integer.MAX_VALUE;
+		int xmax = Integer.MIN_VALUE;
+		int ymax = Integer.MIN_VALUE;
+		int bmax = Integer.MIN_VALUE;
+		int tmax = Integer.MIN_VALUE;
+		for(TileKey tileKey:map.keySet()) {
+			int x = tileKey.x;
+			if(x < xmin) {
+				xmin = x;
+			}
+			if(xmax < x) {
+				xmax = x;
+			}			
+			int y = tileKey.y;
+			if(y < ymin) {
+				ymin = y;
+			}
+			if(ymax < y) {
+				ymax = y;
+			}
+			int b = tileKey.b;
+			if(b < bmin) {
+				bmin = b;
+			}
+			if(bmax < b) {
+				bmax = b;
+			}
+			int t = tileKey.t;
+			if(t < bmin) {
+				bmin = t;
+			}
+			if(tmax < t) {
+				bmax = t;
+			}
+		}
+		KeyRange keyRange = new KeyRange(xmin, ymin, bmin, tmin, xmax, ymax, bmax, tmax);
+		return keyRange.isEmptyMarker() ? null : keyRange;
 	}
 }

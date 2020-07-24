@@ -24,19 +24,25 @@ public interface RasterUnitStorage extends AutoCloseable {
 	 * 
 	 * @return range or null
 	 */
-	Range2d getTileRange();
+	Range2d getTileRange2d();
 	
 	/**
 	 * 
 	 * @return range or null
 	 */	
-	Range2d getTileRange(BandKey bandKey);
+	Range2d getTileRange2d(BandKey bandKey);
 	
 	/**
 	 * 
 	 * @return range or null
 	 */
-	Range2d getTileRangeOfSubset(BandKey bandKey, Range2d subsetTileRange);
+	Range2d getTileRange2dOfSubset(BandKey bandKey, Range2d subsetTileRange);
+	
+	/**
+	 * 
+	 * @return range or null
+	 */
+	KeyRange getKeyRange();
 	
 	void writeTile(Tile tile) throws IOException;
 	

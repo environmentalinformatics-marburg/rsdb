@@ -142,11 +142,11 @@ public class VoxelDB implements AutoCloseable {
 	 * @return range or null
 	 */
 	public Range2d getCellRange() {
-		return griddb.getTileRange();
+		return griddb.getTileRange2d();
 	}
 
 	public Range2d getCellRangeOfSubset(Range2d subsetCellRange) {
-		return griddb.getTileRangeOfSubset(new BandKey(0, 0), subsetCellRange);
+		return griddb.getTileRange2dOfSubset(new BandKey(0, 0), subsetCellRange);
 	}
 
 	public File getMetaFile() {
@@ -263,7 +263,7 @@ public class VoxelDB implements AutoCloseable {
 				}
 			}
 		}
-		VoxelCell voxelCell = new VoxelCell(cell.x, cell.y, cell.z, cnt);
+		VoxelCell voxelCell = new VoxelCell(cell.x, cell.y, cell.b, cnt);
 		return voxelCell;
 	}
 

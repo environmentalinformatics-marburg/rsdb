@@ -21,6 +21,7 @@ import broker.Broker;
 import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
+import rasterunit.KeyRange;
 import util.JsonUtil;
 import util.Web;
 import voxeldb.VoxelDB;
@@ -202,6 +203,26 @@ public class APIHandler_voxeldb {
 				json.value(stats[2]);		
 				json.endObject();		
 			}
+			
+			KeyRange keyRange = voxeldb.getGriddb().storage().getKeyRange();
+			if(keyRange != null) {
+				json.key("cell_range");
+				json.object();
+				json.key("xmin");
+				json.value(keyRange.xmin);	
+				json.key("xmax");
+				json.value(keyRange.xmax);	
+				json.key("ymin");
+				json.value(keyRange.ymin);	
+				json.key("ymax");
+				json.value(keyRange.ymax);
+				json.key("zmin");
+				json.value(keyRange.bmin);	
+				json.key("zmax");
+				json.value(keyRange.bmax);
+				json.endObject();	
+			}
+			
 			json.endObject();
 		}
 		

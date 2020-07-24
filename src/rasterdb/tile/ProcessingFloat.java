@@ -447,7 +447,7 @@ public class ProcessingFloat {
 		if(pixel_len % div != 0) {
 			throw new RuntimeException("invalid div: " + div + "  for 256");
 		}
-		Range2d range = srcStorage.getTileRange(srcBandKey);
+		Range2d range = srcStorage.getTileRange2d(srcBandKey);
 		if(range == null) {
 			return;
 		}

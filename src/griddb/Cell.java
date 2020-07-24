@@ -12,7 +12,7 @@ public class Cell {
 
 	public final int x;
 	public final int y;
-	public final int z;
+	public final int b;
 	private byte[] data;
 
 	public final int column_count;
@@ -20,13 +20,13 @@ public class Cell {
 	private int[] column_offsets;
 	private int[] column_sizes;
 	
-	public Cell(int x, int y, int z, byte[] data_compressed) throws IOException {
+	public Cell(int x, int y, int b, byte[] data_compressed) throws IOException {
 		long size = Zstd.decompressedSize(data_compressed);
 		//log.info(data_compressed.length + " -> " + size);
 		this.data = Zstd.decompress(data_compressed, (int) size);
 		this.x = x;
 		this.y = y;
-		this.z = z;
+		this.b = b;
 		ByteBuffer byteBuffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
 		this.column_count = byteBuffer.get();
 		this.column_ids = new byte[column_count];

@@ -442,7 +442,7 @@ public class PointCloud implements AutoCloseable {
 		int[] x = selector.x ? cell.getInt(attr_x) : null;
 		int[] y = selector.y ? cell.getInt(attr_y) : null;
 		int[] z = selector.z ? cell.getInt(attr_z) : null;
-		CellTable cellTable = new CellTable(cell.x, cell.y, cell.z, x.length, x, y, z);
+		CellTable cellTable = new CellTable(cell.x, cell.y, cell.b, x.length, x, y, z);
 		if(selector.intensity) {
 			cellTable.intensity = cell.getChar(attr_intensity);
 		}
@@ -633,7 +633,7 @@ public class PointCloud implements AutoCloseable {
 	}
 
 	public DoubleRect getRange() {
-		Range2d range2d = griddb.getTileRange();
+		Range2d range2d = griddb.getTileRange2d();
 		if(range2d == null) {
 			return null;
 		} else {
@@ -650,11 +650,11 @@ public class PointCloud implements AutoCloseable {
 	 * @return range or null
 	 */
 	public Range2d getCellRange() {
-		return griddb.getTileRange();
+		return griddb.getTileRange2d();
 	}
 
-	public Range2d getCellRangeOfSubset(Range2d subsetCellRange) {
-		return griddb.getTileRangeOfSubset(new BandKey(0, 0), subsetCellRange);
+	public Range2d getCellRange2dOfSubset(Range2d subsetCellRange) {
+		return griddb.getTileRange2dOfSubset(new BandKey(0, 0), subsetCellRange);
 	}
 
 	public String getCode() {

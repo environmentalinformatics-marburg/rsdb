@@ -132,11 +132,30 @@
                             <td>{{cellSizeText}}</td>
                             <td>{{cellSizeProjectedText}}</td>
                             <td>{{+meta.ref.origin.x.toPrecision(8)}}<b>,</b> {{+meta.ref.origin.y.toPrecision(8)}}<b>,</b> {{+meta.ref.origin.z.toPrecision(8)}}</td>                              
-                        </tr>                                            
+                         </tr>                                            
                     </tbody>
                 </table>
 
                 <v-btn v-if="meta.storage_measures === undefined" @click="refresh(true)" style="vertical-align: top;"><v-icon>arrow_drop_down</v-icon>&nbsp;more</v-btn>
+
+                <table v-if="meta.storage_measures !== undefined" class="table-details">
+                    <thead>
+                        <tr>
+                            <th>Cell extent <div class="header-unit">cell coordinates</div></th>
+                            <th>Cell range <div class="header-unit">cells</div></th>
+                            <th>Cell range <div class="header-unit">voxels</div></th>
+                            <th>Cell range <div class="header-unit">{{projection_units}}</div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{meta.storage_measures.cell_range.xmin}}<b>,</b> {{meta.storage_measures.cell_range.ymin}}<b>,</b> {{meta.storage_measures.cell_range.zmin}} <b>-</b> {{meta.storage_measures.cell_range.xmax}}<b>,</b> {{meta.storage_measures.cell_range.ymax}}<b>,</b> {{meta.storage_measures.cell_range.zmax}}</td>
+                            <td>{{cellRangeText}}</td>
+                            <td>{{cellRangeVoxelText}}</td>
+                            <td>{{cellRangeProjectedText}}</td>
+                         </tr>                    
+                    </tbody>
+                </table>
 
                 <table v-if="meta.storage_measures !== undefined" class="table-details">
                     <thead>
@@ -156,7 +175,7 @@
                             <td v-if="meta.storage_measures.storage_size !== undefined">{{meta.storage_measures.storage_size}}</td>
                             <td v-else>none</td>
                             <td v-if="meta.storage_measures.storage_internal_free_size !== undefined">{{meta.storage_measures.storage_internal_free_size}}</td>
-                            <td v-else>none</td>                                                             
+                            <td v-else>none</td>
                         </tr>                    
                     </tbody>
                 </table>            
@@ -316,6 +335,33 @@ export default {
                 let vs = this.meta.ref.voxel_size;
                 let cs = this.meta.cell_size;
                 return (+(cs.x * vs.x).toPrecision(8)) + ' x ' + (+(cs.y * vs.y).toPrecision(8)) + ' x ' + (+(cs.z * vs.z).toPrecision(8));
+            }
+        },
+        cellRangeText() {
+            if (this.meta === undefined || this.meta.ref === undefined || this.meta.ref.voxel_size === undefined) {
+                return 'not set';
+            } else {
+                let r = this.meta.storage_measures.cell_range;
+                return (r.xmax - r.xmin) + ' x ' + (r.ymax - r.ymin) + ' x ' + (r.zmax - r.zmin);
+            }
+        },
+        cellRangeVoxelText() {
+            if (this.meta === undefined || this.meta.ref === undefined || this.meta.ref.voxel_size === undefined) {
+                return 'not set';
+            } else {
+                let r = this.meta.storage_measures.cell_range;
+                let cs = this.meta.cell_size;
+                return ((r.xmax - r.xmin) * cs.x) + ' x ' + ((r.ymax - r.ymin) * cs.y) + ' x ' + ((r.zmax - r.zmin) * cs.z);
+            }
+        },
+        cellRangeProjectedText() {
+            if (this.meta === undefined || this.meta.ref === undefined || this.meta.ref.voxel_size === undefined) {
+                return 'not set';
+            } else {
+                let r = this.meta.storage_measures.cell_range;
+                let cs = this.meta.cell_size;
+                let vs = this.meta.ref.voxel_size;
+                return ((r.xmax - r.xmin) * cs.x * vs.x) + ' x ' + ((r.ymax - r.ymin) * cs.y * vs.y) + ' x ' + ((r.zmax - r.zmin) * cs.z * vs.z);
             }
         },
     },

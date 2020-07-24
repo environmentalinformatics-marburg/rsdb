@@ -291,12 +291,12 @@ public class GridDB implements AutoCloseable {
 	 * 
 	 * @return range or null
 	 */
-	public Range2d getTileRange() {
-		return storage().getTileRange();
+	public Range2d getTileRange2d() {
+		return storage().getTileRange2d();
 	}
 	
-	public Range2d getTileRangeOfSubset(BandKey bandKey, Range2d subsetTileRange) {
-		return storage().getTileRangeOfSubset(bandKey, subsetTileRange);
+	public Range2d getTileRange2dOfSubset(BandKey bandKey, Range2d subsetTileRange) {
+		return storage().getTileRange2dOfSubset(bandKey, subsetTileRange);
 	}
 
 	public ReadonlyNavigableSetView<TileKey> getTileKeys() {
