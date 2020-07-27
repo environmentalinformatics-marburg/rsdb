@@ -97,4 +97,16 @@ public class VoxelGeoRef {
 	public VoxelGeoRef withOrigin(double originX, double originY, double originZ) {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
 	}
+
+	public int geoXtoVoxel(double x) {
+		return (int) Math.floor((x - originX) / voxelSizeX);		
+	}
+	
+	public int geoYtoVoxel(double y) {
+		return (int) Math.floor((y - originY) / voxelSizeY);		
+	}
+	
+	public int geoZtoVoxel(double z) {
+		return (int) Math.floor((z - originZ) / voxelSizeZ);		
+	}
 }

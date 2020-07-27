@@ -34,6 +34,8 @@ public class APIHandler_voxeldb {
 
 	private final Broker broker;
 
+	private final Handler_voxels handler_voxels = new Handler_voxels();
+
 	public APIHandler_voxeldb(Broker broker) {
 		this.broker = broker;
 	}
@@ -70,7 +72,10 @@ public class APIHandler_voxeldb {
 			log.info("resourceFormat: "+resourceFormat);
 			String next = i < 0 ? "/" : target.substring(i);
 			if(next.equals("/")) {
-				switch(resourceName) {					
+				switch(resourceName) {
+				case "voxels":
+					handler_voxels.handle(voxeldb, request, response, userIdentity);
+					break;
 				default:
 					throw new RuntimeException("unknown resource: " + resource);
 				}
@@ -82,7 +87,7 @@ public class APIHandler_voxeldb {
 
 	private void handleGET(VoxelDB voxeldb, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {		
 		boolean storage_measures = request.getParameter("storage_measures") != null;
-		
+
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
@@ -92,7 +97,7 @@ public class APIHandler_voxeldb {
 		json.key("name");
 		json.value(voxeldb.config.name);
 		voxeldb.informal().writeJson(json);
-		
+
 		json.key("cell_size");
 		json.object();
 		json.key("x");
@@ -102,18 +107,18 @@ public class APIHandler_voxeldb {
 		json.key("z");
 		json.value(voxeldb.getCellsize());
 		json.endObject();
-					
+
 		VoxelGeoRef ref = voxeldb.geoRef();
 		json.key("ref");
 		json.object();
-		
+
 		json.key("epsg");
 		json.value(ref.epsg);
 		json.key("proj4");
 		json.value(ref.proj4);
-		
-		
-		
+
+
+
 		Unit unit = null;
 		if(ref.hasProj4()) {
 			try {
@@ -148,7 +153,7 @@ public class APIHandler_voxeldb {
 			json.value(unit.name);
 			json.endObject();
 		}
-		
+
 		json.key("voxel_size");
 		json.object();
 		json.key("x");
@@ -158,7 +163,7 @@ public class APIHandler_voxeldb {
 		json.key("z");
 		json.value(ref.voxelSizeZ);
 		json.endObject();
-		
+
 		json.key("origin");
 		json.object();
 		json.key("x");
@@ -168,9 +173,9 @@ public class APIHandler_voxeldb {
 		json.key("z");
 		json.value(ref.originZ);
 		json.endObject();
-		
+
 		json.endObject();
-		
+
 		if(storage_measures) {
 			json.key("storage_measures");
 			json.object();
@@ -203,7 +208,7 @@ public class APIHandler_voxeldb {
 				json.value(stats[2]);		
 				json.endObject();		
 			}
-			
+
 			KeyRange keyRange = voxeldb.getGriddb().storage().getKeyRange();
 			if(keyRange != null) {
 				json.key("cell_range");
@@ -222,10 +227,10 @@ public class APIHandler_voxeldb {
 				json.value(keyRange.bmax);
 				json.endObject();	
 			}
-			
+
 			json.endObject();
 		}
-		
+
 		json.key("modify");
 		json.value(voxeldb.isAllowedMod(userIdentity));
 		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {

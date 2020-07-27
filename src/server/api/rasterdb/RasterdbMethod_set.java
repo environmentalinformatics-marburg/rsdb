@@ -171,6 +171,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					JSONObject jsonAssociated = meta.getJSONObject("associated");
 					rasterdb.setAssociatedPointDB(jsonAssociated.optString("PointDB", ""));
 					rasterdb.setAssociatedPointCloud(jsonAssociated.optString("pointcloud", ""));
+					rasterdb.setAssociatedVoxelDB(jsonAssociated.optString("voxeldb", ""));
 					rasterdb.setAssociatedPoiGroups(JsonUtil.optStringTrimmedList(jsonAssociated, "poi_groups"));
 					rasterdb.setAssociatedRoiGroups(JsonUtil.optStringTrimmedList(jsonAssociated, "roi_groups"));					
 					break;

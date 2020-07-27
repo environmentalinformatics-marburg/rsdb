@@ -73,7 +73,18 @@
     <v-btn @click="$emit('tool-point-raster-export-show')" :disabled="selectedExtent === undefined"><v-icon>get_app</v-icon>&nbsp;&nbsp;export surface</v-btn>
     <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select extent)</span>
     <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at selection)</span>    
-  </div>    
+  </div>
+
+  <div v-if="meta !== undefined && meta.associated !== undefined && meta.associated.voxeldb !== undefined">
+    <br>
+    <hr>
+    <v-icon style="font-size: 1em;">grain</v-icon><b>Associated VoxelDB</b>
+    <br>
+    <v-btn @click="viewVoxelsVoxelDB" :disabled="selectedExtent === undefined"><v-icon>3d_rotation</v-icon>&nbsp;&nbsp;view voxels</v-btn>
+    <span v-show="selectedExtent === undefined" style="font-size: 0.7em;">(select position)</span>
+    <span v-show="selectedExtent !== undefined" style="font-size: 0.7em;">(at center of selection)</span>    
+    <br>        
+  </div>       
 
 </div>
 
@@ -123,6 +134,23 @@ export default {
       console.log(url);
       window.open(url, '_blank');
     },
+    viewVoxelsVoxelDB() {
+      console.log(this.selectedExtent);
+      let ext = this.selectedExtent;
+      let x = (ext[0] + ext[2]) / 2;
+      let y = (ext[1] + ext[3]) / 2;
+      let z = -2;
+      let voxeldb = this.meta.associated.voxeldb;
+      const params = new URLSearchParams({voxeldb: voxeldb, x: x, y: y, z: z});
+      const url = this.urlPrefix + '../../web/voxel_view/?' + params;
+      console.log(url);
+
+      //var param = 'pointcloud=' + name + '&x=' + x +'&y=' + y;
+      
+      console.log(this.urlPrefix);
+      console.log(url);
+      window.open(url, '_blank');
+    },    
     viewSurfacePointdb() {
       console.log(this.selectedExtent);
       var ext = this.selectedExtent;

@@ -348,6 +348,11 @@ public class RasterDB implements AutoCloseable {
 		associated.setPointCloud(pointcloud);
 		writeMeta();
 	}
+	
+	public void setAssociatedVoxelDB(String voxeldb) {
+		associated.setVoxelDB(voxeldb);
+		writeMeta();
+	}
 
 	public void setAssociatedPoiGroups(List<String> poi_groups) {
 		associated.setPoi_groups(poi_groups);

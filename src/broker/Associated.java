@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -16,6 +17,7 @@ public class Associated {
 	private String pointdb = "";
 	private String pointcloud = "";
 	private String rasterdb = "";
+	private String voxeldb = "";
 
 	private List<String> poi_groups = java.util.Collections.EMPTY_LIST;
 	private List<String> roi_groups = java.util.Collections.EMPTY_LIST;
@@ -26,6 +28,10 @@ public class Associated {
 
 	public String getPointDB() {
 		return pointdb;
+	}
+	
+	public String getVoxelDB() {
+		return voxeldb;
 	}
 
 	public boolean hasPointDB() {
@@ -44,6 +50,10 @@ public class Associated {
 		this.rasterdb = name;
 	}
 	
+	public void setVoxelDB(String name) {
+		this.voxeldb = name;
+	}
+	
 	public String getRasterDB() {
 		return rasterdb;
 	}
@@ -54,6 +64,10 @@ public class Associated {
 	
 	public boolean hasRasterDB() {
 		return !rasterdb.isEmpty();
+	}
+	
+	public boolean hasVoxelDB() {
+		return !voxeldb.isEmpty();
 	}
 
 	public void setPoi_groups(List<String> poi_groups) {
@@ -91,6 +105,9 @@ public class Associated {
 		if(hasRasterDB()) {
 			map.put("rasterdb", rasterdb);
 		}
+		if(hasVoxelDB()) {
+			map.put("voxeldb", voxeldb);
+		}
 		if(hasPoi_groups()) {
 			map.put("poi_groups", poi_groups.size() == 1 ? poi_groups.get(0) : poi_groups);
 		}
@@ -110,6 +127,9 @@ public class Associated {
 		}
 		if(yamlMap.contains("rasterdb")) {
 			associated.setRasterDB(yamlMap.getString("rasterdb"));
+		}
+		if(yamlMap.contains("voxeldb")) {
+			associated.setVoxelDB(yamlMap.getString("voxeldb"));
 		}
 		if(yamlMap.contains("poi_groups")) {
 			associated.setPoi_groups(Collections.unmodifiableList(yamlMap.getList("poi_groups").asStrings()));
@@ -134,6 +154,10 @@ public class Associated {
 			json.key("rasterdb");
 			json.value(rasterdb);
 		}
+		if(hasVoxelDB()) {
+			json.key("voxeldb");
+			json.value(voxeldb);
+		}
 		JsonUtil.writeOptList(json, "poi_groups", poi_groups);
 		JsonUtil.writeOptList(json, "roi_groups", roi_groups);
 		json.endObject();
@@ -150,6 +174,9 @@ public class Associated {
 		if(json.has("rasterdb")) {
 			associated.setRasterDB(json.getString("rasterdb"));
 		}
+		if(json.has("voxeldb")) {
+			associated.setRasterDB(json.getString("voxeldb"));
+		}
 		if(json.has("poi_groups")) {
 			associated.setPoi_groups(Collections.unmodifiableList(JsonUtil.optStringList(json, "poi_groups")));
 		}
@@ -161,13 +188,7 @@ public class Associated {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((poi_groups == null) ? 0 : poi_groups.hashCode());
-		result = prime * result + ((pointcloud == null) ? 0 : pointcloud.hashCode());
-		result = prime * result + ((pointdb == null) ? 0 : pointdb.hashCode());
-		result = prime * result + ((roi_groups == null) ? 0 : roi_groups.hashCode());
-		return result;
+		return Objects.hash(poi_groups, pointcloud, pointdb, rasterdb, roi_groups, voxeldb);
 	}
 
 	@Override
@@ -179,28 +200,8 @@ public class Associated {
 		if (getClass() != obj.getClass())
 			return false;
 		Associated other = (Associated) obj;
-		if (poi_groups == null) {
-			if (other.poi_groups != null)
-				return false;
-		} else if (!poi_groups.equals(other.poi_groups))
-			return false;
-		if (pointcloud == null) {
-			if (other.pointcloud != null)
-				return false;
-		} else if (!pointcloud.equals(other.pointcloud))
-			return false;
-		if (pointdb == null) {
-			if (other.pointdb != null)
-				return false;
-		} else if (!pointdb.equals(other.pointdb))
-			return false;
-		if (roi_groups == null) {
-			if (other.roi_groups != null)
-				return false;
-		} else if (!roi_groups.equals(other.roi_groups))
-			return false;
-		return true;
+		return Objects.equals(poi_groups, other.poi_groups) && Objects.equals(pointcloud, other.pointcloud)
+				&& Objects.equals(pointdb, other.pointdb) && Objects.equals(rasterdb, other.rasterdb)
+				&& Objects.equals(roi_groups, other.roi_groups) && Objects.equals(voxeldb, other.voxeldb);
 	}
-
-
 }

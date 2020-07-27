@@ -9,17 +9,20 @@
                     <div class="headline">Set Associated layers of <i>RasterDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
                 <v-card-text style="min-height: 400px;">                  
-                    PointDB-layer: This RasterDB layer is visualisation of that PointDB. (either PointDB or PointCloud)
-                   <multiselect v-model="selectedPointdb" :options="pointdbs" placeholder="select pointdb-layer" :allow-empty="true"/>
-                   <br> 
-                    PointCloud-layer: This RasterDB layer is visualisation of that PointCloud. (either PointDB or PointCloud)
-                   <multiselect v-model="selectedPointcloud" :options="pointclouds" placeholder="select pointcloud-layer" :allow-empty="true"/>     
+                    PointDB-layer: This RasterDB layer is visualisation of that PointDB.
+                    <multiselect v-model="selectedPointdb" :options="pointdbs" placeholder="select pointdb-layer" :allow-empty="true"/>
                     <br> 
-                   POI-groups: Groups of named geo-points that can be used for processing.
-                   <multiselect v-model="selectedPoi_groups" :options="poi_groups" placeholder="select poi-groups" :allow-empty="true" :multiple="true"/>
-                   <br> 
-                   ROI-groups: Groups of named polygons that can be used for processing.
-                   <multiselect v-model="selectedRoi_groups" :options="roi_groups" placeholder="select roi-groups" :allow-empty="true" :multiple="true"/>                                 
+                    PointCloud-layer: This RasterDB layer is visualisation of that PointCloud.
+                    <multiselect v-model="selectedPointcloud" :options="pointclouds" placeholder="select pointcloud-layer" :allow-empty="true"/>     
+                    <br>
+                    VoxelDB-layer: This RasterDB layer is visualisation of that VoxelDB.
+                    <multiselect v-model="selectedVoxeldb" :options="voxeldbs" placeholder="select voxeldb-layer" :allow-empty="true"/>     
+                    <br> 
+                    POI-groups: Groups of named geo-points that can be used for processing.
+                    <multiselect v-model="selectedPoi_groups" :options="poi_groups" placeholder="select poi-groups" :allow-empty="true" :multiple="true"/>
+                    <br> 
+                    ROI-groups: Groups of named polygons that can be used for processing.
+                    <multiselect v-model="selectedRoi_groups" :options="roi_groups" placeholder="select roi-groups" :allow-empty="true" :multiple="true"/>                                 
                 </v-card-text>                
                 <v-card-actions>
                     <v-spacer></v-spacer>
@@ -68,6 +71,7 @@ export default {
             setErrorMessage: undefined,
             selectedPointdb: undefined,
             selectedPointcloud: undefined,
+            selectedVoxeldb: undefined,
             selectedPoi_groups: [],     
             selectedRoi_groups: [],   
         }
@@ -76,6 +80,7 @@ export default {
         ...mapGetters({
             pointdbs: 'pointdbs/names',
             pointclouds: 'pointclouds/names',
+            voxeldbs: 'voxeldbs/names',
             poi_groups: 'poi_groups/names',
             roi_groups: 'roi_groups/names',            
         }),        
@@ -84,6 +89,7 @@ export default {
         refresh() {
             this.selectedPointdb = this.meta.associated.PointDB;
             this.selectedPointcloud = this.meta.associated.pointcloud;
+            this.selectedVoxeldb = this.meta.associated.voxeldb;   
             this.selectedPoi_groups = this.meta.associated.poi_groups;
             this.selectedRoi_groups = this.meta.associated.roi_groups;            
             this.$store.dispatch('pointdbs/refresh');
@@ -101,6 +107,9 @@ export default {
             }
             if(this.selectedPointcloud !== undefined) {
                associated.pointcloud = this.selectedPointcloud;
+            }
+            if(this.selectedVoxeldb !== undefined) {
+               associated.voxeldb = this.selectedVoxeldb;
             }
             associated.poi_groups = this.selectedPoi_groups;
             associated.roi_groups = this.selectedRoi_groups;            

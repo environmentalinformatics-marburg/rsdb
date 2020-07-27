@@ -60,6 +60,11 @@ public class Task_rasterize extends CancelableRemoteTask {
 		rasterdb.setProj4(voxeldb.geoRef().proj4);
 		rasterdb.setCode("EPSG:" + voxeldb.geoRef().epsg);
 		rasterdb.setPixelSize(voxeldb.geoRef().voxelSizeX, voxeldb.geoRef().voxelSizeY, voxeldb.geoRef().originX, voxeldb.geoRef().originY);
+		
+		voxeldb.setAssociatedRasterDB(rasterdb.config.getName());		
+		rasterdb.associated.setVoxelDB(voxeldb.getName());
+		rasterdb.writeMeta();
+		
 		Band bandCount = rasterdb.createBand(TilePixel.TYPE_FLOAT, "count", null);
 		Band bandElevation = rasterdb.createBand(TilePixel.TYPE_FLOAT, "elevation", null);
 		//Band bandMaxCount = rasterdb.createBand(TilePixel.TYPE_FLOAT, "maxCount", null);
