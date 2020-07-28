@@ -18,12 +18,14 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
+import voxeldb.TimeSlice;
 import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
 
 @task_pointcloud("to_voxel")
 @Description("Convert pointcloud to voxels.")
 @Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer.", example="pointcloud1")
+@Param(name="time_slice", type="string", desc="Name of time slice. (default: untitled)", example="January", required=false)
 public class Task_to_voxel extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
@@ -47,19 +49,26 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		String storage_type = task.optString("storage_type", "TileStorage");
 		boolean transactions = task.optBoolean("transactions", false);
 		double voxel_size = task.optNumber("voxel_size", 1).doubleValue();
+		
+		String time_slice = task.optString("time_slice", "untitled");
+		if(time_slice.isEmpty()) {
+			time_slice = "";
+		}
+		
 		broker.deleteVoxeldb(voxeldb_name);
 		VoxelDB voxeldb = broker.createNewVoxeldb(voxeldb_name, storage_type, transactions);
 		voxeldb.setProj4(pointcloud.getProj4());
 		voxeldb.setEpsg(pointcloud.getEPSGcode());
-		voxeldb.trySetVoxelsize(voxel_size);
+		voxeldb.trySetVoxelsize(voxel_size);		
 		voxeldb.trySetCellsize(50);
+		TimeSlice timeSlice = voxeldb.addTimeSlice(new TimeSlice.TimeSliceBuilder(time_slice));
 
 		setMessage("query count of tiles");		
 		long total = pointcloud.getTileKeys().size();
 		setMessage("start processing " + total + " tiles");
 		Stream<PointTable> pointTables = pointcloud.getPointTables(-Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, new AttributeSelector().setXYZ());
 
-		StreamConsumer consumer = new StreamConsumer(total, voxeldb);
+		StreamConsumer consumer = new StreamConsumer(total, voxeldb, timeSlice);
 		pointTables.sequential().forEachOrdered(consumer);
 
 		voxeldb.close();
@@ -75,12 +84,14 @@ public class Task_to_voxel extends CancelableRemoteTask {
 
 		private final long total;
 		private final VoxelDB voxeldb;
+		private final int t;
 
 		private LongAdder cnt = new LongAdder();
 
-		public StreamConsumer(long total, VoxelDB voxeldb) {
+		public StreamConsumer(long total, VoxelDB voxeldb, TimeSlice timeSlice) {
 			this.total = total;
 			this.voxeldb = voxeldb;
+			this.t = timeSlice.t;
 		}
 
 		@Override
@@ -103,7 +114,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 			return cnt.sum();
 		}
 
-		private void process(PointTable t) throws IOException {
+		private void process(PointTable pointTable) throws IOException {
 			int cellsize = voxeldb.getCellsize();
 			double xorigin = voxeldb.geoRef().originX;
 			double yorigin = voxeldb.geoRef().originY;
@@ -112,10 +123,10 @@ public class Task_to_voxel extends CancelableRemoteTask {
 			double yvoxelsize = voxeldb.geoRef().voxelSizeY;
 			double zvoxelsize = voxeldb.geoRef().voxelSizeZ;			
 			
-			int len = t.rows;
-			double[] xs = t.x;
-			double[] ys = t.y;
-			double[] zs = t.z;			
+			int len = pointTable.rows;
+			double[] xs = pointTable.x;
+			double[] ys = pointTable.y;
+			double[] zs = pointTable.z;			
 
 			double xmin = Double.MAX_VALUE;
 			double ymin = Double.MAX_VALUE;
@@ -209,7 +220,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 					for(int cy = cymin; cy <= cymax; cy++) {
 						for(int cx = cxmin; cx <= cxmax; cx++) {
 							log.info("cx " + cx + "  cy " + cy + "  cz " + cz);
-							VoxelCell oldVoxelCell = voxeldb.getVoxelCell(cx, cy, cz);							
+							VoxelCell oldVoxelCell = voxeldb.getVoxelCell(cx, cy, cz, t);							
 							int[][][] ccnt = oldVoxelCell == null ? new int[cellsize][cellsize][cellsize] : oldVoxelCell.cnt;
 							
 							/*{
@@ -312,7 +323,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 							}*/
 							
 							VoxelCell voxelCell = new VoxelCell(cx, cy, cz, ccnt);
-							voxeldb.writeVoxelCell(voxelCell);
+							voxeldb.writeVoxelCell(voxelCell, t);
 						}
 					}
 				}

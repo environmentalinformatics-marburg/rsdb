@@ -39,6 +39,8 @@ remotesensing$poi_groups
 remotesensing$poi_group(name)
 remotesensing$poi(group_name, poi_name)
 
+remotesensing$submit_task(task)
+
 remotesensing$web()
 }
 \description{
@@ -112,6 +114,12 @@ returns: data.frame of POI-name and position}
 \item{$poi(group_name, poi_name)}{get one POI.
 
 returns: position}
+
+\item{$submit_task(task)}{Submit a remote task to RSDB server.
+
+task: remote task parameters. List of parameters or character containing parameters as JSON text.
+
+returns: RemoteTask object}
 
 \item{$web()}{Open web interface in browser.}
 }
@@ -211,7 +219,7 @@ remotesensing$web()
 
 }
 \seealso{
-\link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB}
+\link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB} \link{RemoteTask}
 }
 \author{
 woellauer
@@ -232,6 +240,7 @@ woellauer
 \item \href{#method-create_rasterdb}{\code{RemoteSensing$create_rasterdb()}}
 \item \href{#method-pointcloud}{\code{RemoteSensing$pointcloud()}}
 \item \href{#method-vectordb}{\code{RemoteSensing$vectordb()}}
+\item \href{#method-submit_task}{\code{RemoteSensing$submit_task()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -353,6 +362,15 @@ woellauer
 \subsection{Method \code{vectordb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$vectordb(name)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-submit_task"></a>}}
+\if{latex}{\out{\hypertarget{method-submit_task}{}}}
+\subsection{Method \code{submit_task()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$submit_task(task)}\if{html}{\out{</div>}}
 }
 
 }

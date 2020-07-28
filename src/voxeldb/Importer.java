@@ -26,11 +26,13 @@ public class Importer {
 	private final VoxelDB voxeldb;
 	private final DoubleRect filterRect;
 	private final boolean trySetOriginToFileOrigin;
+	private final TimeSlice timeSlice;
 
-	public Importer(VoxelDB voxeldb, DoubleRect filterRect, boolean trySetOriginToFileOrigin) {
+	public Importer(VoxelDB voxeldb, DoubleRect filterRect, boolean trySetOriginToFileOrigin, TimeSlice timeSlice) {
 		this.voxeldb = voxeldb;
 		this.filterRect = filterRect;
 		this.trySetOriginToFileOrigin = trySetOriginToFileOrigin;
+		this.timeSlice = timeSlice;
 	}
 
 	/**
@@ -172,6 +174,8 @@ public class Importer {
 		int ylascellmax = (int) Math.floor((ylasmax - yProjectedOrigin) / yProjectedCellsize);		
 		int zlascellmin = (int) Math.floor((zlasmin - zProjectedOrigin) / zProjectedCellsize);
 		int zlascellmax = (int) Math.floor((zlasmax - zProjectedOrigin) / zProjectedCellsize);
+		
+		final int t = timeSlice.t;
 
 		long pos = 0;
 		int subdividedLen = 0;  // 0 == no subdivision
@@ -285,7 +289,7 @@ public class Importer {
 
 					VoxelCell voxelCell = cells[ycell][xcell][zcell];
 					if(voxelCell == null) {
-						voxelCell = voxeldb.getVoxelCell(xcellmin + xcell, ycellmin + ycell, zcellmin + zcell);
+						voxelCell = voxeldb.getVoxelCell(xcellmin + xcell, ycellmin + ycell, zcellmin + zcell, t);
 						if(voxelCell == null) {
 							int[][][] cnt = new int[zVoxelCellsize][yVoxelCellsize][xVoxelCellsize];
 							voxelCell = new VoxelCell(xcellmin + xcell, ycellmin + ycell, zcellmin + zcell, cnt);
@@ -308,7 +312,7 @@ public class Importer {
 					for (int z = 0; z < zcellrange; z++) {
 						VoxelCell voxelCell = cellsYX[z];
 						if(voxelCell != null) {
-							voxeldb.writeVoxelCell(voxelCell);
+							voxeldb.writeVoxelCell(voxelCell, t);
 						}
 					}
 				}

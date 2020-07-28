@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +26,7 @@ import rasterunit.Tile;
 import rasterunit.TileKey;
 import util.collections.ReadonlyNavigableSetView;
 import util.yaml.YamlMap;
+import voxeldb.TimeSlice.TimeSliceBuilder;
 
 /**
 cell.x -> voxelcell.z
@@ -46,6 +50,8 @@ public class VoxelDB implements AutoCloseable {
 	private static final int CURRENT_VERSION_PATCH = 0;
 
 	private final GridDB griddb;
+	
+	private ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
 
 	private int cellsize = 100;
 	private ACL acl = EmptyACL.ADMIN;
@@ -113,6 +119,10 @@ public class VoxelDB implements AutoCloseable {
 				}
 				informal = Informal.ofYaml(yamlMap);				
 				geoRef = yamlMap.contains("ref") ? VoxelGeoRef.ofYaml(yamlMap.getMap("ref")) : VoxelGeoRef.DEFAULT;
+				timeMap.clear();
+				if(yamlMap.contains("time_slices")) {
+					TimeSlice.yamlToTimeMap((Map<Number, Object>) yamlMap.getObject("time_slices"), timeMap);					
+				}
 			}
 		}	
 
@@ -128,6 +138,9 @@ public class VoxelDB implements AutoCloseable {
 				map.put("associated", associated.toYaml());
 				informal.writeYaml(map);
 				map.put("ref", geoRef.toYaml());
+				if(!timeMap.isEmpty()) {
+					map.put("time_slices", TimeSlice.timeMapToYaml(timeMap));					
+				}
 			}
 		}	
 	}
@@ -267,7 +280,7 @@ public class VoxelDB implements AutoCloseable {
 		return voxelCell;
 	}
 
-	private Tile voxelCellToTile(VoxelCell voxelCell) {
+	private Tile voxelCellToTile(VoxelCell voxelCell, int t) {
 		int len = cellsize * cellsize * cellsize;
 		int[] flat_cnt = new int[len];
 		int data_cnt_pos = 0;
@@ -282,17 +295,17 @@ public class VoxelDB implements AutoCloseable {
 		byte[] data_cnt = Encoding.createIntData(attr_count.encoding, flat_cnt, len);
 
 		byte[] cellData = Cell.createData(new Attribute[] {attr_count}, new byte[][] {data_cnt}, 1);
-		Tile tile = griddb.createTile(voxelCell.z, voxelCell.x, voxelCell.y, cellData);
+		Tile tile = griddb.createTile(voxelCell.z, voxelCell.x, voxelCell.y, t, cellData);
 		return tile;
 	}
 
-	public VoxelCell getVoxelCell(int x, int y, int z) throws IOException {		
-		Cell cell = griddb.getCell(z, x, y);
+	public VoxelCell getVoxelCell(int x, int y, int z, int t) throws IOException {		
+		Cell cell = griddb.getCell(z, x, y, t);
 		return cell == null ? null : cellToVoxelCell(cell);
 	}
 
-	public void writeVoxelCell(VoxelCell voxelCell) throws IOException {
-		Tile tile = voxelCellToTile(voxelCell);
+	public void writeVoxelCell(VoxelCell voxelCell, int t) throws IOException {
+		Tile tile = voxelCellToTile(voxelCell, t);
 		griddb.writeTile(tile);
 	}
 
@@ -353,5 +366,24 @@ public class VoxelDB implements AutoCloseable {
 				return false;
 			}
 		}			
+	}
+	
+	public void setTimeSlice(TimeSlice timeslice) {
+		synchronized (griddb) {
+			timeMap.put(timeslice.t, timeslice);
+		}
+		
+	}
+	
+	public TimeSlice addTimeSlice(TimeSliceBuilder timeSliceBuilder) {
+		synchronized (griddb) {
+			int t = 0;
+			while(timeMap.containsKey(t)) {
+				t++;
+			}
+			TimeSlice timeSlice = new TimeSlice(t, timeSliceBuilder);
+			timeMap.put(timeSlice.t, timeSlice);
+			return timeSlice;
+		}
 	}
 }

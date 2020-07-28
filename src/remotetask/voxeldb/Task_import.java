@@ -19,6 +19,7 @@ import remotetask.Description;
 import remotetask.Param;
 import remotetask.RemoteTask;
 import voxeldb.Importer;
+import voxeldb.TimeSlice;
 import voxeldb.VoxelDB;
 
 @task_voxeldb("import")
@@ -30,6 +31,7 @@ import voxeldb.VoxelDB;
 @Param(name="rect", type="number_rect", desc="Only points inside of rect are imported - prevents import of points with erroneous x,y coordinates.", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
 @Param(name="cell_size", type="number", desc="Size of cells. (default: 100 -> 100 voxels edge length)", example="10", required=false)
 @Param(name="voxel_size", type="number", desc="Resolution of voxels. (default: 1 -> voxels of 1 meter edge length)", example="0.2", required=false)
+@Param(name="time_slice", type="string", desc="Name of time slice. (default: untitled)", example="January", required=false)
 public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
@@ -92,8 +94,14 @@ public class Task_import extends RemoteTask {
 		} else { // no EPSG, no PROJ4
 			// nothing
 		}
+		
+		String time_slice = task.optString("time_slice", "untitled");
+		if(time_slice.isEmpty()) {
+			time_slice = "";
+		}
+		TimeSlice timeSlice = voxeldb.addTimeSlice(new TimeSlice.TimeSliceBuilder(time_slice));
 
-		Importer imprter = new Importer(voxeldb, filterRect, true);
+		Importer imprter = new Importer(voxeldb, filterRect, true, timeSlice);
 		String source = task.getString("source");
 		Path root = Paths.get(source);
 

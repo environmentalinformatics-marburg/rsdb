@@ -121,6 +121,20 @@ RemoteSensing_public <- list( #      *********** public ************************
 
   vectordb = function(name) {
     return(VectorDB$new(private$base_url, name, curlHandle = private$curlHandle, rsdbConnector = private$rsdbConnector))
+  },
+
+  submit_task = function(task) {
+    params <- task
+    if(is.list(task)) {
+      # nothing
+    } else if(is.character(task)) {
+      params <- jsonlite::fromJSON(task)
+    } else {
+      stop("Argument 'task' needs to be a list of parameters or character containing parameters as JSON text.")
+    }
+    response <- private$rsdbConnector$POST_json("/api/remote_tasks", data = list(remote_task = params))
+    remote_task <- RemoteTask$new(private$rsdbConnector, response$remote_task$id)
+    return(remote_task)
   }
 
 )
@@ -182,7 +196,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' @docType class
 #' @export
 #' @author woellauer
-#' @seealso \link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB}
+#' @seealso \link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB} \link{RemoteTask}
 #'
 #' @format
 #' RemoteSensing \code{\link{R6Class}} object.
@@ -218,6 +232,8 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' remotesensing$poi_groups
 #' remotesensing$poi_group(name)
 #' remotesensing$poi(group_name, poi_name)
+#'
+#' remotesensing$submit_task(task)
 #'
 #' remotesensing$web()
 #'
@@ -284,6 +300,12 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' \item{$poi(group_name, poi_name)}{get one POI.
 #'
 #' returns: position}
+#'
+#' \item{$submit_task(task)}{Submit a remote task to RSDB server.
+#'
+#' task: remote task parameters. List of parameters or character containing parameters as JSON text.
+#'
+#' returns: RemoteTask object}
 #'
 #' \item{$web()}{Open web interface in browser.}
 #' }
