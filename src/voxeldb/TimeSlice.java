@@ -17,17 +17,17 @@ public class TimeSlice {
 		}
 	}
 	
-	public final int t;
+	public final int id;
 	public final String name;
 	
-	public TimeSlice(int t, String name) {
+	public TimeSlice(int id, String name) {
 		Objects.requireNonNull(name);
-		this.t = t;
+		this.id = id;
 		this.name = name;
 	}
 	
-	public TimeSlice(int t, TimeSliceBuilder timeSliceBuilder) {
-		this(t, timeSliceBuilder.name);
+	public TimeSlice(int id, TimeSliceBuilder timeSliceBuilder) {
+		this(id, timeSliceBuilder.name);
 	}
 
 	public Map<String, Object> toYamlWithoutT() {
@@ -36,29 +36,30 @@ public class TimeSlice {
 		return map;
 	}
 	
-	public static TimeSlice ofYamlWithT(YamlMap yamlMap, int t) {
+	public static TimeSlice ofYamlWithId(YamlMap yamlMap, int id) {
 		String name = yamlMap.optString("name", "");
-		return new TimeSlice(t, name);
+		return new TimeSlice(id, name);
 	}
 	
 	public boolean hasName() {
 		return !name.isEmpty();
 	}
 	
-	public static LinkedHashMap<String, Object> timeMapToYaml(Map<Integer, TimeSlice> timeMap) {
-		LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+	public static LinkedHashMap<Integer, Object> timeMapToYaml(Map<Integer, TimeSlice> timeMap) {
+		LinkedHashMap<Integer, Object> map = new LinkedHashMap<Integer, Object>();
 		for(TimeSlice timeSlice:timeMap.values()) {
-			map.put(Integer.toString(timeSlice.t), timeSlice.toYamlWithoutT());
+			map.put(timeSlice.id, timeSlice.toYamlWithoutT());
 		}
 		return map;
 	}
 	
-	public static void yamlToTimeMap(Map<Number, Object> yamlMap, Map<Integer, TimeSlice> timeMap) {
-		for (Entry<Number, Object> entry : yamlMap.entrySet()) {
-			int t = entry.getKey().intValue();
+	public static void yamlToTimeMap(Map<?, Object> yamlMap, Map<Integer, TimeSlice> timeMap) {
+		for (Entry<?, Object> entry : yamlMap.entrySet()) {
+			Object key = entry.getKey();
+			int id = key instanceof Number ? ((Number)key).intValue() : Integer.parseInt(key.toString());
 			YamlMap ts = YamlMap.ofObject(entry.getValue());
-			TimeSlice timeslice = TimeSlice.ofYamlWithT(ts, t);
-			timeMap.put(timeslice.t, timeslice);
+			TimeSlice timeslice = TimeSlice.ofYamlWithId(ts, id);
+			timeMap.put(timeslice.id, timeslice);
 		}
 	}
 }

@@ -91,7 +91,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		public StreamConsumer(long total, VoxelDB voxeldb, TimeSlice timeSlice) {
 			this.total = total;
 			this.voxeldb = voxeldb;
-			this.t = timeSlice.t;
+			this.t = timeSlice.id;
 		}
 
 		@Override

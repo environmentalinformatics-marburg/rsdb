@@ -98,7 +98,7 @@ import 'vue-multiselect/dist/vue-multiselect.min.css'
 export default {
   name: 'admin-viewer-tools',
 
-  props: ['meta', 'selectedExtent', 'epsgCode', 'currentVectordb'],
+  props: ['meta', 'selectedExtent', 'epsgCode', 'currentVectordb', 'currentTimestamp'],
 
   components: {
     Multiselect,
@@ -141,8 +141,12 @@ export default {
       let y = (ext[1] + ext[3]) / 2;
       let z = -2;
       let voxeldb = this.meta.associated.voxeldb;
-      const params = new URLSearchParams({voxeldb: voxeldb, x: x, y: y, z: z});
-      const url = this.urlPrefix + '../../web/voxel_view/?' + params;
+      let params = {voxeldb: voxeldb, x: x, y: y, z: z};
+      if(this.currentTimestamp !== undefined) {
+        params.t = this.currentTimestamp;
+      }
+      const urlParams = new URLSearchParams(params);
+      const url = this.urlPrefix + '../../web/voxel_view/?' + urlParams;
       console.log(url);
 
       //var param = 'pointcloud=' + name + '&x=' + x +'&y=' + y;

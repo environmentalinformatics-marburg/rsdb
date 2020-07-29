@@ -132,4 +132,13 @@ public abstract class RemoteTask implements Runnable {
 	public ConcurrentLinkedQueue<String> getLog() {
 		return logMessages;
 	}
+	
+	public MessageReceiver getMessageReceiver() {
+		return new MessageReceiver() {			
+			@Override
+			public void setMessage(String message) {
+				RemoteTask.this.setMessage(message);				
+			}
+		};
+	}
 }

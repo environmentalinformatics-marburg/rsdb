@@ -9,6 +9,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 
 import util.Web;
+import voxeldb.TimeSlice;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 
@@ -20,6 +21,20 @@ public class Handler_voxels {
 		double geoX = Web.getDouble(request, "x");
 		double geoY = Web.getDouble(request, "y");
 		double geoZ = Web.getDouble(request, "z");
+		
+		TimeSlice timeSlice;
+		if(Web.has(request, "t")) {
+			int t = Web.getInt(request, "t");
+			timeSlice = voxeldb.timeMapReadonly.get(t);
+			if(timeSlice == null) {
+				throw new RuntimeException("uknown t: " + t);
+			}
+		} else {
+			if(voxeldb.timeMapReadonly.isEmpty()) {
+				throw new RuntimeException("no data");
+			}
+			timeSlice = voxeldb.timeMapReadonly.lastEntry().getValue();
+		}
 
 		int rsize = 300;
 		int rsize_d2 = rsize / 2;
@@ -50,7 +65,7 @@ public class Handler_voxels {
 
 		int cellsize = voxeldb.getCellsize();
 		int cellsize_m1 = cellsize - 1; 
-		voxeldb.getVoxelCells().forEach(voxelCell -> {			
+		voxeldb.getVoxelCells(timeSlice).forEach(voxelCell -> {			
 			int vcxmin = voxelCell.x * cellsize;
 			int vcymin = voxelCell.y * cellsize;
 			int vczmin = voxelCell.z * cellsize;

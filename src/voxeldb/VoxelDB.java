@@ -2,9 +2,11 @@ package voxeldb;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Stream;
@@ -52,6 +54,7 @@ public class VoxelDB implements AutoCloseable {
 	private final GridDB griddb;
 	
 	private ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
+	public final NavigableMap<Integer, TimeSlice> timeMapReadonly = Collections.unmodifiableNavigableMap(timeMap);
 
 	private int cellsize = 100;
 	private ACL acl = EmptyACL.ADMIN;
@@ -121,7 +124,7 @@ public class VoxelDB implements AutoCloseable {
 				geoRef = yamlMap.contains("ref") ? VoxelGeoRef.ofYaml(yamlMap.getMap("ref")) : VoxelGeoRef.DEFAULT;
 				timeMap.clear();
 				if(yamlMap.contains("time_slices")) {
-					TimeSlice.yamlToTimeMap((Map<Number, Object>) yamlMap.getObject("time_slices"), timeMap);					
+					TimeSlice.yamlToTimeMap((Map<?, Object>) yamlMap.getObject("time_slices"), timeMap);					
 				}
 			}
 		}	
@@ -319,7 +322,18 @@ public class VoxelDB implements AutoCloseable {
 		})
 				.map(GridDB::tileToCell)
 				.map(this::cellToVoxelCell);
-
+	}
+	
+	public Stream<VoxelCell> getVoxelCells(TimeSlice timeSlice) {
+		return griddb.getTileKeysOfT(timeSlice.id).stream().map(tileKey -> {
+			try {
+				return griddb.storage().readTile(tileKey);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		})
+				.map(GridDB::tileToCell)
+				.map(this::cellToVoxelCell);
 	}
 
 	public void setProj4(String proj4) {		
@@ -370,19 +384,19 @@ public class VoxelDB implements AutoCloseable {
 	
 	public void setTimeSlice(TimeSlice timeslice) {
 		synchronized (griddb) {
-			timeMap.put(timeslice.t, timeslice);
+			timeMap.put(timeslice.id, timeslice);
 		}
 		
 	}
 	
 	public TimeSlice addTimeSlice(TimeSliceBuilder timeSliceBuilder) {
 		synchronized (griddb) {
-			int t = 0;
-			while(timeMap.containsKey(t)) {
-				t++;
+			int id = 0;
+			while(timeMap.containsKey(id)) {
+				id++;
 			}
-			TimeSlice timeSlice = new TimeSlice(t, timeSliceBuilder);
-			timeMap.put(timeSlice.t, timeSlice);
+			TimeSlice timeSlice = new TimeSlice(id, timeSliceBuilder);
+			timeMap.put(timeSlice.id, timeSlice);
 			return timeSlice;
 		}
 	}

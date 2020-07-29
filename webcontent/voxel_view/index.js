@@ -278,9 +278,12 @@ async function init() {
   const z = params.get('z');
 
   try {
-    const url = new URL('../../voxeldbs/voxels/' + voxeldb, window.location);
-    const params = new URLSearchParams({x: x, y: y, z: z});
-    url.search = params;
+    const url = new URL('../../voxeldbs/' + voxeldb + '/voxels', window.location);
+    const args = {x: x, y: y, z: z};
+    if(params.has('t')) {
+      args.t = params.get('t');
+    }
+    url.search = new URLSearchParams(args);
     console.log(url);
     let response = await fetch(url);
     let buffer = await response.arrayBuffer();

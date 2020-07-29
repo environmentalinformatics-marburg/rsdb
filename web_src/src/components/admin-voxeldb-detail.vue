@@ -181,6 +181,27 @@
                 </table>            
             </div>
 
+            <v-divider class="meta-divider"></v-divider> 
+            <h3 class="subheading mb-0"> 
+                Time slices
+            </h3>
+            <div class="meta-content">
+                <table v-if="meta !== undefined && meta.time_slices !== undefined" class="table-details">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="time_slice in meta.time_slices" :key="time_slice.id">
+                            <td>{{time_slice.id}}</td>
+                            <td>{{time_slice.name}}</td>
+                        </tr>                    
+                    </tbody>
+                </table>
+            </div>
+
             <v-divider class="meta-divider"></v-divider>  
             <h3 class="subheading mb-0"> 
                 <admin-voxeldb-dialog-set-acl :meta="meta" @changed="refresh" v-if="isAdmin" />
@@ -342,7 +363,7 @@ export default {
                 return 'not set';
             } else {
                 let r = this.meta.storage_measures.cell_range;
-                return (r.xmax - r.xmin) + ' x ' + (r.ymax - r.ymin) + ' x ' + (r.zmax - r.zmin);
+                return (r.xmax - r.xmin + 1) + ' x ' + (r.ymax - r.ymin + 1) + ' x ' + (r.zmax - r.zmin + 1);
             }
         },
         cellRangeVoxelText() {
@@ -351,7 +372,7 @@ export default {
             } else {
                 let r = this.meta.storage_measures.cell_range;
                 let cs = this.meta.cell_size;
-                return ((r.xmax - r.xmin) * cs.x) + ' x ' + ((r.ymax - r.ymin) * cs.y) + ' x ' + ((r.zmax - r.zmin) * cs.z);
+                return ((r.xmax - r.xmin + 1) * cs.x) + ' x ' + ((r.ymax - r.ymin + 1) * cs.y) + ' x ' + ((r.zmax - r.zmin + 1) * cs.z);
             }
         },
         cellRangeProjectedText() {
@@ -361,7 +382,7 @@ export default {
                 let r = this.meta.storage_measures.cell_range;
                 let cs = this.meta.cell_size;
                 let vs = this.meta.ref.voxel_size;
-                return ((r.xmax - r.xmin) * cs.x * vs.x) + ' x ' + ((r.ymax - r.ymin) * cs.y * vs.y) + ' x ' + ((r.zmax - r.zmin) * cs.z * vs.z);
+                return ((r.xmax - r.xmin + 1) * cs.x * vs.x) + ' x ' + ((r.ymax - r.ymin + 1) * cs.y * vs.y) + ' x ' + ((r.zmax - r.zmin + 1) * cs.z * vs.z);
             }
         },
     },

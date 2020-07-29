@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.function.IntSupplier;
 
 import javax.servlet.ServletInputStream;
 
@@ -154,6 +155,19 @@ public final class Web {
 		} catch (Exception e) {
 			log.warn(e);
 			return defaultValue;
+		}
+	}
+	
+	public  static int getInt(Request request, String name, IntSupplier defaultValue) {
+		String text = request.getParameter(name);
+		if(text==null) {
+			return defaultValue.getAsInt();
+		}
+		try {
+			return Integer.parseInt(text);
+		} catch (Exception e) {
+			log.warn(e);
+			return defaultValue.getAsInt();
 		}
 	}
 

@@ -32,6 +32,7 @@ import voxeldb.VoxelDB;
 @Param(name="cell_size", type="number", desc="Size of cells. (default: 100 -> 100 voxels edge length)", example="10", required=false)
 @Param(name="voxel_size", type="number", desc="Resolution of voxels. (default: 1 -> voxels of 1 meter edge length)", example="0.2", required=false)
 @Param(name="time_slice", type="string", desc="Name of time slice. (default: untitled)", example="January", required=false)
+@Param(name="clear", type="boolean", desc="Delete existing VoxelDB of that ID. (default: false)", example="true", required=false)
 public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
@@ -63,8 +64,18 @@ public class Task_import extends RemoteTask {
 		boolean transactions = task.optBoolean("transactions", false);
 		int cell_size = task.optNumber("cell_size", 100).intValue();
 		double voxel_size = task.optNumber("voxel_size", 1).doubleValue();
-		broker.deleteVoxeldb(voxeldb_name);
-		VoxelDB voxeldb = broker.createNewVoxeldb(voxeldb_name, storage_type, transactions);
+		
+		boolean clearVoxelDB = task.optBoolean("clear", false);
+		
+		VoxelDB voxeldb;
+		if(clearVoxelDB) {
+			broker.deleteVoxeldb(voxeldb_name);
+			voxeldb = broker.createNewVoxeldb(voxeldb_name, storage_type, transactions);			
+		} else {
+			voxeldb = broker.getOrCreateVoxeldb(voxeldb_name, storage_type, transactions);
+		}
+		
+
 		voxeldb.trySetVoxelsize(voxel_size);
 		voxeldb.trySetCellsize(cell_size);
 		
@@ -101,7 +112,7 @@ public class Task_import extends RemoteTask {
 		}
 		TimeSlice timeSlice = voxeldb.addTimeSlice(new TimeSlice.TimeSliceBuilder(time_slice));
 
-		Importer imprter = new Importer(voxeldb, filterRect, true, timeSlice);
+		Importer imprter = new Importer(voxeldb, filterRect, true, timeSlice, getMessageReceiver());
 		String source = task.getString("source");
 		Path root = Paths.get(source);
 

@@ -24,6 +24,7 @@ import broker.acl.EmptyACL;
 import rasterunit.KeyRange;
 import util.JsonUtil;
 import util.Web;
+import voxeldb.TimeSlice;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 
@@ -245,6 +246,22 @@ public class APIHandler_voxeldb {
 		json.endArray();
 		json.key("associated");
 		voxeldb.getAssociated().writeJSON(json);
+
+
+		json.key("time_slices");
+		json.array();
+		for(TimeSlice timeSlice : voxeldb.timeMapReadonly.values()) {
+			json.object();
+			json.key("id");
+			json.value(timeSlice.id);
+			if(timeSlice.hasName()) {
+				json.key("name");
+				json.value(timeSlice.name);
+			}
+			json.endObject();
+		}
+		json.endArray();
+
 		json.endObject(); // voxeldb
 		json.endObject(); // JSON
 	}

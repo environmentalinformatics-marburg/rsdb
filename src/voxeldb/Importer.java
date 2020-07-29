@@ -13,6 +13,7 @@ import pointcloud.CellTable;
 import pointcloud.DoubleRect;
 import pointdb.las.Las;
 import pointdb.las.Laz;
+import remotetask.MessageReceiver;
 import util.Timer;
 import util.Util;
 
@@ -27,12 +28,14 @@ public class Importer {
 	private final DoubleRect filterRect;
 	private final boolean trySetOriginToFileOrigin;
 	private final TimeSlice timeSlice;
+	private final MessageReceiver messageReceiver;
 
-	public Importer(VoxelDB voxeldb, DoubleRect filterRect, boolean trySetOriginToFileOrigin, TimeSlice timeSlice) {
+	public Importer(VoxelDB voxeldb, DoubleRect filterRect, boolean trySetOriginToFileOrigin, TimeSlice timeSlice, MessageReceiver messageReceiver) {
 		this.voxeldb = voxeldb;
 		this.filterRect = filterRect;
 		this.trySetOriginToFileOrigin = trySetOriginToFileOrigin;
 		this.timeSlice = timeSlice;
+		this.messageReceiver = messageReceiver;
 	}
 
 	/**
@@ -129,7 +132,7 @@ public class Importer {
 		int xVoxelCellsize = voxeldb.getCellsize();
 		int yVoxelCellsize = voxeldb.getCellsize();
 		int zVoxelCellsize = voxeldb.getCellsize();
-		
+
 		double voxelSizeX = voxeldb.geoRef().voxelSizeX;
 		double voxelSizeY = voxeldb.geoRef().voxelSizeY;
 		double voxelSizeZ = voxeldb.geoRef().voxelSizeZ;
@@ -174,17 +177,21 @@ public class Importer {
 		int ylascellmax = (int) Math.floor((ylasmax - yProjectedOrigin) / yProjectedCellsize);		
 		int zlascellmin = (int) Math.floor((zlasmin - zProjectedOrigin) / zProjectedCellsize);
 		int zlascellmax = (int) Math.floor((zlasmax - zProjectedOrigin) / zProjectedCellsize);
-		
-		final int t = timeSlice.t;
+
+		final int t = timeSlice.id;
 
 		long pos = 0;
 		int subdividedLen = 0;  // 0 == no subdivision
+		int round = 0;
 		while(pos < las_number_of_point_records) {
+			round++;
 			long current_long_len = subdividedLen > 0 ? subdividedLen : las_number_of_point_records - pos;
 			int len = current_long_len >= record_count_max ? record_count_max : (int) current_long_len;
+			messageReceiver.setMessage("read records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
 			Timer.resume("get records");
 			CellTable recordTable = isLas ? las.getRecords(pos, len) : laz.getRecords(pos, len);
 			//log.info(Timer.stop("get records"));
+			messageReceiver.setMessage("process records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
 
 			Timer.resume("convert records");
 
@@ -284,7 +291,7 @@ public class Importer {
 					int xcell = (int) Math.floor((x - xProjectedOrigin) / xProjectedCellsize) - xcellmin;
 					int ycell = (int) Math.floor((y - yProjectedOrigin) / yProjectedCellsize) - ycellmin;
 					int zcell = (int) Math.floor((z - zProjectedOrigin) / zProjectedCellsize) - zcellmin;
-					
+
 					//log.info("point cell " + xcell + " " + ycell + " " + zcell);
 
 					VoxelCell voxelCell = cells[ycell][xcell][zcell];
@@ -296,14 +303,16 @@ public class Importer {
 						}
 						cells[ycell][xcell][zcell] = voxelCell;
 					}
-					
+
 					int xloc = (int) (floorMod(x - xProjectedOrigin, xProjectedCellsize) / voxelSizeX);
 					int yloc = (int) (floorMod(y - yProjectedOrigin, yProjectedCellsize) / voxelSizeY);
 					int zloc = (int) (floorMod(z - zProjectedOrigin, zProjectedCellsize) / voxelSizeZ);
-					
+
 					voxelCell.cnt[zloc][yloc][xloc]++;
 				}
 			}
+			
+			messageReceiver.setMessage("write records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
 
 			for (int y = 0; y < ycellrange; y++) {
 				VoxelCell[][] cellsY = cells[y];

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedSet;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -314,6 +315,12 @@ public class GridDB implements AutoCloseable {
 
 	public ReadonlyNavigableSetView<TileKey> getTileKeys() {
 		return storage().tileKeysReadonly();
+	}
+	
+	public SortedSet<TileKey> getTileKeysOfT(int t) {
+		TileKey fromElement = new TileKey(t, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+		TileKey toElement = new TileKey(t, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+		return storage().tileKeysReadonly().subSet(fromElement, true, toElement, true);
 	}
 
 	public ReadonlyVecView<Attribute> getAttributes() {

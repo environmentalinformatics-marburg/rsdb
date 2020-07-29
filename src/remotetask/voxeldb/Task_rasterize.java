@@ -23,6 +23,7 @@ import remotetask.Description;
 import remotetask.Param;
 import util.Range2d;
 import util.frame.FloatFrame;
+import voxeldb.TimeSlice;
 import voxeldb.VoxelDB;
 
 @task_voxeldb("rasterize")
@@ -60,11 +61,11 @@ public class Task_rasterize extends CancelableRemoteTask {
 		rasterdb.setProj4(voxeldb.geoRef().proj4);
 		rasterdb.setCode("EPSG:" + voxeldb.geoRef().epsg);
 		rasterdb.setPixelSize(voxeldb.geoRef().voxelSizeX, voxeldb.geoRef().voxelSizeY, voxeldb.geoRef().originX, voxeldb.geoRef().originY);
-		
+
 		voxeldb.setAssociatedRasterDB(rasterdb.config.getName());		
 		rasterdb.associated.setVoxelDB(voxeldb.getName());
 		rasterdb.writeMeta();
-		
+
 		Band bandCount = rasterdb.createBand(TilePixel.TYPE_FLOAT, "count", null);
 		Band bandElevation = rasterdb.createBand(TilePixel.TYPE_FLOAT, "elevation", null);
 		//Band bandMaxCount = rasterdb.createBand(TilePixel.TYPE_FLOAT, "maxCount", null);
@@ -73,59 +74,60 @@ public class Task_rasterize extends CancelableRemoteTask {
 		double originZ = voxeldb.geoRef().originZ;
 		double voxelSizeZ = voxeldb.geoRef().voxelSizeZ;
 
-		voxeldb.getVoxelCells().sequential().forEach(voxelCell -> {
-			try {
+		for(TimeSlice timeSlice:voxeldb.timeMapReadonly.values()) {
+			voxeldb.getVoxelCells(timeSlice).sequential().forEach(voxelCell -> {
+				try {
 
-				RasterUnitStorage storage = rasterdb.rasterUnit();
-				int rx = voxelCell.x * cellsize;
-				int ry = voxelCell.y * cellsize;
-				Range2d range2d = Range2d.ofCorner(rx, ry, cellsize, cellsize);
-				int timestamp = 0;
-				BandProcessor bandProcessor = new BandProcessor(rasterdb, range2d, timestamp);
-				int[][][] cnt = voxelCell.cnt;
+					RasterUnitStorage storage = rasterdb.rasterUnit();
+					int rx = voxelCell.x * cellsize;
+					int ry = voxelCell.y * cellsize;
+					Range2d range2d = Range2d.ofCorner(rx, ry, cellsize, cellsize);
+					int timestamp = timeSlice.id;
+					BandProcessor bandProcessor = new BandProcessor(rasterdb, range2d, timestamp);
+					int[][][] cnt = voxelCell.cnt;
 
-				{
-					FloatFrame frame = bandProcessor.getFloatFrame(bandCount);
-					float[][]  pixels = frame.data;
+					{
+						FloatFrame frame = bandProcessor.getFloatFrame(bandCount);
+						float[][]  pixels = frame.data;
 
-					for(int z = 0; z < cellsize; z++) {
-						for(int y = 0; y < cellsize; y++) {
-							for(int x = 0; x < cellsize; x++) {
-								int v = cnt[z][y][x];
-								if(v != 0) {
-									pixels[y][x] = Float.isFinite(pixels[y][x]) ? pixels[y][x] + v : v;
+						for(int z = 0; z < cellsize; z++) {
+							for(int y = 0; y < cellsize; y++) {
+								for(int x = 0; x < cellsize; x++) {
+									int v = cnt[z][y][x];
+									if(v != 0) {
+										pixels[y][x] = Float.isFinite(pixels[y][x]) ? pixels[y][x] + v : v;
+									}
 								}
 							}
 						}
+						ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandCount, pixels, range2d.ymin, range2d.xmin);
 					}
-					ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandCount, pixels, range2d.ymin, range2d.xmin);
-				}
 
-				{
-					FloatFrame frame = bandProcessor.getFloatFrame(bandElevation);
-					float[][]  pixels = frame.data;
-					
-					for(int z = 0; z < cellsize; z++) {
-						int[][] cntz = cnt[z];
-						float zr = (float) (originZ + voxelSizeZ * (voxelCell.z * cellsize + z));
-						for(int y = 0; y < cellsize; y++) {
-							int[] cntzy = cntz[y];
-							float[] pixelsy = pixels[y];
-							for(int x = 0; x < cellsize; x++) {
-								int v = cntzy[x];
-								if(v != 0) {
-									pixelsy[x] = zr;
+					{
+						FloatFrame frame = bandProcessor.getFloatFrame(bandElevation);
+						float[][]  pixels = frame.data;
+
+						for(int z = 0; z < cellsize; z++) {
+							int[][] cntz = cnt[z];
+							float zr = (float) (originZ + voxelSizeZ * (voxelCell.z * cellsize + z));
+							for(int y = 0; y < cellsize; y++) {
+								int[] cntzy = cntz[y];
+								float[] pixelsy = pixels[y];
+								for(int x = 0; x < cellsize; x++) {
+									int v = cntzy[x];
+									if(v != 0) {
+										pixelsy[x] = zr;
+									}
 								}
 							}
 						}
+						ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandElevation, pixels, range2d.ymin, range2d.xmin);
 					}
-					ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandElevation, pixels, range2d.ymin, range2d.xmin);
-				}
-				
-				/*{
+
+					/*{
 					FloatFrame frame = bandProcessor.getFloatFrame(bandMaxCount);
 					float[][]  pixels = frame.data;
-					
+
 					for(int z = 0; z < cellsize; z++) {
 						int[][] cntz = cnt[z];
 						float zr = (float) (originZ + voxelSizeZ * (voxelCell.z * cellsize + z));
@@ -151,11 +153,12 @@ public class Task_rasterize extends CancelableRemoteTask {
 				}*/
 
 
-				storage.commit();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		});
+					storage.commit();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			});
+		}
 		rasterdb.rebuildPyramid(true);
 		rasterdb.close();
 		voxeldb.close();

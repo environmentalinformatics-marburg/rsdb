@@ -42,7 +42,8 @@
         :selectedExtent="selectedExtent" 
         :meta="meta" 
         :epsgCode="epsgCode"
-        :currentVectordb="vectordb" 
+        :currentVectordb="vectordb"
+        :currentTimestamp="timestamp" 
         @selected-vectordb="selectedVectordb = $event" 
       />
       </v-list>
