@@ -1,6 +1,7 @@
 package util.rdat;
 
 import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
@@ -39,10 +40,12 @@ public class Rdat {
 	public static final byte[] SIGNATURE_VECT = stringToBytes("VECT");
 	public static final byte[] SIGNATURE_MTRX = stringToBytes("MTRX");
 	public static final byte[] SIGNATURE_DTFM = stringToBytes("DTFM");
+	public static final byte[] SIGNATURE_VDIM = stringToBytes("VDIM");
 	
 	public static final byte[] RDAT_TYPE_RASTER = stringToSizedBytes("RASTER");
 	public static final byte[] RDAT_TYPE_POINT_DATA_FRAME = stringToSizedBytes("POINT_DATA_FRAME");
 	public static final byte[] RDAT_TYPE_DATA_FRAME = stringToSizedBytes("DATA_FRAME");
+	public static final byte[] RDAT_TYPE_DIM_VECTOR = stringToSizedBytes("DIM_VECTOR");
 
 
 	private static byte[] stringToBytes(String text) {
@@ -109,5 +112,23 @@ public class Rdat {
 		out.writeInt(data[0].length*data.length);
 		Serialisation.writeArrayArrayBE(out, data);		
 	}
-
+	
+	public static void write_RDAT_VECT3(DataOutput out, int x1, int x2, int x3) throws IOException {
+		out.write(SIGNATURE_VECT);
+		out.writeByte(TYPE_INT32);
+		out.writeByte(TYPE_INT32_SIZE);
+		out.writeInt(3);
+		out.writeInt(x1);
+		out.writeInt(x2);
+		out.writeInt(x3);	
+	}
+	
+	public static void write_RDAT_VDIM_uint8(DataOutput out, byte[] data, int xlen, int ylen, int zlen) throws IOException {
+		out.write(SIGNATURE_VDIM);
+		out.writeByte(TYPE_UINT8);
+		out.writeByte(TYPE_UINT8_SIZE);
+		write_RDAT_VECT3(out, xlen, ylen, zlen);
+		int len = xlen * ylen * zlen;
+		out.write(data, 0, len);
+	}
 }

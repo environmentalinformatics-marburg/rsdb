@@ -119,6 +119,14 @@ public final class Web {
 		return text==null?defaultValue:text;
 	}
 
+	public  static String getString(Request request, String name) {
+		String text = request.getParameter(name);
+		if(text==null) {
+			throw new RuntimeException("parameter not found: "+name);
+		}
+		return text;
+	}
+
 	/**
 	 * get one or more integers separated by ","
 	 * @param request
@@ -157,7 +165,7 @@ public final class Web {
 			return defaultValue;
 		}
 	}
-	
+
 	public  static int getInt(Request request, String name, IntSupplier defaultValue) {
 		String text = request.getParameter(name);
 		if(text==null) {
@@ -185,7 +193,7 @@ public final class Web {
 		log.warn("value unknown return default: "+text);
 		return defaultValue;
 	}
-	
+
 	public static boolean getFlagBoolean(Request request, String name) {
 		String text = request.getParameter(name);
 		if(text==null) {
@@ -297,7 +305,7 @@ public final class Web {
 	public static String requestContentToString(Request request) throws IOException {
 		return new String(readAllBytes(request.getInputStream(),request.getContentLength()), StandardCharsets.UTF_8);
 	}
-	
+
 	public static JSONObject requestContentToJSON(Request request) throws IOException {
 		return new JSONObject(requestContentToString(request));
 	}

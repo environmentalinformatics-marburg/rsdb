@@ -123,6 +123,10 @@ RemoteSensing_public <- list( #      *********** public ************************
     return(VectorDB$new(private$base_url, name, curlHandle = private$curlHandle, rsdbConnector = private$rsdbConnector))
   },
 
+  voxeldb = function(name) {
+    return(VoxelDB$new(private$rsdbConnector, name))
+  },
+
   submit_task = function(task) {
     params <- task
     if(is.list(task)) {
@@ -174,6 +178,11 @@ RemoteSensing_active <- list( #      *********** active ************************
   vectordbs = function() {
     json <- private$rsdbConnector$GET("/vectordbs")
     return(json$vectordbs)
+  },
+
+  voxeldbs = function() {
+    json <- private$rsdbConnector$GET("/voxeldbs")
+    return(json$voxeldbs)
   }
 
 )

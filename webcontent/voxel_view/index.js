@@ -150,11 +150,11 @@ VoxelWorld.faces = [
   },
 ];
 
-function main(data) {
+function main(data, xlen, ylen, zlen) {
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({canvas});
 
-  const cellSize = 300;
+  const cellSize = Math.max(xlen, ylen, zlen);
 
   const fov = 75;
   const aspect = 2;  // the canvas default
@@ -199,9 +199,9 @@ function main(data) {
   }*/
 
   let pos = 0;
-  for (let y = 0; y < cellSize; ++y) {
-    for (let z = 0; z < cellSize; ++z) {
-      for (let x = 0; x < cellSize; ++x) {
+  for (let y = 0; y < zlen; ++y) {
+    for (let z = 0; z < ylen; ++z) {
+      for (let x = 0; x < xlen; ++x) {
         const v = data[pos++];
         if(v > 0) {
           world.setVoxel(x, y, z, 1);
@@ -283,13 +283,19 @@ async function init() {
     if(params.has('t')) {
       args.t = params.get('t');
     }
+	  args.format = 'js';
     url.search = new URLSearchParams(args);
     console.log(url);
     let response = await fetch(url);
     let buffer = await response.arrayBuffer();
-    let data = new Uint8Array(buffer);
+    let header = new DataView(buffer);
+    let xlen = header.getInt32(0);
+    let ylen = header.getInt32(4);
+    let zlen = header.getInt32(8);
+    let data = new Uint8Array(buffer, 12, xlen * ylen * zlen);
+    console.log(xlen + "  " + ylen + "  " + zlen);
     console.log(data);
-    main(data);
+    main(data, xlen, ylen, zlen);
     refresh();
   } catch(e) {
     console.log(e);

@@ -47,6 +47,7 @@ read_RDAT <- function(con) {
   data <- NULL
   switch(dataType,
          RASTER = {data <- read_RDAT_RASTER(con)},
+         DIM_VECTOR = {data <- read_DIM_VECTOR(con)},
          DATA_FRAME = {data <- read_RDAT_DATA_FRAME(con)},
          POINT_DATA_FRAME = {data <- read_RDAT_DATA_FRAME(con)},
          stop("unknown RDAT type: ", dataType)
@@ -187,4 +188,27 @@ read_RDAT_DATA_FRAME <- function(con) {
     attr(df, name) <- meta[[name]]
   }
   return(df)
+}
+
+read_DIM_VECTOR <- function(con) {
+  meta <- read_RDAT_LIST(con)
+  v <- read_RDAT_VDIM(con)
+  for(name in names(meta)) {
+    attr(v, name) <- meta[[name]]
+  }
+  return(v)
+}
+
+read_RDAT_VDIM <- function(con) {
+  signature <- readChar(con,4)
+  if(signature!="VDIM") {
+    stop("no VDIM: ", signature)
+  }
+  type <- readBin(con, "int", size=1)
+  type_size <- readBin(con, "int", size=1)
+  dim_vec <- read_RDAT_VECT(con)
+  len <- prod(dim_vec)
+  data <- read_RDAT_VECT_raw(con, type, type_size, len)
+  dim(data) <- dim_vec
+  return(data)
 }
