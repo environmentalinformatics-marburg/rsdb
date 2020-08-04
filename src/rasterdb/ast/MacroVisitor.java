@@ -1,6 +1,7 @@
 package rasterdb.ast;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,27 +11,51 @@ import rasterdb.dsl.DSL;
 public class MacroVisitor implements TransformVisitor {
 	private static final Logger log = LogManager.getLogger();
 	public static final MacroVisitor DEFAULT = new MacroVisitor();
-	
-	private final static String ndvi_text = "(r800 - r680) / (r800 + r680)";
-	private final static String evi_text = "2.5 * (r800 - r670) / (r800 + 6 * r670 - 7.5 * r475 + 1)";
-	private final static String evi2_text = "2.5 * ((r800 - r680) / (r800 + r680 + 1))";
-	private final static String savi_text = "(r800 - r670) / (r800 + r670 + 0.5) * (1 + 0.5)";
-	private static AST ndvi_AST = null;
-	private static AST evi_AST = null;
-	private static AST evi2_AST = null;
-	private static AST savi_AST = null;
-	private static AST full_spectrum_AST = DSL.parse_unify("[r0 : r10000]");
+
+	private final static TreeMap<String, String> compositeFormulaMap = new TreeMap<String, String>();
+	private final static TreeMap<String, AST> compositeAstMap = new TreeMap<String, AST>();
+
+	private static void add(String name, String formula) {
+		try {
+			log.info(name);
+			AST ast = DSL.parse_unify(formula);
+			log.info(DSL.toString(ast));
+			compositeFormulaMap.put(name, formula);
+			compositeAstMap.put(name, ast);
+		} catch(Exception e) {
+			log.warn("could not create formula for " + name +"   " + e);
+		}
+	}
 	
 	static {
-		ndvi_AST = DSL.parse_unify(ndvi_text);
-		evi_AST = DSL.parse_unify(evi_text);
-		evi2_AST = DSL.parse_unify(evi2_text);
-		savi_AST = DSL.parse_unify(savi_text);
+		/*
+		https://de.wikipedia.org/wiki/Zapfen_%28Auge%29#/media/File:Cone-response-de.svg
+		red = 564
+		green = 534
+		blue = 420
+		 */
 		
-		log.info(DSL.toString(ndvi_AST));
-		log.info(DSL.toString(evi_AST));
-		log.info(DSL.toString(evi2_AST));
-		log.info(DSL.toString(savi_AST));
+		add("ndvi", "(r800 - r680) / (r800 + r680)");
+		add("evi", "2.5 * (r800 - r670) / (r800 + 6 * r670 - 7.5 * r475 + 1)");
+		add("evi2", "2.5 * ((r800 - r680) / (r800 + r680 + 1))");
+		add("savi", "(r800 - r670) / (r800 + r670 + 0.5) * (1 + 0.5)");
+		
+		// MPRI
+		// from: RGB vegetation indices applied to grass monitoring: a qualitative analysis
+		// https://doi.org/10.15159/ar.19.119
+		add("mpri", "(r534 - r564) / (r534 + r564)");
+	    
+		// TGI
+		// from: A visible band index for remote sensing leaf chlorophyll content at the canopy scale
+		// https://doi.org/10.1016/j.jag.2012.07.020
+		//
+		// −0.5[(cr - cb)(Rr   - Rg)  - (cr  - cg)(Rr - Rb)]
+		// −0.5[(670 - 480)(R670 - R550) - (670 - 550)(R670 - R480)]
+		// −0.5[(190)(r670 - r550) - (120)(r670 - r480)]
+		// −0.5 * ( 190 * (r670 - r550) - 120 * (r670 - r480))
+		add("tgi", "-0.5 * ( 190 * (r670 - r550) - 120 * (r670 - r480))");
+	    
+	    add("full_spectrum", "[r0 : r10000]");
 	}
 	
 	private MacroVisitor() {}
@@ -42,26 +67,11 @@ public class MacroVisitor implements TransformVisitor {
 			AST node = e.accept(this, ast);
 			list.add(node);
 		}
-		//System.out.println("visit function "+ast.name);
-		switch(ast.name) {
-		case "ndvi":
-			//return new AST_function("div",new AST_function("sub",new AST_radiance(800), new AST_radiance(680)),new AST_function("add", new AST_radiance(800), new AST_radiance(680)));
-			return ndvi_AST;
-		case "evi":
-			//return new AST_function("_evi", new AST_radiance(800), new AST_radiance(670), new AST_radiance(475));
-			return evi_AST;
-		case "evi2":
-			/*AST_function top = new AST_function("sub",new AST_radiance(800), new AST_radiance(670));
-			AST_function cRed = new AST_function("mul", new AST_radiance(670), new AST_Constant(2.4));
-			AST_function bottom = new AST_function("add", new AST_function("add", new AST_radiance(800), cRed), new AST_Constant(1.0));
-			AST_function res = new AST_function("div", top, bottom);
-			return new AST_function("mul", res, new AST_Constant(2.5));*/
-			return evi2_AST;
-		case "savi":
-			return savi_AST;
-		case "full_spectrum":
-			return full_spectrum_AST;
-		default:
+		
+		AST compositeAst = compositeAstMap.get(ast.name);
+		if(compositeAst != null) {
+			return compositeAst;
+		} else {
 			if(ast.asts.size() == 2) {
 				switch(ast.name) {
 				case "add":
@@ -82,7 +92,7 @@ public class MacroVisitor implements TransformVisitor {
 					}
 				}
 			}
-			return new AST_function(ast.name, list);
+			return new AST_function(ast.name, list);			
 		}
 	}
 

@@ -206,6 +206,8 @@ public class WmsCapabilities {
 				list.add(new WmsStyle("evi", "EVI", "evi"));
 				list.add(new WmsStyle("evi2", "EVI2", "evi2"));
 				list.add(new WmsStyle("savi", "SAVI", "savi"));
+				list.add(new WmsStyle("mpri", "MPRI", "mpri"));
+				list.add(new WmsStyle("tgi", "TGI", "tgi"));
 			}
 		}
 		for (Band band : rasterdb.bandMapReadonly.values()) {

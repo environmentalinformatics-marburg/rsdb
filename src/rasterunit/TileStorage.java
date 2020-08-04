@@ -296,7 +296,8 @@ public class TileStorage implements RasterUnitStorage {
 			/*if(consolidatedFreeSlotsCount > 0) {
 				log.info("consolidatedFreeSlotsCount " + consolidatedFreeSlotsCount);
 			}*/
-			freeSetAddCounter.setRelease(0);
+			//freeSetAddCounter.setRelease(0); // Java 9 or newer only
+			freeSetAddCounter.set(0);
 		}
 	}
 
@@ -323,7 +324,8 @@ public class TileStorage implements RasterUnitStorage {
 
 			TileSlot[] tileSlots = map.values().stream().toArray(TileSlot[]::new);
 			freeSet.clear();
-			freeSetAddCounter.setRelease(0);
+			//freeSetAddCounter.setRelease(0); // Java 9 or newer only
+			freeSetAddCounter.set(0);
 			long pos = refreshFreeSet(tileSlots, freeSet);
 
 			/*TreeSet<TileSlot> slotSet = new TreeSet<TileSlot>(TileSlot.POS_LEN_REV_COMPARATOR);		

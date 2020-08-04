@@ -8,6 +8,13 @@ REM If you set this path check if following file exists at location: GDAL_PATH/b
 set GDAL_PATH=%RSDB_PATH%/gdal
 
 set GDAL_BIN_PATH=%GDAL_PATH%/bin
+
+REM Set GDAL data location, e.g. for EPSG support file 'gcs.csv'.
+REM This variable is read inernally from GDAL library.
+REM https://trac.osgeo.org/gdal/wiki/FAQInstallationAndBuilding#WhatisGDAL_DATAenvironmentvariable
+set GDAL_DATA=%GDAL_BIN_PATH%/gdal-data
+
+
 set GDAL_JAVA_PATH=%GDAL_BIN_PATH%/gdal/java
 set GDAL_JAR_PATH=%GDAL_JAVA_PATH%/gdal.jar
 REM echo %GDAL_JAR_PATH%

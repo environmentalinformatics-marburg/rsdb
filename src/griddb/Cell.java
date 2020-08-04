@@ -9,7 +9,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.github.luben.zstd.Zstd;
-import com.oracle.tools.packager.Log;
 
 public class Cell {
 	private static final Logger log = LogManager.getLogger();
