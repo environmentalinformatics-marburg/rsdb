@@ -216,5 +216,32 @@ public class BandProcessing {
 		}
 		return new Band[]{r, g, b};
 	}
+	
+	public static Band getBandRed(RasterDB rasterdb) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
+			if(band.has_title() && band.title.toLowerCase().equals("red")) {
+				return band;
+			}
+		}
+		return getClosestSpectralBand(rasterdb, 564);
+	}
+	
+	public static Band getBandGreen(RasterDB rasterdb) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
+			if(band.has_title() && band.title.toLowerCase().equals("green")) {
+				return band;
+			}
+		}
+		return getClosestSpectralBand(rasterdb, 534);
+	}
+	
+	public static Band getBandBlue(RasterDB rasterdb) {
+		for(Band band:rasterdb.bandMapReadonly.values()) {
+			if(band.has_title() && band.title.toLowerCase().equals("blue")) {
+				return band;
+			}
+		}
+		return getClosestSpectralBand(rasterdb, 420);
+	}
 
 }

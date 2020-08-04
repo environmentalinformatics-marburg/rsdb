@@ -223,8 +223,9 @@ public class WmsHandler extends AbstractHandler {
 				String gammaText = null;
 				String palText = "grey";
 				String style = request.getParameter("STYLES");
+				log.info("STYLES: |" + style + "|");
 				if(style != null) {
-					String[] styles = style.trim().split(" ");
+					String[] styles = style.trim().split("@");
 					//log.info("styles " + Arrays.toString(styles));
 					if(styles.length > 0) {
 						style_product = styles[0];

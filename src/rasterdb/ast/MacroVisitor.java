@@ -43,7 +43,7 @@ public class MacroVisitor implements TransformVisitor {
 		// MPRI
 		// from: RGB vegetation indices applied to grass monitoring: a qualitative analysis
 		// https://doi.org/10.15159/ar.19.119
-		add("mpri", "(r534 - r564) / (r534 + r564)");
+		add("mpri", "(green - red) / (green + red)");
 	    
 		// TGI
 		// from: A visible band index for remote sensing leaf chlorophyll content at the canopy scale

@@ -630,23 +630,23 @@ export default {
 
 
       if(this.selectedGamma !== 'auto') {
-        styleParamter += ' gamma' + this.selectedGamma;
+        styleParamter += '@gamma' + this.selectedGamma;
       }
 
       if(this.selectedOneBandMapping !== 'undefined' && this.selectedOneBandMapping !== 'grey') {
-        styleParamter += " pal_" + this.selectedOneBandMapping;
+        styleParamter += "@pal_" + this.selectedOneBandMapping;
       }
 
       if (this.syncBands) {
-				styleParamter += " sync_bands";
+				styleParamter += "@sync_bands";
       }
       
       if(!isNaN(this.valueRangeMin)) {
-        styleParamter += " min" + this.valueRangeMin;
+        styleParamter += "@min" + this.valueRangeMin;
       }
 
       if(!isNaN(this.valueRangeMax)) {
-        styleParamter += " max" + this.valueRangeMax;
+        styleParamter += "@max" + this.valueRangeMax;
       }
 
       var p = {

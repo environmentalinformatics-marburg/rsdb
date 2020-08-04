@@ -42,7 +42,7 @@ public class BindVisitor implements TransformVisitor {
 			list.add(node);
 		}
 		switch(ast.name) {
-		case "range":
+		case "range": {
 			AST_Band_number min = (AST_Band_number) list.get(0);
 			AST_Band_number max = (AST_Band_number) list.get(1);
 			ArrayList<AST> seq = new ArrayList<>();
@@ -50,6 +50,28 @@ public class BindVisitor implements TransformVisitor {
 				seq.add(new AST_Band_number(i));
 			}
 			return new AST_Sequence(seq).accept(this, parent);
+		}
+		case "red": {
+			Band band = BandProcessing.getBandRed(rasterdb);
+			if(band==null) {
+				throw new RuntimeException("red band not found");
+			}
+			return new AST_Band_number(band.index).accept(this, parent);
+		}
+		case "green": {
+			Band band = BandProcessing.getBandGreen(rasterdb);
+			if(band==null) {
+				throw new RuntimeException("green band not found");
+			}
+			return new AST_Band_number(band.index).accept(this, parent);
+		}
+		case "blue": {
+			Band band = BandProcessing.getBandBlue(rasterdb);
+			if(band==null) {
+				throw new RuntimeException("blue band not found");
+			}
+			return new AST_Band_number(band.index).accept(this, parent);
+		}
 		default:
 			return new AST_function(ast.name, list);
 		}

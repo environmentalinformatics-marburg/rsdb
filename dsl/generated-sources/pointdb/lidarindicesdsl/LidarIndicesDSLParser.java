@@ -1,4 +1,4 @@
-// Generated from LidarIndicesDSL.g4 by ANTLR 4.7
+// Generated from LidarIndicesDSL.g4 by ANTLR 4.4
 package pointdb.lidarindicesdsl;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -11,59 +11,27 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class LidarIndicesDSLParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.7", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.4", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
 		ID=1, WS=2, SEPERATOR=3;
+	public static final String[] tokenNames = {
+		"<INVALID>", "ID", "WS", "SEPERATOR"
+	};
 	public static final int
 		RULE_index_scirpt = 0, RULE_index_sequence = 1, RULE_index = 2;
 	public static final String[] ruleNames = {
 		"index_scirpt", "index_sequence", "index"
 	};
 
-	private static final String[] _LITERAL_NAMES = {
-	};
-	private static final String[] _SYMBOLIC_NAMES = {
-		null, "ID", "WS", "SEPERATOR"
-	};
-	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
-
-	/**
-	 * @deprecated Use {@link #VOCABULARY} instead.
-	 */
-	@Deprecated
-	public static final String[] tokenNames;
-	static {
-		tokenNames = new String[_SYMBOLIC_NAMES.length];
-		for (int i = 0; i < tokenNames.length; i++) {
-			tokenNames[i] = VOCABULARY.getLiteralName(i);
-			if (tokenNames[i] == null) {
-				tokenNames[i] = VOCABULARY.getSymbolicName(i);
-			}
-
-			if (tokenNames[i] == null) {
-				tokenNames[i] = "<INVALID>";
-			}
-		}
-	}
-
-	@Override
-	@Deprecated
-	public String[] getTokenNames() {
-		return tokenNames;
-	}
-
-	@Override
-
-	public Vocabulary getVocabulary() {
-		return VOCABULARY;
-	}
-
 	@Override
 	public String getGrammarFileName() { return "LidarIndicesDSL.g4"; }
+
+	@Override
+	public String[] getTokenNames() { return tokenNames; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -79,14 +47,14 @@ public class LidarIndicesDSLParser extends Parser {
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 	public static class Index_scirptContext extends ParserRuleContext {
+		public TerminalNode WS(int i) {
+			return getToken(LidarIndicesDSLParser.WS, i);
+		}
 		public Index_sequenceContext index_sequence() {
 			return getRuleContext(Index_sequenceContext.class,0);
 		}
 		public TerminalNode EOF() { return getToken(LidarIndicesDSLParser.EOF, 0); }
 		public List<TerminalNode> WS() { return getTokens(LidarIndicesDSLParser.WS); }
-		public TerminalNode WS(int i) {
-			return getToken(LidarIndicesDSLParser.WS, i);
-		}
 		public Index_scirptContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -106,29 +74,23 @@ public class LidarIndicesDSLParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(7);
-			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==WS) {
 				{
-				setState(6);
-				match(WS);
+				setState(6); match(WS);
 				}
 			}
 
-			setState(9);
-			index_sequence();
+			setState(9); index_sequence();
 			setState(11);
-			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==WS) {
 				{
-				setState(10);
-				match(WS);
+				setState(10); match(WS);
 				}
 			}
 
-			setState(13);
-			match(EOF);
+			setState(13); match(EOF);
 			}
 		}
 		catch (RecognitionException re) {
@@ -143,19 +105,19 @@ public class LidarIndicesDSLParser extends Parser {
 	}
 
 	public static class Index_sequenceContext extends ParserRuleContext {
-		public List<IndexContext> index() {
-			return getRuleContexts(IndexContext.class);
-		}
 		public IndexContext index(int i) {
 			return getRuleContext(IndexContext.class,i);
 		}
-		public List<TerminalNode> SEPERATOR() { return getTokens(LidarIndicesDSLParser.SEPERATOR); }
-		public TerminalNode SEPERATOR(int i) {
-			return getToken(LidarIndicesDSLParser.SEPERATOR, i);
-		}
-		public List<TerminalNode> WS() { return getTokens(LidarIndicesDSLParser.WS); }
 		public TerminalNode WS(int i) {
 			return getToken(LidarIndicesDSLParser.WS, i);
+		}
+		public List<TerminalNode> WS() { return getTokens(LidarIndicesDSLParser.WS); }
+		public List<TerminalNode> SEPERATOR() { return getTokens(LidarIndicesDSLParser.SEPERATOR); }
+		public List<IndexContext> index() {
+			return getRuleContexts(IndexContext.class);
+		}
+		public TerminalNode SEPERATOR(int i) {
+			return getToken(LidarIndicesDSLParser.SEPERATOR, i);
 		}
 		public Index_sequenceContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -176,8 +138,7 @@ public class LidarIndicesDSLParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(15);
-			index();
+			setState(15); index();
 			setState(26);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,4,_ctx);
@@ -186,29 +147,23 @@ public class LidarIndicesDSLParser extends Parser {
 					{
 					{
 					setState(17);
-					_errHandler.sync(this);
 					_la = _input.LA(1);
 					if (_la==WS) {
 						{
-						setState(16);
-						match(WS);
+						setState(16); match(WS);
 						}
 					}
 
-					setState(19);
-					match(SEPERATOR);
+					setState(19); match(SEPERATOR);
 					setState(21);
-					_errHandler.sync(this);
 					_la = _input.LA(1);
 					if (_la==WS) {
 						{
-						setState(20);
-						match(WS);
+						setState(20); match(WS);
 						}
 					}
 
-					setState(23);
-					index();
+					setState(23); index();
 					}
 					} 
 				}
@@ -248,8 +203,7 @@ public class LidarIndicesDSLParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(29);
-			match(ID);
+			setState(29); match(ID);
 			}
 		}
 		catch (RecognitionException re) {
@@ -264,12 +218,12 @@ public class LidarIndicesDSLParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\5\"\4\2\t\2\4\3\t"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\5\"\4\2\t\2\4\3\t"+
 		"\3\4\4\t\4\3\2\5\2\n\n\2\3\2\3\2\5\2\16\n\2\3\2\3\2\3\3\3\3\5\3\24\n\3"+
 		"\3\3\3\3\5\3\30\n\3\3\3\7\3\33\n\3\f\3\16\3\36\13\3\3\4\3\4\3\4\2\2\5"+
-		"\2\4\6\2\2\2#\2\t\3\2\2\2\4\21\3\2\2\2\6\37\3\2\2\2\b\n\7\4\2\2\t\b\3"+
-		"\2\2\2\t\n\3\2\2\2\n\13\3\2\2\2\13\r\5\4\3\2\f\16\7\4\2\2\r\f\3\2\2\2"+
-		"\r\16\3\2\2\2\16\17\3\2\2\2\17\20\7\2\2\3\20\3\3\2\2\2\21\34\5\6\4\2\22"+
+		"\2\4\6\2\2#\2\t\3\2\2\2\4\21\3\2\2\2\6\37\3\2\2\2\b\n\7\4\2\2\t\b\3\2"+
+		"\2\2\t\n\3\2\2\2\n\13\3\2\2\2\13\r\5\4\3\2\f\16\7\4\2\2\r\f\3\2\2\2\r"+
+		"\16\3\2\2\2\16\17\3\2\2\2\17\20\7\2\2\3\20\3\3\2\2\2\21\34\5\6\4\2\22"+
 		"\24\7\4\2\2\23\22\3\2\2\2\23\24\3\2\2\2\24\25\3\2\2\2\25\27\7\5\2\2\26"+
 		"\30\7\4\2\2\27\26\3\2\2\2\27\30\3\2\2\2\30\31\3\2\2\2\31\33\5\6\4\2\32"+
 		"\23\3\2\2\2\33\36\3\2\2\2\34\32\3\2\2\2\34\35\3\2\2\2\35\5\3\2\2\2\36"+

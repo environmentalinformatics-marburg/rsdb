@@ -1,39 +1,39 @@
 grammar DSL;
 
-expression :  term (WS? plus_minus=PLUS_MINUS WS? term)*
+expression :  term (plus_minus=PLUS_MINUS term)*
            ;
            
-term : entity (WS? mul_div=MUL_DIV WS? entity)*
+term : entity (mul_div=MUL_DIV entity)*
      ;               
          
-entity : '(' WS? expression WS? ')'
+entity : '(' expression ')'
        | seq
        | constant
        | function 
        ;
 
-seq : '[' WS? seq_element (WS? ',' WS? seq_element)*  WS? ']'
+seq : '[' seq_element (',' seq_element)* ']'
     ;
     
 constant : PLUS_MINUS? INT('.'INT)?
 		 ;           
        
-function : ID ( '(' WS? (expression (WS? ',' WS? expression)*)? WS? ')' )?
+function : ID ( '(' (expression ( ',' expression)*)? ')' )?
 		 ;
 		 
 seq_element : expression
             | range
             ;
 		 
-range : min=ID WS? ':' WS? max=ID
+range : min=ID ':' max=ID
       ;
 
 INT : ('0'..'9')+ ;
-
-WS : [ \t\r\n]+ ;
 
 ID : 'a'..'z' ('a'..'z' | '_' | '0'..'9')* ;
 
 PLUS_MINUS : [+-] ;
 
 MUL_DIV : [*/] ;
+
+WS : (' ' | '\t' | '\r' | 'n') -> skip ;

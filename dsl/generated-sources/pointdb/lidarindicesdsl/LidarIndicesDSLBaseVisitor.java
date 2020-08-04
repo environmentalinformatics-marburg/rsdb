@@ -1,5 +1,6 @@
-// Generated from LidarIndicesDSL.g4 by ANTLR 4.7
+// Generated from LidarIndicesDSL.g4 by ANTLR 4.4
 package pointdb.lidarindicesdsl;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 /**
@@ -17,19 +18,19 @@ public class LidarIndicesDSLBaseVisitor<T> extends AbstractParseTreeVisitor<T> i
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIndex_scirpt(LidarIndicesDSLParser.Index_scirptContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIndex_sequence(@NotNull LidarIndicesDSLParser.Index_sequenceContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIndex_sequence(LidarIndicesDSLParser.Index_sequenceContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIndex(@NotNull LidarIndicesDSLParser.IndexContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIndex(LidarIndicesDSLParser.IndexContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIndex_scirpt(@NotNull LidarIndicesDSLParser.Index_scirptContext ctx) { return visitChildren(ctx); }
 }
