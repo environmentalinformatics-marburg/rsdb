@@ -24,6 +24,7 @@ import org.json.JSONWriter;
 
 
 import broker.Broker;
+import broker.TimeSlice;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.TimeBand;
@@ -48,7 +49,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		public final RasterDB rasterdb;
 		public double[] ext = null;
 		public Collection<Band> bands = null;
-		public Collection<Integer> timestamps;
+		public Collection<Integer> time_slice_ids = null;
 		public int compression = 0;
 		public int div = 1;
 		public String arrangement = "multiband";
@@ -115,10 +116,10 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 				spec.bands = rasterdb.bandMapReadonly.values();
 			}
 
-			if(meta.has("timestamps")) {
-				spec.timestamps = JsonUtil.getIntegerVec(meta, "timestamps");
+			if(meta.has("time_slice_ids")) {
+				spec.time_slice_ids = JsonUtil.getIntegerVec(meta, "time_slice_ids");
 			} else {
-				spec.timestamps = rasterdb.rasterUnit().timeKeysReadonly();
+				spec.time_slice_ids = rasterdb.rasterUnit().timeKeysReadonly();
 			}
 
 			if(meta.has("compression")) {
@@ -193,14 +194,24 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		zipOutputStream.flush();
 	}
 
+	private static String timeSliceIdToText(RasterDB rasterdb, int id) {
+		TimeSlice timeSlice = rasterdb.timeMapReadonly.get(id);
+		if(timeSlice != null) {
+			return timeSlice.name;
+		} else {
+			return TimeUtil.toFileText(id);
+		}
+
+	}
+
 	private void process(String name, Spec spec, TimeBandProcessor processor, ZipOutputStream zipOutputStream) throws IOException {		
 		OutputProcessingType outputProcessingType = OutputProcessingType.IDENTITY;
 		String format = "tiff";
 
 		switch (spec.arrangement) {
 		case "multiband": {
-			for(int timestamp:spec.timestamps) {			
-				zipOutputStream.putNextEntry(new ZipEntry(name + "__" + TimeUtil.toFileText(timestamp) + ".tiff"));
+			for(int timestamp:spec.time_slice_ids) {			
+				zipOutputStream.putNextEntry(new ZipEntry(name + "__" + timeSliceIdToText(spec.rasterdb, timestamp) + ".tiff"));
 				List<TimeBand> timebands = TimeBand.of(timestamp, spec.bands);
 				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
 				zipOutputStream.closeEntry();			
@@ -210,15 +221,15 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		case "timeseries": {
 			for(Band band: spec.bands) {
 				zipOutputStream.putNextEntry(new ZipEntry(name + "__band_" + band.index + ".tiff"));
-				List<TimeBand> timebands = spec.timestamps.stream().map(timestamp -> new TimeBand(timestamp, band)).collect(Collectors.toList());
+				List<TimeBand> timebands = spec.time_slice_ids.stream().map(timestamp -> new TimeBand(timestamp, band)).collect(Collectors.toList());
 				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
 				zipOutputStream.closeEntry();			
 			}
 			break;
 		}
 		case "separate_timestamp_band": {
-			for(int timestamp:spec.timestamps) {
-				String tfile = name + "__" + TimeUtil.toFileText(timestamp);
+			for(int timestamp:spec.time_slice_ids) {
+				String tfile = name + "__" + timeSliceIdToText(spec.rasterdb, timestamp);
 				for(Band band: spec.bands) {
 					zipOutputStream.putNextEntry(new ZipEntry(tfile + "__band_" + band.index + ".tiff"));
 					Set<TimeBand> timebands = java.util.Collections.singleton(new TimeBand(timestamp, band));
@@ -231,8 +242,8 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		case "separate_band_timestamp": {
 			for(Band band: spec.bands) {
 				String bfile = name + "__band_" + band.index;
-				for(int timestamp:spec.timestamps) {			
-					zipOutputStream.putNextEntry(new ZipEntry(bfile + "__" + TimeUtil.toFileText(timestamp) + ".tiff"));
+				for(int timestamp:spec.time_slice_ids) {			
+					zipOutputStream.putNextEntry(new ZipEntry(bfile + "__" + timeSliceIdToText(spec.rasterdb, timestamp) + ".tiff"));
 					Set<TimeBand> timebands = java.util.Collections.singleton(new TimeBand(timestamp, band));
 					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
 					zipOutputStream.closeEntry();			

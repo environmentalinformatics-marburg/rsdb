@@ -18,13 +18,13 @@ import org.locationtech.proj4j.proj.Projection;
 import org.locationtech.proj4j.units.Unit;
 
 import broker.Broker;
+import broker.TimeSlice;
 import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import rasterunit.KeyRange;
 import util.JsonUtil;
 import util.Web;
-import voxeldb.TimeSlice;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 
@@ -247,20 +247,8 @@ public class APIHandler_voxeldb {
 		json.key("associated");
 		voxeldb.getAssociated().writeJSON(json);
 
-
 		json.key("time_slices");
-		json.array();
-		for(TimeSlice timeSlice : voxeldb.timeMapReadonly.values()) {
-			json.object();
-			json.key("id");
-			json.value(timeSlice.id);
-			if(timeSlice.hasName()) {
-				json.key("name");
-				json.value(timeSlice.name);
-			}
-			json.endObject();
-		}
-		json.endArray();
+		TimeSlice.timeSlicesToJSON(voxeldb.timeMapReadonly.values(), json);		
 
 		json.endObject(); // voxeldb
 		json.endObject(); // JSON

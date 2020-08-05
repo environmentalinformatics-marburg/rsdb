@@ -31,10 +31,14 @@
       <br>
       <multiselect v-model="scaleDiv" :options="scaleDivs" :show-labels="false" :allowEmpty="false" placeholder="scale of source raster to output">
         <template slot="option" slot-scope="{option}">
-          1:{{option}}
+           1:{{option}} -  
+          <span v-if="option === 1"><b>original size</b></span>
+          <span v-if="option > 1"><b>scaled down raster</b> - <i>smaller file size and faster download</i></span>
         </template>
         <template slot="singleLabel" slot-scope="{option}">
-          1:{{option}}
+          1:{{option}} -  
+          <span v-if="option === 1"><b>original size</b></span>
+          <span v-if="option > 1"><b>scaled down raster</b> - <i>smaller file size and faster download</i></span>
         </template>
       </multiselect>
       <b>size</b> {{xpixels}} x {{ypixels}} = {{pixelCountText}}
@@ -47,29 +51,35 @@
       <div v-if="mode.id === 'direct_bands'">
         <b>Arrangement</b>
         <br>
-        raster-file at one timestamp with multiple bands
+        Raster file at one time slice with (multiple) bands.
         <br>
         <br>
-        <b>File-Format</b>
+        <b>File format</b>
         <br>
         <multiselect v-model="outputType" :options="outputTypes" :show-labels="false" :allowEmpty="false" placeholder="output format" />
-      </div>
-      <div v-if="mode.id === 'direct_bands' && preselectedTimestamp !== undefined && preselectedTimestamp !== null && (preselectedTimestamp.timestamp !== 0 || preselectedTimestamp.length > 1)">
         <br>
-        <b>timestamp</b>: {{preselectedTimestamp.datetime}}
+        <b>Time slice</b>
         <br>
+        <multiselect v-model="selectedTimeSlice" :options="meta.time_slices" trackBy="id" label="name" :searchable="false" placeholder="(no time slice selected)" :closeOnSelect="true">
+        </multiselect>        
       </div>
+
       <div v-if="meta !== undefined && mode.id === 'zip'">
         <b>Arrangement</b>
         <br>
         <multiselect v-model="zip_arrangement" :options="zip_arrangements" :show-labels="false" :allowEmpty="false" placeholder="output format" track-by="id" label="title" />
         <br>
+        <b>File format of files contained in ZIP file</b>
         <br>
-        <b>Timestamps</b>
+        GeoTIFF
         <br>
-        <multiselect multiple v-model="selectedTimestamps" :options="meta.timestamps" trackBy="timestamp" label="datetime" :searchable="false" placeholder="(all timestamps)" :closeOnSelect="false">
+        <br>
+        <b>Time slices</b>
+        <br>
+        <multiselect multiple v-model="selectedTimeSlices" :options="meta.time_slices" trackBy="id" label="name" :searchable="false" placeholder="(all time slices)" :closeOnSelect="false">
         </multiselect>
       </div>
+
       <br>
       <b>Bands</b>
       <br>
@@ -84,7 +94,6 @@
         </template>
       </multiselect>
       </div>
-      <br>
 
       <br>
       <div v-if="mode.id === 'direct_bands'">
@@ -96,6 +105,7 @@
         <b>Compression</b>
         <br>
         <multiselect v-model="compression" :options="compressions" :show-labels="false" :allowEmpty="false" placeholder="output format" track-by="id" label="title" />
+        <br>
         <v-btn @click="zip_download()"><v-icon>cloud_download</v-icon>Download</v-btn>
         <a ref="zip_download_link" hidden>hidden link</a>
       </div>
@@ -118,7 +128,7 @@ import adminViewerRasterExportFormatDescription from './admin-viewer-raster-expo
 export default {
   name: 'admin-viewer-raster-export',
 
-  props: ['meta', 'selectedExtent', 'preselectedTimestamp'],
+  props: ['meta', 'selectedExtent', 'preselectedTimeSlice'],
 
   components: {
     Multiselect,
@@ -133,14 +143,14 @@ export default {
       user_ymax: undefined,
       outputTypes: ['GeoTIFF - data', 'GeoTIFF - tiled data (experimental)', 'rDAT - data', 'PNG - visualisation', 'JPEG - visualisation', 'GeoTIFF - visualisation'],
       outputType: 'GeoTIFF - data',
-      modes: [{id: 'zip', title: 'zip-file (for arbitrarily large rasters)'},
-              {id: 'direct_bands', title: 'raster-file (for small rasters only)'}],
+      modes: [{id: 'zip', title: 'zip file with raster files (divided into tiles for arbitrary large raster downloads)'},
+              {id: 'direct_bands', title: 'raster file (for small raster downloads only)'}],
       mode: undefined,
-      zip_arrangements: [{id: 'multiband', title: 'multiband: one raster-file per timestamp'},
-                        {id: 'timeseries', title: 'timeseries: one raster-file per band (files with multiple timestamps as file-bands)'},
-                        {id: 'separate_timestamp_band', title: 'separate: raster-files for each timestamp and band (one band raster-files)'},
-                        {id: 'separate_band_timestamp', title: 'separate: raster-files for each band and timestamp (one band raster-files)'}],
-      zip_arrangement: {id: 'multiband', title: 'multiband: one raster-file per timestamp'},
+      zip_arrangements: [{id: 'multiband', title: 'multiband: one tile per time slice (files with multiple bands)'},
+                        {id: 'timeseries', title: 'timeseries: one tile per band (files with multiple bands containing time slices)'},
+                        {id: 'separate_timestamp_band', title: 'separate: tiles for each time slice and each band (single band files)'},
+                        {id: 'separate_band_timestamp', title: 'separate: tiles for each band and each time slice (single band files)'}],
+      zip_arrangement: {id: 'multiband', title: 'multiband: one tile per time slice (files with multiple bands)'},
       compressions: [{id: '0', title: '0 - no compression (fastest)'},
                     {id: '1', title: '1 - compression (fast)'},
                     {id: '2', title: '2 - compression (fast)'},
@@ -153,10 +163,10 @@ export default {
                      {id: '9', title: '9 - best compression (slowest)'}],
       compression: {id: '0', title: '0 - no compression (fastest)'},
       selectedBands: [],
-      selectedTimestamps: [],
+      selectedTimeSlice: undefined,
+      selectedTimeSlices: [],
       scaleDivs: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536],
       scaleDiv: 1,
-      user_timestamp: undefined,
     };
   },
   methods: {
@@ -181,6 +191,9 @@ export default {
         div: self.scaleDiv,
         arrangement: self.zip_arrangement.id,
       };
+      if(this.selectedTimeSlices.length > 0) {
+        spec.time_slice_ids = this.selectedTimeSlices.map(time_slice => time_slice.id);
+      }
       if(self.selectedBands.length > 0) {
         spec.bands = self.selectedBands.map(band => band.index);
       }
@@ -236,8 +249,8 @@ export default {
       var ext = [this.user_xmin, this.user_ymin, this.user_xmax, this.user_ymax].join(' ');
       var parameters = { ext: ext };
 
-      if(this.user_timestamp !== undefined && this.user_timestamp !== null) {
-        parameters.timestamp = this.user_timestamp.timestamp;
+      if(this.selectedTimeSlice !== undefined && this.selectedTimeSlice !== null) {
+        parameters.time_slice_id = this.selectedTimeSlice.id;
       }
 
       switch(this.outputType) {
@@ -297,11 +310,11 @@ export default {
           ext = '.jpg';
           break;      
         default:
-          throw "unknown output type";
+          ext = '';
         }
         var name = this.meta.name;
-        if(this.user_timestamp !== undefined && this.user_timestamp !== null && this.user_timestamp.timestamp !== 0) {
-          name += '__' + this.user_timestamp.datetime.split('-').join('_').split(':').join('_');
+        if(this.selectedTimeSlice !== undefined && this.selectedTimeSlice !== null) {
+          name += '__' + this.selectedTimeSlice.name.split('-').join('_').split(':').join('_').split('/').join('_').split('\\').join('_').split('.').join('_');
         } 
       return name + ext;
     },
@@ -315,8 +328,14 @@ export default {
         this.user_ymax = this.selectedExtent[3];
       }
     },
-    preselectedTimestamp() {
-      this.user_timestamp = this.preselectedTimestamp;
+    preselectedTimeSlice() {
+      if(this.preselectedTimeSlice != undefined && this.preselectedTimeSlice != null) {
+        this.selectedTimeSlice = this.preselectedTimeSlice;
+        this.selectedTimeSlices = [this.preselectedTimeSlice];
+      } else {
+         this.selectedTimeSlice = undefined;
+        this.selectedTimeSlices = [];
+      }
     },
     /*selectedTimestamps() {
       var ts = this.selectedTimestamps.slice().sort(function(a, b) {

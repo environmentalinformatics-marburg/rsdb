@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.TimeSlice;
 import broker.acl.EmptyACL;
 import pointcloud.AttributeSelector;
 import pointcloud.PointCloud;
@@ -18,7 +19,6 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import voxeldb.TimeSlice;
 import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
 

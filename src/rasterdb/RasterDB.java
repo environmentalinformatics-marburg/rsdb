@@ -27,6 +27,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import broker.Associated;
 import broker.Informal;
+import broker.TimeSlice;
+import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import rasterdb.tile.Processing;
@@ -42,6 +44,9 @@ public class RasterDB implements AutoCloseable {
 	private static final Logger log = LogManager.getLogger();
 
 	private static final String TYPE = "RasterDB";
+	
+	private final ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
+	public final NavigableMap<Integer, TimeSlice> timeMapReadonly = Collections.unmodifiableNavigableMap(timeMap);
 
 	private final ConcurrentSkipListMap<Integer, Band> bandMap;
 	public final  NavigableMap<Integer, Band> bandMapReadonly;
@@ -189,6 +194,9 @@ public class RasterDB implements AutoCloseable {
 			}
 			map.put("storage_type", storageType);
 			map.put("tile_pixel_len", tilePixelLen);
+			if(!timeMap.isEmpty()) {
+				map.put("time_slices", TimeSlice.timeMapToYaml(timeMap));					
+			}
 			Yaml yaml = new Yaml();
 			Path writepath = Paths.get(metaPath.toString()+"_temp");
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(writepath.toFile())));
@@ -240,6 +248,10 @@ public class RasterDB implements AutoCloseable {
 				}
 				storageType = yamlMap.optString("storage_type", "RasterUnit");
 				tilePixelLen = yamlMap.optInt("tile_pixel_len", tilePixelLen);
+				timeMap.clear();
+				if(yamlMap.contains("time_slices")) {
+					TimeSlice.yamlToTimeMap((Map<?, Object>) yamlMap.getObject("time_slices"), timeMap);					
+				}
 			}
 			//log.info("*** ref *** " + ref + "    of   " + metaPath);
 		} catch (Exception e) {
@@ -536,5 +548,26 @@ public class RasterDB implements AutoCloseable {
 
 	public int getTilePixelLen() {
 		return tilePixelLen;
+	}
+	
+	public synchronized void setTimeSlice(TimeSlice timeslice) {
+			timeMap.put(timeslice.id, timeslice);
+			writeMeta();
+	}
+	
+	public synchronized TimeSlice addTimeSlice(TimeSliceBuilder timeSliceBuilder) {
+			int id = 0;
+			while(timeMap.containsKey(id)) {
+				id++;
+			}
+			TimeSlice timeSlice = new TimeSlice(id, timeSliceBuilder);
+			timeMap.put(timeSlice.id, timeSlice);
+			writeMeta();
+			return timeSlice;
+	}
+
+	public void removeTimeSlice(int timeSlice) {
+		timeMap.remove(timeSlice);
+		writeMeta();
 	}
 }

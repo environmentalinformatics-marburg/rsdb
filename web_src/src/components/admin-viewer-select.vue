@@ -13,7 +13,7 @@
     </multiselect>
   </div>
 
-  <div v-if="meta !== undefined && meta.timestamps.length > 0 && (meta.timestamps.length > 1 || meta.timestamps[0].timestamp !== 0)" >
+  <!--<div v-if="meta !== undefined && meta.timestamps.length > 0 && (meta.timestamps.length > 1 || meta.timestamps[0].timestamp !== 0)" >
       <b>Time</b>
       <multiselect v-if="meta.timestamps.length > 1" v-model="selectedTimestamp" :options="meta.timestamps" :searchable="true" :show-labels="false" placeholder="pick a time" :allowEmpty="false">
         <template slot="singleLabel" slot-scope="{option}">
@@ -26,11 +26,26 @@
       <div v-if="meta.timestamps.length === 1">
         {{meta.timestamps[0].datetime}}
       </div>
+  </div>-->
+
+  <div v-if="meta !== undefined && meta.time_slices.length > 0" >
+      <b>Time slice</b>
+      <multiselect v-if="meta.time_slices.length > 1" v-model="selectedTimeSlice" :options="meta.time_slices" :searchable="true" :show-labels="false" placeholder="pick a time slice" :allowEmpty="false">
+        <template slot="singleLabel" slot-scope="{option}">
+          {{option.name}}
+        </template>
+        <template slot="option" slot-scope="{option}">
+          {{option.name}}
+        </template>
+      </multiselect>
+      <div v-if="meta.time_slices.length === 1">
+        {{meta.time_slices[0].name}}
+      </div>
   </div>
 
     <div v-if="styles.length > 0">
       <b>Raster Visualisation</b>
-      <multiselect v-if="styles.length > 1" v-model="selectedProduct" :options="styles" label="title" :searchable="true" :show-labels="false" placeholder="pick a band" :allowEmpty="false">
+      <multiselect v-if="styles.length > 1" v-model="selectedProduct" :options="styles" label="title" :searchable="true" :show-labels="false" placeholder="pick a band" :allowEmpty="false" trackBy="id">
         <template slot="singleLabel" slot-scope="{option}">
           {{option.name}} - {{option.title}}
         </template>
@@ -69,7 +84,7 @@ export default {
     return {
       selectedRasterdb: undefined,
       selectedProduct: undefined,
-      selectedTimestamp: undefined,
+      selectedTimeSlice: undefined,
       selectedLayerWMS_opacity: 1,
       customProductText: undefined,      
     }
@@ -92,22 +107,22 @@ export default {
       }
       this.selectedRasterdb = undefined;
     },
-    refreshSelectedTimestamp() {
-      if(this.selectedRasterdb === undefined || this.selectedRasterdb === null || this.meta === undefined || this.meta.name !== this.selectedRasterdb.name || this.meta.timestamps.length === 0) {
-        this.selectedTimestamp = undefined;
+    refreshSelectedTimeSlice() {
+      if(this.selectedRasterdb === undefined || this.selectedRasterdb === null || this.meta === undefined || this.meta.name !== this.selectedRasterdb.name || this.meta.time_slices.length === 0) {
+        this.selectedTimeSlice = undefined;
         return;
       }
       if(this.currentTimestamp === undefined) {
-        this.selectedTimestamp = null;
+        this.selectedTimeSlice = null;
         return;
       }
-      for (const timestamp of this.meta.timestamps) {
-          if(timestamp.timestamp === this.currentTimestamp) {
-            this.selectedTimestamp = timestamp;
+      for (const timeSlice of this.meta.time_slices) {
+          if(timeSlice.id === this.currentTimestamp) {
+            this.selectedTimeSlice = timeSlice;
             return;
           }
       }
-      this.selectedTimestamp = undefined;     
+      this.selectedTimeSlice = undefined;     
     },
     refreshSelectedProduct() {
       if(this.selectedRasterdb === undefined || this.selectedRasterdb === null || this.meta === undefined || this.meta.name !== this.selectedRasterdb.name || this.styles.length === 0) {
@@ -156,18 +171,18 @@ export default {
     },
     selectedRasterdb() {
       this.$emit('selected-rasterdb', this.selectedRasterdb);
-      this.refreshSelectedTimestamp();
+      this.refreshSelectedTimeSlice();
       this.refreshSelectedProduct();
     },        
     meta() {
-      this.refreshSelectedTimestamp();
+      this.refreshSelectedTimeSlice();
       this.refreshSelectedProduct();
     },
     currentTimestamp() {
-      this.refreshSelectedTimestamp();
+      this.refreshSelectedTimeSlice();
     },
-    selectedTimestamp() {
-      this.$emit('selected-timestamp', this.selectedTimestamp);
+    selectedTimeSlice() {
+      this.$emit('selected-time-slice', this.selectedTimeSlice);
     },
     currentProduct() {
       this.refreshSelectedProduct();
@@ -188,7 +203,7 @@ export default {
   mounted() {
     this.$store.dispatch('rasterdbs/init');
     this.refreshSelectedRasterdb();
-    this.refreshSelectedTimestamp();
+    this.refreshSelectedTimeSlice();
     this.refreshSelectedProduct();
   },
 }

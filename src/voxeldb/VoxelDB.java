@@ -17,6 +17,8 @@ import org.eclipse.jetty.server.UserIdentity;
 
 import broker.Associated;
 import broker.Informal;
+import broker.TimeSlice;
+import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import griddb.Attribute;
@@ -28,7 +30,6 @@ import rasterunit.Tile;
 import rasterunit.TileKey;
 import util.collections.ReadonlyNavigableSetView;
 import util.yaml.YamlMap;
-import voxeldb.TimeSlice.TimeSliceBuilder;
 
 /**
 cell.x -> voxelcell.z
@@ -53,7 +54,7 @@ public class VoxelDB implements AutoCloseable {
 
 	private final GridDB griddb;
 	
-	private ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
+	private final ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
 	public final NavigableMap<Integer, TimeSlice> timeMapReadonly = Collections.unmodifiableNavigableMap(timeMap);
 
 	private int cellsize = 100;
@@ -385,6 +386,7 @@ public class VoxelDB implements AutoCloseable {
 	public void setTimeSlice(TimeSlice timeslice) {
 		synchronized (griddb) {
 			timeMap.put(timeslice.id, timeslice);
+			griddb.writeMeta();
 		}
 		
 	}
@@ -397,6 +399,7 @@ public class VoxelDB implements AutoCloseable {
 			}
 			TimeSlice timeSlice = new TimeSlice(id, timeSliceBuilder);
 			timeMap.put(timeSlice.id, timeSlice);
+			griddb.writeMeta();
 			return timeSlice;
 		}
 	}

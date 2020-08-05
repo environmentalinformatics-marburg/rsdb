@@ -1,6 +1,7 @@
 package server.api.rasterdb;
 
 import java.io.IOException;
+import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -16,6 +17,7 @@ import org.locationtech.proj4j.proj.Projection;
 import org.locationtech.proj4j.units.Unit;
 
 import broker.Broker;
+import broker.TimeSlice;
 import rasterdb.Band;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
@@ -149,6 +151,21 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				json.endObject();
 			}
 			json.endArray();
+			
+			json.key("time_slices");
+			json.array();
+			TreeSet<Integer> timestamps = new TreeSet<Integer>();
+			timestamps.addAll(rasterdb.rasterUnit().timeKeysReadonly());
+			timestamps.addAll(rasterdb.timeMapReadonly.keySet());
+			for(Integer timestamp:timestamps) {
+				TimeSlice timeSlice = rasterdb.timeMapReadonly.get(timestamp);
+				if(timeSlice == null) {
+					timeSlice = new TimeSlice(timestamp, TimeUtil.toText(timestamp));
+				}
+				timeSlice.toJSON(json);
+			}
+			json.endArray();
+
 			json.key("bands");
 			json.array();
 			for(Band band:rasterdb.bandMapReadonly.values()) {

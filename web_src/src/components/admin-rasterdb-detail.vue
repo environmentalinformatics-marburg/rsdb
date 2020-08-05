@@ -119,19 +119,20 @@
                         <td>{{ props.item.title }}</td>
                         <td>{{ props.item.wavelength }}</td>
                         <td>{{ props.item.fwhm }}</td>
+                        <td>{{ props.item.visualisation}}</td>
                     </template>
                 </v-data-table>
             </div>
 
-            <div v-if="meta.timestamps.length > 1 || (meta.timestamps.length === 1 && meta.timestamps[0].timestamp != 0)">
+            <div v-if="meta.time_slices.length > 0">
                 <v-divider class="meta-divider"></v-divider>
                 <h3 class="subheading mb-0"> 
-                    Dates ({{meta.timestamps.length}})
+                    Time slices ({{meta.time_slices.length}})
                 </h3>
-                <v-data-table v-bind:headers="timestampTableHeaders" :items="meta.timestamps" class="meta-content" hide-actions>
+                <v-data-table v-bind:headers="timeSliceTableHeaders" :items="meta.time_slices" class="meta-content" hide-actions>
                     <template slot="items" slot-scope="props">
-                        <td>{{ props.item.datetime }}</td>
-                        <td>{{ props.item.timestamp }}</td>
+                        <td>{{ props.item.id }}</td>
+                        <td>{{ props.item.name }}</td>
                     </template>
                 </v-data-table>
             </div>
@@ -296,8 +297,8 @@ export default {
             metaErrorMessage: undefined,
             busy: false,
             busyMessage: undefined,
-            bandsTableHeaders: [{ text: "index", align: 'left', value: "index" }, { text: "title", align: 'left', value: "title" }, { text: "wavelength", align: 'left', value: "wavelength" }, { text: "fwhm", align: 'left', value: "fwhm" }],
-            timestampTableHeaders: [{ text: "date", align: 'left', value: "datetime" }, { text: "timestamp", align: 'left', value: "timestamp" }],
+            bandsTableHeaders: [{ text: "Id", align: 'right', value: "index", width: "55px" }, { text: "Name", align: 'left', value: "title" }, { text: "Wavelength", align: 'left', value: "wavelength", width: "10px" }, { text: "Fwhm", align: 'left', value: "fwhm", width: "10px" }, { text: "Visualisation", align: 'left', value: "visualisation", width: "100px" }],
+            timeSliceTableHeaders: [{ text: "Id", align: 'right', value: "id", width: "55px" }, { text: "Name", align: 'left', value: "name" }],
             panel: [true, true],
         }
     },

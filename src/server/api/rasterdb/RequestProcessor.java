@@ -116,7 +116,12 @@ public class RequestProcessor {
 		}
 	}
 
-	private static int getTimestamp(Request request, RasterUnitStorage rasterUnitStorage) {
+	private static int getTimestamp(Request request, RasterUnitStorage rasterUnitStorage) {		
+		int time_slice_id = Web.getInt(request, "time_slice_id", Integer.MIN_VALUE);
+		if(time_slice_id > Integer.MIN_VALUE) {
+			return time_slice_id;
+		}		
+		
 		int timestamp = -1;
 		String timestampText = request.getParameter("timestamp");
 		if (timestampText == null) {

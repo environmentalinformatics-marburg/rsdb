@@ -29,7 +29,7 @@
         :currentProduct="product" 
         :meta="meta" 
         @selected-rasterdb="selectedRasterdb = $event" 
-        @selected-timestamp="selectedTimestamp = $event" 
+        @selected-time-slice="selectedTimeSlice = $event" 
         @selected-product="selectedProduct = $event" 
         @selected-layerwms-opacity="layerWMS_opacity = $event"        
         @close="selectShow = false" 
@@ -68,7 +68,7 @@
       @close="toolRasterExportShow = false" 
       :meta="meta" 
       :selectedExtent="selectedExtent"
-      :preselectedTimestamp="selectedTimestamp" 
+      :preselectedTimeSlice="selectedTimeSlice" 
       @select-full-extent="selectFullExtent()"
     />
 
@@ -191,7 +191,7 @@ export default {
 
       selectShow: true,
       selectedRasterdb: undefined,
-      selectedTimestamp: undefined,
+      selectedTimeSlice: undefined,
       selectedProduct: undefined,
       selectedBackground: undefined,
       selectedGamma: "auto",
@@ -422,12 +422,12 @@ export default {
         path += '/' + this.selectedRasterdb.name;
       }
 
-      if(this.selectedTimestamp === undefined) {
+      if(this.selectedTimeSlice === undefined) {
         if(this.timestamp !== undefined) {
           query.timestamp = this.timestamp;
         }
-      } else if(this.selectedTimestamp !== null) {
-        query.timestamp = this.selectedTimestamp.timestamp;
+      } else if(this.selectedTimeSlice !== null) {
+        query.timestamp = this.selectedTimeSlice.id;
       }
 
       if(this.selectedProduct === undefined) {
@@ -653,8 +653,8 @@ export default {
         LAYERS: this.rasterdb,
       };
 
-      if(this.selectedTimestamp !== undefined && this.selectedTimestamp !== null) {
-        p.TIME = this.selectedTimestamp.timestamp; 
+      if(this.selectedTimeSlice !== undefined && this.selectedTimeSlice !== null) {
+        p.TIME = this.selectedTimeSlice.id; 
       }
 
       if(styleParamter !== '') {
@@ -710,7 +710,7 @@ export default {
       }
       document.getElementById('foot-start-1').innerHTML = projectionTitle;
     },
-    selectedTimestamp() {
+    selectedTimeSlice() {
       this.refreshWMS();
       this.refreshRoute();
     },

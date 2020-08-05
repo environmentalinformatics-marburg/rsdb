@@ -42,6 +42,7 @@ public class Task_remove_timestamps extends RemoteTask {
 			rasterdb.rasterPyr2Unit().removeAllTilesOfTimestamp(timestamp);
 			rasterdb.rasterPyr3Unit().removeAllTilesOfTimestamp(timestamp);
 			rasterdb.rasterPyr4Unit().removeAllTilesOfTimestamp(timestamp);
+			rasterdb.removeTimeSlice(timestamp);
 			setMessage("remove timestamp " + timestamp + "  " + TimeUtil.toPrettyText(timestamp) + "  done.");
 		}
 		setMessage("remove timestamps done.");

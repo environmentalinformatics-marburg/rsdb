@@ -1,19 +1,19 @@
 <template>
     <span  style="display: inline-block;">
         <v-dialog v-model="dialog" lazy absolute width="800px">
-            <v-btn title="open dialog to select and remove timestamps of this rasterdb layer" slot="activator">
-                <v-icon left>folder_open</v-icon>timestamps
+            <v-btn title="open dialog to select and remove time slices of this rasterdb layer" slot="activator">
+                <v-icon left>folder_open</v-icon>Time slices
             </v-btn>
             <v-card>
                 <v-card-title>
-                    <div class="headline">remove timestamps of <i>RasterDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
+                    <div class="headline">remove time slices of <i>RasterDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
-                <v-data-table v-bind:headers="timestampTableHeaders" :items="timestamps" class="meta-content" hide-actions>
+                <v-data-table v-bind:headers="timeSliceTableHeaders" :items="timeSlices" class="meta-content" hide-actions>
                     <template slot="items" slot-scope="props">
-                        <td><input type="checkbox" id="checkbox" v-model="props.item.remove" style="width: 40px;"/>remove timestamp</td>
-                        <td>{{props.item.datetime}}</td>
-                        <td>{{props.item.timestamp}}</td>
-                        <td :class="{remove: props.item.remove}">{{props.item.remove ? 'remove timestamp' : '(keep timestamp)'}}</td>
+                        <td><input type="checkbox" id="checkbox" v-model="props.item.remove" style="width: 40px;"/>remove time slice</td>
+                        <td>{{props.item.id}}</td>
+                        <td>{{props.item.name}}</td>
+                        <td :class="{remove: props.item.remove}">{{props.item.remove ? 'remove time slice' : '(keep time slice)'}}</td>
                     </template>
                 </v-data-table>
                 <br>
@@ -48,26 +48,26 @@ export default {
             dialog: false,
             setError: false,
             setErrorMessage: undefined,
-            timestampTableHeaders: [{ text: "", align: 'left', sortable: false}, 
-                                    { text: "date", align: 'left', value: "datetime" }, 
-                                    { text: "timestamp", align: 'left', value: "timestamp" }, 
+            timeSliceTableHeaders: [{ text: "", align: 'left', sortable: false}, 
+                                    { text: "Id", align: 'left', value: "id" }, 
+                                    { text: "Name", align: 'left', value: "name" }, 
                                     { text: "action", align: 'left', value: "remove"}],
-            timestamps: [],
+            timeSlices: [],
             remote_task_id: undefined,
         }
     },
     methods: {
         
         refresh() {
-            this.timestamps = this.meta.timestamps.map(function(timestamp) {
-                return {timestamp: timestamp.timestamp, datetime: timestamp.datetime, remove: false};
+            this.timeSlices = this.meta.time_slices.map(function(timeSlice) {
+                return {id: timeSlice.id, name: timeSlice.name, remove: false};
             });
         },
 
         execute() {
             var self = this;
             var url = this.$store.getters.apiUrl('api/remote_tasks');
-            var ts = this.timestamps.filter(t=>t.remove).map(t=>t.timestamp);
+            var ts = this.timeSlices.filter(t=>t.remove).map(t=>t.id);
             axios.post(url, {
                 remote_task: {
                     task_rasterdb: "remove_timestamps",

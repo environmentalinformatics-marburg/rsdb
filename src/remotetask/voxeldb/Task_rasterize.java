@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.TimeSlice;
 import pointcloud.CellTable;
 import pointcloud.PointCloud;
 import rasterdb.Band;
@@ -23,7 +24,6 @@ import remotetask.Description;
 import remotetask.Param;
 import util.Range2d;
 import util.frame.FloatFrame;
-import voxeldb.TimeSlice;
 import voxeldb.VoxelDB;
 
 @task_voxeldb("rasterize")
@@ -77,7 +77,8 @@ public class Task_rasterize extends CancelableRemoteTask {
 		for(TimeSlice timeSlice:voxeldb.timeMapReadonly.values()) {
 			voxeldb.getVoxelCells(timeSlice).sequential().forEach(voxelCell -> {
 				try {
-
+					rasterdb.setTimeSlice(timeSlice);
+					
 					RasterUnitStorage storage = rasterdb.rasterUnit();
 					int rx = voxelCell.x * cellsize;
 					int ry = voxelCell.y * cellsize;

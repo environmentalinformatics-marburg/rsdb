@@ -12,6 +12,7 @@ import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 
 import broker.Broker;
+import broker.TimeSlice;
 import broker.acl.EmptyACL;
 import pointcloud.DoubleRect;
 import remotetask.Context;
@@ -19,7 +20,6 @@ import remotetask.Description;
 import remotetask.Param;
 import remotetask.RemoteTask;
 import voxeldb.Importer;
-import voxeldb.TimeSlice;
 import voxeldb.VoxelDB;
 
 @task_voxeldb("import")
