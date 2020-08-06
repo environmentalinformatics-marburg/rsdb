@@ -23,10 +23,10 @@ public class RdatRaster {
 		RasterSubGrid firstGrid = rasterSubGrids[0];
 
 		RdatList list = new RdatList();
-		list.addInteger("xmn", firstGrid.local_min_x);
-		list.addInteger("ymn", firstGrid.local_min_y);
-		list.addInteger("xmx", firstGrid.local_max_x);
-		list.addInteger("ymx", firstGrid.local_max_y);
+		list.addInt32("xmn", firstGrid.local_min_x);
+		list.addInt32("ymn", firstGrid.local_min_y);
+		list.addInt32("xmx", firstGrid.local_max_x);
+		list.addInt32("ymx", firstGrid.local_max_y);
 		list.addString("proj4", proj4);
 		list.write(out);
 

@@ -3,6 +3,8 @@ package voxeldb;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import util.Extent3d;
+import util.Range3d;
 import util.yaml.YamlMap;
 
 public class VoxelGeoRef {
@@ -108,5 +110,21 @@ public class VoxelGeoRef {
 	
 	public int geoZtoVoxel(double z) {
 		return (int) Math.floor((z - originZ) / voxelSizeZ);		
+	}
+	
+	public double voxelXtoGeo(int x) {
+		return (x * voxelSizeX) + originX;
+	}
+	
+	public double voxelYtoGeo(int y) {
+		return (y * voxelSizeY) + originY;
+	}
+	
+	public double voxelZtoGeo(int z) {
+		return (z * voxelSizeZ) + originZ;
+	}
+	
+	public Extent3d toGeoExtent(Range3d range) {
+		return new Extent3d(voxelXtoGeo(range.xmin), voxelYtoGeo(range.ymin), voxelZtoGeo(range.zmin), voxelXtoGeo(range.xmax + 1), voxelYtoGeo(range.ymax + 1), voxelZtoGeo(range.zmax + 1));
 	}
 }

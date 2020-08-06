@@ -15,6 +15,12 @@ public = list(
     private$name_ <- name
     response <- private$rsdbConnector$GET(paste0("/voxeldbs/", private$name_))
     private$meta_ <- response$voxeldb
+  },
+
+  voxels = function(x, y, z) {
+    args <- list(format = 'rdat', x = x, y = y, z = z)
+    response <- private$rsdbConnector$GET(paste0("/voxeldbs/", private$name_, "/voxels"), args)
+    return(response)
   }
 
 ),

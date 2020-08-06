@@ -88,12 +88,12 @@ public class RequestProcessorBandsWriters {
 		}
 		for(TimeBand timeband : processingBands) {
 			RdatList bandMeta = new RdatList();
-			bandMeta.addInteger("index", timeband.band.index);
+			bandMeta.addInt32("index", timeband.band.index);
 			bandMeta.addString("name", timeband.band.has_title() ? timeband.band.title : "band" + timeband.band.index);
 			if (timeband.band.has_wavelength()) {
-				bandMeta.addDouble("wavelength", timeband.band.wavelength);
+				bandMeta.addFloat64("wavelength", timeband.band.wavelength);
 				if (timeband.band.has_fwhm()) {
-					bandMeta.addDouble("fwhm", timeband.band.fwhm);
+					bandMeta.addFloat64("fwhm", timeband.band.fwhm);
 				}
 			}
 			switch(dataType) {

@@ -20,7 +20,7 @@ public class RdatList {
 		abstract void write(DataOutput out) throws IOException;			
 	}
 	
-	public void addInteger(String name, int v) {
+	public void addInt32(String name, int v) {
 		entries.add(new Entry(name) {				
 			@Override
 			public void write(DataOutput out) throws IOException {
@@ -49,7 +49,7 @@ public class RdatList {
 		});
 	}
 	
-	public void addDouble(String name, double v) {
+	public void addFloat64(String name, double v) {
 		entries.add(new Entry(name) {				
 			@Override
 			public void write(DataOutput out) throws IOException {
@@ -111,9 +111,9 @@ public class RdatList {
 		for(String name:map.keySet()) {
 			Object value = map.get(name);
 			if(value instanceof Integer) {
-				addInteger(name, (Integer) value);
+				addInt32(name, (Integer) value);
 			} else if(value instanceof Double) {
-				addDouble(name, (Double) value);
+				addFloat64(name, (Double) value);
 			} else {
 				addString(name, value.toString());
 			}

@@ -30,7 +30,7 @@ public abstract class RdatBand {
 		if(m == null) {
 			m = new RdatList();	
 		}
-		m.addInteger("flipped", 1);
+		m.addInt32("flipped", 1);
 		m.write(out);
 	}
 

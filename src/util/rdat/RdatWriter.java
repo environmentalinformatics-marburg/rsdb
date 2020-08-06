@@ -81,10 +81,10 @@ public class RdatWriter {
 		if(list == null) {
 			list = new RdatList();
 		}
-		list.addDouble("xmn", xmin);
-		list.addDouble("ymn", ymin);
-		list.addDouble("xmx", xmax); // extent of pixels
-		list.addDouble("ymx", ymax); // extent of pixels
+		list.addFloat64("xmn", xmin);
+		list.addFloat64("ymn", ymin);
+		list.addFloat64("xmx", xmax); // extent of pixels
+		list.addFloat64("ymx", ymax); // extent of pixels
 		if(proj4 != null) {
 			list.addString("proj4", proj4);
 		}
