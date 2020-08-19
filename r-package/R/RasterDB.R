@@ -14,7 +14,16 @@ RasterDB_public <- list( #      *********** public *****************************
     private$meta <- private$rsdbConnector$GET(paste0("/rasterdb/", private$name_, "/meta.json"))
   },
 
-  raster = function(ext, band=NULL, timestamp=NULL, product=NULL) {
+  raster = function(ext, band=NULL, timestamp=NULL, product=NULL, masking='center') {
+    spMask <- NULL
+    if(is(ext, 'sfc_MULTIPOLYGON')) {
+      ext <- sf:::as_Spatial(ext)
+    }
+    if(is(ext, 'SpatialPolygons')) {
+      warning('convert SpatialPolygons to raster::extent by ignoring crs')
+      spMask <- ext
+      ext <- raster::extent(ext)
+    }
     if(is(ext, "bbox")) {
       warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
       ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
@@ -36,6 +45,16 @@ RasterDB_public <- list( #      *********** public *****************************
     path <- paste0("/rasterdb/", private$name_, "/raster.rdat")
     query <- as.list(param_list)
     rdat <- private$rsdbConnector$GET(path, query)
+    if(masking == 'extent') {
+      # nothing
+    } else if(masking == 'center') {
+      if(!is.null(spMask)) {
+        warning('some extended meta data attributes of the raster are lost by applied masking')
+        rdat <- raster::mask(rdat, spMask)
+      }
+    } else {
+      stop("unknown masking: ", masking)
+    }
     return(rdat)
   },
 
@@ -140,7 +159,7 @@ RasterDB_private <- list( #      *********** private ***************************
 #' remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 #' rasterdb <- remotesensing$rasterdb(name)
 #'
-#' raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL)
+#' raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')
 #' rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)
 #' rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0)
 #' rasterdb$rebuild_pyramid()
@@ -170,10 +189,16 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #' returns: RasterDB object}
 #'
-#' \item{$raster(ext, band=NULL, timestamp=NULL, product=NULL)}{Request raster data from opened RasterDB.
+#' \item{$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')}{Request raster data from opened RasterDB.
 #' If neither band nor product are specified all bands are returned. Either band or product can be specified.
 #'
-#' ext: object of class raster::extent or sf::st_bbox
+#' ext: object of one class:
+#' \itemize{
+#'  \item{\strong{raster::extent}  extent}
+#'  \item{\strong{sf::st_bbox}  extent}
+#'  \item{\strong{SpatialPolygons}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
+#'  \item{\strong{sfc_MULTIPOLYGON}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
+#' }
 #'
 #' band: vector or single number of requested band numbers
 #'
@@ -183,6 +208,13 @@ RasterDB_private <- list( #      *********** private ***************************
 #' When shortened version is used oldest data in layer within that timerange is returned.
 #'
 #' product: character vector of requested product specification. See section product.
+#'
+#' masking: (optional) if 'ext' parameter is an extent masking parameter is ignored
+#'
+#' \itemize{
+#'  \item{\strong{'center'} raster is masked by polygon (in 'ext' parameter) for pixels that center is within the polygon, see \link[raster]{mask}}
+#'  \item{\strong{'extent'}  just extent (in 'ext' parameter) is used, no masking}
+#' }
 #'
 #' returns: RasterLayer or RasterStack}
 #'

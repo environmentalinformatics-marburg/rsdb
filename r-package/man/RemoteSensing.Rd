@@ -240,6 +240,7 @@ woellauer
 \item \href{#method-create_rasterdb}{\code{RemoteSensing$create_rasterdb()}}
 \item \href{#method-pointcloud}{\code{RemoteSensing$pointcloud()}}
 \item \href{#method-vectordb}{\code{RemoteSensing$vectordb()}}
+\item \href{#method-voxeldb}{\code{RemoteSensing$voxeldb()}}
 \item \href{#method-submit_task}{\code{RemoteSensing$submit_task()}}
 }
 }
@@ -362,6 +363,15 @@ woellauer
 \subsection{Method \code{vectordb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$vectordb(name)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-voxeldb"></a>}}
+\if{latex}{\out{\hypertarget{method-voxeldb}{}}}
+\subsection{Method \code{voxeldb()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$voxeldb(name)}\if{html}{\out{</div>}}
 }
 
 }

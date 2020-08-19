@@ -10,7 +10,7 @@ RasterDB \link{R6Class} object.
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 rasterdb <- remotesensing$rasterdb(name)
 
-raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL)
+raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')
 rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)
 rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0)
 rasterdb$rebuild_pyramid()
@@ -41,10 +41,16 @@ name: Name of RasterDB.
 
 returns: RasterDB object}
 
-\item{$raster(ext, band=NULL, timestamp=NULL, product=NULL)}{Request raster data from opened RasterDB.
+\item{$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')}{Request raster data from opened RasterDB.
 If neither band nor product are specified all bands are returned. Either band or product can be specified.
 
-ext: object of class raster::extent or sf::st_bbox
+ext: object of one class:
+\itemize{
+ \item{\strong{raster::extent}  extent}
+ \item{\strong{sf::st_bbox}  extent}
+ \item{\strong{SpatialPolygons}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
+ \item{\strong{sfc_MULTIPOLYGON}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
+}
 
 band: vector or single number of requested band numbers
 
@@ -54,6 +60,13 @@ or shortened versions (YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DDThh) (e.g. 2017-12).
 When shortened version is used oldest data in layer within that timerange is returned.
 
 product: character vector of requested product specification. See section product.
+
+masking: (optional) if 'ext' parameter is an extent masking parameter is ignored
+
+\itemize{
+ \item{\strong{'center'} raster is masked by polygon (in 'ext' parameter) for pixels that center is within the polygon, see \link[raster]{mask}}
+ \item{\strong{'extent'}  just extent (in 'ext' parameter) is used, no masking}
+}
 
 returns: RasterLayer or RasterStack}
 
@@ -264,7 +277,13 @@ woellauer
 \if{latex}{\out{\hypertarget{method-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RasterDB$raster(ext, band = NULL, timestamp = NULL, product = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RasterDB$raster(
+  ext,
+  band = NULL,
+  timestamp = NULL,
+  product = NULL,
+  masking = "center"
+)}\if{html}{\out{</div>}}
 }
 
 }
