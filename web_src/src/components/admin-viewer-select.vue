@@ -13,24 +13,9 @@
     </multiselect>
   </div>
 
-  <!--<div v-if="meta !== undefined && meta.timestamps.length > 0 && (meta.timestamps.length > 1 || meta.timestamps[0].timestamp !== 0)" >
-      <b>Time</b>
-      <multiselect v-if="meta.timestamps.length > 1" v-model="selectedTimestamp" :options="meta.timestamps" :searchable="true" :show-labels="false" placeholder="pick a time" :allowEmpty="false">
-        <template slot="singleLabel" slot-scope="{option}">
-          {{option.datetime}}
-        </template>
-        <template slot="option" slot-scope="{option}">
-          {{option.datetime}}
-        </template>
-      </multiselect>
-      <div v-if="meta.timestamps.length === 1">
-        {{meta.timestamps[0].datetime}}
-      </div>
-  </div>-->
-
   <div v-if="meta !== undefined && meta.time_slices.length > 0" >
       <b>Time slice</b>
-      <multiselect v-if="meta.time_slices.length > 1" v-model="selectedTimeSlice" :options="meta.time_slices" :searchable="true" :show-labels="false" placeholder="pick a time slice" :allowEmpty="false">
+      <multiselect v-if="meta.time_slices.length > 1" v-model="selectedTimeSlice" :options="meta.time_slices" :searchable="true" :show-labels="false" placeholder="pick a time slice" :allowEmpty="false" trackBy="id">
         <template slot="singleLabel" slot-scope="{option}">
           {{option.name}}
         </template>
@@ -45,7 +30,7 @@
 
     <div v-if="styles.length > 0">
       <b>Raster Visualisation</b>
-      <multiselect v-if="styles.length > 1" v-model="selectedProduct" :options="styles" label="title" :searchable="true" :show-labels="false" placeholder="pick a band" :allowEmpty="false" trackBy="id">
+      <multiselect v-if="styles.length > 1" v-model="selectedProduct" :options="styles" label="title" :searchable="true" :show-labels="false" placeholder="pick a band" :allowEmpty="false" trackBy="name">
         <template slot="singleLabel" slot-scope="{option}">
           {{option.name}} - {{option.title}}
         </template>
@@ -117,7 +102,7 @@ export default {
         return;
       }
       for (const timeSlice of this.meta.time_slices) {
-          if(timeSlice.id === this.currentTimestamp) {
+          if(timeSlice.id == this.currentTimestamp) { // number to string compare
             this.selectedTimeSlice = timeSlice;
             return;
           }
@@ -142,7 +127,7 @@ export default {
       this.selectedProduct = undefined;
     },
     emitSelectedProduct() {
-      if(this.selectedProduct !== undefined && this.selectedProduct !== null &&this.selectedProduct.name === 'custom') {
+      if(this.selectedProduct !== undefined && this.selectedProduct !== null && this.selectedProduct.name === 'custom') {
         var customProduct = {name: this.customProductText, title: 'custom'};
         this.$emit('selected-product', customProduct);
       } else {

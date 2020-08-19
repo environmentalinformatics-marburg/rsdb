@@ -47,22 +47,21 @@
         @selected-vectordb="selectedVectordb = $event" 
       />
       </v-list>
+
+      <admin-viewer-settings v-show="settingsDialog" ref="settingsDialog" 
+        @close="settingsDialog = false"       
+        @selected-background="selectedBackground = $event"  
+        @selected-format="selectedFormat = $event"
+        @selected-gamma="selectedGamma = $event" 
+        @sync-bands="syncBands = $event" 
+        @selected-mapping="selectedOneBandMapping = $event"
+        @show-labels="showLabels = $event"
+        @value-range-min="valueRangeMin = $event"   
+        @value-range-max="valueRangeMax = $event"        
+      />      
                   
     </div>
-
- <admin-viewer-settings v-show="settingsDialog" ref="settingsDialog" 
-                  @close="settingsDialog = false"       
-                  @selected-background="selectedBackground = $event"  
-                  @selected-format="selectedFormat = $event"
-                  @selected-gamma="selectedGamma = $event" 
-                  @sync-bands="syncBands = $event" 
-                  @selected-mapping="selectedOneBandMapping = $event"
-                  @show-labels="showLabels = $event"
-                  @value-range-min="valueRangeMin = $event"   
-                  @value-range-max="valueRangeMax = $event"        
-                  />
-
-
+    
     <admin-viewer-raster-export v-if="meta !== undefined" 
       v-show="toolRasterExportShow" 
       @close="toolRasterExportShow = false" 
