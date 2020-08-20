@@ -283,7 +283,8 @@ async function init() {
     if(params.has('t')) {
       args.t = params.get('t');
     }
-	  args.format = 'js';
+	args.format = 'js';
+	args.product = 'cnt:uint8';
     url.search = new URLSearchParams(args);
     console.log(url);
     let response = await fetch(url);

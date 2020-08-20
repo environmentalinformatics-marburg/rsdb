@@ -1,10 +1,15 @@
-package server.api.voxeldbs;
+package server.api.voxeldbs.voxelcellprocessors;
 
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import voxeldb.VoxelCell;
 
-public abstract class VoxelCellProcessor implements Consumer<VoxelCell> {		
+public abstract class Vcp implements Consumer<VoxelCell> {	
+	private static final Logger log = LogManager.getLogger();
+	
 	protected final int vrxmin;
 	protected final int vrymin;
 	protected final int vrzmin;
@@ -13,7 +18,7 @@ public abstract class VoxelCellProcessor implements Consumer<VoxelCell> {
 	protected final int vrzmax;
 	protected final int cellsize;
 
-	public VoxelCellProcessor(int vrxmin, int vrymin, int vrzmin, int vrxmax, int vrymax, int vrzmax, int cellsize) {
+	public Vcp(int vrxmin, int vrymin, int vrzmin, int vrxmax, int vrymax, int vrzmax, int cellsize) {
 		this.vrxmin = vrxmin;
 		this.vrymin = vrymin;
 		this.vrzmin = vrzmin;
@@ -24,15 +29,15 @@ public abstract class VoxelCellProcessor implements Consumer<VoxelCell> {
 	}
 
 	@Override
-	public void accept(VoxelCell voxelCell) {
+	public final void accept(VoxelCell voxelCell) {
 		int vcxmin = voxelCell.x * cellsize;
 		int vcymin = voxelCell.y * cellsize;
 		int vczmin = voxelCell.z * cellsize;
 		int vcxmax = vcxmin + cellsize - 1;
 		int vcymax = vcymin + cellsize - 1;
 		int vczmax = vczmin + cellsize - 1;			
-		VoxelCntUint8Processor.log.info(voxelCell);
-		VoxelCntUint8Processor.log.info("vc "+vcxmin+" "+vcymin+" "+vczmin+"   "+vcxmax+" "+vcymax+" "+vczmax);
+		log.info(voxelCell);
+		log.info("vc "+vcxmin+" "+vcymin+" "+vczmin+"   "+vcxmax+" "+vcymax+" "+vczmax);
 
 		int vbxmin = Math.max(vrxmin, vcxmin);
 		int vbymin = Math.max(vrymin, vcymin);

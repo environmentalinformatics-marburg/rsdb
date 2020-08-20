@@ -727,6 +727,26 @@ public final class Serialisation {
 		out.write(buffer);
 		return buffer;
 	}
+	
+	public static byte[] writeArrayBE(DataOutput out, int[] data, byte[] buffer) throws IOException {//Bigendian
+		int len = data.length;
+		int byteLen = len * 4;
+		if(buffer == null || buffer.length != byteLen) {
+			buffer = new byte[byteLen];
+		}
+		for(int i=0;i<len;i++) {
+			int v = data[i];
+			int b = 4 * i;
+			buffer[b+0] = (byte)(v >>> 24);
+			buffer[b+1] = (byte)(v >>> 16);
+			buffer[b+2] = (byte)(v >>>  8);
+			buffer[b+3] = (byte)(v >>>  0);
+		}
+		out.write(buffer);
+		return buffer;
+	}
+	
+	
 
 	public static void writeSubArrayArrayBE(DataOutput out, double[][] data, int start_y, int border_y, int start_x, int border_x) throws IOException {//Bigendian
 		byte[] buffer = null;
@@ -818,8 +838,7 @@ public final class Serialisation {
 		byteBuffer.putInt(compressed.length);
 		for(int c:compressed) {
 			byteBuffer.putInt(c);
-		}
-		
+		}		
 	}
 
 	public static int[] readIntsWithSize(ByteBuffer byteBuffer) {
@@ -829,5 +848,13 @@ public final class Serialisation {
 			data[i] = byteBuffer.getInt();
 		}
 		return data;
+	}
+	
+	
+	public static void writeInts(int[] compressed, ByteBuffer byteBuffer) {
+		byteBuffer.putInt(compressed.length);
+		for(int c:compressed) {
+			byteBuffer.putInt(c);
+		}		
 	}
 }

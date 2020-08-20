@@ -204,6 +204,7 @@ export default {
   border: solid #0000006e 1px;
   border-radius: 5px;
   min-width: 500px;
+  pointer-events: auto;
 }
 
 .box-header {

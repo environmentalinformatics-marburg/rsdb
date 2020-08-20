@@ -1,13 +1,11 @@
-package server.api.voxeldbs;
+package server.api.voxeldbs.voxelcellprocessors;
 
 import voxeldb.VoxelCell;
 
-class VoxelCellProcessorCntUint8 extends VoxelCellProcessor {
-	private final byte[][][] r;
+public class VcpCntInt32 extends VcpInt32 {
 
-	public VoxelCellProcessorCntUint8(int vrxmin, int vrymin, int vrzmin, int vrxmax, int vrymax, int vrzmax, int cellsize, byte[][][] r) {
+	public VcpCntInt32(int vrxmin, int vrymin, int vrzmin, int vrxmax, int vrymax, int vrzmax, int cellsize) {
 		super(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize);
-		this.r = r;
 	}
 	
 	@Override
@@ -15,19 +13,15 @@ class VoxelCellProcessorCntUint8 extends VoxelCellProcessor {
 		int[][][] cnt = voxelCell.cnt;
 		for (int z = vbzmin; z <= vbzmax; z++) {
 			int[][] cntZ = cnt[z - vczmin];
-			byte[][] rZ = r[z - vrzmin];
+			int[][] rZ = r[z - vrzmin];
 			for (int y = vbymin; y <= vbymax; y++) {
 				int[] cntZY = cntZ[y - vcymin];
-				byte[] rZY = rZ[y - vrymin];
+				int[] rZY = rZ[y - vrymin];
 				for (int x = vbxmin; x <= vbxmax; x++) {
 					int v = cntZY[x - vcxmin];
-					//rZY[x - vrxmin] = (byte) (v == 0 ? 0 : 1);
-					//rZY[x - vrxmin] = v > Byte.MAX_VALUE ? Byte.MAX_VALUE : (byte) v;
-					//rZY[x - vrxmin] = (byte) v;
-					rZY[x - vrxmin] = (byte) (v > 255 ? 255 : v);
+					rZY[x - vrxmin] = v;
 				}
 			}
 		}				
-	}
-	
+	}	
 }
