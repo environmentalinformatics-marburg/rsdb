@@ -312,6 +312,16 @@ public class Vec<T> implements List<T> {
 	public <R> Vec<R> map(Function<? super T, R> mapper) {
 		return new Vec<R>(mapArray(mapper));
 	}
+	
+	public <R> R[] mapArray(Function<? super T, R> mapper, IntFunction<R[]> generator) {
+		int len = size;
+		T[] data = items;
+		R[] result = generator.apply(len);
+		for (int i = 0; i < len; i++) {
+			result[i] = mapper.apply(data[i]);
+		}
+		return result;
+	}
 
 	public double[] mapDoubleArray(ToDoubleFunction<T> mapper) {
 		int len = size;

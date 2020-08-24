@@ -19,6 +19,7 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
+import voxeldb.CellFactory;
 import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
 
@@ -115,6 +116,9 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		}
 
 		private void process(PointTable pointTable) throws IOException {
+			
+			CellFactory cellFactory = CellFactory.ofCount(voxeldb);
+			
 			int cellsize = voxeldb.getCellsize();
 			double xorigin = voxeldb.geoRef().originX;
 			double yorigin = voxeldb.geoRef().originY;
@@ -220,7 +224,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 					for(int cy = cymin; cy <= cymax; cy++) {
 						for(int cx = cxmin; cx <= cxmax; cx++) {
 							log.info("cx " + cx + "  cy " + cy + "  cz " + cz);
-							VoxelCell oldVoxelCell = voxeldb.getVoxelCell(cx, cy, cz, t);							
+							VoxelCell oldVoxelCell = cellFactory.getVoxelCell(cx, cy, cz, t);							
 							int[][][] ccnt = oldVoxelCell == null ? new int[cellsize][cellsize][cellsize] : oldVoxelCell.cnt;
 							
 							/*{
@@ -323,7 +327,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 							}*/
 							
 							VoxelCell voxelCell = new VoxelCell(cx, cy, cz, ccnt);
-							voxeldb.writeVoxelCell(voxelCell, t);
+							cellFactory.writeVoxelCell(voxelCell, t);
 						}
 					}
 				}

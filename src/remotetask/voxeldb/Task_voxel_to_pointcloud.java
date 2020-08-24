@@ -12,6 +12,7 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
+import voxeldb.CellFactory;
 import voxeldb.VoxelDB;
 
 @task_voxeldb("voxel_to_pointcloud")
@@ -52,8 +53,8 @@ public class Task_voxel_to_pointcloud extends CancelableRemoteTask {
 		pointcloud.trySetCellsize(cellsize * cellscale);
 		pointcloud.getOrSetCelloffset(0, 0);
 
-
-		voxeldb.getVoxelCells().sequential().forEach(voxelCell -> {
+		CellFactory cf = CellFactory.ofCount(voxeldb);
+		cf.getVoxelCells().sequential().forEach(voxelCell -> {
 			try {
 			int sum = 0;
 			int[][][] cnt = voxelCell.cnt;

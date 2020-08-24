@@ -3,6 +3,7 @@ package voxeldb;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,15 +70,17 @@ public class VoxelDB implements AutoCloseable {
 	public final VoxeldbConfig config;
 
 	private VoxelGeoRef geoRef = VoxelGeoRef.DEFAULT;
-
-	private Attribute attr_count;
-
+	
 	public VoxelDB(VoxeldbConfig config) {
 		this.config = config;
 		griddb = new GridDB(config.path, "voxeldb", new ExtendedMetaHook(), config.preferredStorageType, config.transaction);
 		griddb.readMeta();
-		attr_count = griddb.getOrAddAttribute("count", Encoding.ENCODING_INT32);
+		loadAttributes();
 		griddb.writeMetaIfNeeded();
+	}
+	
+	private void loadAttributes() {
+		griddb.getOrAddAttribute("count", Encoding.ENCODING_INT32);
 	}
 
 	public GridDB getGriddb() {
@@ -267,74 +270,6 @@ public class VoxelDB implements AutoCloseable {
 
 	public VoxelGeoRef geoRef() {
 		return geoRef;
-	}
-
-	private VoxelCell cellToVoxelCell(Cell cell) {
-		int[] flat_cnt = cell.getInt(attr_count);
-		int[][][] cnt = new int[cellsize][cellsize][cellsize];
-		int cnt_pos = 0;
-		for(int z = 0; z < cellsize; z++) {
-			for(int y = 0; y < cellsize; y++) {
-				for(int x = 0; x < cellsize; x++) {
-					cnt[z][y][x] = flat_cnt[cnt_pos++];
-				}
-			}
-		}
-		VoxelCell voxelCell = new VoxelCell(cell.y, cell.b, cell.x, cnt);
-		return voxelCell;
-	}
-
-	private Tile voxelCellToTile(VoxelCell voxelCell, int t) {
-		int len = cellsize * cellsize * cellsize;
-		int[] flat_cnt = new int[len];
-		int data_cnt_pos = 0;
-		int[][][] cnt = voxelCell.cnt;
-		for(int z = 0; z < cellsize; z++) {
-			for(int y = 0; y < cellsize; y++) {
-				for(int x = 0; x < cellsize; x++) {
-					flat_cnt[data_cnt_pos++] = cnt[z][y][x];
-				}
-			}
-		}
-		byte[] data_cnt = Encoding.createIntData(attr_count.encoding, flat_cnt, len);
-
-		byte[] cellData = Cell.createData(new Attribute[] {attr_count}, new byte[][] {data_cnt}, 1);
-		Tile tile = griddb.createTile(voxelCell.z, voxelCell.x, voxelCell.y, t, cellData);
-		return tile;
-	}
-
-	public VoxelCell getVoxelCell(int x, int y, int z, int t) throws IOException {		
-		Cell cell = griddb.getCell(z, x, y, t);
-		return cell == null ? null : cellToVoxelCell(cell);
-	}
-
-	public void writeVoxelCell(VoxelCell voxelCell, int t) throws IOException {
-		Tile tile = voxelCellToTile(voxelCell, t);
-		griddb.writeTile(tile);
-	}
-
-	public Stream<VoxelCell> getVoxelCells() {
-		return griddb.getTileKeys().stream().map(tileKey -> {
-			try {
-				return griddb.storage().readTile(tileKey);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		})
-				.map(GridDB::tileToCell)
-				.map(this::cellToVoxelCell);
-	}
-	
-	public Stream<VoxelCell> getVoxelCells(TimeSlice timeSlice) {
-		return griddb.getTileKeysOfT(timeSlice.id).stream().map(tileKey -> {
-			try {
-				return griddb.storage().readTile(tileKey);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		})
-				.map(GridDB::tileToCell)
-				.map(this::cellToVoxelCell);
 	}
 
 	public void setProj4(String proj4) {		

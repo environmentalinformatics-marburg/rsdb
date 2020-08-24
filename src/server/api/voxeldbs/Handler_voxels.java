@@ -9,9 +9,12 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 
 import broker.TimeSlice;
-import server.api.voxeldbs.voxelcellprocessors.VcpCntInt32;
 import server.api.voxeldbs.voxelcellprocessors.VcpCntUint8;
+import server.api.voxeldbs.voxelcellprocessors.VcpInt32;
+import server.api.voxeldbs.voxelcellprocessors.VcpInt32DivCount;
 import util.Web;
+import voxeldb.CellFactory;
+import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 
@@ -95,17 +98,59 @@ public class Handler_voxels {
 		//String product = "cnt:uint8";
 
 		switch(product) {
-		case "cnt":
-		case "cnt:int32": {
-			VoxelProcessor processor = new VoxelProcessor(voxeldb);
-			VcpCntInt32 vcp = new VcpCntInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize);
+		case "count":
+		case "count:int32": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setCount());
+			VcpInt32 vcp = new VcpInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize, VoxelCell::count);
 			processor.ProcessInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
 			break;
 		}
-		case "cnt:uint8": {
-			VoxelProcessor processor = new VoxelProcessor(voxeldb);
+		case "count:uint8": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setCount());
 			VcpCntUint8 vcp = new VcpCntUint8(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize);
 			processor.ProcessUint8(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
+			break;
+		}
+		case "red":
+		case "red:int32": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setRed());
+			VcpInt32 vcp = new VcpInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize, VoxelCell::red);
+			processor.ProcessInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
+			break;
+		}
+		case "green":
+		case "green:int32": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setGreen());
+			VcpInt32 vcp = new VcpInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize, VoxelCell::green);
+			processor.ProcessInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
+			break;
+		}
+		case "blue":
+		case "blue:int32": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setBlue());
+			VcpInt32 vcp = new VcpInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize, VoxelCell::blue);
+			processor.ProcessInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
+			break;
+		}
+		case "red_mean":
+		case "red_mean:int32": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setRed().setCount());
+			VcpInt32 vcp = new VcpInt32DivCount(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize, VoxelCell::red);
+			processor.ProcessInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
+			break;
+		}
+		case "green_mean":
+		case "green_mean:int32": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setGreen().setCount());
+			VcpInt32 vcp = new VcpInt32DivCount(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize, VoxelCell::green);
+			processor.ProcessInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
+			break;
+		}
+		case "blue_mean":
+		case "blue_mean:int32": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setBlue().setCount());
+			VcpInt32 vcp = new VcpInt32DivCount(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize, VoxelCell::blue);
+			processor.ProcessInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
 			break;
 		}
 		default:

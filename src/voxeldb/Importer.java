@@ -31,12 +31,15 @@ public class Importer {
 	private final TimeSlice timeSlice;
 	private final MessageReceiver messageReceiver;
 
+	private final CellFactory cellFactory;
+
 	public Importer(VoxelDB voxeldb, DoubleRect filterRect, boolean trySetOriginToFileOrigin, TimeSlice timeSlice, MessageReceiver messageReceiver) {
 		this.voxeldb = voxeldb;
 		this.filterRect = filterRect;
 		this.trySetOriginToFileOrigin = trySetOriginToFileOrigin;
 		this.timeSlice = timeSlice;
 		this.messageReceiver = messageReceiver;
+		this.cellFactory = CellFactory.ofAll(voxeldb);
 	}
 
 	/**
@@ -199,6 +202,9 @@ public class Importer {
 			int[] xs = recordTable.x;
 			int[] ys = recordTable.y;
 			int[] zs = recordTable.z;
+			char[] reds = recordTable.red;
+			char[] greens = recordTable.green;
+			char[] blues = recordTable.blue;
 
 			int[] xrange = Util.getRange(xs);
 			int[] yrange = Util.getRange(ys);
@@ -297,10 +303,15 @@ public class Importer {
 
 					VoxelCell voxelCell = cells[ycell][xcell][zcell];
 					if(voxelCell == null) {
-						voxelCell = voxeldb.getVoxelCell(xcellmin + xcell, ycellmin + ycell, zcellmin + zcell, t);
+						voxelCell = cellFactory.getVoxelCell(xcellmin + xcell, ycellmin + ycell, zcellmin + zcell, t);
 						if(voxelCell == null) {
-							int[][][] cnt = new int[zVoxelCellsize][yVoxelCellsize][xVoxelCellsize];
-							voxelCell = new VoxelCell(xcellmin + xcell, ycellmin + ycell, zcellmin + zcell, cnt);
+							voxelCell = VoxelCell.ofFilled(xcellmin + xcell, ycellmin + ycell, zcellmin + zcell,
+									xVoxelCellsize, yVoxelCellsize, zVoxelCellsize,
+									true, reds != null, greens != null, blues != null);
+						} else {
+							voxelCell = VoxelCell.ofFilled(voxelCell,
+									xVoxelCellsize, yVoxelCellsize, zVoxelCellsize,
+									true, reds != null, greens != null, blues != null);
 						}
 						cells[ycell][xcell][zcell] = voxelCell;
 					}
@@ -310,6 +321,15 @@ public class Importer {
 					int zloc = (int) (floorMod(z - zProjectedOrigin, zProjectedCellsize) / voxelSizeZ);
 
 					voxelCell.cnt[zloc][yloc][xloc]++;
+					if(reds != null) {
+						voxelCell.red[zloc][yloc][xloc] += reds[i];
+					}
+					if(greens != null) {
+						voxelCell.green[zloc][yloc][xloc] += greens[i];
+					}
+					if(blues != null) {
+						voxelCell.blue[zloc][yloc][xloc] += blues[i];
+					}
 				}
 			}
 			
@@ -322,7 +342,7 @@ public class Importer {
 					for (int z = 0; z < zcellrange; z++) {
 						VoxelCell voxelCell = cellsYX[z];
 						if(voxelCell != null) {
-							voxeldb.writeVoxelCell(voxelCell, t);
+							cellFactory.writeVoxelCell(voxelCell, t);
 						}
 					}
 				}

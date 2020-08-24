@@ -24,6 +24,7 @@ import remotetask.Description;
 import remotetask.Param;
 import util.Range2d;
 import util.frame.FloatFrame;
+import voxeldb.CellFactory;
 import voxeldb.VoxelDB;
 
 @task_voxeldb("rasterize")
@@ -45,6 +46,8 @@ public class Task_rasterize extends CancelableRemoteTask {
 	public void process() throws IOException {
 		String voxeldb_name = task.getString("voxeldb");
 		VoxelDB voxeldb = broker.getVoxeldb(voxeldb_name);
+		
+		CellFactory cf = CellFactory.ofCount(voxeldb);
 
 		String rasterdb_name = task.optString("rasterdb", voxeldb.getName() + "_rasterized");
 		boolean transactions = true;
@@ -75,7 +78,7 @@ public class Task_rasterize extends CancelableRemoteTask {
 		double voxelSizeZ = voxeldb.geoRef().voxelSizeZ;
 
 		for(TimeSlice timeSlice:voxeldb.timeMapReadonly.values()) {
-			voxeldb.getVoxelCells(timeSlice).sequential().forEach(voxelCell -> {
+			cf.getVoxelCells(timeSlice).sequential().forEach(voxelCell -> {
 				try {
 					rasterdb.setTimeSlice(timeSlice);
 					
