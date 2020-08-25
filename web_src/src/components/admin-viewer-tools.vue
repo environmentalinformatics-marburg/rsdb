@@ -143,7 +143,7 @@ export default {
       let voxeldb = this.meta.associated.voxeldb;
       let params = {voxeldb: voxeldb, x: x, y: y, z: z};
       if(this.currentTimestamp !== undefined) {
-        params.t = this.currentTimestamp;
+        params.time_slice_id = this.currentTimestamp;
       }
       const urlParams = new URLSearchParams(params);
       const url = this.urlPrefix + '../../web/voxel_view/?' + urlParams;

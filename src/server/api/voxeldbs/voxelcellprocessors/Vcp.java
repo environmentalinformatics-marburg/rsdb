@@ -36,8 +36,8 @@ public abstract class Vcp implements Consumer<VoxelCell> {
 		int vcxmax = vcxmin + cellsize - 1;
 		int vcymax = vcymin + cellsize - 1;
 		int vczmax = vczmin + cellsize - 1;			
-		log.info(voxelCell);
-		log.info("vc "+vcxmin+" "+vcymin+" "+vczmin+"   "+vcxmax+" "+vcymax+" "+vczmax);
+		//log.info(voxelCell);
+		//log.info("vc "+vcxmin+" "+vcymin+" "+vczmin+"   "+vcxmax+" "+vcymax+" "+vczmax);
 
 		int vbxmin = Math.max(vrxmin, vcxmin);
 		int vbymin = Math.max(vrymin, vcymin);

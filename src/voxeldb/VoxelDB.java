@@ -338,4 +338,16 @@ public class VoxelDB implements AutoCloseable {
 			return timeSlice;
 		}
 	}
+	
+	public TimeSlice getTimeSliceByName(String name) {
+		if(name == null || name.isEmpty()) {
+			return null;
+		}
+		for(TimeSlice timeSlice : timeMap.values()) {
+			if(timeSlice.hasName() && timeSlice.name.equals(name)) {
+				return timeSlice;
+			}
+		}
+		return null;
+	}
 }

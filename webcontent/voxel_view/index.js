@@ -280,11 +280,11 @@ async function init() {
   try {
     const url = new URL('../../voxeldbs/' + voxeldb + '/voxels', window.location);
     const args = {x: x, y: y, z: z};
-    if(params.has('t')) {
-      args.t = params.get('t');
+    if(params.has('time_slice_id')) {
+      args.time_slice_id = params.get('time_slice_id');
     }
 	args.format = 'js';
-	args.product = 'cnt:uint8';
+	args.product = 'count:uint8';
     url.search = new URLSearchParams(args);
     console.log(url);
     let response = await fetch(url);

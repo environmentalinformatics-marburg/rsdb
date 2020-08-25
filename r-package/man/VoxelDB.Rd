@@ -30,7 +30,7 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 \if{latex}{\out{\hypertarget{method-voxels}{}}}
 \subsection{Method \code{voxels()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{VoxelDB$voxels(x, y, z)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{VoxelDB$voxels(x, y, z, product, time_slice_id = NULL, time_slice_name = NULL)}\if{html}{\out{</div>}}
 }
 
 }
