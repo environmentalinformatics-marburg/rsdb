@@ -10,7 +10,7 @@ set GDAL_PATH=%RSDB_PATH%/gdal
 set GDAL_BIN_PATH=%GDAL_PATH%/bin
 
 REM Set GDAL data location, e.g. for EPSG support file 'gcs.csv'.
-REM This variable is read inernally from GDAL library.
+REM This variable is read internally from GDAL library.
 REM https://trac.osgeo.org/gdal/wiki/FAQInstallationAndBuilding#WhatisGDAL_DATAenvironmentvariable
 set GDAL_DATA=%GDAL_BIN_PATH%/gdal-data
 
