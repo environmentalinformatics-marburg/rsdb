@@ -208,7 +208,7 @@ public class Terminal {
 		try {
 			if(args.length==0) {
 				//interactiveTerminal();
-				System.out.println("no command.\n\nAvailable commands:\n");
+				System.out.println("\nMissing arguments.\n\nAvailable commands:\n");
 				runCommand(new String[]{"commands"});
 			} else {
 				runCommand(args);
@@ -296,12 +296,12 @@ public class Terminal {
 			return;
 		}
 		System.out.println("");
-		System.out.println("------ PointDB Terminal ------");
+		System.out.println("------ RSDB Terminal ------");
 		System.out.println("Type 'commands' to get a listing of available commands.");
 		System.out.println("Type 'exit' to return.");
 		System.out.println("");
 		for(;;){
-			console.printf("\n%s", "PointDB$ ");
+			console.printf("\n%s", "RSDB$ ");
 			console.flush();
 			String input = console.readLine();
 			if(input!=null&&input.equals("exit")) {

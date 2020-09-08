@@ -96,30 +96,51 @@ public class GdalReader {
 		return dataset.GetProjectionRef();
 	}
 
+	/**
+	 * 
+	 * @return null if missing code
+	 */
 	public String getProj4() {
-		SpatialReference sprSrc = new SpatialReference("");		
-		sprSrc.ImportFromWkt(dataset.GetProjectionRef());
-		String proj4 = sprSrc.ExportToProj4();
-		return proj4;
+		try {
+			SpatialReference sprSrc = new SpatialReference("");	
+			String projRef = dataset.GetProjectionRef();
+			if(projRef == null || projRef.isEmpty()) {
+				return null;
+			}
+			sprSrc.ImportFromWkt(projRef);
+			String proj4 = sprSrc.ExportToProj4();
+			return proj4;
+		} catch (Exception e) {
+			log.warn(e);
+			return null;
+		}
 	}
 
 	/**
 	 * currently wrong code if not set in WKT !!!!! (ENVI files)
-	 * @return
+	 * @return null if missing code
 	 */
 	public String getCRS_code() {
-		SpatialReference sprSrc = new SpatialReference("");
-		String projRef = dataset.GetProjectionRef();
-		log.info(projRef);
-		sprSrc.ImportFromWkt(projRef);
-		if(sprSrc.GetAuthorityName("PROJCS") != null) {
-			return sprSrc.GetAuthorityName("PROJCS")+":"+sprSrc.GetAuthorityCode("PROJCS");
+		try {
+			SpatialReference sprSrc = new SpatialReference("");
+			String projRef = dataset.GetProjectionRef();
+			if(projRef == null || projRef.isEmpty()) {
+				return null;
+			}
+			log.info(projRef);
+			sprSrc.ImportFromWkt(projRef);
+			if(sprSrc.GetAuthorityName("PROJCS") != null) {
+				return sprSrc.GetAuthorityName("PROJCS")+":"+sprSrc.GetAuthorityCode("PROJCS");
+			}
+			log.info("--------------GET ------------- "+sprSrc.GetAuthorityCode("GEOGCS"));
+			log.info("--------------GET ------------- "+sprSrc.GetAuthorityName("GEOGCS"));
+			String name = sprSrc.GetAuthorityName("GEOGCS");
+			String code = sprSrc.GetAuthorityCode("GEOGCS");
+			return code == null ? null : ((name == null ? "USER":name)+":"+code);
+		} catch (Exception e) {
+			log.warn(e);
+			return null;
 		}
-		log.info("--------------GET ------------- "+sprSrc.GetAuthorityCode("GEOGCS"));
-		log.info("--------------GET ------------- "+sprSrc.GetAuthorityName("GEOGCS"));
-		String name = sprSrc.GetAuthorityName("GEOGCS");
-		String code = sprSrc.GetAuthorityCode("GEOGCS");
-		return code == null ? null : ((name == null ? "USER":name)+":"+code);
 	}
 
 	private void reproject() {
@@ -265,7 +286,7 @@ public class GdalReader {
 		this.y_range = dataset.getRasterYSize();
 		this.src_size = x_range*y_range;		
 	}
-	
+
 	public GdalReader(Dataset dataset) {
 		this.filename = "";
 		this.dataset = dataset;
@@ -290,7 +311,7 @@ public class GdalReader {
 		}
 		return Util.arrayToArrayArray(in, x_range,targetData);
 	}
-	
+
 	/**
 	 * Get all Data of one band
 	 * @param band index number of band (starting with zero)
@@ -334,7 +355,7 @@ public class GdalReader {
 		}
 		return Util.arrayToArrayArray(in, x_range, targetData);
 	}
-	
+
 	public float[][] getDataFloat(int bandIndex, float[][] targetData, int yoff, int ysize) throws IOException {
 		Band band = dataset.GetRasterBand(bandIndex);
 		float[] in = new float[x_range * ysize];
@@ -359,7 +380,7 @@ public class GdalReader {
 		}
 		return Util.arrayToArrayArray(in, x_range, targetData);
 	}
-	
+
 	public float[][] getDataFloat(int bandIndex, float[][] targetData, float noDataValue, int yoff, int ysize) throws IOException {
 		Band band = dataset.GetRasterBand(bandIndex);
 		int len = x_range * ysize;

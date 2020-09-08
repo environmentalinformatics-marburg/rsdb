@@ -142,6 +142,8 @@ import * as ol_interaction from 'ol/interaction';
 import * as ol_style from 'ol/style';
 import {toStringXY} from 'ol/coordinate';
 import GeoJSON from 'ol/format/GeoJSON';
+import Projection from 'ol/proj/Projection';
+//import {transform as proj_transform} from 'ol/proj';
 
 import {register as ol_proj_proj4_register}  from 'ol/proj/proj4';
 import proj4 from 'proj4';
@@ -185,6 +187,7 @@ export default {
       sourceWMS: undefined,
       layerWMS: undefined,
       layerWMS_opacity: 1,
+      validProjection: true,
 
       meta: undefined,
 
@@ -238,6 +241,7 @@ export default {
     removeMessage(id) {
       Vue.delete(this.messages, id);
     },
+
     async refreshMeta() {
       console.log("refreshMeta");
       this.meta = undefined;
@@ -256,6 +260,22 @@ export default {
         this.removeMessage(messageID);
       }     
     },
+
+    getNoProjection(extent) {
+      return new Projection({
+          code: 'no-projection',
+          units: 'pixels',
+          extent: extent,
+          axisOrientation: 'enu',
+          global: false,
+          metersPerUnit: 1,
+          worldExtent: extent,
+          getPointResolution: function(resolution) {
+            return resolution;
+          },
+      });
+    },
+
     refreshWMS() {
       var self = this;
 
@@ -273,11 +293,22 @@ export default {
           self.$store.commit('identity/incrementTransactionCount');
       };
 
+      var extent = this.meta.ref.extent;
+
       var wmsProj4 = '';
       if(this.meta.ref.proj4 !== undefined && this.meta.ref.proj4 !== '') {
         wmsProj4 = this.meta.ref.proj4.trim();
       }
-      var wmsProjectionAlias = this.getProjectionAlias(wmsProj4);
+
+      var sourceWMSProjection = undefined;
+      if(wmsProj4 !== '') {
+        var wmsProjectionAlias = this.getProjectionAlias(wmsProj4);
+        sourceWMSProjection = wmsProjectionAlias;
+      }
+
+      if(sourceWMSProjection === undefined) {
+        sourceWMSProjection = this.getNoProjection(extent);
+      }      
 
       var wmsUrl = this.$store.getters.apiUrl('rasterdb_wms');
 
@@ -285,7 +316,7 @@ export default {
         url: wmsUrl,
         params: this.wmsParams,
         imageLoadFunction: imageLoadFunctionWMS,
-        projection: wmsProjectionAlias,
+        projection: sourceWMSProjection,
         ratio: 1,
       });
 
@@ -306,7 +337,6 @@ export default {
       });
 
       this.layerWMS.setSource(this.sourceWMS);
-      var extent = this.meta.ref.extent;
       this.layerWMS.setExtent(extent);
 
       this.setWmsView();
@@ -329,24 +359,41 @@ export default {
         this.refreshLayers();
         return;
       }
-      var viewProj4 = '';
-      if(this.meta.ref.proj4 !== undefined && this.meta.ref.proj4 !== '') {
-        viewProj4 = this.meta.ref.proj4.trim();
-      }
-      var viewProjectionAlias = this.getProjectionAlias(viewProj4);
 
-      console.log("setWmsView " + viewProj4 +" -> " + viewProjectionAlias);
-
-      this.olmousePosition.setProjection(viewProjectionAlias);
       var extent = this.meta.ref.extent;
+      var center = [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2];
+
+      var wmsProj4 = '';
+      if(this.meta.ref.proj4 !== undefined && this.meta.ref.proj4 !== '') {
+        wmsProj4 = this.meta.ref.proj4.trim();
+      }
+
+      var sourceWMSProjection = undefined;
+      if(wmsProj4 !== '') {
+        var wmsProjectionAlias = this.getProjectionAlias(wmsProj4);
+        sourceWMSProjection = wmsProjectionAlias;
+      }
+
+      if(sourceWMSProjection === undefined) {
+        sourceWMSProjection = this.getNoProjection(extent);
+        this.validProjection = false;
+      } else {
+        this.validProjection = true;
+      }     
+
+      /*console.log("setWmsView " + wmsProj4 +" -> " + sourceWMSProjection);
+      var testingTransform = proj_transform(center, sourceWMSProjection, 'EPSG:4326');
+      console.log(testingTransform);*/
+
+      this.olmousePosition.setProjection(sourceWMSProjection);
       var min_pixel_size = this.meta.ref.pixel_size.x <= this.meta.ref.pixel_size.y ? this.meta.ref.pixel_size.x : this.meta.ref.pixel_size.y;
       var extent_size_x = extent[2] - extent[0];
       var extent_size_y = extent[3] - extent[1];
       var max_extent_size = extent_size_x >= extent_size_y ? extent_size_x : extent_size_y;
 
       var view = new ol_View({
-        center: [(extent[0] + extent[2]) / 2, (extent[1] + extent[3]) / 2],
-        projection: viewProjectionAlias,
+        center: center,
+        projection: sourceWMSProjection,
         extent: extent,
         constrainOnlyCenter: true,
         minResolution: min_pixel_size / 4,
@@ -371,6 +418,7 @@ export default {
         projection: viewProjectionAlias,
         zoom: 2,
       });
+      this.validProjection = true;
 
       this.olmap.setView(view);
 
@@ -398,6 +446,7 @@ export default {
         projection: viewProjectionAlias,
         zoom: 2,
       });
+      this.validProjection = true;
 
       this.olmap.setView(view);
 
@@ -454,7 +503,7 @@ export default {
     refreshLayers() {
       var layers = this.olmap.getLayers();
       layers.clear();
-      if(this.selectedBackground !== undefined) {
+      if(this.selectedBackground !== undefined && this.validProjection) {
         switch(this.selectedBackground.name) {
           case "osm":
             layers.push(this.layerBackgroundOSM);
@@ -729,8 +778,6 @@ export default {
         this.sourceWMS.updateParams(this.wmsParams);
       }
     },
-    
-
 
     session() {
       this.refreshWMS();
@@ -740,6 +787,11 @@ export default {
       //console.log(this.selectedBackground.name);
       this.refreshLayers();
     },
+
+    validProjection() {
+      this.refreshLayers();
+    },
+
     mouseModus() {
       this.viewOverlay.classList.remove('olmap-viewer-mouseModus-move');
       this.viewOverlay.classList.remove('olmap-viewer-mouseModus-move-on');
@@ -916,12 +968,16 @@ export default {
     
     this.interactionExtent.setActive(false);
 
-    this.olmousePosition = new ol_control_MousePosition({projection: 'EPSG:4326', target: 'foot-end-1', coordinateFormat: function(coordinate) {return toStringXY(coordinate, 2);}});
+    this.olmousePosition = new ol_control_MousePosition({
+      projection: 'EPSG:4326', 
+      target: 'foot-end-1', 
+      coordinateFormat: function(coordinate) {return toStringXY(coordinate, 2);},
+    });
 
     this.olmap = new ol_Map({
         target: 'olmap-viewer',
         controls: ol_control.defaults({ attributionOptions: { collapsible: false } }).extend([
-          new ol_control.ScaleLine(),
+          new ol_control.ScaleLine({}),
           this.olmousePosition,          
         ]),
         interactions: ol_interaction.defaults().extend([

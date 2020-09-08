@@ -39,7 +39,7 @@ public class RunServer {
 			Server server = RSDBServer.createServer(broker);
 			server.start();
 			RSDBServer.printServerEntrypoint(server, broker);
-			System.out.println("Server running...   (press ctrl-c to stop)");
+			System.out.println("RSDB server running...   (press ctrl-c to stop)");
 			addShutdownHook(server, broker);
 			server.join();
 		} catch(Exception e) {
@@ -55,7 +55,7 @@ public class RunServer {
 			public void run()
 			{
 				System.out.println();
-				System.out.println("stop server...");
+				System.out.println("stop RSDB server...");
 				try {
 					server.stop();
 				} catch(Exception e) {

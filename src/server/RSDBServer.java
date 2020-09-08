@@ -343,7 +343,7 @@ public class RSDBServer {
 		}
 		System.out.println();
 		//System.out.println("Stop server directly with key combination '"+toBold("Ctrl-C")+"'");
-		System.out.println("Stop server with linux shell command: "+toBold("curl --proxy '' --request POST http://localhost:"+broker.brokerConfig.server().port+"/shutdown?token=pointdb"));
+		System.out.println("Stop RSDB server with linux shell command: "+toBold("curl --proxy '' --request POST http://localhost:"+broker.brokerConfig.server().port+"/shutdown?token=rsdb"));
 		System.out.println("-------------------------------------------------------------------");
 	}
 
@@ -365,7 +365,7 @@ public class RSDBServer {
 				createContext(WEBFILES_URL, createWebfilesHandler()),
 				createContext("/entrypoint", true, new BaseRedirector(WEBCONTENT_URL + "/admin2/")),
 				createContext("/logout", true, new LogoutHandler(broker)),
-				createContext(createShutdownHandler()),
+				createContext(createShutdownHandler("rsdb")),
 				createContext(new BaseRedirector("/entrypoint")),
 				createContext(new InvalidUrlHandler("unknown request")),
 		};
@@ -391,8 +391,8 @@ public class RSDBServer {
 		return context;
 	}
 
-	private static Handler createShutdownHandler() {
-		Handler handler = new ShutdownHandler("pointdb", false, true);
+	private static Handler createShutdownHandler(String token) {
+		Handler handler = new ShutdownHandler(token, false, true);
 		return handler;
 	}
 

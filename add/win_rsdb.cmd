@@ -1,4 +1,7 @@
 @echo off
+REM You need to call this batch file with arguments.
+REM e.g. win_rsdb.cmd server
+REM Typically this file is called by other batch files, e.g. win_server.cmd
 echo.
 
 set RSDB_PATH=%cd%
@@ -23,6 +26,11 @@ IF NOT EXIST %GDAL_JAR_PATH% (
 	echo ERROR: GDAL missing or wrong path:	
 	echo %GDAL_PATH%
 	echo Check documentation on how to include GDAL.
+	echo.
+	echo This error may araise if the current path contains spaces. 
+	echo If so, then move RSDB folder to a different location. 
+	echo Wrong: "C:/my files/my rsdb" 
+	echo Correct: "C:/data/testing/rsdb" 
 	echo.
 	pause
 	exit 1
