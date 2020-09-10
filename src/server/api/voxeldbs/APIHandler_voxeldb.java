@@ -242,7 +242,7 @@ public class APIHandler_voxeldb {
 		//}
 		json.key("attributes");
 		json.array();
-		json.value("count");
+		voxeldb.getGriddb().getAttributes().forEach(attribute -> json.value(attribute.name));
 		json.endArray();
 		json.key("associated");
 		voxeldb.getAssociated().writeJSON(json);

@@ -2,6 +2,7 @@ package server.api.rasterdb;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,6 +24,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import broker.Broker;
+import broker.TimeSlice;
 import rasterdb.BandProcessor;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
@@ -196,15 +198,27 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			eBoundingBox.setAttribute("maxy", "" + ref.pixelYToGeo(localRange.ymax));
 		}
 
-		ReadonlyNavigableSetView<Integer> timekeys = rasterdb.rasterUnit().timeKeysReadonly();
+		/*ReadonlyNavigableSetView<Integer> timekeys = rasterdb.rasterUnit().timeKeysReadonly();
 		for(Integer timeKey:timekeys) {
 			if(timeKey > 0) {
 				Element eTimeLayer = addElement(eRootLayer, "Layer");
 				addElement(eTimeLayer, "Name", name + "/" + timeKey);
 				addElement(eTimeLayer, "Title", title + " / " + TimeUtil.toPrettyText(timeKey));
 			}
+		}*/
+		
+		TreeSet<Integer> timestamps = new TreeSet<Integer>();
+		timestamps.addAll(rasterdb.rasterUnit().timeKeysReadonly());
+		timestamps.addAll(rasterdb.timeMapReadonly.keySet());
+		for(Integer timestamp:timestamps) {
+			Element eTimeLayer = addElement(eRootLayer, "Layer");
+			addElement(eTimeLayer, "Name", name + "/" + timestamp);
+			TimeSlice timeSlice = rasterdb.timeMapReadonly.get(timestamp);
+			if(timeSlice == null) {
+				addElement(eTimeLayer, "Title", title + " / " + TimeUtil.toPrettyText(timestamp));
+			} else {
+				addElement(eTimeLayer, "Title", title + " / " + timeSlice.name);
+			}			
 		}
-
 	}
-
 }

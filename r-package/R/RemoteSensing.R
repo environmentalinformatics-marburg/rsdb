@@ -183,8 +183,38 @@ RemoteSensing_active <- list( #      *********** active ************************
   voxeldbs = function() {
     json <- private$rsdbConnector$GET("/voxeldbs")
     return(json$voxeldbs)
-  }
+  },
 
+  tasks = function() {
+    res <- private$rsdbConnector$GET("/api/remote_task_entries")
+    tasks <- res$remote_task_categories
+    return(tasks)
+  },
+
+  tasks_rasterdb = function() {
+    tr <- tasks$remote_task_entries[[match('task_rasterdb', tasks$category)]]
+    return(tr)
+  },
+
+  tasks_pointdb = function() {
+    tr <- tasks$remote_task_entries[[match('task_pointdb', tasks$category)]]
+    return(tr)
+  },
+
+  tasks_pointcloud = function() {
+    tr <- tasks$remote_task_entries[[match('task_pointcloud', tasks$category)]]
+    return(tr)
+  },
+
+  tasks_voxeldb = function() {
+    tr <- tasks$remote_task_entries[[match('task_voxeldb', tasks$category)]]
+    return(tr)
+  },
+
+  tasks_vectordb = function() {
+    tr <- tasks$remote_task_entries[[match('task_vectordb', tasks$category)]]
+    return(tr)
+  }
 )
 
 RemoteSensing_private <- list( #      *********** private *********************************
@@ -242,6 +272,12 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' remotesensing$poi_group(name)
 #' remotesensing$poi(group_name, poi_name)
 #'
+#' remotesensing$tasks
+#' remotesensing$tasks_rasterdb
+#' remotesensing$tasks_pointdb
+#' remotesensing$tasks_pointcloud
+#' remotesensing$tasks_voxeldb
+#' remotesensing$tasks_vectordb
 #' remotesensing$submit_task(task)
 #'
 #' remotesensing$web()
@@ -309,6 +345,30 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' \item{$poi(group_name, poi_name)}{get one POI.
 #'
 #' returns: position}
+#'
+#' \item{$tasks}{Get details of tasks that can be executed by 'submit_task'.
+#'
+#' returns: data.frame with nested data.frames of task details}
+#'
+#' \item{$tasks_rasterb}{Get details of type 'task_rasterb' tasks that can be executed by 'submit_task'.
+#'
+#' returns: data.frame with task details}
+#'
+#' \item{$tasks_pointdb}{Get details of type 'task_pointdb' tasks that can be executed by 'submit_task'.
+#'
+#' returns: data.frame with task details}
+#'
+#' \item{$tasks_pointcloud}{Get details of type 'task_pointcloud' tasks that can be executed by 'submit_task'.
+#'
+#' returns: data.frame with task details}
+#'
+#' \item{$tasks_voxeldb}{Get details of type 'task_voxeldb' tasks that can be executed by 'submit_task'.
+#'
+#' returns: data.frame with task details}
+#'
+#' \item{$tasks_vectordb}{Get details of type 'task_vectordb' tasks that can be executed by 'submit_task'.
+#'
+#' returns: data.frame with task details}
 #'
 #' \item{$submit_task(task)}{Submit a remote task to RSDB server.
 #'

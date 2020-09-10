@@ -39,6 +39,12 @@ remotesensing$poi_groups
 remotesensing$poi_group(name)
 remotesensing$poi(group_name, poi_name)
 
+remotesensing$tasks
+remotesensing$tasks_rasterdb
+remotesensing$tasks_pointdb
+remotesensing$tasks_pointcloud
+remotesensing$tasks_voxeldb
+remotesensing$tasks_vectordb
 remotesensing$submit_task(task)
 
 remotesensing$web()
@@ -114,6 +120,30 @@ returns: data.frame of POI-name and position}
 \item{$poi(group_name, poi_name)}{get one POI.
 
 returns: position}
+
+\item{$tasks}{Get details of tasks that can be executed by 'submit_task'.
+
+returns: data.frame with nested data.frames of task details}
+
+\item{$tasks_rasterb}{Get details of type 'task_rasterb' tasks that can be executed by 'submit_task'.
+
+returns: data.frame with task details}
+
+\item{$tasks_pointdb}{Get details of type 'task_pointdb' tasks that can be executed by 'submit_task'.
+
+returns: data.frame with task details}
+
+\item{$tasks_pointcloud}{Get details of type 'task_pointcloud' tasks that can be executed by 'submit_task'.
+
+returns: data.frame with task details}
+
+\item{$tasks_voxeldb}{Get details of type 'task_voxeldb' tasks that can be executed by 'submit_task'.
+
+returns: data.frame with task details}
+
+\item{$tasks_vectordb}{Get details of type 'task_vectordb' tasks that can be executed by 'submit_task'.
+
+returns: data.frame with task details}
 
 \item{$submit_task(task)}{Submit a remote task to RSDB server.
 

@@ -3,7 +3,6 @@ package server.api.main;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
-import javax.print.attribute.standard.Severity;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
@@ -96,10 +95,11 @@ public class APIHandler_identity extends APIHandler {
 		if(host.indexOf(':') > -1) {
 			host = host.substring(0, host.indexOf(':'));
 		}
+		String url_prefix = broker.brokerConfig.server().url_prefix;
 		json.key("plain_wms_url");
-		json.value("http://"+host+":"+broker.brokerConfig.server().port+"/rasterdb_wms");
+		json.value("http://"+host+":"+broker.brokerConfig.server().port + url_prefix +  "/rasterdb_wms");
 		json.key("secure_wms_url");
-		json.value("https://"+request.getLocalAddr()+":"+broker.brokerConfig.server().secure_port+"/rasterdb_wms");
+		json.value("https://"+request.getLocalAddr()+":"+broker.brokerConfig.server().secure_port + url_prefix + "/rasterdb_wms");
 		json.key("session");
 		json.value(APIHandler_session.createSession());
 		/*json.key("https_port");
@@ -118,7 +118,10 @@ public class APIHandler_identity extends APIHandler {
 				JsonUtil.optPutString(json, "jws_protocol", "https:");
 				JsonUtil.optPutString(json, "jws_port", server.getAttribute("jws-https-connector"));
 			}
-		}	
+		}
+		
+		json.key("url_base");
+		json.value(url.substring(0, url.indexOf("/api/identity")));
 
 		json.endObject();		
 	}

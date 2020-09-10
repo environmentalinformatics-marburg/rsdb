@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +33,11 @@ public class InjectHandler extends AbstractHandler {
 			//response.setHeader("X-Frame-Options", "deny"); // deny all iframes
 			response.setHeader("X-Frame-Options", "sameorigin"); // allow iframes on same site (needed for webfiles iframe)
 		}
+		/*Enumeration<String> hs = request.getHeaderNames();
+		while(hs.hasMoreElements()) {
+			String h = hs.nextElement();
+			log.info("header   " + h + ": " + request.getHeader(h));
+		}*/
 		log.info(RSDBServer.MARKER_REQ, Web.getRequestLogString("REQ", baseRequest.getMethod() + "   " + baseRequest.getRequestURL().toString(), baseRequest));
 	}
 }

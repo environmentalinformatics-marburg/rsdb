@@ -244,7 +244,8 @@
                 Applications
             </h3>
             <div class="meta-content">
-                <a :href="this.urlPrefix + '../../web/wms_access/wms_access.html'" target="_blank">WMS access info</a>
+                <admin-rasterdb-dialog-wms :meta="meta" @changed="refresh" />
+                <a :href="this.urlPrefix + '../../web/wms_access/wms_access.html'" target="_blank">WMS access info (obsolete)</a>
             </div> 
 
             <v-divider class="meta-divider"></v-divider>
@@ -275,6 +276,7 @@ import adminRasterdbDialogSetAcl from './admin-rasterdb-dialog-set-acl.vue'
 import adminRasterdbDialogDelete from './admin-rasterdb-dialog-delete'
 import adminRasterdbDialogRemoveTimestamps from './admin-rasterdb-dialog-remove-timestamps'
 import adminRasterdbDialogBands from './admin-rasterdb-dialog-bands.vue'
+import adminRasterdbDialogWms from './admin-rasterdb-dialog-wms.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
 export default {
@@ -287,6 +289,7 @@ export default {
         'admin-rasterdb-dialog-delete': adminRasterdbDialogDelete,
         'admin-rasterdb-dialog-remove-timestamps': adminRasterdbDialogRemoveTimestamps,
         'admin-rasterdb-bands': adminRasterdbDialogBands,
+        'admin-rasterdb-dialog-wms': adminRasterdbDialogWms,
         PulseLoader,
     },
     props: ['rasterdb'],

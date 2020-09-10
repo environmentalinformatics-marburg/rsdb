@@ -1,6 +1,7 @@
 package server;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
@@ -9,7 +10,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.ServletException;
 import javax.servlet.SessionCookieConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,18 +30,18 @@ import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.security.authentication.DigestAuthenticator;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.ForwardedRequestCustomizer;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConfiguration.Customizer;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.OptionalSslConnectionFactory;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.RequestLog;
-import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -64,7 +68,6 @@ import server.api.voxeldbs.APIHandler_voxeldbs;
 import util.Table;
 import util.Table.ColumnReaderString;
 import util.Util;
-import util.Web;
 
 public class RSDBServer {
 	static final Logger log = LogManager.getLogger();
@@ -97,6 +100,18 @@ public class RSDBServer {
 		httpConfiguration.setSendServerVersion(false);
 		httpConfiguration.setSendDateHeader(false);
 		httpConfiguration.setSendXPoweredBy(false);
+		httpConfiguration.addCustomizer(new ForwardedRequestCustomizer());
+		/*httpConfiguration.addCustomizer(new Customizer() {
+			@Override
+			public void customize(Connector connector, HttpConfiguration channelConfig, Request request) {
+				String prefix = request.getHeader("X-Forwarded-Prefix");
+				if(prefix != null) {
+					String path = request.getPathInfo();
+					String original_path = prefix + path; 
+					request.setPathInfo(original_path);
+					log.info(path + " -> " + original_path);
+				}
+			}});*/
 		return httpConfiguration;
 	}
 
@@ -266,6 +281,19 @@ public class RSDBServer {
 
 
 		HandlerList handlerList = new HandlerList();
+		handlerList.addHandler(new AbstractHandler() {			
+			@Override
+			public void handle(String target, Request request, HttpServletRequest httpRequest, HttpServletResponse response)
+					throws IOException, ServletException {
+				String prefix = request.getHeader("X-Forwarded-Prefix");
+				if(prefix != null) {
+					String path = request.getPathInfo();
+					String original_path = prefix + path; 
+					request.setPathInfo(original_path);
+					log.info(path + " -> " + original_path);
+				}				
+			}
+		});
 		handlerList.addHandler(new OptionalSecuredRedirectHandler());
 		handlerList.addHandler(sessionHandler);
 		handlerList.addHandler(new InjectHandler());
@@ -348,35 +376,35 @@ public class RSDBServer {
 	}
 
 	private static ContextHandler[] createContextHanlders(Broker broker) {
+		String prefixPath = broker.brokerConfig.server().url_prefix;
 		ContextHandler[] contexts = new ContextHandler[] {
-				createContext(POINTDB_API_URL, new APICollectionHandler(broker)),
-				createContext("/pointdbs", true, new APIHandler_pointdbs(broker)),
-				//createContext(SPECTRALDB_API_URL, new SpectraldbAPICollectionHandler(broker)),
-				createContext(RASTERDB_API_URL, new RasterdbHandler(broker)),
-				createContext(POINTCLOUDS_URL, true, new APIHandler_pointclouds(broker)),
-				createContext(VOXELDBS_URL, true, new APIHandler_voxeldbs(broker)),
-				createContext(VECTORDBS_URL, true, new VectordbsHandler(broker)),
-				createContext(POI_GROUPS_URL, true, new APIHandler_poi_groups(broker)),
-				createContext(ROI_GROUPS_URL, true, new APIHandler_roi_groups(broker)),
-				createContext(MAIN_API_URL, new MainAPICollectionHandler(broker)),
-				createContext("/rasterdb_wms", true, new WmsHandler(broker)),
-				createContext("/rasterdbs.json", true, new RasterdbsHandler(broker)),
-				createContext(WEBCONTENT_URL, createWebcontentHandler()),
-				createContext(WEBFILES_URL, createWebfilesHandler()),
-				createContext("/entrypoint", true, new BaseRedirector(WEBCONTENT_URL + "/admin2/")),
-				createContext("/logout", true, new LogoutHandler(broker)),
-				createContext(createShutdownHandler("rsdb")),
-				createContext(new BaseRedirector("/entrypoint")),
-				createContext(new InvalidUrlHandler("unknown request")),
+				createContext(prefixPath + POINTDB_API_URL, new APICollectionHandler(broker)),
+				createContext(prefixPath + "/pointdbs", true, new APIHandler_pointdbs(broker)),
+				createContext(prefixPath + RASTERDB_API_URL, new RasterdbHandler(broker)),
+				createContext(prefixPath + POINTCLOUDS_URL, true, new APIHandler_pointclouds(broker)),
+				createContext(prefixPath + VOXELDBS_URL, true, new APIHandler_voxeldbs(broker)),
+				createContext(prefixPath + VECTORDBS_URL, true, new VectordbsHandler(broker)),
+				createContext(prefixPath + POI_GROUPS_URL, true, new APIHandler_poi_groups(broker)),
+				createContext(prefixPath + ROI_GROUPS_URL, true, new APIHandler_roi_groups(broker)),
+				createContext(prefixPath + MAIN_API_URL, new MainAPICollectionHandler(broker)),
+				createContext(prefixPath + "/rasterdb_wms", true, new WmsHandler(broker)),
+				createContext(prefixPath + "/rasterdbs.json", true, new RasterdbsHandler(broker)),
+				createContext(prefixPath + WEBCONTENT_URL, createWebcontentHandler()),
+				createContext(prefixPath + WEBFILES_URL, createWebfilesHandler()),
+				createContext(prefixPath + "/entrypoint", true, new BaseRedirector(prefixPath + WEBCONTENT_URL + "/admin2/")),
+				createContext(prefixPath + "/logout", true, new LogoutHandler(broker)),
+				createContext(prefixPath, createShutdownHandler("rsdb")),
+				createContext(prefixPath, new BaseRedirector(prefixPath + "/entrypoint")),
+				createContext(prefixPath, new InvalidUrlHandler("unknown request")),
 		};
 		return contexts;
 	}
 
-	private static ContextHandler createContext(Handler handler) {
+	/*private static ContextHandler createContext(Handler handler) {
 		ContextHandler context = new ContextHandler();		
 		context.setHandler(handler);
 		return context;
-	}
+	}*/
 
 	private static ContextHandler createContext(String contextPath, Handler handler) {
 		ContextHandler context = new ContextHandler(contextPath);
@@ -493,7 +521,8 @@ public class RSDBServer {
 		PredicateHandler predicacteHttpsHandler = new PredicateHandler(r->r.isSecure());
 		predicacteHttpsHandler.setHandler(httpsSecurityHandler);		
 
-		handlerList.addHandler(createContext("/login", true, new LoginHandler(broker)));
+		String prefixPath = broker.brokerConfig.server().url_prefix;
+		handlerList.addHandler(createContext(prefixPath + "/login", true, new LoginHandler(broker)));
 		handlerList.addHandler(jwsAuthentication);
 		handlerList.addHandler(ipAuthentication);
 		handlerList.addHandler(predicacteHttpHandler);

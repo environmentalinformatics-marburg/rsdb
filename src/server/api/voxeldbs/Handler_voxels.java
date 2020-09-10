@@ -9,6 +9,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 
 import broker.TimeSlice;
+import server.api.voxeldbs.voxelcellprocessors.VcpCntUint16;
 import server.api.voxeldbs.voxelcellprocessors.VcpCntUint8;
 import server.api.voxeldbs.voxelcellprocessors.VcpInt32;
 import server.api.voxeldbs.voxelcellprocessors.VcpInt32DivCount;
@@ -112,6 +113,12 @@ public class Handler_voxels {
 			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setCount());
 			VcpInt32 vcp = new VcpInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize, VoxelCell::count);
 			processor.ProcessInt32(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
+			break;
+		}
+		case "count:uint16": {
+			VoxelProcessor processor = new VoxelProcessor(voxeldb, new CellFactory(voxeldb).setCount());
+			VcpCntUint16 vcp = new VcpCntUint16(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, cellsize);
+			processor.ProcessUint16(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax, timeSlice, response, format, vcp);
 			break;
 		}
 		case "count:uint8": {

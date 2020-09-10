@@ -132,6 +132,15 @@ public class Rdat {
 		out.write(data, 0, len);
 	}
 	
+	public static void write_RDAT_VDIM_uint16(DataOutput out, byte[] data, int xlen, int ylen, int zlen) throws IOException {
+		out.write(SIGNATURE_VDIM);
+		out.writeByte(TYPE_UINT16);
+		out.writeByte(TYPE_UINT16_SIZE);
+		write_RDAT_VECT3(out, xlen, ylen, zlen);
+		int len = xlen * ylen * zlen * 2;
+		out.write(data, 0, len);
+	}
+	
 	public static void write_RDAT_VDIM_int32(DataOutput out, byte[] data, int xlen, int ylen, int zlen) throws IOException {
 		out.write(SIGNATURE_VDIM);
 		out.writeByte(TYPE_INT32);
