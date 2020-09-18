@@ -207,6 +207,11 @@ public class WmsCapabilities {
 				list.add(new WmsStyle("evi2", "EVI2", "evi2"));
 				list.add(new WmsStyle("savi", "SAVI", "savi"));
 				list.add(new WmsStyle("mpri", "MPRI", "mpri"));
+				list.add(new WmsStyle("mgvri", "MGVRI", "mgvri"));
+				list.add(new WmsStyle("gli", "GLI", "gli"));
+				list.add(new WmsStyle("rgvbi", "RGVBI", "rgvbi"));
+				list.add(new WmsStyle("exg", "ExG", "exg"));
+				list.add(new WmsStyle("veg", "VEG", "veg"));
 				list.add(new WmsStyle("tgi", "TGI", "tgi"));
 			}
 		}

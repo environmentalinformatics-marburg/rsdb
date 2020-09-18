@@ -223,6 +223,17 @@ public class DoubleFrame {
 		}
 		return this;
 	}
+	
+	public DoubleFrame powThis(DoubleFrame baseFrame) {
+		for (int y = 0; y < height; y++) {
+			double[] t = data[y];
+			double[] s = baseFrame.data[y];
+			for (int x = 0; x < width; x++) {
+				t[x] = Math.pow(t[x], s[x]);
+			}
+		}
+		return this;
+	}
 
 	public ShortFrame toFrame(double scaleFactor) {		
 		int w = this.width;

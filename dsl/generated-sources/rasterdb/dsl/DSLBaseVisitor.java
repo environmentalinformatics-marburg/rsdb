@@ -60,6 +60,13 @@ public class DSLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements DS
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitFactor(@NotNull DSLParser.FactorContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitEntity(@NotNull DSLParser.EntityContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

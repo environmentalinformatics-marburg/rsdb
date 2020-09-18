@@ -102,6 +102,7 @@ public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {
 		case "sub":
 		case "mul":
 		case "div":
+		case "pow":
 			return new ProcessorNode() {
 				String name = ast.name;
 				ProcessorNode[] nodes = paramNodes;
@@ -121,6 +122,8 @@ public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {
 						return new DoubleFrame[]{subResults[0][0].mulThis(subResults[1][0])};
 					case "div":
 						return new DoubleFrame[]{subResults[0][0].divThis(subResults[1][0])};
+					case "pow":
+						return new DoubleFrame[]{subResults[0][0].powThis(subResults[1][0])};						
 					default:
 						throw new RuntimeException("error: unknown function '"+name+"'");
 					}

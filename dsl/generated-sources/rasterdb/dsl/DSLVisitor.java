@@ -48,6 +48,12 @@ public interface DSLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitTerm(@NotNull DSLParser.TermContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link DSLParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFactor(@NotNull DSLParser.FactorContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link DSLParser#entity}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

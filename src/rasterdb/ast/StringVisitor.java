@@ -41,6 +41,7 @@ public class StringVisitor implements AstVisitor<String, Integer> {
 		case "sub":
 		case "div":
 		case "mul":
+		case "pow":
 			if(ast.asts.size()==2) {
 				String a = ast.asts.get(0).accept(this, ast.getPriority()-1);
 				String b = ast.asts.get(1).accept(this, ast.getPriority());
@@ -57,7 +58,10 @@ public class StringVisitor implements AstVisitor<String, Integer> {
 					break;
 				case "div":
 					op = "/";
-					break;					
+					break;	
+				case "pow":
+					op = "^";
+					break;	
 				}
 				int thisP = ast.getPriority();
 				//log.info("prio "+parentP+"  "+thisP);

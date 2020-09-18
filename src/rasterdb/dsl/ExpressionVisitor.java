@@ -19,6 +19,7 @@ import rasterdb.ast.AST_radiance;
 import rasterdb.dsl.DSLParser.ConstantContext;
 import rasterdb.dsl.DSLParser.EntityContext;
 import rasterdb.dsl.DSLParser.ExpressionContext;
+import rasterdb.dsl.DSLParser.FactorContext;
 import rasterdb.dsl.DSLParser.FunctionContext;
 import rasterdb.dsl.DSLParser.RangeContext;
 import rasterdb.dsl.DSLParser.SeqContext;
@@ -56,10 +57,10 @@ public class ExpressionVisitor extends DSLBaseVisitor<AST> {
 	@Override
 	public AST visitTerm(TermContext ctx) {
 		//log.info("Term "+ctx.getText());
-		Iterator<EntityContext> entityIt = ctx.entity().iterator();
+		Iterator<FactorContext> factorIt = ctx.factor().iterator();
 		Iterator<TerminalNode> opIt = ctx.MUL_DIV().iterator();
 
-		AST current = entityIt.next().accept(ExpressionVisitor.DEFAULT);
+		AST current = factorIt.next().accept(ExpressionVisitor.DEFAULT);
 		while(opIt.hasNext()) {
 			String op = opIt.next().getText();
 			switch(op) {
@@ -71,10 +72,22 @@ public class ExpressionVisitor extends DSLBaseVisitor<AST> {
 				op = "div";
 				break;
 			}
-			AST second = entityIt.next().accept(ExpressionVisitor.DEFAULT);
+			AST second = factorIt.next().accept(ExpressionVisitor.DEFAULT);
 			current = new AST_function(op, current, second);
 		}
 		return current;
+	}
+	
+	@Override
+	public AST visitFactor(FactorContext ctx) {
+		AST base = ctx.base.accept(ExpressionVisitor.DEFAULT);
+		if(ctx.POW() == null) {
+			return base;
+		} else {
+			AST exponent = ctx.exponent.accept(ExpressionVisitor.DEFAULT);
+			String op = "pow";
+			return new AST_function(op, base, exponent);
+		}
 	}
 	
 	@Override

@@ -3,8 +3,11 @@ grammar DSL;
 expression :  term (plus_minus=PLUS_MINUS term)*
            ;
            
-term : entity (mul_div=MUL_DIV entity)*
-     ;               
+term : factor (mul_div=MUL_DIV factor)*
+     ;
+     
+factor : base=entity (POW exponent=entity)?
+       ;                    
          
 entity : '(' expression ')'
        | seq
@@ -35,5 +38,7 @@ ID : 'a'..'z' ('a'..'z' | '_' | '0'..'9')* ;
 PLUS_MINUS : [+-] ;
 
 MUL_DIV : [*/] ;
+
+POW : '^' ;
 
 WS : (' ' | '\t' | '\r' | 'n') -> skip ;

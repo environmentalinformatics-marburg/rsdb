@@ -36,6 +36,8 @@ public class AST_function implements AST {
 		case "mul":
 		case "div":
 			return AST.PRIO_MUL_DIV;
+		case "pow":
+			return AST.PRIO_POW;			
 		default:
 			return AST.UNKNOWN;
 		}

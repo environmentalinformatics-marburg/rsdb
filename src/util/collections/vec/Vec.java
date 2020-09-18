@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,14 +31,17 @@ public class Vec<T> implements List<T> {
 	protected int size;
 	protected T[] items;
 
+	@SuppressWarnings("unchecked")
 	public static <T> Vec<T> ofOne(T e) {
 		return new Vec<T>((T[]) new Object[] {e}, 1);
 	}
 
+	@SuppressWarnings("unchecked")
 	public Vec() {
 		items = (T[]) DEFAULT_SIZED_EMPTY_ARRAY;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Vec(int initialCapacity) {
 		items = (T[]) new Object[initialCapacity];
 	}
@@ -103,6 +107,7 @@ public class Vec<T> implements List<T> {
 		return Arrays.copyOf(items, size);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <E> E[] toArray(E[] a) {
 		if (a.length < size) {
@@ -148,6 +153,7 @@ public class Vec<T> implements List<T> {
 		return size == 0;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void growForOne() {
 		if (items == DEFAULT_SIZED_EMPTY_ARRAY) {
 			items = (T[]) new Object[10];
@@ -191,6 +197,7 @@ public class Vec<T> implements List<T> {
 		int len = size;
 		int minGrow = len + (len >> 1) + 1;
 		int growSize =  minSize <= minGrow ? minGrow : minSize;
+		@SuppressWarnings("unchecked")
 		T[] newItems = (T[]) new Object[growSize];
 		System.arraycopy(items, 0, newItems, 0, len);
 		items = newItems;
@@ -199,6 +206,7 @@ public class Vec<T> implements List<T> {
 
 	@Override
 	public boolean addAll(Collection<? extends T> c) {
+		@SuppressWarnings("unchecked")
 		T[] a = (T[]) c.toArray();
 		int addLen = a.length;
 		int newSize = size + addLen;
@@ -211,6 +219,7 @@ public class Vec<T> implements List<T> {
 	}
 
 	public void addAllFast(Collection<? extends T> c) {
+		@SuppressWarnings("unchecked")
 		T[] a = (T[]) c.toArray();
 		int addLen = a.length;
 		int newSize = size + addLen;
@@ -233,6 +242,7 @@ public class Vec<T> implements List<T> {
 	}
 
 	public void addNoGrow(Collection<? extends T> c) {
+		@SuppressWarnings("unchecked")
 		T[] a = (T[]) c.toArray();
 		int addLen = a.length;
 		int newSize = size + addLen;
@@ -246,6 +256,13 @@ public class Vec<T> implements List<T> {
 			throw new IndexOutOfBoundsException();
 		}		
 		return this.items[index];       
+	}
+	
+	public Optional<T> optGet(int index) {
+		if(this.size <= index || index < 0) {
+			return Optional.empty();
+		}		
+		return Optional.of(this.items[index]);       
 	}
 
 	public T getNoCheck(int index) {
@@ -295,13 +312,61 @@ public class Vec<T> implements List<T> {
 		return items[0];
 	}
 
+	/**
+	 * get last element
+	 * @return
+	 */
 	public T last() {
 		return items[size - 1];
+	}
+	
+	/**
+	 * Get element of lastIndex starting with last element.
+	 * lastIndex == 0  ==>  last element
+	 * lastIndex == 1  ==>  previous of last element
+	 * @param lastIndex
+	 * @return
+	 */
+	public T getFromLast(int lastIndex) {
+		return items[size - 1 - lastIndex];
+	}
+	
+	/**
+	 * Get element of index if index is zero or positive.
+	 * Get element starting with last index if index is negative.
+	 * signedIndex == 0 ==> first element
+	 * signedIndex == 1 ==> second element
+	 * signedIndex == -1 ==> last element
+	 * signedIndex == -2 ==> previous of last element
+	 * @param signedIndex
+	 * @return
+	 */
+	public T getSignedNoCheck(int signedIndex) {
+		return signedIndex < 0 ? items[size + signedIndex] : items[signedIndex];
+	}
+	
+	/**
+	 * Get element of index if index is zero or positive.
+	 * Get element starting with last index if index is negative.
+	 * signedIndex == 0 ==> first element
+	 * signedIndex == 1 ==> second element
+	 * signedIndex == -1 ==> last element
+	 * signedIndex == -2 ==> previous of last element
+	 * @param signedIndex
+	 * @return
+	 */
+	public T getSigned(int signedIndex) {
+		int index = signedIndex < 0 ? size + signedIndex : signedIndex;
+		if(this.size <= index) {
+			throw new IndexOutOfBoundsException();
+		}		
+		return this.items[index];
 	}
 
 	public <R> R[] mapArray(Function<? super T, R> mapper) {
 		int len = size;
 		T[] data = items;
+		@SuppressWarnings("unchecked")
 		R[] result = (R[]) new Object[len];
 		for (int i = 0; i < len; i++) {
 			result[i] = mapper.apply(data[i]);
@@ -440,6 +505,7 @@ public class Vec<T> implements List<T> {
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean equals(Object o) {
 		if (o == this) {
@@ -705,6 +771,7 @@ public class Vec<T> implements List<T> {
 		size++;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean addAll(int index, Collection<? extends T> c) {
 		return addAll(index, (T[]) c.toArray());

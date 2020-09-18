@@ -44,6 +44,11 @@ public class MacroVisitor implements TransformVisitor {
 		// from: RGB vegetation indices applied to grass monitoring: a qualitative analysis
 		// https://doi.org/10.15159/ar.19.119
 		add("mpri", "(green - red) / (green + red)");
+		add("mgvri",  "(green^2 - red^2) / (green^2 + red^2)");
+		add("gli",  "(2 * green - red - blue) / ( 2 * green + red + blue)");
+		add("rgvbi",  "(green - blue * red) / (green^2 + blue * red)");
+		add("exg",  "2 * green - red - blue");
+		add("veg",  "green / (red^0.667 * blue^0.333)");
 	    
 		// TGI
 		// from: A visible band index for remote sensing leaf chlorophyll content at the canopy scale
@@ -54,6 +59,9 @@ public class MacroVisitor implements TransformVisitor {
 		// −0.5[(190)(r670 - r550) - (120)(r670 - r480)]
 		// −0.5 * ( 190 * (r670 - r550) - 120 * (r670 - r480))
 		add("tgi", "-0.5 * ( 190 * (r670 - r550) - 120 * (r670 - r480))");
+		
+
+		
 	    
 	    add("full_spectrum", "[r0 : r10000]");
 	}
@@ -78,6 +86,7 @@ public class MacroVisitor implements TransformVisitor {
 				case "sub":
 				case "mul":
 				case "div":
+				case "pow":
 					AST a = ast.asts.get(0);
 					AST b = ast.asts.get(1);
 					if(a instanceof AST_Constant && b instanceof AST_Constant) {
@@ -88,6 +97,7 @@ public class MacroVisitor implements TransformVisitor {
 						case "sub": return new AST_Constant(x - y).accept(this, parent);
 						case "mul": return new AST_Constant(x * y).accept(this, parent);
 						case "div": return new AST_Constant(x / y).accept(this, parent);
+						case "pow": return new AST_Constant(Math.pow(x,y)).accept(this, parent);
 						}
 					}
 				}

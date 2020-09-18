@@ -5,6 +5,7 @@ public interface AST {
 	public static int PRIO_BASE = 0;
 	public static int PRIO_ADD_SUB = 10;
 	public static int PRIO_MUL_DIV = 20;
+	public static int PRIO_POW = 30;
 	public static int UNKNOWN = PRIO_BASE;
 	
 	<T,P> T accept(AstVisitor<T,P> visitor, P param);
