@@ -20,6 +20,7 @@ import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.RasterDB;
+import remotetask.rasterdb.ImportSpec;
 import util.JsonUtil;
 import util.Web;
 
@@ -131,13 +132,27 @@ public class RasterdbMethod_set extends RasterdbMethod {
 						int index = jsonBand.getInt("index");
 						Band band = rasterdb.getBandByNumber(index);
 						if(band == null) {
-							throw new RuntimeException("band does not exist " + index);
+							//throw new RuntimeException("band does not exist " + index);
+							int type = 1;
+							if(jsonBand.has("datatype")) {
+								type = ImportSpec.parseBandDataType(JsonUtil.getString(jsonBand, "datatype"));
+							}
+							if(type < 1) {
+								type = 1;
+							}
+							band = Band.of(type, index, "", null);
 						}
 						rasterdb.Band.Builder builder = new Band.Builder(band);
 						Iterator<String> bandIt = jsonBand.keys();
 						while(bandIt.hasNext()) {
 							String bandKey = bandIt.next();
 							switch(bandKey) {
+							case "index": {
+								if(builder.index != jsonBand.getInt("index")) {
+									throw new RuntimeException("internal error");
+								}
+								break;
+							}
 							case "title": {
 								builder.title  = jsonBand.getString("title").trim();
 								break;
@@ -152,6 +167,21 @@ public class RasterdbMethod_set extends RasterdbMethod {
 							}
 							case "vis_max": {
 								builder.vis_max = JsonUtil.getDouble(jsonBand, "vis_max");
+								break;
+							}
+							case "wavelength": {
+								builder.wavelength = JsonUtil.getDouble(jsonBand, "wavelength");
+								break;
+							}
+							case "fwhm": {
+								builder.fwhm = JsonUtil.getDouble(jsonBand, "fwhm");
+								break;
+							}
+							case "datatype": {
+								int bandDataType = ImportSpec.parseBandDataType(JsonUtil.getString(jsonBand, "datatype"));
+								if(bandDataType > 0 && bandDataType != builder.type) {
+									log.warn("band data type can be set at initial band creation only");
+								}
 								break;
 							}
 							default: {					

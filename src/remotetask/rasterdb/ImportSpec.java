@@ -40,6 +40,20 @@ public class ImportSpec {
 
 	public ImportSpec() {		
 	}
+	
+	public static int parseBandDataType(String name) {
+		switch(name) {
+		case "short":
+			return 1;
+		case "float":
+			return 2;
+		case "int16":
+			return 3;		
+		default:
+			log.warn("unknown band type: " + name);
+			return -1;
+		}	
+	}
 
 	public void parse(JSONObject specification) {
 
@@ -88,19 +102,10 @@ public class ImportSpec {
 						String bandKey = bandIt.next();
 						switch(bandKey) {
 						case "rastedb_band_data_type": {
-							String rastedb_band_data_type_name = band.getString("rastedb_band_data_type");
-							switch(rastedb_band_data_type_name) {
-							case "short":
-								bandSpec.rastedb_band_data_type = 1;
-								break;
-							case "float":
-								bandSpec.rastedb_band_data_type = 2;
-								break;
-							case "int16":
-								bandSpec.rastedb_band_data_type = 3;
-								break;								
-							default:
-								log.warn("unknown band type: " + rastedb_band_data_type_name);
+							String rastedb_band_data_type_name = band.getString("rastedb_band_data_type");							
+							int bandDataType = parseBandDataType(rastedb_band_data_type_name);
+							if(bandDataType > 0) {
+								bandSpec.rastedb_band_data_type = bandDataType;
 							}
 							break;
 						}

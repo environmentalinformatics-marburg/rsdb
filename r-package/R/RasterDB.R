@@ -11,12 +11,19 @@ RasterDB_public <- list( #      *********** public *****************************
     #  stop("no connection to RasterDB: ",private$db_url)
     #}
     #private$meta <- query_json(private$url, "meta.json", curl = RCurl::dupCurlHandle(private$curlHandle))
+    self$refresh_meta()
+  },
+
+  refresh_meta = function() {
     private$meta <- private$rsdbConnector$GET(paste0("/rasterdb/", private$name_, "/meta.json"))
   },
 
   raster = function(ext, band=NULL, timestamp=NULL, product=NULL, masking='center') {
     spMask <- NULL
     if(is(ext, 'sfc_MULTIPOLYGON')) {
+      ext <- sf:::as_Spatial(ext)
+    }
+    if(is(ext, 'sfc_POLYGON')) {
       ext <- sf:::as_Spatial(ext)
     }
     if(is(ext, 'SpatialPolygons')) {
@@ -58,22 +65,28 @@ RasterDB_public <- list( #      *********** public *****************************
     return(rdat)
   },
 
-  insert_RasterLayer = function(r, band=1, timestamp=0, band_title=NULL) {
+  insert_RasterLayer = function(r, band=1, timestamp=0, band_title=NULL, flush = TRUE, update_pyramid = TRUE, refresh_meta = TRUE) {
     stopifnot(is(r, "RasterLayer"))
     ext <- r@extent
     extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
     #param_list <- c(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE)
-    data <- r@data@values
+    data <- raster::getValues(r)
+    #cat("data length", length(data), "\n")
     out_data <- as.integer(data)
+    #cat("out_data length", length(out_data), "\n")
     raw <- writeBin(object=out_data, con=raw(0), size=2, endian="little")
+    #cat("raw length", length(raw), "\n")
     #result <- post_raw_get_json(raw=raw, api_url=private$url, method="insert_raster", param_list=param_list, curl=RCurl::dupCurlHandle(private$curlHandle)) #raw not send if with curlHandle
     path <- paste0("/rasterdb/", private$name_, "/insert_raster")
-    query <- list(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE, band_title=band_title)
+    query <- list(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE, band_title=band_title, flush = flush, update_pyramid = update_pyramid)
     result <- private$rsdbConnector$POST_raw(path, query, raw)
+    if(refresh_meta) {
+      self$refresh_meta()
+    }
     return(result)
   },
 
-  insert_RasterStack = function(r, bands=NULL, timestamp=0) {
+  insert_RasterStack = function(r, bands=NULL, timestamp=0, update_pyramid = TRUE, refresh_meta = TRUE) {
     stopifnot(is(r, "RasterStack"))
     len <- length(r@layers)
     if(is.null(bands)) {
@@ -83,16 +96,40 @@ RasterDB_public <- list( #      *********** public *****************************
     result <- lapply(c(1:len), function(i) {
       layer <- r@layers[[i]]
       band <- bands[[i]]
-      res <- self$insert_RasterLayer(layer, band, timestamp)
+      res <- self$insert_RasterLayer(layer, band, timestamp, flush = FALSE, update_pyramid = FALSE, refresh_meta = FALSE)
       return(res)
     })
+    if(update_pyramid) {
+      self$update_pyramid()
+    }
+    if(refresh_meta) {
+      self$refresh_meta()
+    }
     return(result)
   },
 
   rebuild_pyramid = function() {
+    self$update_pyramid()
+  },
+
+  update_pyramid = function() {
     #result <- query_json(private$url, "rebuild_pyramid", curl = RCurl::dupCurlHandle(private$curlHandle))
     path <- paste0("/rasterdb/", private$name_, "/rebuild_pyramid")
     result <- private$rsdbConnector$POST_json(path)
+    return(result)
+  },
+
+  set_meta = function(meta) {
+    path <- paste0("/rasterdb/", private$name_, "/set")
+    json = list(meta = meta)
+    result <- private$rsdbConnector$POST_json(path, data = json)
+    self$refresh_meta()
+    return(result)
+  },
+
+  set_band_meta = function(bands) {
+    meta <- list(bands = bands)
+    result <- self$set_meta(meta)
     return(result)
   }
 
@@ -160,9 +197,12 @@ RasterDB_private <- list( #      *********** private ***************************
 #' rasterdb <- remotesensing$rasterdb(name)
 #'
 #' raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')
-#' rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)
-#' rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0)
-#' rasterdb$rebuild_pyramid()
+#' rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE)
+#' rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0, update_pyramid=TRUE, refresh_meta=TRUE)
+#' rasterdb$refresh_meta()
+#' rasterdb$update_pyramid()
+#' rasterdb$set_meta(meta)
+#' rasterdb$set_band_meta(bands)
 #'
 #' rasterdb$name
 #' rasterdb$bands
@@ -198,6 +238,7 @@ RasterDB_private <- list( #      *********** private ***************************
 #'  \item{\strong{sf::st_bbox}  extent}
 #'  \item{\strong{SpatialPolygons}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
 #'  \item{\strong{sfc_MULTIPOLYGON}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
+#'  \item{\strong{sfc_POLYGON}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
 #' }
 #'
 #' band: vector or single number of requested band numbers
@@ -218,7 +259,7 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #' returns: RasterLayer or RasterStack}
 #'
-#' \item{$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)}{Insert raster data from RasterLayerinto RasterDB.
+#' \item{$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE)}{Insert raster data from RasterLayerinto RasterDB.
 #'
 #' If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
 #'
@@ -228,9 +269,15 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #' timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
 #'
+#' flush: (optional) ensure that all data is persisted on disc now.
+#'
+#' update_pyramid: (optional) update pyramid with new raster data.
+#'
+#' refresh_meta: (optional) load updated metadata.
+#'
 #' returns: success message}
 #'
-#' \item{$insert_RasterStack(r, bands=NULL, timestamp=0)}{Insert raster data from RasterStack into RasterDB.
+#' \item{insert_RasterStack(r, bands=NULL, timestamp=0, update_pyramid=TRUE, refresh_meta=TRUE)}{Insert raster data from RasterStack into RasterDB.
 #'
 #' If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
 #'
@@ -238,13 +285,27 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #' timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
 #'
+#' update_pyramid: (optional) update pyramid with new raster data.
+#'
+#' refresh_meta: (optional) load updated metadata.
+#'
 #' returns: success message}
 #'
-#' \item{$rebuild_pyramid()}{(administrative method) Rebuild RasterDB internal pyramid of scaled rasters.
+#' \item{$update_pyramid()}{(administrative method) Rebuild RasterDB internal pyramid of scaled rasters.
 #'
 #' Note: This method processes all data in database and it may take a long time. Only use it if really needed.
 #'
 #' returns: success message}
+#'
+#' \item{$refresh_meta()}{Reload meta data of this raster layer from RSDB server.}
+#'
+#' \item{$set_meta(meta)}{change meta data of this raster layer
+#'
+#'  meta: named list of items to change}
+#'
+#' \item{$set_band_meta(bands)}{change band meta data of this raster layer
+#'
+#'  bands: data.frame with band numbers in column 'index' and several of following meta data columns: 'datatype' 'title' 'wavelength' 'fwhm' 'visualisation' 'vis_min' 'vis_max'}
 #'
 #' \item{$name}{name of RasterDB}
 #'

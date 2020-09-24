@@ -20,7 +20,7 @@ remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 
 remotesensing$rasterdbs
 remotesensing$rasterdb(name)
-remotesensing$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL)
+remotesensing$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL, create_new=TRUE)
 
 remotesensing$pointclouds
 remotesensing$pointcloud(name)
@@ -73,7 +73,7 @@ returns: RemoteSensing object}
 
 \item{$rasterdb(name)}{get RasterDB by name.}
 
-\item{$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL)}{creates new empty RasterDB.
+\item{$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL, create_new=TRUE)}{creates new empty RasterDB.
 
 name: name of RasterDB layer
 
@@ -82,6 +82,8 @@ proj4: (optional) CRS as PROJ4
 resolution: (optional) one number or vector of two numbers of pixel size in projection units, e.g. 0.5 -> xres=0.5, yres=0.5  or e.g. c(10, 5) -> xres=10, yres=5
 
 storage_type: (optional) storage_type RasterUnit (default) or TileStorage
+
+create_new: (optional) TRUE: delete old raster layer of same name, FALSE: if raster layer already exists do not create it
 
 returns: success message}
 
@@ -373,7 +375,8 @@ woellauer
   name,
   proj4 = NULL,
   resolution = NULL,
-  storage_type = NULL
+  storage_type = NULL,
+  create_new = TRUE
 )}\if{html}{\out{</div>}}
 }
 

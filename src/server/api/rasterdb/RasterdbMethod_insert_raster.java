@@ -21,6 +21,7 @@ import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import util.Serialisation;
+import util.Web;
 
 public class RasterdbMethod_insert_raster extends RasterdbMethod {
 	private static final Logger log = LogManager.getLogger();
@@ -35,9 +36,6 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 		request.setHandled(true);
 		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
 		try {
-
-			boolean flush = true;
-			boolean rebuild_pyramid = true;
 
 			String[] extText = (request.getParameter("ext").split(" "));
 			log.info("ext "+Arrays.toString(extText));
@@ -71,14 +69,18 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 			}
 
 			String proj4 = request.getParameter("proj4");
+			
+			boolean flush = Web.getBoolean(request, "flush", true);
+			
+			boolean update_pyramid = Web.getBoolean(request, "update_pyramid", true);
 
 			if(!proj4.isEmpty() && !rasterdb.ref().has_proj4()) {
 				rasterdb.setProj4(proj4+' '); // space at end of proj4
 			}
 
 			ServletInputStream in = request.getInputStream();
-			long reqest_size = request.getContentLengthLong();
-			log.info("reqest_size "+reqest_size);
+			long request_size = request.getContentLengthLong();
+			log.info("request_size "+request_size);
 			int raw_size = width * height * 2;
 			log.info("raw_size "+raw_size);
 			byte[] raw = new byte[raw_size];
@@ -121,10 +123,10 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 				rasterdb.setBand(band);
 			}			
 			ProcessingShort.writeMerge(rasterUnit, t, band, pixels, pixelYmin, pixelXmin);
-			if(rebuild_pyramid) {
+			if(update_pyramid) {
 				rasterdb.rebuildPyramid(true);
 			}
-			if(flush && !rebuild_pyramid) {
+			if(flush && !update_pyramid) {
 				rasterdb.flush();
 			}			
 			response.setStatus(HttpServletResponse.SC_OK);

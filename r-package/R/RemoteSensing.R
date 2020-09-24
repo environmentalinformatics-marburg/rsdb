@@ -98,7 +98,7 @@ RemoteSensing_public <- list( #      *********** public ************************
     return(p)
   },
 
-  create_rasterdb = function(name, proj4=NULL, resolution=NULL, storage_type=NULL) {
+  create_rasterdb = function(name, proj4=NULL, resolution=NULL, storage_type=NULL, create_new = TRUE) {
     xres <- NULL
     yres <- NULL
     if(!is.null(resolution)) {
@@ -111,7 +111,7 @@ RemoteSensing_public <- list( #      *********** public ************************
       } else stop("invalid parameter argument for resolution")
     }
     #result <- query_json(paste0(private$base_url, "/api"), "create_raster", c(name=name), curlHandle=private$curlHandle)
-    result <- private$rsdbConnector$GET("/api/create_raster", list(name=name, proj4=proj4, xres=xres, yres=yres, storage_type=storage_type))
+    result <- private$rsdbConnector$GET("/api/create_raster", list(name=name, proj4=proj4, xres=xres, yres=yres, storage_type=storage_type, create_new=create_new))
     return(result)
   },
 
@@ -253,7 +253,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 #'
 #' remotesensing$rasterdbs
 #' remotesensing$rasterdb(name)
-#' remotesensing$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL)
+#' remotesensing$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL, create_new=TRUE)
 #'
 #' remotesensing$pointclouds
 #' remotesensing$pointcloud(name)
@@ -298,7 +298,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 #'
 #' \item{$rasterdb(name)}{get RasterDB by name.}
 #'
-#' \item{$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL)}{creates new empty RasterDB.
+#' \item{$create_rasterdb(name, proj4=NULL, resolution=NULL, storage_type=NULL, create_new=TRUE)}{creates new empty RasterDB.
 #'
 #' name: name of RasterDB layer
 #'
@@ -307,6 +307,8 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' resolution: (optional) one number or vector of two numbers of pixel size in projection units, e.g. 0.5 -> xres=0.5, yres=0.5  or e.g. c(10, 5) -> xres=10, yres=5
 #'
 #' storage_type: (optional) storage_type RasterUnit (default) or TileStorage
+#'
+#' create_new: (optional) TRUE: delete old raster layer of same name, FALSE: if raster layer already exists do not create it
 #'
 #' returns: success message}
 #'

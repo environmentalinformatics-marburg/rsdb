@@ -11,9 +11,12 @@ remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 rasterdb <- remotesensing$rasterdb(name)
 
 raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')
-rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)
-rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0)
-rasterdb$rebuild_pyramid()
+rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE)
+rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0, update_pyramid=TRUE, refresh_meta=TRUE)
+rasterdb$refresh_meta()
+rasterdb$update_pyramid()
+rasterdb$set_meta(meta)
+rasterdb$set_band_meta(bands)
 
 rasterdb$name
 rasterdb$bands
@@ -50,6 +53,7 @@ ext: object of one class:
  \item{\strong{sf::st_bbox}  extent}
  \item{\strong{SpatialPolygons}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
  \item{\strong{sfc_MULTIPOLYGON}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
+ \item{\strong{sfc_POLYGON}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
 }
 
 band: vector or single number of requested band numbers
@@ -70,7 +74,7 @@ masking: (optional) if 'ext' parameter is an extent masking parameter is ignored
 
 returns: RasterLayer or RasterStack}
 
-\item{$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL)}{Insert raster data from RasterLayerinto RasterDB.
+\item{$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE)}{Insert raster data from RasterLayerinto RasterDB.
 
 If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
 
@@ -80,9 +84,15 @@ band_title: (optional) title of band, only applied for newly created band
 
 timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
 
+flush: (optional) ensure that all data is persisted on disc now.
+
+update_pyramid: (optional) update pyramid with new raster data.
+
+refresh_meta: (optional) load updated metadata.
+
 returns: success message}
 
-\item{$insert_RasterStack(r, bands=NULL, timestamp=0)}{Insert raster data from RasterStack into RasterDB.
+\item{insert_RasterStack(r, bands=NULL, timestamp=0, update_pyramid=TRUE, refresh_meta=TRUE)}{Insert raster data from RasterStack into RasterDB.
 
 If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
 
@@ -90,13 +100,27 @@ band: (optional) vector or single number of inserted band numbers, creates bands
 
 timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
 
+update_pyramid: (optional) update pyramid with new raster data.
+
+refresh_meta: (optional) load updated metadata.
+
 returns: success message}
 
-\item{$rebuild_pyramid()}{(administrative method) Rebuild RasterDB internal pyramid of scaled rasters.
+\item{$update_pyramid()}{(administrative method) Rebuild RasterDB internal pyramid of scaled rasters.
 
 Note: This method processes all data in database and it may take a long time. Only use it if really needed.
 
 returns: success message}
+
+\item{$refresh_meta()}{Reload meta data of this raster layer from RSDB server.}
+
+\item{$set_meta(meta)}{change meta data of this raster layer
+
+ meta: named list of items to change}
+
+\item{$set_band_meta(bands)}{change band meta data of this raster layer
+
+ bands: data.frame with band numbers in column 'index' and several of following meta data columns: 'datatype' 'title' 'wavelength' 'fwhm' 'visualisation' 'vis_min' 'vis_max'}
 
 \item{$name}{name of RasterDB}
 
@@ -257,10 +281,14 @@ woellauer
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{RasterDB$new()}}
+\item \href{#method-refresh_meta}{\code{RasterDB$refresh_meta()}}
 \item \href{#method-raster}{\code{RasterDB$raster()}}
 \item \href{#method-insert_RasterLayer}{\code{RasterDB$insert_RasterLayer()}}
 \item \href{#method-insert_RasterStack}{\code{RasterDB$insert_RasterStack()}}
 \item \href{#method-rebuild_pyramid}{\code{RasterDB$rebuild_pyramid()}}
+\item \href{#method-update_pyramid}{\code{RasterDB$update_pyramid()}}
+\item \href{#method-set_meta}{\code{RasterDB$set_meta()}}
+\item \href{#method-set_band_meta}{\code{RasterDB$set_band_meta()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -269,6 +297,15 @@ woellauer
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-refresh_meta"></a>}}
+\if{latex}{\out{\hypertarget{method-refresh_meta}{}}}
+\subsection{Method \code{refresh_meta()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RasterDB$refresh_meta()}\if{html}{\out{</div>}}
 }
 
 }
@@ -292,7 +329,15 @@ woellauer
 \if{latex}{\out{\hypertarget{method-insert_RasterLayer}{}}}
 \subsection{Method \code{insert_RasterLayer()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterLayer(r, band = 1, timestamp = 0, band_title = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterLayer(
+  r,
+  band = 1,
+  timestamp = 0,
+  band_title = NULL,
+  flush = TRUE,
+  update_pyramid = TRUE,
+  refresh_meta = TRUE
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -301,7 +346,13 @@ woellauer
 \if{latex}{\out{\hypertarget{method-insert_RasterStack}{}}}
 \subsection{Method \code{insert_RasterStack()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterStack(r, bands = NULL, timestamp = 0)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterStack(
+  r,
+  bands = NULL,
+  timestamp = 0,
+  update_pyramid = TRUE,
+  refresh_meta = TRUE
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -311,6 +362,33 @@ woellauer
 \subsection{Method \code{rebuild_pyramid()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$rebuild_pyramid()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-update_pyramid"></a>}}
+\if{latex}{\out{\hypertarget{method-update_pyramid}{}}}
+\subsection{Method \code{update_pyramid()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RasterDB$update_pyramid()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-set_meta"></a>}}
+\if{latex}{\out{\hypertarget{method-set_meta}{}}}
+\subsection{Method \code{set_meta()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RasterDB$set_meta(meta)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-set_band_meta"></a>}}
+\if{latex}{\out{\hypertarget{method-set_band_meta}{}}}
+\subsection{Method \code{set_band_meta()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RasterDB$set_band_meta(bands)}\if{html}{\out{</div>}}
 }
 
 }

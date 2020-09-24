@@ -13,6 +13,7 @@ import org.json.JSONWriter;
 import broker.Broker;
 import rasterdb.RasterDB;
 import server.api.APIHandler;
+import util.Web;
 
 public class APIHandler_create_raster extends APIHandler {
 	private static final Logger log = LogManager.getLogger();
@@ -49,7 +50,10 @@ public class APIHandler_create_raster extends APIHandler {
 			yres = Double.parseDouble(yresText);
 		}
 		
-		RasterDB rasterdb = broker.createOrGetRasterdb(name, transaction, storage_type);
+		boolean create_new = Web.getBoolean(request, "create_new", true);
+		
+		RasterDB rasterdb = create_new ? broker.createNewRasterdb(name, transaction, storage_type): broker.createOrGetRasterdb(name, transaction, storage_type);
+		
 		if(proj4 != null && !proj4.isEmpty()) {
 			rasterdb.setProj4(proj4);
 		}
