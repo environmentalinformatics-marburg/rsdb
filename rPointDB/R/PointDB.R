@@ -343,7 +343,7 @@ PointDB_private <- list( # **************** private *********************
 #'
 #'  \item \strong{\code{"ground"}}
 #'
-#'  moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coodinates represent vegetation above ground.
+#'  moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coordinates represent vegetation above ground.
 #'
 #' }
 #'

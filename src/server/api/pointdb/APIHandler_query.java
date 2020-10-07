@@ -103,7 +103,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 		String[] columns0 = null;
 		String columnsText = request.getParameter("columns");
 		if(columnsText!=null) {
-			columns0 = Util.columnTextToColumns(columnsText);
+			columns0 = Util.columnTextToColumns(columnsText, false);
 			log.info("columns: "+ Arrays.toString(columns0));
 		}
 		final String[] columns = columns0;

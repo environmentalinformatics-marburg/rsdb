@@ -18,9 +18,11 @@ import pointcloud.CellTable.ChainedFilterFunc;
 import pointcloud.PointCloud;
 import pointdb.base.Rect;
 import pointdb.subsetdsl.Region;
+import server.api.pointclouds.PointProcessor.PointTableTransformFunc;
 import util.Receiver;
 import util.ResponseReceiver;
 import util.StreamReceiver;
+import util.Web;
 
 public class APIHandler_points {
 	private static final Logger log = LogManager.getLogger();
@@ -86,6 +88,13 @@ public class APIHandler_points {
 		} else {
 			throw new RuntimeException("missing parameter 'ext' (or 'polygon')");
 		}
+		
+		PointTableTransformFunc transformFunc = null;
+		/*boolean normalise_ground = Web.getBoolean(request, "normalise_ground", false);
+		if(normalise_ground) {
+			transformFunc = Normalise::normalise_ground;
+		}*/
+		PointTableTransformFunc tf = transformFunc;
 
 
 		String columnsText = request.getParameter("columns");
@@ -109,7 +118,7 @@ public class APIHandler_points {
 					double tymin = tileRect.getUTMd_min_y();
 					double txmax = tileRect.getUTMd_max_x_inclusive();
 					double tymax = tileRect.getUTMd_max_y_inclusive();
-					PointProcessor.process(pointcloud, txmin, tymin, txmax, tymax, filterFunc, tileRegion, tileFormat, receiver, request, selector);
+					PointProcessor.process(pointcloud, txmin, tymin, txmax, tymax, tf, filterFunc, tileRegion, tileFormat, receiver, request, selector);
 					zipOutputStream.closeEntry();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
@@ -119,7 +128,7 @@ public class APIHandler_points {
 			zipOutputStream.flush();
 		} else {
 			ResponseReceiver receiver = new ResponseReceiver(response);		
-			PointProcessor.process(pointcloud, xmin, ymin, xmax, ymax, filterFunc, requestRegion, format, receiver, request, selector);
+			PointProcessor.process(pointcloud, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, format, receiver, request, selector);
 		}
 	}
 }

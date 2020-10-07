@@ -296,7 +296,7 @@ PointDB_private <- list( # **************** private *********************
 #'  \item \strong{returnNumber} number of returned echo of one laser pulse.
 #'  \item \strong{returns} total number of returned echos of one laser pulse.
 #'  \item \strong{scanAngleRank} angle in degrees of laser pulse relative to the perpendicular vector of x,y-plane. So a value of 0 degrees indicates that the laser beam exactly points in z-direction.
-#'  \item \strong{classification} number value of classification type. The data source may not conatain classification data. Values of 0 and 1 denote unclassified points.
+#'  \item \strong{classification} number value of classification type. The data source may not contain classification data. Values of 0 and 1 denote unclassified points.
 #'  \item \strong{classificationFlags} number that indicates some additional classification information.
 #' }
 #' example: \code{"x,y,intensity"} The data.frame should contain x and y coordinates and intensity values.
@@ -347,7 +347,7 @@ PointDB_private <- list( # **************** private *********************
 #'
 #'  \item \strong{\code{"ground"}}
 #'
-#'  moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coodinates represent vegetation above ground.
+#'  moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coordinates represent vegetation above ground.
 #'
 #' }
 #'

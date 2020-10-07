@@ -9,7 +9,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pointdb.process.Fun_BE.Fun_BE_PR_INTERVAL;
 import pointdb.process.Fun_BE.Fun_BE_PR_H;
+import pointdb.process.Fun_BE.Fun_BE_PR_Q;
 import pointdb.process.Fun_BE.Fun_BE_RD_INTERVAL;
+import pointdb.process.Fun_BE.Fun_BE_RD_H;
+import pointdb.process.Fun_BE.Fun_BE_RD_Q;
 
 public class Functions {
 	static final Logger log = LogManager.getLogger();
@@ -48,6 +51,9 @@ public class Functions {
 		for (int i = 1; i <= 10; i++) {
         	Functions.add(new Fun_BE_PR_H(i));			
 		}
+		for (int i = 1; i <= 4; i++) {
+			Functions.add(new Fun_BE_PR_Q(i));			
+		}
 		
 		int LAYER_MAX = 55;
 		for (int i = 1; i <= LAYER_MAX; i++) {
@@ -62,6 +68,13 @@ public class Functions {
 				description = "Return density of " + i + " meter layer (points above included) (based on point height above ground)";
 			}
         	Functions.add(new Fun_BE_RD_INTERVAL(hsetMin, hsetMax, name, description));			
+		}
+		
+		for (int i = 1; i <= 10; i++) {
+        	Functions.add(new Fun_BE_RD_H(i));			
+		}
+		for (int i = 1; i <= 4; i++) {
+			Functions.add(new Fun_BE_RD_Q(i));			
 		}
 		
 		for(ProcessingFun fun:funMap.values()) {

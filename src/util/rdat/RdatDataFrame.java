@@ -10,8 +10,6 @@ import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.mapdb.DataIO.DataOutputByteArray;
 
 import util.Receiver;

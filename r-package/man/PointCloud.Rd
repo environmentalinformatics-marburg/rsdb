@@ -15,7 +15,7 @@ pointcloud <- remotesensing$pointcloud(name)
 
 # operate on opened pointcloud:
 
-pointcloud$points(ext, columns=NULL, filter=NULL)
+pointcloud$points(ext, columns=NULL, filter=NULL, normalise=NULL)
 pointcloud$raster(ext, res=1, type="point_count", fill=10)
 pointcloud$volume(ext, res=1, zres=res)
 pointcloud$indices(areas, functions, omit_empty_areas=TRUE)
@@ -41,7 +41,7 @@ Use instance of \link{RemoteSensing} class to create instances of PointCloud.
 
 \describe{
 
-\item{$points(ext, columns=NULL, filter=NULL)}{Get pointcloud points.
+\item{$points(ext, columns=NULL, filter=NULL, normalise=NULL)}{Get pointcloud points.
 
 returns: data.frame
 
@@ -58,6 +58,22 @@ Vector of column-names. See "$attribute_list" for available attributes.
 \strong{filter}: point filter.
 
 Vector of conjunctive connected filter elements.
+
+\strong{normalise}: point normalisation.
+
+\itemize{
+
+ \item \strong{\code{"extremes"}}
+
+ removes points that are outliers in z resp. elevation coordinate
+
+ \item \strong{\code{"ground"}}
+
+ moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coordinates represent vegetation above ground.
+
+}
+
+Multiple Normalisations may be combined by list of characters or by comma separated character. e.g. \code{"extremes,ground"} or \code{list("extremes","ground")}
 
 }
 
@@ -264,7 +280,7 @@ woellauer
 \if{latex}{\out{\hypertarget{method-points}{}}}
 \subsection{Method \code{points()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(ext, columns = NULL, filter = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(ext, columns = NULL, filter = NULL, normalise = NULL)}\if{html}{\out{</div>}}
 }
 
 }

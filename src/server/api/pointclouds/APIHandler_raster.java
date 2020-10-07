@@ -170,20 +170,10 @@ public class APIHandler_raster {
 			double_grid = grid_dsm;
 			break;
 		}
-		case "dtm": {
-			AttributeSelector selector = new AttributeSelector().setXYZ().setClassification();
-			Stream<PointTable> pointTables = pointcloud.getPointTables(proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterGround);
-			PointRaster pointRaster_dtm = new PointRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
-			pointTables.sequential().forEach(pointRaster_dtm::insert);
-			double[][] grid_dtm = pointRaster_dtm.getMedian();
-			width = grid_dtm[0].length;
-			height = grid_dtm.length;
-			if(fill > 0) {
-				double[][] dst_dtm = ProcessingDouble.copy(grid_dtm, width, height);
-				ProcessorNode_gap_filling.fill(grid_dtm, dst_dtm, width, height, fill);
-				grid_dtm = dst_dtm;
-			}
-			double_grid = grid_dtm;
+		case "dtm": {			
+			double_grid = generateDTM(pointcloud, proc_xmin, proc_ymin, proc_xmax, proc_ymax, res, fill);
+			width = double_grid[0].length;
+			height = double_grid.length;
 			break;
 		}
 		case "chm": {
@@ -262,6 +252,22 @@ public class APIHandler_raster {
 		}
 		default:
 			throw new RuntimeException("unknown format: " + format);
+		}		
+	}
+	
+	public static double[][] generateDTM(PointCloud pointcloud, double proc_xmin, double proc_ymin, double proc_xmax, double proc_ymax, double res, int fill) {
+		AttributeSelector selector = new AttributeSelector().setXYZ().setClassification();
+		Stream<PointTable> pointTables = pointcloud.getPointTables(proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterGround);
+		PointRaster pointRaster_dtm = new PointRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
+		pointTables.sequential().forEach(pointRaster_dtm::insert);
+		double[][] grid_dtm = pointRaster_dtm.getMedian();
+		int width = grid_dtm[0].length;
+		int height = grid_dtm.length;
+		if(fill > 0) {
+			double[][] dst_dtm = ProcessingDouble.copy(grid_dtm, width, height);
+			ProcessorNode_gap_filling.fill(grid_dtm, dst_dtm, width, height, fill);
+			grid_dtm = dst_dtm;
 		}
+		return grid_dtm;
 	}
 }

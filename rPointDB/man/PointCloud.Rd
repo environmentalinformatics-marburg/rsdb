@@ -3,7 +3,9 @@
 \name{PointCloud}
 \alias{PointCloud}
 \title{PointCloud class}
-\format{PointCloud \link{R6Class} object.}
+\format{
+PointCloud \link{R6Class} object.
+}
 \usage{
 # connect to remote sensing database
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
@@ -13,7 +15,7 @@ pointcloud <- remotesensing$pointcloud(name)
 
 # operate on opened pointcloud:
 
-pointcloud$points(ext, columns=NULL, filter=NULL)
+pointcloud$points(ext, columns=NULL, filter=NULL, normalise=NULL)
 pointcloud$raster(ext, res=1, type="point_count", fill=10)
 pointcloud$volume(ext, res=1, zres=res)
 pointcloud$indices(areas, functions, omit_empty_areas=TRUE)
@@ -39,7 +41,7 @@ Use instance of \link{RemoteSensing} class to create instances of PointCloud.
 
 \describe{
 
-\item{$points(ext, columns=NULL, filter=NULL)}{Get pointcloud points.
+\item{$points(ext, columns=NULL, filter=NULL, normalise=NULL)}{Get pointcloud points.
 
 returns: data.frame
 
@@ -57,6 +59,21 @@ Vector of column-names. See "$attribute_list" for available attributes.
 
 Vector of conjunctive connected filter elements.
 
+\strong{normalise}: point normalisation.
+
+\itemize{
+
+ \item \strong{\code{"extremes"}}
+
+ removes LiDAR points that are outliers in z resp. elevation coordinate
+
+ \item \strong{\code{"ground"}}
+
+ moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coordinates represent vegetation above ground.
+
+}
+
+Multiple Normalisations may be combined by list of characters or by comma separated character. e.g. \code{"origin,extremes"} or \code{list("extremes","ground")}
 }
 
 \item{$raster(ext, res=1, type="point_count", fill=10)}{Process pointcloud to raster.
@@ -248,6 +265,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -256,14 +274,16 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-points"></a>}}
+\if{latex}{\out{\hypertarget{method-points}{}}}
 \subsection{Method \code{points()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(ext, columns = NULL, filter = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(ext, columns = NULL, filter = NULL, normalise = NULL)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-raster"></a>}}
+\if{latex}{\out{\hypertarget{method-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$raster(ext, res = 1, type = "point_count", fill = 10)}\if{html}{\out{</div>}}
@@ -272,6 +292,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-volume"></a>}}
+\if{latex}{\out{\hypertarget{method-volume}{}}}
 \subsection{Method \code{volume()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$volume(ext, res = 1, zres = res)}\if{html}{\out{</div>}}
@@ -280,6 +301,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-indices"></a>}}
+\if{latex}{\out{\hypertarget{method-indices}{}}}
 \subsection{Method \code{indices()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$indices(areas, functions, omit_empty_areas = TRUE)}\if{html}{\out{</div>}}

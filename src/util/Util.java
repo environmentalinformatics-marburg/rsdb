@@ -257,8 +257,12 @@ public class Util {
 		return r;
 	}
 
-	public static String[] columnTextToColumns(String columnText) {
-		return Arrays.stream(columnText.split(",")).map(s->s.trim()).toArray(String[]::new);
+	public static String[] columnTextToColumns(String columnText, boolean splitBySpace) {
+		if(splitBySpace) {
+			return Arrays.stream(columnText.split("\\s+")).map(s->s.trim()).toArray(String[]::new);
+		} else {
+			return Arrays.stream(columnText.split(",")).map(s->s.trim()).toArray(String[]::new);
+		}
 	}
 
 	public static RuntimeException rethrow(Throwable e) {
@@ -304,7 +308,7 @@ public class Util {
 		String h = Long.toHexString(n);
 		return h.length() % 2 == 0 ? "0x" + h : "0x0" + h;
 	}
-	
+
 	public static String hex(short n) {
 		String h = Long.toHexString(n & 0xffff);
 		return h.length() % 2 == 0 ? "0x" + h : "0x0" + h;
@@ -327,7 +331,7 @@ public class Util {
 			return new int[] {(int) (v*1_000_000_000),1_000_000_000};
 		}
 	}
-	
+
 	public static void checkSafePath(Path path) {
 		Iterator<Path> it = path.iterator();
 		while(it.hasNext()) {
@@ -340,19 +344,19 @@ public class Util {
 			throw new RuntimeException("is link");
 		}
 	}
-	
+
 	public static void checkID(String id) {
 		if(id.isEmpty() || id.contains("/") || id.contains("\\") || id.contains("..")) {
 			throw new RuntimeException("unsafe ID");
 		}
 	}
-	
+
 	public static void checkStrictID(String id) {
 		if(!id.chars().allMatch(c-> ('0'<=c && c<='9') || ('a'<=c && c<='z') || ('A'<=c && c<='Z')  || c=='_')) {
 			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_");
 		}
 	}
-	
+
 	public static void safeDeleteIfExists(Path root, Path path) throws IOException {
 		checkIsParent(root, path);
 		Files.deleteIfExists(path);
@@ -370,20 +374,20 @@ public class Util {
 		//log.info(root.normalize() + "   " + path.normalize() + "   " + rel.normalize());
 		//log.info(rel.getNameCount() + "|"+rel.toString()+"|");
 		//log.info(rel.getNameCount() == 1 && rel.endsWith(""));
-		
+
 	}
-	
+
 	public static Set<String> of(String... values) {
 		return new TreeSet<>(Arrays.asList(values));
 	}
-	
+
 	public static Set<String> of(Set<String> src, String... values) {
 		TreeSet<String> set = new TreeSet<String>();
 		set.addAll(src);
 		set.addAll(new ReadonlyArray<String>(values));
 		return set;
 	}
-	
+
 	public static void checkProps(Set<String> propsMandatory, Set<String> props, JSONObject json) {
 		Set<String> set = json.keySet();
 		if(!props.containsAll(set)) {
@@ -392,7 +396,7 @@ public class Util {
 		if(!set.containsAll(propsMandatory)) {
 			throw new RuntimeException("some missing keys");
 		}
-		
+
 	}
 
 }

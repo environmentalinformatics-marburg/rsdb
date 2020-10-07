@@ -13,7 +13,7 @@ PointCloud_public <- list( #      *********** public ***************************
     private$meta_ <- m$pointcloud
   },
 
-  points = function(ext, columns=NULL, filter=NULL) {
+  points = function(ext, columns=NULL, filter=NULL, normalise=NULL) {
     if(is(ext, "bbox")) {
       warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
       ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
@@ -48,6 +48,11 @@ PointCloud_public <- list( #      *********** public ***************************
       stopifnot(is.character(filter))
       filterText <- paste0(filter, collapse=";")
       param_list <- c(param_list, filter=filterText)
+    }
+    if(!is.null(normalise)) {
+      stopifnot(is.character(normalise))
+      normaliseText <- paste0(normalise, collapse=",")
+      param_list <- c(param_list, normalise=normaliseText)
     }
     #return(query_RDAT(private$url, "points.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
     path <- paste0("/pointclouds/", private$name_, "/points.rdat")
@@ -239,7 +244,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' # operate on opened pointcloud:
 #'
-#' pointcloud$points(ext, columns=NULL, filter=NULL)
+#' pointcloud$points(ext, columns=NULL, filter=NULL, normalise=NULL)
 #' pointcloud$raster(ext, res=1, type="point_count", fill=10)
 #' pointcloud$volume(ext, res=1, zres=res)
 #' pointcloud$indices(areas, functions, omit_empty_areas=TRUE)
@@ -264,7 +269,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' \describe{
 #'
-#' \item{$points(ext, columns=NULL, filter=NULL)}{Get pointcloud points.
+#' \item{$points(ext, columns=NULL, filter=NULL, normalise=NULL)}{Get pointcloud points.
 #'
 #' returns: data.frame
 #'
@@ -281,6 +286,23 @@ PointCloud_private <- list( #      *********** private *************************
 #' \strong{filter}: point filter.
 #'
 #' Vector of conjunctive connected filter elements.
+#'
+#' \strong{normalise}: point normalisation.
+#'
+#' \itemize{
+#'
+#'  \item \strong{\code{"extremes"}}
+#'
+#'  removes points that are outliers in z resp. elevation coordinate
+#'
+#'  \item \strong{\code{"ground"}}
+#'
+#'  moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coordinates represent vegetation above ground.
+#'
+#' }
+#'
+#' Multiple Normalisations may be combined by list of characters or by comma separated character. e.g. \code{"extremes,ground"} or \code{list("extremes","ground")}
+
 #'
 #' }
 #'

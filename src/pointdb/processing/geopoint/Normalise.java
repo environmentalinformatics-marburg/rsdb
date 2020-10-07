@@ -21,7 +21,7 @@ public class Normalise {
 		if(normaliseText==null) {
 			return normalise;
 		}
-		for(String n:Util.columnTextToColumns(normaliseText)) {
+		for(String n:Util.columnTextToColumns(normaliseText, false)) {
 			switch(n.trim().toLowerCase()) {
 			case "": //empty
 				break;

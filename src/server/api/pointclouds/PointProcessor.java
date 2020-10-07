@@ -2,6 +2,7 @@ package server.api.pointclouds;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,16 +25,24 @@ import util.Web;
 public class PointProcessor {
 	private static final Logger log = LogManager.getLogger();
 
-	public static void process(PointCloud pointcloud, double xmin, double ymin, double xmax, double ymax, ChainedFilterFunc filterFunc, Region region, String format, Receiver receiver, Request request, AttributeSelector selector) throws IOException {
+	@FunctionalInterface
+	public static interface PointTableTransformFunc extends Function<PointTable, PointTable>{
+	}
+
+	public static void process(PointCloud pointcloud, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String format, Receiver receiver, Request request, AttributeSelector selector) throws IOException {
 		boolean useRawPoints = false;
 
 		if(useRawPoints) { // processings: just polygon filter
 			log.info("useRawPoints");
-			
+
 			AttributeSelector queryAttributeSelector = selector == null ? new AttributeSelector(true) : selector;
 			//log.info("queryAttributeSelector " + queryAttributeSelector); 
 			Stream<PointTable> pointTables = pointcloud.getPointTables(xmin, ymin, xmax, ymax, queryAttributeSelector, filterFunc);
-			
+
+			if(transformFunc != null) {
+				pointTables.map(transformFunc);
+			}
+
 			if(!region.isBbox()) {
 				FilterByPolygonFunc filterByPolygonFunc = PointTable.getFilterByPolygonFunc(region.polygonPoints);
 				pointTables = pointTables.map(pointTable -> PointTable.applyMask(pointTable, filterByPolygonFunc.apply(pointTable)));
@@ -83,7 +92,7 @@ public class PointProcessor {
 			String[] columns = null;
 			String columnsText = request.getParameter("columns");
 			if(columnsText!=null) {
-				columns = Util.columnTextToColumns(columnsText);
+				columns = Util.columnTextToColumns(columnsText, true);
 				log.info("columns: "+ Arrays.toString(columns));
 			}
 			double xnorm = 0;

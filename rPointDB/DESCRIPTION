@@ -1,7 +1,7 @@
 Package: rPointDB
 Type: Package
 Title: R Interface to Remote Sensing Database
-Version: 0.42.0
+Version: 0.42.1
 Date: 2020-01-29
 Author: woellauer
 Maintainer: woellauer <email@email>
@@ -22,4 +22,4 @@ Suggests:
     data.table,
     lidR,
     rgl
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1

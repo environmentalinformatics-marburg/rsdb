@@ -3,7 +3,9 @@
 \name{RasterDB}
 \alias{RasterDB}
 \title{RasterDB class}
-\format{RasterDB \link{R6Class} object.}
+\format{
+RasterDB \link{R6Class} object.
+}
 \usage{
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 rasterdb <- remotesensing$rasterdb(name)
@@ -234,6 +236,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -242,6 +245,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-raster"></a>}}
+\if{latex}{\out{\hypertarget{method-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$raster(ext, band = NULL, timestamp = NULL, product = NULL)}\if{html}{\out{</div>}}
@@ -250,6 +254,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-insert_RasterLayer"></a>}}
+\if{latex}{\out{\hypertarget{method-insert_RasterLayer}{}}}
 \subsection{Method \code{insert_RasterLayer()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterLayer(r, band = 1, timestamp = 0)}\if{html}{\out{</div>}}
@@ -258,6 +263,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-insert_RasterStack"></a>}}
+\if{latex}{\out{\hypertarget{method-insert_RasterStack}{}}}
 \subsection{Method \code{insert_RasterStack()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterStack(r, bands = NULL, timestamp = 0)}\if{html}{\out{</div>}}
@@ -266,6 +272,7 @@ woellauer
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-rebuild_pyramid"></a>}}
+\if{latex}{\out{\hypertarget{method-rebuild_pyramid}{}}}
 \subsection{Method \code{rebuild_pyramid()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$rebuild_pyramid()}\if{html}{\out{</div>}}
