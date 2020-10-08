@@ -1,13 +1,46 @@
 package pointdb.process;
 
 import pointdb.base.GeoPoint;
-import pointdb.base.PdbConst;
 import pointdb.base.Rect;
+import util.collections.vec.Vec;
 
 @Tag("point")
-@Description("ratio of area that is covered by LiDAR points (based on 1x1 meter pixel raster, if in one pixel is no point, pixel is not covered)")
+@Description("ratio of area that is covered by LiDAR points (based on bounding box with aligned 1x1 meter grid, if no point is in one grid cell, cell is not covered)")
 class Fun_point_coverage extends ProcessingFun {
+	
 	@Override
+	public double process(DataProvider2 provider) {
+		Rect bbox = provider.bbox_rect;
+		Vec<GeoPoint> points = provider.get_bordered_bboxPoints();
+		
+		int xmin = bbox.getInteger_UTM_min_x();
+		int xmax = bbox.getInteger_UTM_max_x();
+		int xlen = xmax - xmin + 1;
+		int ymin = bbox.getInteger_UTM_min_y();
+		int ymax = bbox.getInteger_UTM_max_y();
+		int ylen = ymax - ymin + 1;
+		boolean[][] mask = new boolean[ylen][xlen];
+		for(GeoPoint p:points) {
+			int x = (int) p.x;
+			int y = (int) p.y;
+			if(xmin <= x && x <= xmax && ymin <= y && y <= ymax) {
+				mask[y - ymin][x - xmin] = true;
+			}
+		}
+		long cnt = 0;
+		for(int y=0; y<ylen; y++) {
+			boolean[] ymask = mask[y];
+			for(int x=0; x<xlen; x++) {
+				if(ymask[x]) {
+					cnt++;
+				}
+			}
+		}		
+		return ((double) cnt) / (((double) xlen) * ((double) ylen));
+		
+	}
+	
+	/*@Override
 	public double process(DataProvider2 provider) {
 		Rect rect = provider.old.transformed_rect;
 		int min_x = rect.getInteger_UTM_min_x();
@@ -35,5 +68,5 @@ class Fun_point_coverage extends ProcessingFun {
 			}
 		}
 		return ((double) c)/( (xEnd-xBegin+1) * (yEnd-yBegin+1) );
-	}
+	}*/
 }

@@ -10,7 +10,7 @@ public class Fun_pulse {
 	public static class Fun_pulse_count extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return provider.getPulseCount();
+			return provider.getRegionPulseCount();
 		}		
 	}
 	
@@ -18,7 +18,7 @@ public class Fun_pulse {
 	static class Fun_pulse_density extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return provider.getPulseCount() / provider.bbox_rect.getArea();
+			return provider.getBboxPulseCount() / provider.bbox_rect.getArea();
 		}
 	}
 	
@@ -26,7 +26,7 @@ public class Fun_pulse {
 	static class Fun_pulse_spacing extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return Math.sqrt(provider.bbox_rect.getArea() / provider.getPulseCount());
+			return Math.sqrt(provider.bbox_rect.getArea() / provider.getBboxPulseCount());
 		}
 	}
 	
@@ -34,7 +34,7 @@ public class Fun_pulse {
 	static class Fun_pulse_area extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return provider.bbox_rect.getArea() / provider.getPulseCount();
+			return provider.bbox_rect.getArea() / provider.getBboxPulseCount();
 		}
 	}
 	

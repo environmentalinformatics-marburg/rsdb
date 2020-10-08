@@ -22,7 +22,6 @@ import server.api.pointclouds.PointProcessor.PointTableTransformFunc;
 import util.Receiver;
 import util.ResponseReceiver;
 import util.StreamReceiver;
-import util.Web;
 
 public class APIHandler_points {
 	private static final Logger log = LogManager.getLogger();

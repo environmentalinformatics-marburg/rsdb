@@ -50,7 +50,8 @@ public class DataProvider2 {
 
 	public DataProvider old;
 
-	private int pulseCount = Integer.MIN_VALUE;
+	private int regionPulseCount = Integer.MIN_VALUE;
+	private int bboxPulseCount = Integer.MIN_VALUE;
 
 	public DataProvider2(PointCloud pointcloud, Region region) {
 		this(pointcloud, null, region);
@@ -257,11 +258,18 @@ public class DataProvider2 {
 		return sortedCanopyHeights;
 	}
 
-	public synchronized int getPulseCount() {
-		if(pulseCount == Integer.MIN_VALUE) {
-			pulseCount = get_regionPoints().count(GeoPoint::isFirstReturn);
+	public synchronized int getRegionPulseCount() {
+		if(regionPulseCount == Integer.MIN_VALUE) {
+			regionPulseCount = get_regionPoints().count(GeoPoint::isFirstReturn);
 		}
-		return pulseCount;
+		return regionPulseCount;
+	}
+	
+	public synchronized int getBboxPulseCount() {
+		if(bboxPulseCount == Integer.MIN_VALUE) {
+			bboxPulseCount = get_bboxPoints().count(GeoPoint::isFirstReturn);
+		}
+		return bboxPulseCount;
 	}
 
 	public void close() {
