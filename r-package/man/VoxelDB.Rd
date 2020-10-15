@@ -14,6 +14,7 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 \itemize{
 \item \href{#method-new}{\code{VoxelDB$new()}}
 \item \href{#method-voxels}{\code{VoxelDB$voxels()}}
+\item \href{#method-aggregated_voxels}{\code{VoxelDB$aggregated_voxels()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -36,6 +37,22 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
   y = NULL,
   z = NULL,
   product,
+  time_slice_id = NULL,
+  time_slice_name = NULL
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-aggregated_voxels"></a>}}
+\if{latex}{\out{\hypertarget{method-aggregated_voxels}{}}}
+\subsection{Method \code{aggregated_voxels()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{VoxelDB$aggregated_voxels(
+  ext = NULL,
+  x = NULL,
+  y = NULL,
+  z = NULL,
   time_slice_id = NULL,
   time_slice_name = NULL
 )}\if{html}{\out{</div>}}

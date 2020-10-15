@@ -82,6 +82,6 @@ public class VoxelProcessor {
 
 		Range3d voxelRange = localRange.add(vrxmin, vrymin, vrzmin);
 
-		VoxelWriter.writeInt32(data, voxeldb, voxelRange, response, format);		
+		VoxelWriter.writeInt32(data, voxeldb.getName(), voxeldb.geoRef(), voxelRange, response, format);		
 	}
 }

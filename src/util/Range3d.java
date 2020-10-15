@@ -42,4 +42,24 @@ public class Range3d {
 	public Range3d add(int x, int y, int z) {
 		return new Range3d(xmin + x, ymin + y, zmin + z, xmax + x, ymax + y, zmax + z);
 	}
+	
+	public Range3d div(int x, int y, int z) {
+		return new Range3d(xmin / x, ymin / y, zmin / z, xmax / x, ymax / y, zmax / z);
+	}
+	
+	public Range3d overlapping(Range3d range) {
+		int oxmin = Math.max(xmin, range.xmin);
+		int oymin = Math.max(ymin, range.ymin);
+		int ozmin = Math.max(zmin, range.zmin);
+		int oxmax = Math.min(xmax, range.xmax);
+		int oymax = Math.min(ymax, range.ymax);
+		int ozmax = Math.min(zmax, range.zmax);
+		return new Range3d(oxmin, oymin, ozmin, oxmax, oymax, ozmax);
+	}
+	
+	@Override
+	public String toString() {
+		return "Range3d [x:" + xmin + " y:" + ymin + " z:" + zmin + " - x:" + xmax + " y:" + ymax
+				+ " z:" + zmax + "]";
+	}
 }

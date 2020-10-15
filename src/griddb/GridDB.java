@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableSet;
 import java.util.SortedSet;
 import java.util.stream.Stream;
 
@@ -70,7 +71,7 @@ public class GridDB implements AutoCloseable {
 		this.path = path;
 		this.name = name;
 		this.storageType = preferredStorageType; // will be overwritten if yaml file exists
-		log.info("preferredStorageType (" + path + "   "+ name + ") " + preferredStorageType);
+		//log.info("preferredStorageType (" + path + "   "+ name + ") " + preferredStorageType);
 		this.transaction =  transaction;
 		path.toFile().mkdirs();
 		this.extendedMeta = extendedMeta;
@@ -281,7 +282,7 @@ public class GridDB implements AutoCloseable {
 	public synchronized void readMeta() { // throws if read error
 		try {
 			if (metaPath.toFile().exists()) {
-				log.info("read meta exists " + metaPath);
+				//log.info("read meta exists " + metaPath);
 				YamlMap map;
 				try(InputStream in = new FileInputStream(metaFile)) {
 					map = YamlMap.ofObject(new Yaml().load(in));
@@ -317,7 +318,7 @@ public class GridDB implements AutoCloseable {
 		return storage().tileKeysReadonly();
 	}
 	
-	public SortedSet<TileKey> getTileKeysOfT(int t) {
+	public NavigableSet<TileKey> getTileKeysOfT(int t) {
 		TileKey fromElement = new TileKey(t, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
 		TileKey toElement = new TileKey(t, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
 		return storage().tileKeysReadonly().subSet(fromElement, true, toElement, true);

@@ -1,6 +1,7 @@
 package voxeldb;
 
 import java.io.IOException;
+import java.util.NavigableSet;
 import java.util.stream.Stream;
 
 import broker.TimeSlice;
@@ -9,6 +10,8 @@ import griddb.Cell;
 import griddb.Encoding;
 import griddb.GridDB;
 import rasterunit.Tile;
+import rasterunit.TileKey;
+import util.Range3d;
 import util.collections.vec.Vec;
 
 public class CellFactory {
@@ -17,7 +20,7 @@ public class CellFactory {
 	private final GridDB griddb;
 	private final int cellsize;
 
-	private Attribute attr_count;
+	private Attribute attr_count = null;
 	private Attribute attr_red = null;
 	private Attribute attr_green = null;
 	private Attribute attr_blue = null;
@@ -28,7 +31,7 @@ public class CellFactory {
 		this.cellsize = voxeldb.getCellsize();
 
 	}
-	
+
 	public static CellFactory ofAll(VoxelDB voxeldb) {
 		CellFactory cellFactory = new CellFactory(voxeldb);
 		cellFactory.setCount();
@@ -43,22 +46,22 @@ public class CellFactory {
 		cellFactory.setCount();
 		return cellFactory;
 	}
-	
+
 	public CellFactory setCount() {
 		attr_count = voxeldb.getGriddb().getAttribute("count");
 		return this;
 	}
-	
+
 	public CellFactory setRed() {
 		attr_red = voxeldb.getGriddb().getAttribute("red");	
 		return this;
 	}
-	
+
 	public CellFactory setGreen() {
 		attr_green = voxeldb.getGriddb().getAttribute("green");	
 		return this;
 	}
-	
+
 	public CellFactory setBlue() {
 		attr_blue = voxeldb.getGriddb().getAttribute("blue");	
 		return this;
@@ -80,6 +83,31 @@ public class CellFactory {
 				.map(GridDB::tileToCell)
 				.map(this::cellToVoxelCell);
 	}
+
+
+	public Stream<VoxelCell> getVoxelCells(TimeSlice timeSlice, Range3d range) {		
+		Range3d cellRange = range.div(cellsize, cellsize, cellsize);
+		TileKey fromElement = new TileKey(timeSlice.id, cellRange.ymin, cellRange.xmin, cellRange.zmin);
+		TileKey toElement = new TileKey(timeSlice.id, cellRange.ymax, cellRange.xmax, cellRange.zmax);
+		NavigableSet<TileKey> keys = griddb.getTileKeys().subSet(fromElement, true, toElement, true);
+		int xmin = cellRange.zmin;
+		int ymin = cellRange.xmin;
+		int xmax = cellRange.zmax;
+		int ymax = cellRange.xmax;
+		Stream<VoxelCell> result = keys.stream()
+				.filter(key -> ymin <= key.y && key.y <= ymax && xmin <= key.x && key.x <= xmax)
+				.map(tileKey -> {
+					try {
+						return griddb.storage().readTile(tileKey);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				})
+				.map(GridDB::tileToCell)
+				.map(this::cellToVoxelCell);
+		return result;
+	}
+
 
 	public Stream<VoxelCell> getVoxelCells() {
 		return griddb.getTileKeys().stream().map(tileKey -> {
@@ -146,54 +174,54 @@ public class CellFactory {
 		}
 		return r;
 	}
-	
+
 	private Attribute ensure_attr_count() {
 		if(attr_count == null) {
 			attr_count = griddb.getOrAddAttribute("count", Encoding.ENCODING_INT32);
 		}
 		return attr_count;
 	}
-	
+
 	private Attribute ensure_attr_red() {
 		if(attr_red == null) {
 			attr_red = griddb.getOrAddAttribute("red", Encoding.ENCODING_INT32);
 		}
 		return attr_red;
 	}
-	
+
 	private Attribute ensure_attr_green() {
 		if(attr_green == null) {
 			attr_green = griddb.getOrAddAttribute("green", Encoding.ENCODING_INT32);
 		}
 		return attr_green;
 	}
-	
+
 	private Attribute ensure_attr_blue() {
 		if(attr_blue == null) {
 			attr_blue = griddb.getOrAddAttribute("blue", Encoding.ENCODING_INT32);
 		}
 		return attr_blue;
 	}
-	
+
 	private byte[] createIntData(Attribute attr, int[][][] cube) {
 		int[] ints = getInts(cube);		
 		byte[] data = Encoding.createIntData(attr.encoding, ints, ints.length);
 		return data;
 	}
-	
+
 	private static class AttributeData {
 		public final Attribute attribue;
 		public final byte[] data;
-		
+
 		public AttributeData(Attribute attribue, byte[] data) {
 			this.attribue = attribue;
 			this.data = data;
 		}
-		
+
 		public byte[] data() {
 			return data;
 		}
-		
+
 		public Attribute attribue() {
 			return attribue;
 		}
@@ -201,7 +229,7 @@ public class CellFactory {
 
 	private Tile voxelCellToTile(VoxelCell voxelCell, int t) {
 		Vec<AttributeData> dataCollector = new Vec<AttributeData>();
-		
+
 		if(voxelCell.cnt != null) {
 			Attribute attr = ensure_attr_count();
 			byte[] data = createIntData(attr, voxelCell.cnt);
@@ -222,7 +250,7 @@ public class CellFactory {
 			byte[] data = createIntData(attr, voxelCell.blue);
 			dataCollector.add(new AttributeData(attr, data));			
 		}
-		
+
 		Attribute[] attrColumns = dataCollector.mapArray(AttributeData::attribue, Attribute[]::new);
 		byte[][] dataColumns = dataCollector.mapArray(AttributeData::data, byte[][]::new);
 		byte[] cellData = Cell.createData(attrColumns, dataColumns, dataCollector.size());
@@ -234,4 +262,16 @@ public class CellFactory {
 		Tile tile = voxelCellToTile(voxelCell, t);
 		griddb.writeTile(tile);
 	}
+
+	public Range3d toRange(VoxelCell voxelCell) {
+		int xmin = voxelCell.x * cellsize;
+		int ymin = voxelCell.y * cellsize;
+		int zmin = voxelCell.z * cellsize;
+		int xmax = xmin + cellsize - 1;
+		int ymax = ymin + cellsize - 1;
+		int zmax = zmin + cellsize - 1;
+		return new Range3d(xmin, ymin, zmin, xmax, ymax, zmax);
+	}
+
+
 }

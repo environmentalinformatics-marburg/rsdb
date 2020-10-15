@@ -70,24 +70,24 @@ public class VoxelGeoRef {
 	public static VoxelGeoRef ofYaml(YamlMap yamlMap) {
 		String proj4 = yamlMap.optString(PROPERTY_PROJ4, "");
 		int epsg = yamlMap.optInt(PROPERTY_EPSG, 0);
-		
+
 		YamlMap om = yamlMap.optMap(PROPERTY_ORIGIN);
 		double originX = om.optDouble("x", 0);
 		double originY = om.optDouble("y", 0);
 		double originZ = om.optDouble("z", 0);
-		
+
 		YamlMap vsm = yamlMap.optMap(PROPERTY_VOXEL_SIZE);
 		double voxelSizeX = vsm.optDouble("x", 1);
 		double voxelSizeY = vsm.optDouble("y", 1);
 		double voxelSizeZ = vsm.optDouble("z", 1);
-		
+
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
 	}
 
 	public VoxelGeoRef withProj4(String proj4) {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
 	}
-	
+
 	public VoxelGeoRef withEpsg(int epsg) {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
 	}
@@ -95,36 +95,50 @@ public class VoxelGeoRef {
 	public VoxelGeoRef withVoxelSize(double voxelsize) {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelsize, voxelsize, voxelsize);
 	}
-	
+
 	public VoxelGeoRef withOrigin(double originX, double originY, double originZ) {
+		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
+	}
+	
+	public VoxelGeoRef with(double originX, double originY, double originZ, double voxelsizeX, double voxelsizeY, double voxelsizeZ) {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
 	}
 
 	public int geoXtoVoxel(double x) {
 		return (int) Math.floor((x - originX) / voxelSizeX);		
 	}
-	
+
 	public int geoYtoVoxel(double y) {
 		return (int) Math.floor((y - originY) / voxelSizeY);		
 	}
-	
+
 	public int geoZtoVoxel(double z) {
 		return (int) Math.floor((z - originZ) / voxelSizeZ);		
 	}
-	
+
 	public double voxelXtoGeo(int x) {
 		return (x * voxelSizeX) + originX;
 	}
-	
+
 	public double voxelYtoGeo(int y) {
 		return (y * voxelSizeY) + originY;
 	}
-	
+
 	public double voxelZtoGeo(int z) {
 		return (z * voxelSizeZ) + originZ;
 	}
-	
+
 	public Extent3d toGeoExtent(Range3d range) {
 		return new Extent3d(voxelXtoGeo(range.xmin), voxelYtoGeo(range.ymin), voxelZtoGeo(range.zmin), voxelXtoGeo(range.xmax + 1), voxelYtoGeo(range.ymax + 1), voxelZtoGeo(range.zmax + 1));
+	}
+
+	public Range3d geoToRange(double geoXmin, double geoYmin, double geoZmin, double geoXmax, double geoYmax, double geoZmax) {
+		int xmin = geoXtoVoxel(geoXmin);
+		int ymin = geoYtoVoxel(geoYmin);
+		int zmin = geoZtoVoxel(geoZmin);
+		int xmax = geoXtoVoxel(geoXmax);
+		int ymax = geoYtoVoxel(geoYmax);
+		int zmax = geoZtoVoxel(geoZmax);
+		return new Range3d(xmin, ymin, zmin, xmax, ymax, zmax);
 	}
 }

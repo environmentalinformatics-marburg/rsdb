@@ -61,6 +61,24 @@ public = list(
     }
     response <- private$rsdbConnector$GET(paste0("/voxeldbs/", private$name_, "/voxels"), args)
     return(response)
+  },
+
+  aggregated_voxels = function(ext = NULL, x = NULL, y = NULL, z = NULL, time_slice_id = NULL, time_slice_name = NULL, aggregation_factor) {
+    args <- list(format = 'rdat', aggregation_factor = aggregation_factor)
+
+    if(!is.null(ext)) {
+      extText <- paste0(ext, collapse = ' ')
+      args$ext = extText
+    }
+
+    if(!is.null(time_slice_id)) {
+      args$time_slice_id <- time_slice_id
+    }
+    if(!is.null(time_slice_name)) {
+      args$time_slice_name <- time_slice_name
+    }
+    response <- private$rsdbConnector$GET(paste0("/voxeldbs/", private$name_, "/aggregated_voxels"), args)
+    return(response)
   }
 
 ),

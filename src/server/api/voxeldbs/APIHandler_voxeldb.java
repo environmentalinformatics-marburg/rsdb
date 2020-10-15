@@ -36,15 +36,15 @@ public class APIHandler_voxeldb {
 	private final Broker broker;
 
 	private final Handler_voxels handler_voxels = new Handler_voxels();
+	private final Handler_aggregated_voxels handler_aggregated_voxels = new Handler_aggregated_voxels();
 
 	public APIHandler_voxeldb(Broker broker) {
 		this.broker = broker;
 	}
 
 	public void handle(String name, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.info("get: " + name);
+		//log.info("get: " + name);
 		VoxelDB voxeldb = broker.getVoxeldb(name);
-		log.info("get: " + voxeldb);
 		if(voxeldb == null) {
 			throw new RuntimeException("VoxelDB not found: " + name);
 		} else if(target.equals("/")) {
@@ -68,15 +68,18 @@ public class APIHandler_voxeldb {
 			String resource = i < 0 ? target.substring(1) : target.substring(1, i);
 			int formatIndex = resource.lastIndexOf('.');
 			String resourceName = formatIndex < 0 ? resource : resource.substring(0, formatIndex);
-			String resourceFormat = formatIndex < 0 ? "" : resource.substring(formatIndex + 1);
+			/*String resourceFormat = formatIndex < 0 ? "" : resource.substring(formatIndex + 1);
 			log.info("resourceName: "+resourceName);
-			log.info("resourceFormat: "+resourceFormat);
+			log.info("resourceFormat: "+resourceFormat);*/
 			String next = i < 0 ? "/" : target.substring(i);
 			if(next.equals("/")) {
 				switch(resourceName) {
 				case "voxels":
 					handler_voxels.handle(voxeldb, request, response, userIdentity);
 					break;
+				case "aggregated_voxels":
+					handler_aggregated_voxels.handle(voxeldb, request, response, userIdentity);
+					break;					
 				default:
 					throw new RuntimeException("unknown resource: " + resource);
 				}
