@@ -76,8 +76,17 @@ public class Handler_aggregated_voxels {
 			}
 		});
 
-		Range3d aggRange = new Range3d(0, 0, 0, (range.xmax - range.xmin) / aggregation_factor, (range.ymax - range.ymin) / aggregation_factor, (range.zmax - range.zmin) / aggregation_factor);
-		byte[] data = VoxelProcessing.toBytes(dst, xAggLen, yAggLen, zAggLen);
+		boolean crop = Web.getFlagBoolean(request, "crop");
+		Range3d aggRange = null;
+		byte[] data = null;
+		if(crop) {
+			aggRange = VoxelProcessing.getRange(dst, xAggLen, yAggLen, zAggLen);
+			data = VoxelProcessing.toBytes(dst, aggRange);
+		} else {
+			aggRange = new Range3d(0, 0, 0, (range.xmax - range.xmin) / aggregation_factor, (range.ymax - range.ymin) / aggregation_factor, (range.zmax - range.zmin) / aggregation_factor);
+			data = VoxelProcessing.toBytes(dst, xAggLen, yAggLen, zAggLen);			
+		}		
+
 		double aggOriginX = ref.voxelXtoGeo(range.xmin);
 		double aggOriginY = ref.voxelYtoGeo(range.ymin);
 		double aggOriginZ = ref.voxelZtoGeo(range.zmin);

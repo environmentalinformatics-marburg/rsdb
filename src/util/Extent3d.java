@@ -1,5 +1,7 @@
 package util;
 
+import org.json.JSONWriter;
+
 public class Extent3d {	
 	public final double xmin;
 	public final double ymin;
@@ -15,5 +17,22 @@ public class Extent3d {
 		this.xmax = xmax;
 		this.ymax = ymax;
 		this.zmax = zmax;
+	}
+	
+	public void toJSON(JSONWriter json) {
+		json.object();
+		json.key("xmin");
+		json.value(xmin);	
+		json.key("xmax");
+		json.value(xmax);	
+		json.key("ymin");
+		json.value(ymin);	
+		json.key("ymax");
+		json.value(ymax);
+		json.key("zmin");
+		json.value(zmin);	
+		json.key("zmax");
+		json.value(zmax);
+		json.endObject();	
 	}
 }

@@ -27,8 +27,12 @@ import griddb.Cell;
 import griddb.Encoding;
 import griddb.GridDB;
 import griddb.GridDB.ExtendedMeta;
+import rasterdb.LocalExtentCalculator;
+import rasterdb.tile.TilePixel;
 import rasterunit.Tile;
 import rasterunit.TileKey;
+import util.Range2d;
+import util.Range3d;
 import util.collections.ReadonlyNavigableSetView;
 import util.yaml.YamlMap;
 
@@ -54,7 +58,7 @@ public class VoxelDB implements AutoCloseable {
 	private static final int CURRENT_VERSION_PATCH = 0;
 
 	private final GridDB griddb;
-	
+
 	private final ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
 	public final NavigableMap<Integer, TimeSlice> timeMapReadonly = Collections.unmodifiableNavigableMap(timeMap);
 
@@ -70,7 +74,9 @@ public class VoxelDB implements AutoCloseable {
 	public final VoxeldbConfig config;
 
 	private VoxelGeoRef geoRef = VoxelGeoRef.DEFAULT;
-	
+
+	private Range3d local_range = null;
+
 	public VoxelDB(VoxeldbConfig config) {
 		this.config = config;
 		griddb = new GridDB(config.path, "voxeldb", new ExtendedMetaHook(), config.preferredStorageType, config.transaction);
@@ -78,7 +84,7 @@ public class VoxelDB implements AutoCloseable {
 		loadAttributes();
 		griddb.writeMetaIfNeeded();
 	}
-	
+
 	private void loadAttributes() {
 		griddb.getOrAddAttribute("count", Encoding.ENCODING_INT32);
 	}
@@ -121,7 +127,7 @@ public class VoxelDB implements AutoCloseable {
 				acl = ACL.of(yamlMap.optList("acl").asStrings());
 				acl_mod = ACL.of(yamlMap.optList("acl_mod").asStrings());
 				associated = new Associated();
-				if (yamlMap.contains("associated")) {
+				if(yamlMap.contains("associated")) {
 					associated = Associated.ofYaml(yamlMap.getMap("associated"));
 				}
 				informal = Informal.ofYaml(yamlMap);				
@@ -129,6 +135,11 @@ public class VoxelDB implements AutoCloseable {
 				timeMap.clear();
 				if(yamlMap.contains("time_slices")) {
 					TimeSlice.yamlToTimeMap((Map<?, Object>) yamlMap.getObject("time_slices"), timeMap);					
+				}				
+				if(yamlMap.contains("local_range")) {
+					local_range = Range3d.ofYaml(yamlMap.getMap("local_range"));
+				} else {
+					local_range = null;
 				}
 			}
 		}	
@@ -147,6 +158,9 @@ public class VoxelDB implements AutoCloseable {
 				map.put("ref", geoRef.toYaml());
 				if(!timeMap.isEmpty()) {
 					map.put("time_slices", TimeSlice.timeMapToYaml(timeMap));					
+				}
+				if(local_range != null) {
+					map.put("local_range", local_range.toYaml());
 				}
 			}
 		}	
@@ -305,7 +319,7 @@ public class VoxelDB implements AutoCloseable {
 			}
 		}		
 	}
-	
+
 	public boolean trySetOrigin(double originX, double originY, double originZ) {
 		synchronized (griddb) {
 			if(griddb.isEmpty()) {
@@ -317,15 +331,15 @@ public class VoxelDB implements AutoCloseable {
 			}
 		}			
 	}
-	
+
 	public void setTimeSlice(TimeSlice timeslice) {
 		synchronized (griddb) {
 			timeMap.put(timeslice.id, timeslice);
 			griddb.writeMeta();
 		}
-		
+
 	}
-	
+
 	public TimeSlice addTimeSlice(TimeSliceBuilder timeSliceBuilder) {
 		synchronized (griddb) {
 			int id = 0;
@@ -338,7 +352,7 @@ public class VoxelDB implements AutoCloseable {
 			return timeSlice;
 		}
 	}
-	
+
 	public TimeSlice getTimeSliceByName(String name) {
 		if(name == null || name.isEmpty()) {
 			return null;
@@ -349,5 +363,19 @@ public class VoxelDB implements AutoCloseable {
 			}
 		}
 		return null;
+	}
+
+	public Range3d getLocalRange(boolean update) {
+		synchronized (griddb) {
+			if(local_range == null || update) {
+				LocalRangeCalculator localRangeCalculator = new LocalRangeCalculator(this);
+				try {
+					local_range = localRangeCalculator.calc();
+				} catch (IOException e) {
+					log.error(e);
+				}
+			}
+			return local_range;	
+		}
 	}
 }

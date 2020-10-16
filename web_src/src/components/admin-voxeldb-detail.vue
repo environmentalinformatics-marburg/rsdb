@@ -160,6 +160,23 @@
                 <table v-if="meta.storage_measures !== undefined" class="table-details">
                     <thead>
                         <tr>
+                            <th>voxel range <div class="header-unit">voxels</div></th>                            
+                            <th>voxel range <div class="header-unit">{{projection_units}}</div></th>
+                            <th>voxel extent <div class="header-unit">coordinates</div></th>                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{voxelRangeText}}</td>
+                            <td>{{voxelRangeProjectedText}}</td>
+                            <td><span style="color: gray;">x:</span>{{+meta.storage_measures.extent.xmin.toPrecision(8)}}<b>,</b> <span style="color: gray;">y:</span>{{+meta.storage_measures.extent.ymin.toPrecision(8)}}<b>,</b> <span style="color: gray;">z:</span>{{+meta.storage_measures.extent.zmin.toPrecision(8)}} <b>-</b> <span style="color: gray;">x:</span>{{+meta.storage_measures.extent.xmax.toPrecision(8)}}<b>,</b> <span style="color: gray;">y:</span>{{+meta.storage_measures.extent.ymax.toPrecision(8)}}<b>,</b> <span style="color: gray;">z:</span>{{+meta.storage_measures.extent.zmax.toPrecision(8)}}</td>
+                         </tr>                    
+                    </tbody>
+                </table>                              
+
+                <table v-if="meta.storage_measures !== undefined" class="table-details">
+                    <thead>
+                        <tr>
                             <th>Cells <div class="header-unit">count</div></th>
                             <th>Cell size <div class="header-unit">bytes</div></th>                            
                             <th>Storage size <div class="header-unit">bytes</div></th>
@@ -178,15 +195,15 @@
                             <td v-else>none</td>
                         </tr>                    
                     </tbody>
-                </table>            
+                </table>
             </div>
-
+            <div v-if="meta !== undefined && meta.time_slices !== undefined">
             <v-divider class="meta-divider"></v-divider> 
             <h3 class="subheading mb-0"> 
-                Time slices
+                Time slices ({{meta.time_slices.length}})
             </h3>
             <div class="meta-content">
-                <table v-if="meta !== undefined && meta.time_slices !== undefined" class="table-details">
+                <table class="table-details">
                     <thead>
                         <tr>
                             <th>Id</th>
@@ -200,6 +217,7 @@
                         </tr>                    
                     </tbody>
                 </table>
+            </div>
             </div>
 
             <v-divider class="meta-divider"></v-divider>  
@@ -373,6 +391,23 @@ export default {
                 let r = this.meta.storage_measures.cell_range;
                 let cs = this.meta.cell_size;
                 return ((r.xmax - r.xmin + 1) * cs.x) + ' x ' + ((r.ymax - r.ymin + 1) * cs.y) + ' x ' + ((r.zmax - r.zmin + 1) * cs.z);
+            }
+        },
+        voxelRangeText() {
+            if (this.meta === undefined || this.meta.storage_measures === undefined || this.meta.storage_measures.local_range === undefined) {
+                return 'not set';
+            } else {
+                let r = this.meta.storage_measures.local_range;
+                return (r.xmax - r.xmin + 1) + ' x ' + (r.ymax - r.ymin + 1) + ' x ' + (r.zmax - r.zmin + 1);
+            }
+        },
+        voxelRangeProjectedText() {
+            if (this.meta === undefined || this.meta.storage_measures === undefined || this.meta.storage_measures.local_range === undefined || this.meta.ref === undefined || this.meta.ref.voxel_size === undefined) {
+                return 'not set';
+            } else {
+                let r = this.meta.storage_measures.local_range;
+                 let cs = this.meta.ref.voxel_size;
+                return +((r.xmax - r.xmin + 1) * cs.x).toPrecision(8) + ' x ' + +((r.ymax - r.ymin + 1) * cs.y).toPrecision(8) + ' x ' + +((r.zmax - r.zmin + 1) * cs.z).toPrecision(8);               
             }
         },
         cellRangeProjectedText() {

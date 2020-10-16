@@ -9,8 +9,10 @@ import griddb.Attribute;
 import griddb.Cell;
 import griddb.Encoding;
 import griddb.GridDB;
+import rasterunit.KeyRange;
 import rasterunit.Tile;
 import rasterunit.TileKey;
+import util.Range2d;
 import util.Range3d;
 import util.collections.vec.Vec;
 
@@ -272,6 +274,12 @@ public class CellFactory {
 		int zmax = zmin + cellsize - 1;
 		return new Range3d(xmin, ymin, zmin, xmax, ymax, zmax);
 	}
-
-
+	
+	public Range3d getCellRange() {
+		KeyRange keyRange = voxeldb.getGriddb().storage().getKeyRange();
+		if(keyRange == null) {
+			return null;
+		}
+		return new Range3d(keyRange.ymin, keyRange.bmin, keyRange.xmin, keyRange.ymax, keyRange.bmax, keyRange.xmax);		
+	}
 }

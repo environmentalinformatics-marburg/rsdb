@@ -23,8 +23,11 @@ import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import rasterunit.KeyRange;
+import util.Extent3d;
 import util.JsonUtil;
+import util.Range3d;
 import util.Web;
+import voxeldb.CellFactory;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 
@@ -213,23 +216,20 @@ public class APIHandler_voxeldb {
 				json.endObject();		
 			}
 
-			KeyRange keyRange = voxeldb.getGriddb().storage().getKeyRange();
-			if(keyRange != null) {
+
+			Range3d cell_range = new CellFactory(voxeldb).getCellRange();
+			if(cell_range != null) {
 				json.key("cell_range");
-				json.object();
-				json.key("xmin");
-				json.value(keyRange.xmin);	
-				json.key("xmax");
-				json.value(keyRange.xmax);	
-				json.key("ymin");
-				json.value(keyRange.ymin);	
-				json.key("ymax");
-				json.value(keyRange.ymax);
-				json.key("zmin");
-				json.value(keyRange.bmin);	
-				json.key("zmax");
-				json.value(keyRange.bmax);
-				json.endObject();	
+				cell_range.toJSON(json);
+			}
+
+			Range3d local_range = voxeldb.getLocalRange(false);
+			if(local_range != null) {
+				json.key("local_range");
+				local_range.toJSON(json);
+				Extent3d extent3d = ref.toGeoExtent(local_range);
+				json.key("extent");
+				extent3d.toJSON(json);
 			}
 
 			json.endObject();

@@ -49,12 +49,11 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 \subsection{Method \code{aggregated_voxels()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$aggregated_voxels(
-  ext = NULL,
-  x = NULL,
-  y = NULL,
-  z = NULL,
+  ext,
   time_slice_id = NULL,
-  time_slice_name = NULL
+  time_slice_name = NULL,
+  aggregation_factor,
+  crop = FALSE
 )}\if{html}{\out{</div>}}
 }
 

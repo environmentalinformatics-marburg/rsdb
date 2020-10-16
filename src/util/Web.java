@@ -190,7 +190,7 @@ public final class Web {
 		if(text.equalsIgnoreCase("false")) {
 			return false;
 		}
-		log.warn("value unknown return default: "+text);
+		log.warn("value unknown return default: |"+text+"|");
 		return defaultValue;
 	}
 
