@@ -282,4 +282,28 @@ public class CellFactory {
 		}
 		return new Range3d(keyRange.ymin, keyRange.bmin, keyRange.xmin, keyRange.ymax, keyRange.bmax, keyRange.xmax);		
 	}
+
+	public VoxelDB getvoxeldb() {
+		return voxeldb;
+	}
+	
+	@FunctionalInterface
+	public interface VoxelMapperInt32 {
+		int[][][] map(VoxelCell voxelCell);
+	}
+	
+	public VoxelMapperInt32 registerMapper_count() {
+		setCount();
+		return VoxelCell::count; 
+	}
+	
+	public VoxelMapperInt32 registerMapper(String attribute) {
+		switch(attribute) {
+		case "count": {
+			return registerMapper_count();
+		}
+		default:
+			throw new RuntimeException("unknown attribute: " + attribute);
+		}
+	}
 }

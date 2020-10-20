@@ -1,7 +1,8 @@
 <template>
-  <div class="innergrid-container">      
 
-    <v-list dense class="innergrid-item-nav">
+<splitpanes class="rsdb-theme">
+  <pane min-size="10" size="20" class="split-nav">
+    <v-list dense class="split-nav-list">
       <v-list-tile v-for="item in items" :key="item.name" @click="navigation = item.name;" :class="{activeNavigation: navigation === item.name}" :to="'/layers' + '/' + item.name" replace>
         <v-list-tile-action>
           <v-icon>{{ item.icon }}</v-icon>
@@ -24,8 +25,7 @@
         v-model="searchText"
         label="search"
         clearable
-        append-icon="search"
-        style="display: inline-block;"
+        append-icon="search"        
       />
 
       <div v-if="filteredRasterdbs.length === 0 && filteredPointdbs.length === 0 && filteredPointclouds.length === 0 && filteredVoxeldbs.length === 0 && filteredPoi_groups.length === 0 && filteredRoi_groups.length === 0">
@@ -206,22 +206,26 @@
       <v-list-tile v-if="roi_groupsMode === 'error'">
         <v-icon>error</v-icon>
         Could not load roi groups.
-      </v-list-tile>
+      </v-list-tile>      
+    </v-list>
+  </pane>
 
-    </v-list>   
+  <pane min-size="10" class="split-main">
+    <router-view />
+  </pane>
 
-    <div class="innergrid-item-main">
-      <router-view />
-    </div>
+  <v-snackbar v-model="rasterdbsError" :top="true">
+    {{rasterdbsErrorMessage}}
+    <v-btn flat class="pink--text" @click.native="rasterdbsError = false;">Close</v-btn>
+  </v-snackbar>
+</splitpanes>
 
-    <v-snackbar v-model="rasterdbsError" :top="true">
-      {{rasterdbsErrorMessage}}
-      <v-btn flat class="pink--text" @click.native="rasterdbsError = false;">Close</v-btn>
-    </v-snackbar>
-  </div>
 </template>
 
 <script>
+
+import { Splitpanes, Pane } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
 
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
@@ -235,10 +239,12 @@ var layerComparator = function() {
 }();
 
 export default {
-  name: 'admin-layers',
+  name: 'admin-splitlayers',
   components: {
-      RingLoader,
-      Multiselect,
+    Splitpanes,
+    Pane,
+    RingLoader,
+    Multiselect,    
   },
   data() {
     return {
@@ -489,33 +495,94 @@ export default {
   },
 }
 
-
 </script>
 
 <style scoped>
-.innergrid-container {
-  display: grid;
-  grid-template-columns: max-content auto;
-  grid-template-rows: auto;
-}
 
-.innergrid-item-nav {
-  background-color: rgba(0, 0, 0, 0.08); 
-  padding-right: 0px;
+.split-nav {
   overflow-y: auto;
-  width: 300px;
-  border-right-color: #0000001a;
-  border-right-width: 1px;
-  border-right-style: solid;
 }
 
-.innergrid-item-main {
+.split-nav-list {
+  background-color: #0000001c;
+}
+
+.split-main {
+  overflow-y: auto;
   padding: 15px;
-  overflow-y: auto;
 }
 
 .activeNavigation {
   background-color: #009cff33;
 }
 
+</style>
+
+<style>
+
+.splitpanes.rsdb-theme .splitpanes__pane {
+  background-color: #f2f2f2;
+}
+.splitpanes.rsdb-theme .splitpanes__splitter {
+  background-color: rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  position: relative;
+  flex-shrink: 0;
+}
+.splitpanes.rsdb-theme .splitpanes__splitter:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  position: relative;
+  flex-shrink: 0;
+}
+.splitpanes.rsdb-theme .splitpanes__splitter:before, .splitpanes.rsdb-theme .splitpanes__splitter:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s;
+}
+.splitpanes.rsdb-theme .splitpanes__splitter:hover:before, .splitpanes.rsdb-theme .splitpanes__splitter:hover:after {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.splitpanes.rsdb-theme .splitpanes__splitter:first-child {
+  cursor: auto;
+}
+.rsdb-theme.splitpanes .splitpanes .splitpanes__splitter {
+  z-index: 1;
+}
+.rsdb-theme.splitpanes--vertical > .splitpanes__splitter, .rsdb-theme .splitpanes--vertical > .splitpanes__splitter {
+  width: 7px;
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  margin-left: -1px;
+}
+.rsdb-theme.splitpanes--vertical > .splitpanes__splitter:before, .rsdb-theme .splitpanes--vertical > .splitpanes__splitter:before, .rsdb-theme.splitpanes--vertical > .splitpanes__splitter:after, .rsdb-theme .splitpanes--vertical > .splitpanes__splitter:after {
+  transform: translateY(-50%);
+  width: 1px;
+  height: 30px;
+}
+.rsdb-theme.splitpanes--vertical > .splitpanes__splitter:before, .rsdb-theme .splitpanes--vertical > .splitpanes__splitter:before {
+  margin-left: -2px;
+}
+.rsdb-theme.splitpanes--vertical > .splitpanes__splitter:after, .rsdb-theme .splitpanes--vertical > .splitpanes__splitter:after {
+  margin-left: 1px;
+}
+.rsdb-theme.splitpanes--horizontal > .splitpanes__splitter, .rsdb-theme .splitpanes--horizontal > .splitpanes__splitter {
+  height: 7px;
+  border-top: 1px solid #eee;
+  margin-top: -1px;
+}
+.rsdb-theme.splitpanes--horizontal > .splitpanes__splitter:before, .rsdb-theme .splitpanes--horizontal > .splitpanes__splitter:before, .rsdb-theme.splitpanes--horizontal > .splitpanes__splitter:after, .rsdb-theme .splitpanes--horizontal > .splitpanes__splitter:after {
+  transform: translateX(-50%);
+  width: 30px;
+  height: 1px;
+}
+.rsdb-theme.splitpanes--horizontal > .splitpanes__splitter:before, .rsdb-theme .splitpanes--horizontal > .splitpanes__splitter:before {
+  margin-top: -2px;
+}
+.rsdb-theme.splitpanes--horizontal > .splitpanes__splitter:after, .rsdb-theme .splitpanes--horizontal > .splitpanes__splitter:after {
+  margin-top: 1px;
+}
 </style>

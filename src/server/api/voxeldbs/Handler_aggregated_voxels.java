@@ -62,62 +62,9 @@ public class Handler_aggregated_voxels {
 			}
 			timeSlice = voxeldb.timeMapReadonly.lastEntry().getValue();
 		}
-
-		int xAggLen = (range.xmax - range.xmin) / aggregation_factor + 1;
-		int yAggLen = (range.ymax - range.ymin) / aggregation_factor + 1;
-		int zAggLen = (range.zmax - range.zmin) / aggregation_factor + 1;
-		int[][][] dst = new int[zAggLen][yAggLen][xAggLen];
 		
-		CellFactory cellFactory = new CellFactory(voxeldb).setCount();
-		cellFactory.getVoxelCells(timeSlice, range).forEach(voxelCell -> {
-			Range3d srcRange = cellFactory.toRange(voxelCell);
-			if(voxelCell.cnt != null) {
-				aggregateSum(voxelCell.cnt, srcRange, dst, range, aggregation_factor);
-			}
-		});
-
 		boolean crop = Web.getFlagBoolean(request, "crop");
-		Range3d aggRange = null;
-		byte[] data = null;
-		if(crop) {
-			aggRange = VoxelProcessing.getRange(dst, xAggLen, yAggLen, zAggLen);
-			data = VoxelProcessing.toBytes(dst, aggRange);
-		} else {
-			aggRange = new Range3d(0, 0, 0, (range.xmax - range.xmin) / aggregation_factor, (range.ymax - range.ymin) / aggregation_factor, (range.zmax - range.zmin) / aggregation_factor);
-			data = VoxelProcessing.toBytes(dst, xAggLen, yAggLen, zAggLen);			
-		}		
 
-		double aggOriginX = ref.voxelXtoGeo(range.xmin);
-		double aggOriginY = ref.voxelYtoGeo(range.ymin);
-		double aggOriginZ = ref.voxelZtoGeo(range.zmin);
-		double aggVoxelSizeX = ref.voxelSizeX * aggregation_factor;
-		double aggVoxelSizeY = ref.voxelSizeY * aggregation_factor;
-		double aggVoxelSizeZ = ref.voxelSizeZ * aggregation_factor;
-		VoxelGeoRef aggRef = ref.with(aggOriginX, aggOriginY, aggOriginZ, aggVoxelSizeX, aggVoxelSizeY, aggVoxelSizeZ);
-		VoxelWriter.writeInt32(data, voxeldb.getName(), aggRef, aggRange, response, format);		
-	}
-
-	public void aggregateSum(int[][][] src, Range3d srcRange, int[][][] dst, Range3d srcDstRange, int factor) {		
-		Range3d srcCpy = srcRange.overlapping(srcDstRange);		
-		int xSrcStart = srcCpy.xmin - srcRange.xmin;
-		int ySrcStart = srcCpy.ymin - srcRange.ymin;
-		int zSrcStart = srcCpy.zmin - srcRange.zmin;		
-		int xSrcEnd = srcCpy.xmax - srcRange.xmin;
-		int ySrcEnd = srcCpy.ymax - srcRange.ymin;
-		int zSrcEnd = srcCpy.zmax - srcRange.zmin;		
-		int xSrcDstOffeset = srcRange.xmin - srcDstRange.xmin;
-		int ySrcDstOffeset = srcRange.ymin - srcDstRange.ymin;
-		int zSrcDstOffeset = srcRange.zmin - srcDstRange.zmin;
-		for(int z = zSrcStart; z <= zSrcEnd; z++) {
-			int[][] srcZ = src[z];
-			int[][] dstZ = dst[(z + zSrcDstOffeset) / factor];
-			for(int y = ySrcStart; y <= ySrcEnd; y++) {
-				int[] srcZY = srcZ[y];
-				int[] dstZY = dstZ[(y + ySrcDstOffeset) / factor];
-				for(int x = xSrcStart; x <= xSrcEnd; x++) {
-					dstZY[(x + xSrcDstOffeset) / factor] += srcZY[x];
-				}
-			}
-		}
+		AggregatedProcessing.process(voxeldb, range, timeSlice, aggregation_factor, crop, response, format);		
 	}
 }

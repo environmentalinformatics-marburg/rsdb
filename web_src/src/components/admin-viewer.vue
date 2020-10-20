@@ -1139,9 +1139,6 @@ export default {
 	pointer-events: none;
 	display: inline-block;	
 }
-
-
-
 </style>
 
 <style>
