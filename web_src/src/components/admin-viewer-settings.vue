@@ -50,11 +50,6 @@
         <b>Single band mapping</b>
         <multiselect v-model="selectedOneBandMapping" :options="oneBandMappings" :show-labels="false" :allowEmpty="false" placeholder="value to pixel mapping of one band" />
       </div>
-
-
-
-
-
     </div>
 
     <div>

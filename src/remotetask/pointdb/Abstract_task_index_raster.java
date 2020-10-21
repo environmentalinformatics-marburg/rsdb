@@ -173,7 +173,7 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		Timer.start("index_raster part processing");
 		long processed_pixel = 0;
 		for (int y = 0; y < height; y++) {
-			Timer.start("line");
+			Timer.start("current line");
 			for (int x = 0; x < width; x++) {
 				if(mask == null || mask[y][x]) {
 					double xgeo = ref.pixelXToGeo(raster_xmin + x);
@@ -193,8 +193,8 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 					processed_pixel++;
 				}
 			}
-			//log.info(Timer.stop("line") + "     " + (y+1) +" of "+height);
-			setMessage(Timer.stop("line") + "     " + (y+1) +" of "+height);
+			//log.info(Timer.stop("current line") + "     " + (y+1) +" of "+height);
+			setMessage(Timer.stop("current line") + "     " + (y+1) +" of "+height);
 		}
 		blokingTaskSubmitter.finish();
 		Timer timer = Timer.stop("index_raster part processing");

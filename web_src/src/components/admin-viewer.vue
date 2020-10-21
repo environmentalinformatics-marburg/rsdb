@@ -1,13 +1,8 @@
 <template>
-  <div class="main" :class="selectedBackgroundClass">
-    <div id="olmap-viewer" v-bind:style="{ height: '100%', paddingLeft: olmap_viewer_padding_left + 'px' }" />
-    <div class="busy" style="margin-left: 100px;" v-show="transactionRunCount > 0">
-					<img src="images/busy.svg" /> Processing ... {{transactionRunCount > 1 ? '(' + transactionRunCount + ' queued)' : ''}}
-					<b>{{transactionRunCount > 1 ? 'Please wait until processing finished.' : ''}}</b>
-		</div>
-
-    <div class="innergrid-container">
-      <v-list dense class="innergrid-item-nav" id="innergrid-item-nav">
+  <div style="position: relative;">
+  <splitpanes class="rsdb-theme" @resize="onSplitpanesResize">
+    <pane min-size="10" size="20" class="split-nav">
+      <v-list dense class="split-nav-list">
          <v-toolbar>
             Mouse<br>Modus
             <v-btn-toggle v-model="mouseModusButtonState" mandatory style="border: 1px solid #8d8d88;">
@@ -46,9 +41,19 @@
         :currentTimestamp="timestamp" 
         @selected-vectordb="selectedVectordb = $event" 
       />
-      </v-list>
+      </v-list>                        
+    </pane>
 
-      <admin-viewer-settings v-show="settingsDialog" ref="settingsDialog" 
+    <pane min-size="10" id="split-main" class="split-main" :class="selectedBackgroundClass">
+      <div id="olmap-viewer" style="height: 100%;" />
+      <div class="busy" style="margin-left: 100px;" v-show="transactionRunCount > 0">
+            <img src="images/busy.svg" /> Processing ... {{transactionRunCount > 1 ? '(' + transactionRunCount + ' queued)' : ''}}
+            <b>{{transactionRunCount > 1 ? 'Please wait until processing finished.' : ''}}</b>
+      </div>
+    </pane>
+  </splitpanes>
+
+  <admin-viewer-settings v-show="settingsDialog" ref="settingsDialog" 
         @close="settingsDialog = false"       
         @selected-background="selectedBackground = $event"  
         @selected-format="selectedFormat = $event"
@@ -57,11 +62,11 @@
         @selected-mapping="selectedOneBandMapping = $event"
         @show-labels="showLabels = $event"
         @value-range-min="valueRangeMin = $event"   
-        @value-range-max="valueRangeMax = $event"        
-      />      
-                  
-    </div>
-    
+        @value-range-max="valueRangeMax = $event"
+        style="position: absolute; top: 0px; left: 0px;"        
+      />
+
+
     <admin-viewer-raster-export v-if="meta !== undefined" 
       v-show="toolRasterExportShow" 
       @close="toolRasterExportShow = false" 
@@ -111,7 +116,7 @@
     </div>
     <v-snackbar value="true"  v-for="(text, id) in notifications" :key="id">
       {{text}}<v-btn flat color="pink" @click.native="removeNotification(id)">Close</v-btn>
-    </v-snackbar>
+    </v-snackbar>  
   </div>
 </template>
 
@@ -120,6 +125,8 @@
 import { mapState } from 'vuex'
 
 import RingLoader from 'vue-spinner/src/RingLoader.vue'
+import { Splitpanes, Pane } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
 
 import adminViewerSelect from './admin-viewer-select.vue'
 import adminViewerTools from './admin-viewer-tools.vue'
@@ -143,7 +150,6 @@ import * as ol_style from 'ol/style';
 import {toStringXY} from 'ol/coordinate';
 import GeoJSON from 'ol/format/GeoJSON';
 import Projection from 'ol/proj/Projection';
-//import {transform as proj_transform} from 'ol/proj';
 
 import {register as ol_proj_proj4_register}  from 'ol/proj/proj4';
 import proj4 from 'proj4';
@@ -162,6 +168,8 @@ export default {
         'admin-viewer-point-export': adminViewerPointExport,
         'admin-viewer-point-raster-export': adminViewerPointRasterExport,
         'admin-viewer-settings': adminViewerSettings,
+        Splitpanes,
+        Pane,        
         RingLoader,
   },
 
@@ -217,7 +225,6 @@ export default {
       selectedExtent: undefined,
 
       globalEventListeners: {},
-      olmap_viewer_padding_left: 400,
 
       table:{attibutes: [], data: []},
       featureDetailsShow: false,
@@ -590,10 +597,12 @@ export default {
     },
     onSettingsDialog() {
       this.settingsDialog = !this.settingsDialog;
-      var rect = document.getElementById("innergrid-item-nav").getBoundingClientRect();
+      var rect = document.getElementById("split-main").getBoundingClientRect();
       //console.log(rect.right);
       //console.log(this.$refs.settingsDialog);
-      this.$refs.settingsDialog.boxX = rect.right; // just inital x position
+      this.$refs.settingsDialog.boxX = rect.left; // just inital x position
+      //this.$refs.settingsDialog.boxX = 0;
+      //this.$refs.settingsDialog.boxY = 0;
     },
     showFeaturesDialog(e) {
       var feature = this.vectorSource.getClosestFeatureToCoordinate(e.coordinate);
@@ -629,6 +638,9 @@ export default {
       }
       return alias;
     },
+    onSplitpanesResize() {
+      this.olmap.updateSize();
+    }
   },
   computed: {
     ...mapState({
@@ -657,6 +669,8 @@ export default {
           return 'background-checkerboard';
         case 'black':
           return 'background-black';
+        case 'grey':
+          return 'background-grey';          
         case 'white':
           return 'background-white';
         default:
@@ -826,9 +840,6 @@ export default {
 
     document.getElementById('foot-start-1').innerHTML = '?';
     document.getElementById('foot-end-1').innerHTML = '';
-
-    var rect = document.getElementById("innergrid-item-nav").getBoundingClientRect();
-    this.olmap_viewer_padding_left = rect.right;
 
     this.globalEventListeners.keydown = e => {
       if (e.keyCode == 17) { // ctrl-key
@@ -1076,17 +1087,21 @@ export default {
 .background-checkerboard {
   /*background: repeating-linear-gradient( 68grad, #868686, #909090 10px, #9b9999 10px, #8c8c8c 20px );*/
 
-  background: linear-gradient(45deg, rgba(0,0,0,0.0980392) 25%, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.0980392) 75%, rgba(0,0,0,0.0980392) 0), linear-gradient(45deg, rgba(0,0,0,0.0980392) 25%, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.0980392) 75%, rgba(0,0,0,0.0980392) 0), rgb(255, 255, 255);
-  background-position: 0 0, 10px 10px;
-  background-size: 20px 20px;
+  background: linear-gradient(45deg, rgba(0,0,0,0.0980392) 25%, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.0980392) 75%, rgba(0,0,0,0.0980392) 0), linear-gradient(45deg, rgba(0,0,0,0.0980392) 25%, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.0980392) 75%, rgba(0,0,0,0.0980392) 0), rgb(255, 255, 255) !important;
+  background-position: 0 0, 10px 10px !important;
+  background-size: 20px 20px !important;
 }
 
 .background-black {
-  background-color: black;
+  background-color: black !important;
+}
+
+.background-grey {
+  background-color: grey !important;
 }
 
 .background-white {
-  background-color: white;
+  background-color: white !important;
 }
 
 #top {
@@ -1178,6 +1193,19 @@ export default {
   padding-right: 0px;
   padding-top: 0px;
   padding-bottom: 0px;
+}
+
+.split-nav {
+  overflow-y: auto;
+  background-color: black;
+}
+
+.split-nav-list {
+  background-color: black;
+}
+
+.split-main {
+
 }
 
 </style>
