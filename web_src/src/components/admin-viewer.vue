@@ -1052,34 +1052,6 @@ export default {
 
 <style scoped>
 
-.innergrid-container {
-  display: grid;
-  grid-template-columns: max-content auto;
-  grid-template-rows: auto;
-  position: absolute;
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
-  pointer-events: none;
-}
-
-.innergrid-item-nav {
-  background-color: #e4e5e5;
-  padding-right: 0px;
-  overflow-y: auto;
-  width: 310px;
-  border-right-color: #0000001a;
-  border-right-width: 1px;
-  border-right-style: solid;
-  pointer-events: auto;
-}
-
-.innergrid-item-main {
-  pointer-events: auto;
-}
-
 .main {
   position: relative;
 }

@@ -19,6 +19,9 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.gdal.Dataset;
+import org.gdal.gdal.WarpOptions;
+import org.gdal.gdal.gdal;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -55,19 +58,17 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		/*if(!"WMS".equals(request.getParameter("SERVICE"))) {
 			log.error("no WMS");
 			return;
-		}*/
+		}*/		
 
-		String reqParam = request.getParameter("Request");
+		String reqParam = Web.getLastString(request, "Request", null);
 		if(reqParam==null) {
-			reqParam = request.getParameter("REQUEST");
+			reqParam = Web.getLastString(request, "REQUEST", null);
 		}
 		if(reqParam==null) {
-			reqParam = request.getParameter("request");
+			reqParam = Web.getLastString(request, "request", null);
 		}
-
-
 		if(reqParam==null) {
-			throw new RuntimeException("no REQUEST parameter");
+			reqParam = "GetCapabilities";
 		}
 
 		switch (reqParam) {

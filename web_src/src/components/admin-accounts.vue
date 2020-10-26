@@ -12,7 +12,7 @@
           <v-divider></v-divider>
           <v-data-table :headers="headers" :items="accounts" v-if="accounts != undefined" hide-actions>
               <template slot="items" slot-scope="props">
-                <td :class="{admin: accountIsAdmin(props.item), empty: props.item.roles.length == 0}"><span class="user-list">{{props.item.name}}</span></td>
+                <td :class="{admin: accountIsAdmin(props.item), empty: props.item.roles.length == 0}"><v-icon v-if="accountIsAdmin(props.item)">admin_panel_settings</v-icon><v-icon v-else>account_box</v-icon><span class="user-list">{{props.item.name}}</span></td>
                 <td>
                   <span v-for="role in props.item.roles" :key="role"><span class="role-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
                   <span v-if="props.item.roles.length === 0" style="color: grey;">(none)</span>
@@ -26,7 +26,7 @@
           <v-divider></v-divider>
           <v-data-table :headers="roles_headers" :items="roles" v-if="acl_roles != undefined" hide-actions>
               <template slot="items" slot-scope="props">
-                <td><span class="role-list">{{props.item.role}}</span></td>
+                <td><v-icon>vpn_key</v-icon><span class="role-list">{{props.item.role}}</span></td>
                 <td>
                   <span v-for="user in props.item.users" :key="user"><span class="user-list">{{user}}</span></span>
                   <!--<span v-if="props.item.users.length === 0" style="color: grey;">(none)</span>-->

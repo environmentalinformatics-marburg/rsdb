@@ -118,6 +118,11 @@ public final class Web {
 		String text = request.getParameter(name);
 		return text==null?defaultValue:text;
 	}
+	
+	public  static String getLastString(Request request, String name, String defaultValue) {
+		String[] values = request.getParameterValues(name);
+		return values == null ? defaultValue : values[values.length - 1];
+	}
 
 	public  static String getString(Request request, String name) {
 		String text = request.getParameter(name);

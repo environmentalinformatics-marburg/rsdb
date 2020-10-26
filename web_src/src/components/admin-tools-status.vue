@@ -5,7 +5,13 @@
         <v-icon>refresh</v-icon>
       </v-btn>
       <v-switch v-model="autoRefresh" label="auto refresh" style="display: inline-block;" />
-      <table class="table-status">
+      <div v-show="data == undefined">
+        <b>--- [task info not loaded] ---</b>
+      </div>
+      <div v-show="data != undefined && data.length === 0">
+        <b>--- [no tasks submitted] ---</b>
+      </div>
+      <table class="table-status" v-if="data != undefined && data.length > 0">
         <thead>
           <tr>
             <th>ID</th>
