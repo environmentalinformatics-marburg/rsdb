@@ -230,7 +230,7 @@ public class GeoReference {
 	}
 
 	public Range2d bboxToRange2d(double xmin, double ymin, double xmax, double ymax) {
-		return new Range2d(geoXToPixel(xmin), geoYToPixel(ymin), geoXToPixel(xmax), geoYToPixel(ymax));
+		return new Range2d(geoXToPixel(xmin), geoYToPixel(ymin), geoXToPixel(Math.nextDown(xmax)), geoYToPixel(Math.nextDown(ymax)));
 	}
 
 	@Override

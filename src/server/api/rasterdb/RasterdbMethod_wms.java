@@ -190,13 +190,13 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		if (ref.wms_transposed) {
 			eBoundingBox.setAttribute("minx", "" + ref.pixelYToGeo(localRange.ymin));
 			eBoundingBox.setAttribute("miny", "" + ref.pixelXToGeo(localRange.xmin));
-			eBoundingBox.setAttribute("maxx", "" + ref.pixelYToGeo(localRange.ymax));
-			eBoundingBox.setAttribute("maxy", "" + ref.pixelXToGeo(localRange.xmax));
+			eBoundingBox.setAttribute("maxx", "" + ref.pixelYToGeo(localRange.ymax + 1));
+			eBoundingBox.setAttribute("maxy", "" + ref.pixelXToGeo(localRange.xmax + 1));
 		} else {
 			eBoundingBox.setAttribute("minx", "" + ref.pixelXToGeo(localRange.xmin));
 			eBoundingBox.setAttribute("miny", "" + ref.pixelYToGeo(localRange.ymin));
-			eBoundingBox.setAttribute("maxx", "" + ref.pixelXToGeo(localRange.xmax));
-			eBoundingBox.setAttribute("maxy", "" + ref.pixelYToGeo(localRange.ymax));
+			eBoundingBox.setAttribute("maxx", "" + ref.pixelXToGeo(localRange.xmax + 1));
+			eBoundingBox.setAttribute("maxy", "" + ref.pixelYToGeo(localRange.ymax + 1));
 		}
 
 		/*ReadonlyNavigableSetView<Integer> timekeys = rasterdb.rasterUnit().timeKeysReadonly();

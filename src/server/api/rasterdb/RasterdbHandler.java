@@ -43,6 +43,7 @@ public class RasterdbHandler extends AbstractHandler {
 		addMethod(new RasterdbMethod_pixel(broker));
 		addMethod(new RasterdbMethod_packages(broker));
 		addMethod(new RasterdbMethod_wms(broker));
+		addMethod(new RasterdbMethod_wcs(broker));
 	}
 
 	@SuppressWarnings("unused")
