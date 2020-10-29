@@ -19,8 +19,10 @@ docs:
         url: /docs/server_installation/
       - title: "R Package Installation"
         url: /docs/r_package_installation/   
+      - title: "WCS"
+        url: /docs/wcs/        
       - title: "WMS"
-        url: /docs/wms/
+        url: /docs/wms/        
   - title: Layers
     url: /docs/layers/
     children:

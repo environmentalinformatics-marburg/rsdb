@@ -27,7 +27,6 @@ import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
 import org.gdal.gdal.TranslateOptions;
-import org.gdal.gdal.WarpOptions;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconstConstants;
 import org.w3c.dom.Document;
@@ -39,37 +38,29 @@ import broker.TimeSlice;
 import rasterdb.BandProcessor;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
-import rasterdb.Rasterizer;
 import rasterdb.TimeBand;
-import rasterdb.dsl.DSL;
-import rasterdb.dsl.ErrorCollector;
-import server.api.rasterdb.RequestProcessor.OutputProcessingType;
 import server.api.rasterdb.RequestProcessor.TiffDataType;
-import server.api.rasterdb.WmsCapabilities.WmsStyle;
 import util.Extent2d;
-import util.Extent3d;
 import util.Range2d;
 import util.ResponseReceiver;
 import util.TimeUtil;
 import util.Web;
-import util.collections.ReadonlyNavigableSetView;
 import util.frame.DoubleFrame;
+import util.frame.FloatFrame;
 import util.frame.ShortFrame;
-import util.image.ImageBufferARGB;
-import util.image.Renderer;
 import util.tiff.TiffBand;
 import util.tiff.TiffWriter;
 
 public class RasterdbMethod_wcs extends RasterdbMethod {
 	private static final Logger log = LogManager.getLogger();
-	
+
 	private static Driver GDAL_MEM_DRIVER = null;
-	
+
 	static {
 		gdal.AllRegister();
 		GDAL_MEM_DRIVER = gdal.GetDriverByName("MEM");
 	}
-	
+
 	public RasterdbMethod_wcs(Broker broker) {
 		super(broker, "wcs");	
 	}
@@ -78,8 +69,8 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		request.setHandled(true);
 
-		/*if(!"WMS".equals(request.getParameter("SERVICE"))) {
-			log.error("no WMS");
+		/*if(!"WCS".equals(request.getParameter("SERVICE"))) {
+			log.error("no WCS");
 			return;
 		}*/		
 
@@ -132,6 +123,19 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		}
 	}
 
+	public int getGdalDatatypeFromTiffDatatype(TiffDataType tiffdataType) {
+		switch(tiffdataType) {
+		case INT16:			
+			return gdalconstConstants.GDT_UInt16;
+		case FLOAT32:
+			return gdalconstConstants.GDT_Float32;
+		case FLOAT64:
+			return gdalconstConstants.GDT_Float64;
+		default:
+			throw new RuntimeException("unknown tiff data type");
+		}
+	}
+
 	public void handle_GetCoverage(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		int dstWidth = Web.getInt(request, "WIDTH", -1);
 		int dstHeight = Web.getInt(request, "HEIGHT", -1);
@@ -157,29 +161,49 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		/*OutputProcessingType outputProcessingType = OutputProcessingType.IDENTITY;		
 		RequestProcessorBands.processBands(processor, processingBands, outputProcessingType, "tiff", resceiver);*/
 
-		TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands);
-
 		Range2d srcRange = processor.getDstRange();
 		if(srcRange.getPixelCount() > 16777216) { // 4096*4096
 			throw new RuntimeException("requested raster too large: " + srcRange.getWidth() + " x " + srcRange.getHeight());
 		}
 
-		switch(tiffdataType) { // all bands need same data type for tiff reader compatibility (e.g. GDAL)
-		case INT16:			
-			Dataset datasetSrc = GDAL_MEM_DRIVER.Create("src", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalconstConstants.GDT_UInt16);
-			//Driver memDriver = gdal.GetDriverByName("GTiff");
-			//Dataset datasetSrc = memDriver.Create("c:/temp4/gdalfile/t17.tiff", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalconstConstants.GDT_UInt16);
-			{
-				int bandIndex = 1;
-				for(TimeBand timeband : processingBands) {	
+		TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands); // all bands need same data type for tiff reader compatibility (e.g. GDAL)
+		int gdalDataType = getGdalDatatypeFromTiffDatatype(tiffdataType);
+
+		Dataset datasetSrc = GDAL_MEM_DRIVER.Create("src", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalDataType);
+		//Driver memDriver = gdal.GetDriverByName("GTiff");
+		//Dataset datasetSrc = memDriver.Create("c:/temp4/gdalfile/t17.tiff", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalconstConstants.GDT_UInt16);
+		Dataset datasetDst = null;
+
+		try {
+			int bandIndex = 1;
+			for(TimeBand timeband : processingBands) {
+				Band gdalBand = datasetSrc.GetRasterBand(bandIndex);
+				switch(tiffdataType) {
+				case INT16:	{
 					ShortFrame frame = processor.getShortFrame(timeband);
-					Band gdalBand = datasetSrc.GetRasterBand(bandIndex);
 					for(int y = 0; y < frame.height; y++) {
-						//log.info("w y " + y);
 						gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
 					}
-					bandIndex++;
+					break;
 				}
+				case FLOAT32:	{
+					FloatFrame frame = processor.getFloatFrame(timeband);
+					for(int y = 0; y < frame.height; y++) {
+						gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+					}
+					break;
+				}
+				case FLOAT64: {
+					DoubleFrame frame = processor.getDoubleFrame(timeband);
+					for(int y = 0; y < frame.height; y++) {
+						gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+					}
+					break;
+				}
+				default:
+					throw new RuntimeException("unknown tiff data type");
+				}	
+				bandIndex++;
 			}
 
 			Vector<String> options = new Vector<String>();
@@ -190,14 +214,21 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			options.add("-r");
 			options.add("cubic");
 			TranslateOptions translateOptions = new TranslateOptions(options);
-			Dataset datasetDst = gdal.Translate("/vsimem/in_memory_output.tif", datasetSrc, translateOptions);
-			datasetSrc.delete();
+			datasetDst = gdal.Translate("/vsimem/in_memory_output.tif", datasetSrc, translateOptions);
+		} finally {
+			if(datasetSrc != null) {
+				datasetSrc.delete();
+			}
+		}
 
-			TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, extent2d.xmin, extent2d.ymin, geoXres, geoYres, (short)ref.getEPSG(0));
-			{
-				int bandIndex = 1;
-				for(TimeBand timeband : processingBands) {	
-					Band gdalBand = datasetDst.GetRasterBand(bandIndex);
+		TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, extent2d.xmin, extent2d.ymin, geoXres, geoYres, (short)ref.getEPSG(0));
+
+		try {
+			int bandIndex = 1;
+			for(TimeBand timeband : processingBands) {	
+				Band gdalBand = datasetDst.GetRasterBand(bandIndex);
+				switch(tiffdataType) {
+				case INT16:	{
 					short[][] dstData = new short[dstHeight][dstWidth];
 					/*for(int y = 0; y < dstHeight; y++) {
 						short[] dstDataY = dstData[y];
@@ -206,26 +237,42 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 						}
 					}*/
 					for(int y = 0; y < dstHeight; y++) {
-						//log.info("r y " + y);
-						gdalBand.ReadRaster(0, y, dstWidth, 1, gdalconstConstants.GDT_UInt16, dstData[y]);
+						gdalBand.ReadRaster(0, y, dstWidth, 1, gdalDataType, dstData[y]);
 					}
 					tiffWriter.addTiffBand(TiffBand.ofInt16(dstData));
-					bandIndex++;
+					break;
 				}
+				case FLOAT32: {
+					float[][] dstData = new float[dstHeight][dstWidth];
+					for(int y = 0; y < dstHeight; y++) {
+						gdalBand.ReadRaster(0, y, dstWidth, 1, gdalDataType, dstData[y]);
+					}
+					tiffWriter.addTiffBand(TiffBand.ofFloat32(dstData));
+					break;
+				}
+				case FLOAT64: {
+					double[][] dstData = new double[dstHeight][dstWidth];
+					for(int y = 0; y < dstHeight; y++) {
+						gdalBand.ReadRaster(0, y, dstWidth, 1, gdalDataType, dstData[y]);
+					}
+					tiffWriter.addTiffBand(TiffBand.ofFloat64(dstData));
+					break;
+				}
+				default:
+					throw new RuntimeException("unknown tiff data type");
+				}
+				bandIndex++;
+			}
+		} finally {
+			if(datasetDst != null) {
 				datasetDst.delete();
 			}
-			resceiver.setStatus(HttpServletResponse.SC_OK);
-			resceiver.setContentType("image/tiff");
-			resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
-			tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));
-			break;
-		case FLOAT32:
-			throw new RuntimeException("unknown tiff data type");
-		case FLOAT64:
-			throw new RuntimeException("unknown tiff data type");
-		default:
-			throw new RuntimeException("unknown tiff data type");
 		}
+
+		resceiver.setStatus(HttpServletResponse.SC_OK);
+		resceiver.setContentType("image/tiff");
+		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
+		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));
 	}
 
 
@@ -397,7 +444,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		Element e_domainSet = addElement(eCoverageOffering, "domainSet");
 		Element e_spatialDomain = addElement(e_domainSet, "spatialDomain");
 		Element e_gml_Envelope = addElement(e_spatialDomain, "gml:Envelope");
-		e_gml_Envelope.setAttribute("srsName", "EPSG:25832");
+		e_gml_Envelope.setAttribute("srsName", rasterdb.ref().code);
 		GeoReference ref = rasterdb.ref();
 		Range2d localRange = rasterdb.getLocalRange(false);
 		addElement(e_gml_Envelope, "gml:pos", ref.pixelXToGeo(localRange.xmin) + " " + ref.pixelYToGeo(localRange.ymin));
@@ -423,70 +470,12 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		}
 
 		Element e_supportedCRSs = addElement(eCoverageOffering, "supportedCRSs");
-		addElement(e_supportedCRSs, "requestResponseCRSs", "EPSG:25832");
-		addElement(e_supportedCRSs, "nativeCRSs", "EPSG:25832");
+		addElement(e_supportedCRSs, "requestResponseCRSs", rasterdb.ref().code);
+		addElement(e_supportedCRSs, "nativeCRSs", rasterdb.ref().code);
 
 		Element e_supportedFormats = addElement(eCoverageOffering, "supportedFormats");
 		addElement(e_supportedFormats, "formats", "GeoTIFF");
 
 		return rootElement;
 	}
-
-	private void addRootLayer(RasterDB rasterdb, Element eCapability, String name, String title) {
-		Element eRootLayer = addElement(eCapability, "Layer");
-
-
-
-		String code = rasterdb.ref().optCode("EPSG:3857");
-		addElement(eRootLayer, "Name", name);
-		addElement(eRootLayer, "Title", title);
-		addElement(eRootLayer, "CRS", code);
-		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
-		eBoundingBox.setAttribute("CRS", code);
-		Range2d localRange = rasterdb.getLocalRange(false);
-		if(localRange == null) {
-			return;
-		}
-		GeoReference ref = rasterdb.ref();
-		if (ref.wms_transposed) {
-			eBoundingBox.setAttribute("minx", "" + ref.pixelYToGeo(localRange.ymin));
-			eBoundingBox.setAttribute("miny", "" + ref.pixelXToGeo(localRange.xmin));
-			eBoundingBox.setAttribute("maxx", "" + ref.pixelYToGeo(localRange.ymax));
-			eBoundingBox.setAttribute("maxy", "" + ref.pixelXToGeo(localRange.xmax));
-		} else {
-			eBoundingBox.setAttribute("minx", "" + ref.pixelXToGeo(localRange.xmin));
-			eBoundingBox.setAttribute("miny", "" + ref.pixelYToGeo(localRange.ymin));
-			eBoundingBox.setAttribute("maxx", "" + ref.pixelXToGeo(localRange.xmax));
-			eBoundingBox.setAttribute("maxy", "" + ref.pixelYToGeo(localRange.ymax));
-		}
-
-		/*ReadonlyNavigableSetView<Integer> timekeys = rasterdb.rasterUnit().timeKeysReadonly();
-		for(Integer timeKey:timekeys) {
-			if(timeKey > 0) {
-				Element eTimeLayer = addElement(eRootLayer, "Layer");
-				addElement(eTimeLayer, "Name", name + "/" + timeKey);
-				addElement(eTimeLayer, "Title", title + " / " + TimeUtil.toPrettyText(timeKey));
-			}
-		}*/
-
-
-
-		TreeSet<Integer> timestamps = new TreeSet<Integer>();
-		timestamps.addAll(rasterdb.rasterUnit().timeKeysReadonly());
-		timestamps.addAll(rasterdb.timeMapReadonly.keySet());
-		for(Integer timestamp:timestamps) {
-			Element eTimeLayer = addElement(eRootLayer, "Layer");
-			addElement(eTimeLayer, "Name", name + "/" + timestamp);
-			TimeSlice timeSlice = rasterdb.timeMapReadonly.get(timestamp);
-			if(timeSlice == null) {
-				addElement(eTimeLayer, "Title", title + " / " + TimeUtil.toPrettyText(timestamp));
-			} else {
-				addElement(eTimeLayer, "Title", title + " / " + timeSlice.name);
-			}			
-		}
-	}
-
-
-
-
 }

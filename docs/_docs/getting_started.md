@@ -10,6 +10,8 @@ For local installation RSDB package needs to be downloaded.
 
 - [R-package installation](../r_package_installation)
 
+- [WCS](../wcs)
+
 - [WMS](../wms)
 
 - [Administration](../administration)
