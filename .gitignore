@@ -30,4 +30,5 @@
 .Rproj.user
 .RDataTmp
 gdal.txt
+/hs_err_*.log
 

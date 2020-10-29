@@ -39,6 +39,10 @@ public class Range2d {
 	public int getHeight() {
 		return ymax - ymin + 1;
 	}
+	
+	public long getPixelCount() {
+		return ((long)getWidth()) * ((long)getHeight());
+	}
 
 	public Range2d truncDiv(int d) {
 		return new Range2d(xmin / d, ymin / d, xmax / d, ymax / d);

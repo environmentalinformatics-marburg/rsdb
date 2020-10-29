@@ -311,7 +311,7 @@ public abstract class Cell<T> {
 		//int xCellEnd = (xCoveredMax - cxmin) * div + (div - 1);
 		//int yCellEnd = (yCoveredMax - cymin) * div + (div - 1);
 
-		log.info("t " + xTargetStart + " " + yTargetStart + " " + xTargetEnd + " " + yTargetEnd);
+		//log.info("t " + xTargetStart + " " + yTargetStart + " " + xTargetEnd + " " + yTargetEnd);
 
 		decodeCellDiv(tile, xCellStart, yCellStart, div, target, band, xTargetStart, yTargetStart, xTargetEnd, yTargetEnd);
 	}

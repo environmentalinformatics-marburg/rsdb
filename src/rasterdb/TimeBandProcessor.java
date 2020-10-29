@@ -255,9 +255,9 @@ public class TimeBandProcessor {
 
 
 	private short[][] readShort(int timestamp, Band band) {
-		log.info("get from pyramid " + pyramid + "   div " + pyramidDiv);
-		log.info("src " + pyramid_srcRange);
-		log.info("src " + pyramid_dstRange);
+		//log.info("get from pyramid " + pyramid + "   div " + pyramidDiv);
+		//log.info("src " + pyramid_srcRange);
+		//log.info("src " + pyramid_dstRange);
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
 		return ProcessingShort.readPixels(pyramidDiv, pyramid_rasterUnit, t, band, pyramid_srcRange);		
 	}

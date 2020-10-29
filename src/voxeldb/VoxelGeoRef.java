@@ -3,6 +3,7 @@ package voxeldb;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import util.Extent2d;
 import util.Extent3d;
 import util.Range3d;
 import util.yaml.YamlMap;

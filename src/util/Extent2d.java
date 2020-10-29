@@ -2,21 +2,21 @@ package util;
 
 import org.json.JSONWriter;
 
-public class Extent3d {	
+public class Extent2d {	
 	public final double xmin;
 	public final double ymin;
-	public final double zmin;	
 	public final double xmax;
 	public final double ymax;
-	public final double zmax;
 	
-	public Extent3d(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax) {
+	public static Extent2d parse(String xmin, String ymin, String xmax, String ymax) {
+		return new Extent2d(Double.parseDouble(xmin), Double.parseDouble(ymin), Double.parseDouble(xmax), Double.parseDouble(ymax));
+	}
+	
+	public Extent2d(double xmin, double ymin, double xmax, double ymax) {
 		this.xmin = xmin;
 		this.ymin = ymin;
-		this.zmin = zmin;
 		this.xmax = xmax;
 		this.ymax = ymax;
-		this.zmax = zmax;
 	}
 	
 	public void toJSON(JSONWriter json) {
@@ -29,12 +29,6 @@ public class Extent3d {
 		json.value(ymin);	
 		json.key("ymax");
 		json.value(ymax);
-		json.key("zmin");
-		json.value(zmin);	
-		json.key("zmax");
-		json.value(zmax);
 		json.endObject();	
 	}
-
-
 }

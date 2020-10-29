@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
@@ -22,9 +23,13 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
+import org.gdal.gdal.Driver;
+import org.gdal.gdal.TranslateOptions;
 import org.gdal.gdal.WarpOptions;
 import org.gdal.gdal.gdal;
+import org.gdal.gdalconst.gdalconstConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -39,7 +44,10 @@ import rasterdb.TimeBand;
 import rasterdb.dsl.DSL;
 import rasterdb.dsl.ErrorCollector;
 import server.api.rasterdb.RequestProcessor.OutputProcessingType;
+import server.api.rasterdb.RequestProcessor.TiffDataType;
 import server.api.rasterdb.WmsCapabilities.WmsStyle;
+import util.Extent2d;
+import util.Extent3d;
 import util.Range2d;
 import util.ResponseReceiver;
 import util.TimeUtil;
@@ -54,7 +62,14 @@ import util.tiff.TiffWriter;
 
 public class RasterdbMethod_wcs extends RasterdbMethod {
 	private static final Logger log = LogManager.getLogger();
-
+	
+	private static Driver GDAL_MEM_DRIVER = null;
+	
+	static {
+		gdal.AllRegister();
+		GDAL_MEM_DRIVER = gdal.GetDriverByName("MEM");
+	}
+	
 	public RasterdbMethod_wcs(Broker broker) {
 		super(broker, "wcs");	
 	}
@@ -116,50 +131,101 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	public void handle_GetCoverage(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		int width = Web.getInt(request, "WIDTH", -1);
-		int height = Web.getInt(request, "HEIGHT", -1);
-		
-		String[] bbox = request.getParameter("BBOX").split(",");
-		double geoXmin = Double.parseDouble(bbox[0]);
-		double geoYmin = Double.parseDouble(bbox[1]);
-		double geoXmax = Double.parseDouble(bbox[2]);
-		double geoYmax = Double.parseDouble(bbox[3]);
-		double geoXres = (geoXmax - geoXmin) / width;
-		double geoYres = (geoYmax - geoYmin) / height;
-		
-		ResponseReceiver resceiver = new ResponseReceiver(response);
-		
-		GeoReference ref = rasterdb.ref();
-		Range2d range2d = ref.bboxToRange2d(geoXmin, geoYmin, geoXmax, geoXmax);
 
-		
-		/*int timestamp = rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
-		
-		BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
-		
+	public void handle_GetCoverage(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
+		int dstWidth = Web.getInt(request, "WIDTH", -1);
+		int dstHeight = Web.getInt(request, "HEIGHT", -1);
+
+		String[] bbox = request.getParameter("BBOX").split(",");
+		Extent2d extent2d = Extent2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
+		double geoXres = (extent2d.xmax - extent2d.xmin) / dstWidth;
+		double geoYres = (extent2d.ymax - extent2d.ymin) / dstHeight;
+
+		ResponseReceiver resceiver = new ResponseReceiver(response);
+
+		GeoReference ref = rasterdb.ref();
+		Range2d range2d = ref.bboxToRange2d(extent2d.xmin, extent2d.ymin, extent2d.xmax, extent2d.ymax);
+		log.info(range2d);
+
+
+		int timestamp = rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
+
+		BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, dstWidth, dstHeight);
+
 		List<TimeBand> processingBands = processor.getTimeBands();
-		
-		OutputProcessingType outputProcessingType = OutputProcessingType.IDENTITY;	
-		
+
+		/*OutputProcessingType outputProcessingType = OutputProcessingType.IDENTITY;		
 		RequestProcessorBands.processBands(processor, processingBands, outputProcessingType, "tiff", resceiver);*/
-		
-		TiffWriter tiffWriter = new TiffWriter(width, height, geoXmin, geoYmin, geoXres, geoYres, (short)ref.getEPSG(0));
-		short[][] data = new short[height][width];
-		for(int y = 0; y < height; y++) {
-			short[] dataY = data[y];
-			for(int x = 0; x < width; x++) {
-				dataY[x] = (short) ((13*y * 29*x) % 31);
-			}
+
+		TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands);
+
+		Range2d srcRange = processor.getDstRange();
+		if(srcRange.getPixelCount() > 16777216) { // 4096*4096
+			throw new RuntimeException("requested raster too large: " + srcRange.getWidth() + " x " + srcRange.getHeight());
 		}
-		tiffWriter.addTiffBand(TiffBand.ofInt16(data));
-		
-		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("image/tiff");
-		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
-		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));	
-		
+
+		switch(tiffdataType) { // all bands need same data type for tiff reader compatibility (e.g. GDAL)
+		case INT16:			
+			Dataset datasetSrc = GDAL_MEM_DRIVER.Create("src", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalconstConstants.GDT_UInt16);
+			//Driver memDriver = gdal.GetDriverByName("GTiff");
+			//Dataset datasetSrc = memDriver.Create("c:/temp4/gdalfile/t17.tiff", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalconstConstants.GDT_UInt16);
+			{
+				int bandIndex = 1;
+				for(TimeBand timeband : processingBands) {	
+					ShortFrame frame = processor.getShortFrame(timeband);
+					Band gdalBand = datasetSrc.GetRasterBand(bandIndex);
+					for(int y = 0; y < frame.height; y++) {
+						//log.info("w y " + y);
+						gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+					}
+					bandIndex++;
+				}
+			}
+
+			Vector<String> options = new Vector<String>();
+			options.add("-outsize");
+			options.add(""+dstWidth);
+			options.add(""+dstHeight);
+
+			options.add("-r");
+			options.add("cubic");
+			TranslateOptions translateOptions = new TranslateOptions(options);
+			Dataset datasetDst = gdal.Translate("/vsimem/in_memory_output.tif", datasetSrc, translateOptions);
+			datasetSrc.delete();
+
+			TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, extent2d.xmin, extent2d.ymin, geoXres, geoYres, (short)ref.getEPSG(0));
+			{
+				int bandIndex = 1;
+				for(TimeBand timeband : processingBands) {	
+					Band gdalBand = datasetDst.GetRasterBand(bandIndex);
+					short[][] dstData = new short[dstHeight][dstWidth];
+					/*for(int y = 0; y < dstHeight; y++) {
+						short[] dstDataY = dstData[y];
+						for(int x = 0; x < dstWidth; x++) {
+							dstDataY[x] = (short) ((13*y * 29*x) % 31);
+						}
+					}*/
+					for(int y = 0; y < dstHeight; y++) {
+						//log.info("r y " + y);
+						gdalBand.ReadRaster(0, y, dstWidth, 1, gdalconstConstants.GDT_UInt16, dstData[y]);
+					}
+					tiffWriter.addTiffBand(TiffBand.ofInt16(dstData));
+					bandIndex++;
+				}
+				datasetDst.delete();
+			}
+			resceiver.setStatus(HttpServletResponse.SC_OK);
+			resceiver.setContentType("image/tiff");
+			resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
+			tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));
+			break;
+		case FLOAT32:
+			throw new RuntimeException("unknown tiff data type");
+		case FLOAT64:
+			throw new RuntimeException("unknown tiff data type");
+		default:
+			throw new RuntimeException("unknown tiff data type");
+		}
 	}
 
 
@@ -189,7 +255,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		e.setTextContent(textContent);
 		return e;
 	}
-	
+
 	//https://www.wcs.nrw.de/geobasis/wcs_nw_dtk100?SERVICE=WCS&REQUEST=GetCapabilities&VERSION=1.0.0
 	static final String cc = "<?xml version='1.0' encoding=\"UTF-8\" standalone=\"no\" ?>\r\n"
 			+ "<WCS_Capabilities\r\n"
@@ -216,7 +282,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			+ "</ContentMetadata>\r\n"
 			+ "</WCS_Capabilities>\r\n"
 			+ "";
-	
+
 	String NS_URL = "http://www.opengis.net/wcs";
 	String NS_XLINK = "http://www.w3.org/1999/xlink";
 	String NS_GML = "http://www.opengis.net/gml";
@@ -238,7 +304,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 
 		return rootElement;
 	}	
-	
+
 	//https://www.wcs.nrw.de/geobasis/wcs_nw_dtk100?SERVICE=WCS&REQUEST=DescribeCoverage&VERSION=1.0.0&COVERAGE=nw_dtk100_col
 	static final String cd = "<?xml version='1.0' encoding=\"UTF-8\" ?>\r\n"
 			+ "<CoverageDescription\r\n"
@@ -303,7 +369,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			+ "  </CoverageOffering>\r\n"
 			+ "</CoverageDescription>\r\n"
 			+ "";
-	
+
 	private void xml_root__DescribeCoverage(RasterDB rasterdb, PrintWriter out) throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -317,7 +383,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		StreamResult result = new StreamResult(out);
 		transformer.transform(source, result);
 	}
-	
+
 	private Node getDescribeCoverage(RasterDB rasterdb, Document doc) {
 		Element rootElement = doc.createElementNS(NS_URL, "CoverageDescription");
 		rootElement.setAttribute("version", "1.0.0");
@@ -327,7 +393,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		Element eCoverageOffering = addElement(rootElement, "CoverageOffering");
 		addElement(eCoverageOffering, "name", "RSDB WCS");
 		addElement(eCoverageOffering, "label", rasterdb.config.getName());
-		
+
 		Element e_domainSet = addElement(eCoverageOffering, "domainSet");
 		Element e_spatialDomain = addElement(e_domainSet, "spatialDomain");
 		Element e_gml_Envelope = addElement(e_spatialDomain, "gml:Envelope");
@@ -348,16 +414,18 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		addElement(e_gml_origin, "gml:pos", ref.offset_x + " " + ref.offset_y);
 		addElement(e_gml_RectifiedGrid, "gml:offsetVector", ref.pixel_size_x + " " +  "0.0");
 		addElement(e_gml_RectifiedGrid, "gml:offsetVector", "0.0" + " " + (-ref.pixel_size_y));
-		
+
 		Element e_rangeSet = addElement(eCoverageOffering, "rangeSet");
 		Element e_RangeSet = addElement(e_rangeSet, "RangeSet");
-		addElement(e_RangeSet, "name", "Range 1");
-		addElement(e_RangeSet, "label", "My Label");
-		
+		for(rasterdb.Band band : rasterdb.bandMapReadonly.values()) {
+			addElement(e_RangeSet, "name", ""+band.index);
+			addElement(e_RangeSet, "label", band.title);
+		}
+
 		Element e_supportedCRSs = addElement(eCoverageOffering, "supportedCRSs");
 		addElement(e_supportedCRSs, "requestResponseCRSs", "EPSG:25832");
 		addElement(e_supportedCRSs, "nativeCRSs", "EPSG:25832");
-		
+
 		Element e_supportedFormats = addElement(eCoverageOffering, "supportedFormats");
 		addElement(e_supportedFormats, "formats", "GeoTIFF");
 
