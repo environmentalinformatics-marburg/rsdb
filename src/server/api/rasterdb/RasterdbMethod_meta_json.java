@@ -73,8 +73,8 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 					json.array();
 					json.value(ref.pixelXToGeo(localRange.xmin));
 					json.value(ref.pixelYToGeo(localRange.ymin));
-					json.value(ref.pixelXToGeo(localRange.xmax));
-					json.value(ref.pixelYToGeo(localRange.ymax));
+					json.value(ref.pixelXToGeo(localRange.xmax + 1));
+					json.value(ref.pixelYToGeo(localRange.ymax + 1));
 					json.endArray();
 					json.key("internal_rasterdb_extent");
 					json.array();

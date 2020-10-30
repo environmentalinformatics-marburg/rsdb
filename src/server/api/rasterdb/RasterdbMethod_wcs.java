@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
@@ -132,6 +134,8 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			throw new RuntimeException("unknown tiff data type");
 		}
 	}
+	
+	private static final AtomicLong memFileIdCounter = new AtomicLong(0);
 
 	public void handle_GetCoverage(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		int dstWidth = Web.getInt(request, "WIDTH", -1);
@@ -163,6 +167,8 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		if(srcRange.getPixelCount() > 16777216) { // 4096*4096
 			throw new RuntimeException("requested raster too large: " + srcRange.getWidth() + " x " + srcRange.getHeight());
 		}
+		
+		
 
 		TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands); // all bands need same data type for tiff reader compatibility (e.g. GDAL)
 		int gdalDataType = getGdalDatatypeFromTiffDatatype(tiffdataType);
@@ -212,7 +218,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			options.add("-r");
 			options.add("cubic");
 			TranslateOptions translateOptions = new TranslateOptions(options);
-			datasetDst = gdal.Translate("/vsimem/in_memory_output.tif", datasetSrc, translateOptions);
+			datasetDst = gdal.Translate("/vsimem/rsdb_wcs_in_memory_output"+ memFileIdCounter.incrementAndGet() +".tif", datasetSrc, translateOptions);
 		} finally {
 			if(datasetSrc != null) {
 				datasetSrc.delete();
@@ -456,7 +462,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		addElement(e_gml_RectifiedGrid, "gml:axisName", "x");
 		addElement(e_gml_RectifiedGrid, "gml:axisName", "y");
 		Element e_gml_origin = addElement(e_gml_RectifiedGrid, "gml:origin");
-		addElement(e_gml_origin, "gml:pos", ref.pixelXToGeo(localRange.xmin) + " " + ref.pixelYToGeo(localRange.ymax));
+		addElement(e_gml_origin, "gml:pos", ref.pixelXToGeo(localRange.xmin) + " " + ref.pixelYToGeo(localRange.ymax + 1));
 		addElement(e_gml_RectifiedGrid, "gml:offsetVector", ref.pixel_size_x + " " +  "0.0");
 		addElement(e_gml_RectifiedGrid, "gml:offsetVector", "0.0" + " " + (-ref.pixel_size_y));
 

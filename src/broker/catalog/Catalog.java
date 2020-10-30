@@ -108,8 +108,8 @@ public class Catalog {
 					if(localRange != null) {
 						double pxmin = ref.pixelXToGeo(localRange.xmin);
 						double pymin = ref.pixelYToGeo(localRange.ymin);
-						double pxmax = ref.pixelXToGeo(localRange.xmax);
-						double pymax = ref.pixelYToGeo(localRange.ymax);
+						double pxmax = ref.pixelXToGeo(localRange.xmax + 1);
+						double pymax = ref.pixelYToGeo(localRange.ymax + 1);
 						Set<TileKey> keys = rasterdb.rasterUnit().tileKeysReadonly();
 						Coordinate[] coordinates = new Coordinate[keys.size() * 4];
 						int i = 0;
