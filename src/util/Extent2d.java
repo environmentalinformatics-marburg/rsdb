@@ -31,4 +31,17 @@ public class Extent2d {
 		json.value(ymax);
 		json.endObject();	
 	}
+	
+	@Override
+	public String toString() {
+		return "Extent2d [xmin=" + xmin + ", ymin=" + ymin + ", xmax=" + xmax + ", ymax=" + ymax + "] w: " + getWidth() + " h: " + getHeight();
+	}
+	
+	public double getWidth() {
+		return xmax - xmin;
+	}
+
+	public double getHeight() {
+		return ymax - ymin;
+	}
 }

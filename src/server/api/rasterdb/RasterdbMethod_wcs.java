@@ -4,7 +4,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.servlet.http.HttpServletResponse;
@@ -34,7 +33,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import broker.Broker;
-import broker.TimeSlice;
 import rasterdb.BandProcessor;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
@@ -43,7 +41,6 @@ import server.api.rasterdb.RequestProcessor.TiffDataType;
 import util.Extent2d;
 import util.Range2d;
 import util.ResponseReceiver;
-import util.TimeUtil;
 import util.Web;
 import util.frame.DoubleFrame;
 import util.frame.FloatFrame;
@@ -149,6 +146,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 
 		GeoReference ref = rasterdb.ref();
 		Range2d range2d = ref.bboxToRange2d(extent2d.xmin, extent2d.ymin, extent2d.xmax, extent2d.ymax);
+		log.info(extent2d);
 		log.info(range2d);
 
 
@@ -453,12 +451,12 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		e_gml_RectifiedGrid.setAttribute("dimension", "2");
 		Element e_gml_limits = addElement(e_gml_RectifiedGrid, "gml:limits");
 		Element e_gml_GridEnvelope = addElement(e_gml_limits, "gml:GridEnvelope");
-		addElement(e_gml_GridEnvelope, "gml:low", localRange.xmin + " " + localRange.ymin);
-		addElement(e_gml_GridEnvelope, "gml:high", localRange.xmax + " " + localRange.ymax);
+		addElement(e_gml_GridEnvelope, "gml:low",  0 + " " + 0);
+		addElement(e_gml_GridEnvelope, "gml:high", (localRange.xmax - localRange.xmin) + " " + (localRange.ymax - localRange.ymin));
 		addElement(e_gml_RectifiedGrid, "gml:axisName", "x");
 		addElement(e_gml_RectifiedGrid, "gml:axisName", "y");
 		Element e_gml_origin = addElement(e_gml_RectifiedGrid, "gml:origin");
-		addElement(e_gml_origin, "gml:pos", ref.offset_x + " " + ref.offset_y);
+		addElement(e_gml_origin, "gml:pos", ref.pixelXToGeo(localRange.xmin) + " " + ref.pixelYToGeo(localRange.ymax));
 		addElement(e_gml_RectifiedGrid, "gml:offsetVector", ref.pixel_size_x + " " +  "0.0");
 		addElement(e_gml_RectifiedGrid, "gml:offsetVector", "0.0" + " " + (-ref.pixel_size_y));
 
