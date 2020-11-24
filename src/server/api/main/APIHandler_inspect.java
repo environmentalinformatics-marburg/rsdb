@@ -16,8 +16,6 @@ import org.eclipse.jetty.server.Response;
 import org.gdal.gdal.Driver;
 import org.json.JSONWriter;
 
-import com.google.gson.stream.JsonWriter;
-
 import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
