@@ -18,7 +18,7 @@ import broker.Broker;
 import broker.acl.ACL;
 import remotetask.rasterdb.BandSpec;
 import remotetask.rasterdb.ImportBySpec;
-import remotetask.rasterdb.ImportRemoteTask;
+import remotetask.rasterdb.ImportProcessor;
 import remotetask.rasterdb.ImportSpec;
 import server.api.main.APIHandler_inspect;
 import server.api.main.APIHandler_inspect.Strategy;
@@ -88,9 +88,9 @@ public class Import_sequoia {
 		log.info("layerName "+layerName);
 		
 		StringBuilder sb = new StringBuilder();
-		APIHandler_inspect.createJSONspec(path, Strategy.CREATE, filename, layerName, null, false, new JSONWriter(sb));
+		APIHandler_inspect.createJSONspec(path, Strategy.CREATE, filename, layerName, null, false, new JSONWriter(sb), null);
 		String s = sb.toString();
-		JSONObject json = new JSONObject(s).getJSONObject("specification");
+		JSONObject json = new JSONObject(s);
 		log.info(json.toString(1));
 		ImportSpec spec = new ImportSpec();
 		spec.parse(json);
@@ -128,7 +128,7 @@ public class Import_sequoia {
 		band4.wavelength = 790;
 		band4.fwhm = 40;
 		
-		ImportRemoteTask importRemoteTask = ImportBySpec.importPerpare(broker, path, layerName, spec);
-		importRemoteTask.run();
+		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, layerName, spec);
+		importProcessor.process();
 	}
 }

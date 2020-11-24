@@ -127,7 +127,7 @@ RemoteSensing_public <- list( #      *********** public ************************
     return(VoxelDB$new(private$rsdbConnector, name))
   },
 
-  submit_task = function(task) {
+  submit_task = function(task, wait = TRUE) {
     params <- task
     if(is.list(task)) {
       # nothing
@@ -138,7 +138,12 @@ RemoteSensing_public <- list( #      *********** public ************************
     }
     response <- private$rsdbConnector$POST_json("/api/remote_tasks", data = list(remote_task = params))
     remote_task <- RemoteTask$new(private$rsdbConnector, response$remote_task$id)
-    return(remote_task)
+    if(wait) {
+      result <- remote_task$wait()
+      return(result)
+    } else {
+      return(remote_task)
+    }
   }
 
 )
@@ -278,7 +283,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' remotesensing$tasks_pointcloud
 #' remotesensing$tasks_voxeldb
 #' remotesensing$tasks_vectordb
-#' remotesensing$submit_task(task)
+#' remotesensing$submit_task(task, wait = TRUE)
 #'
 #' remotesensing$web()
 #'
@@ -372,9 +377,11 @@ RemoteSensing_private <- list( #      *********** private **********************
 #'
 #' returns: data.frame with task details}
 #'
-#' \item{$submit_task(task)}{Submit a remote task to RSDB server.
+#' \item{$submit_task(task, wait = TRUE)}{Submit a remote task to RSDB server.
 #'
 #' task: remote task parameters. List of parameters or character containing parameters as JSON text.
+#'
+#' wait: wait until task finished. Then return result. Default: TRUE.
 #'
 #' returns: RemoteTask object}
 #'

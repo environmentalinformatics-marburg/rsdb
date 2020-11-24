@@ -116,7 +116,7 @@ returns: success message}
 
 \item{$set_meta(meta)}{change meta data of this raster layer
 
- meta: named list of items to change}
+ meta: named list of items to change:: 'title': Tile of raster-layer, 'description', tags: 'list of raster-layer tags, acl: 'list read access roles', acl_mod: 'list modify access roles'}
 
 \item{$set_band_meta(bands)}{change band meta data of this raster layer
 

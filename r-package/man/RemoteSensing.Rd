@@ -45,7 +45,7 @@ remotesensing$tasks_pointdb
 remotesensing$tasks_pointcloud
 remotesensing$tasks_voxeldb
 remotesensing$tasks_vectordb
-remotesensing$submit_task(task)
+remotesensing$submit_task(task, wait = TRUE)
 
 remotesensing$web()
 }
@@ -147,9 +147,11 @@ returns: data.frame with task details}
 
 returns: data.frame with task details}
 
-\item{$submit_task(task)}{Submit a remote task to RSDB server.
+\item{$submit_task(task, wait = TRUE)}{Submit a remote task to RSDB server.
 
 task: remote task parameters. List of parameters or character containing parameters as JSON text.
+
+wait: wait until task finished. Then return result. Default: TRUE.
 
 returns: RemoteTask object}
 
@@ -413,7 +415,7 @@ woellauer
 \if{latex}{\out{\hypertarget{method-submit_task}{}}}
 \subsection{Method \code{submit_task()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$submit_task(task)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$submit_task(task, wait = TRUE)}\if{html}{\out{</div>}}
 }
 
 }

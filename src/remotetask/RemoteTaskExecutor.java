@@ -92,6 +92,12 @@ public class RemoteTaskExecutor {
 		}
 	}
 
+	public static RemoteProxyTask insertToExecute(RemoteProxy remoteProxy) {
+		RemoteProxyTask remoteProxyTask = RemoteProxyTask.of(remoteProxy);
+		insertToExecute(remoteProxyTask);
+		return remoteProxyTask;
+	}
+	
 	public static void insertToExecute(RemoteTask remoteTask) {
 		executingTaskMap.put(remoteTask.id, remoteTask);
 		ForkJoinPool.commonPool().execute(remoteTask);

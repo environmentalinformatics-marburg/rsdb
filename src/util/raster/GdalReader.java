@@ -282,6 +282,14 @@ public class GdalReader {
 	public GdalReader(String filename) {
 		this.filename = filename;
 		this.dataset = gdal.Open(filename);
+		if(dataset == null) {
+			String message = gdal.GetLastErrorMsg();
+			if(message != null) {
+				throw new RuntimeException("could not open in GDAL: " + filename + "  " + message);		
+			} else {
+				throw new RuntimeException("could not open in GDAL: " + filename);
+			}
+		}
 		this.x_range = dataset.getRasterXSize();
 		this.y_range = dataset.getRasterYSize();
 		this.src_size = x_range*y_range;		

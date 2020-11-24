@@ -16,6 +16,8 @@ import org.eclipse.jetty.server.Response;
 import org.gdal.gdal.Driver;
 import org.json.JSONWriter;
 
+import com.google.gson.stream.JsonWriter;
+
 import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
@@ -89,22 +91,25 @@ public class APIHandler_inspect extends APIHandler {
 
 		}
 	}
-	
-	public static void createJSONspec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json) {
+
+	public static void createJSONspec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices) {
 		log.info(fullPath);
 		GdalReader gdalreader = new GdalReader(fullPath.toString());
-		
-		json.object();
-		json.key("specification");
+		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices);
+	}
+
+	public static void createJSONspec(GdalReader gdalreader, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices) {
 		json.object();
 
 		json.key("strategy");
 		json.value(strategy.toString());
 
-		json.key("filename");
-		json.value(fileID);
+		if(fileID != null) {
+			json.key("filename");
+			json.value(fileID);
+		}
 
-		if(strategy.isCreate()) {
+		if(strategy.isCreate() && rasterdbID == null && fileID != null) {
 			rasterdbID = fileID;
 			int li = fileID.lastIndexOf('.');
 			if(li > 0) {
@@ -128,7 +133,6 @@ public class APIHandler_inspect extends APIHandler {
 
 		json.key("y_range");
 		json.value(gdalreader.y_range);
-
 		try {
 			Driver driver = gdalreader.dataset.GetDriver();
 			if(driver != null) {
@@ -147,12 +151,12 @@ public class APIHandler_inspect extends APIHandler {
 		json.value(file_pixel_size_x);
 		json.key("file_pixel_size_y");
 		json.value(file_pixel_size_y);
-		
+
 		double[] gdal_ref = gdalreader.getGeoRef();
 		double easting = gdal_ref[0];
 		double northing = gdal_ref[1];
-
-		if(strategy.isCreate()) {
+		
+		if(strategy.isCreate() || !rasterdb.ref().has_pixel_size()) {
 			json.key("pixel_size_x");
 			json.value(file_pixel_size_x);
 			json.key("pixel_size_y");
@@ -164,7 +168,7 @@ public class APIHandler_inspect extends APIHandler {
 			json.value(rasterdb_geo_offset_x);
 			json.key("rasterdb_geo_offset_y");
 			json.value(rasterdb_geo_offset_y);
-		} else {
+		} else  {
 			json.key("pixel_size_x");
 			json.value(rasterdb.ref().pixel_size_x);
 			json.key("pixel_size_y");
@@ -174,8 +178,8 @@ public class APIHandler_inspect extends APIHandler {
 			json.key("rasterdb_geo_offset_y");
 			json.value(rasterdb.ref().offset_y);
 		}	
-		
-		
+
+
 		json.key("easting");
 		json.value(easting);
 		json.key("northing");
@@ -202,16 +206,20 @@ public class APIHandler_inspect extends APIHandler {
 		json.key("file_proj4");
 		json.value(file_proj4 == null ? "" : file_proj4);
 
-		if(strategy.isCreate()) {
-			json.key("geo_code");
-			json.value(file_geo_code == null ? "" : file_geo_code);
+		if(strategy.isCreate() || !rasterdb.ref().has_proj4()) {
 			json.key("proj4");
 			json.value(file_proj4 == null ? "" : file_proj4);
 		} else {
-			json.key("geo_code");
-			json.value(rasterdb.ref().code);
 			json.key("proj4");
 			json.value(rasterdb.ref().proj4);	
+		}
+		
+		if(strategy.isCreate() || !rasterdb.ref().has_code()) {
+			json.key("geo_code");
+			json.value(file_geo_code == null ? "" : file_geo_code);
+		} else {
+			json.key("geo_code");
+			json.value(rasterdb.ref().code);
 		}
 
 		json.key("bands");
@@ -222,10 +230,19 @@ public class APIHandler_inspect extends APIHandler {
 			rastedbIndex = rasterdb.bandMapReadonly.lastKey() + 1;			
 		}
 		int cnt = gdalreader.getRasterCount();
+		if(layerBandIndices != null && layerBandIndices.length < cnt) {
+			cnt = layerBandIndices.length;
+		}
+		
 		for (int i = 0; i < cnt; i++) {
 			int fileIndex = i + 1;
 
-			if(strategy.isExistingAdd()) {
+			if(layerBandIndices != null) {
+				if(layerBandIndices[i] <= 0) {
+					continue;
+				}
+				rastedbIndex = layerBandIndices[i];
+			} else if(strategy.isExistingAdd()) {
 				while(rasterdb.bandMapReadonly.get(rastedbIndex) != null) {
 					rastedbIndex++;
 				}
@@ -327,7 +344,7 @@ public class APIHandler_inspect extends APIHandler {
 			Double[] noDataValueHolder = new Double[1];
 			gdalRasterBand.GetNoDataValue(noDataValueHolder);
 			json.value(noDataValueHolder[0] != null ? noDataValueHolder[0].toString() : "");
-			
+
 			json.key("timestamp");
 			json.value("");
 
@@ -362,7 +379,7 @@ public class APIHandler_inspect extends APIHandler {
 		} else {
 			json.value("");	
 		}
-		
+
 		json.key("corresponding_contact");
 		if(strategy.isExisting()) {	
 			json.value(rasterdb.informal().corresponding_contact);	
@@ -449,8 +466,7 @@ public class APIHandler_inspect extends APIHandler {
 		json.key("timestamp");
 		json.value(timestampText);
 
-		json.endObject();
-		json.endObject();				
+		json.endObject();			
 	}
 
 
@@ -495,6 +511,11 @@ public class APIHandler_inspect extends APIHandler {
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
-		createJSONspec(path, strategy, fileID, id, rasterdb, guessTimestamp, json);		
-	}	
+		json.object();
+		json.key("specification");
+		createJSONspec(path, strategy, fileID, id, rasterdb, guessTimestamp, json, null);	
+		json.endObject();
+	}
 }
+
+

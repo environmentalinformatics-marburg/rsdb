@@ -13,14 +13,24 @@ import util.raster.GdalReader;
 public class ImportBySpec {
 	private static final Logger log = LogManager.getLogger();
 	
-	public static ImportRemoteTask importPerpare(Broker broker, Path path, String id, ImportSpec spec) {
-		if(broker == null) {
-			throw new RuntimeException("no broker");
-		}
+	public static ImportProcessor importPerpare(Broker broker, Path path, String rasterdbID, ImportSpec spec) {
 		if(path == null) {
 			throw new RuntimeException("no path");
 		}
-		if(id == null) {
+		log.info(path);
+		GdalReader gdalreader = new GdalReader(path.toString());	
+		return importPerpare(broker, gdalreader, rasterdbID, spec);
+	}
+	
+	
+	public static ImportProcessor importPerpare(Broker broker, GdalReader gdalreader, String rasterdbID, ImportSpec spec) {
+		if(broker == null) {
+			throw new RuntimeException("no broker");
+		}
+		if(gdalreader == null) {
+			throw new RuntimeException("no gdalreader");
+		}
+		if(rasterdbID == null) {
 			throw new RuntimeException("no id");
 		}
 		if(spec == null) {
@@ -49,22 +59,26 @@ public class ImportBySpec {
 			throw new RuntimeException("no bandSpecs");
 		}		
 
-		log.info(path);
-		GdalReader gdalreader = new GdalReader(path.toString());		
-
 		RasterDB rasterdb;
 		if(spec.strategy.isCreate()) {
-			rasterdb = broker.createNewRasterdb(id, true, spec.storage_type);
-			rasterdb.setPixelSize(spec.pixel_size_x, spec.pixel_size_y, spec.rasterdb_geo_offset_x, spec.rasterdb_geo_offset_y);
-			rasterdb.setCode(spec.geo_code);
-			rasterdb.setProj4(spec.proj4);
-
+			rasterdb = broker.createNewRasterdb(rasterdbID, true, spec.storage_type);
 			rasterdb.setInformal(spec.inf.build());
-
 			rasterdb.setACL(spec.acl);
 			rasterdb.setACL_mod(spec.acl_mod);
 		} else {
-			rasterdb = broker.getRasterdb(id);
+			rasterdb = broker.getRasterdb(rasterdbID);
+		}
+		
+		if(!rasterdb.ref().has_pixel_size()) {
+			rasterdb.setPixelSize(spec.pixel_size_x, spec.pixel_size_y, spec.rasterdb_geo_offset_x, spec.rasterdb_geo_offset_y);			
+		}
+		
+		if(!rasterdb.ref().has_proj4()) {
+			rasterdb.setProj4(spec.proj4);			
+		}
+		
+		if(!rasterdb.ref().has_code()) {
+			rasterdb.setCode(spec.geo_code);			
 		}
 
 		if(spec.addBands != null) {
@@ -93,7 +107,7 @@ public class ImportBySpec {
 			}
 		}
 
-		ImportRemoteTask importRemoteTask = new ImportRemoteTask(broker, rasterdb, gdalreader, spec.bandSpecs, spec.pixel_size_y, spec.update_pyramid, spec.update_catalog, spec.generalTimestamp);
-		return importRemoteTask;
+		ImportProcessor importProcessor = new ImportProcessor(broker, rasterdb, gdalreader, spec.bandSpecs, spec.pixel_size_y, spec.update_pyramid, spec.update_catalog, spec.generalTimestamp);
+		return importProcessor;
 	}
 }

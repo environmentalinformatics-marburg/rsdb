@@ -76,7 +76,11 @@ public class JsonUtil {
 	}
 	
 	public static int[] getIntArray(JSONObject json, String key) {
-		JSONArray jsonArray = json.getJSONArray(key);
+		JSONArray jsonArray = json.optJSONArray(key);
+		if(jsonArray == null) {
+			int a0 = getInt(json, key);
+			return new int[] {a0};
+		}
 		int len = jsonArray.length();
 		int[] a = new int[len];
 		for(int i=0; i<len; i++) {

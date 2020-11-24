@@ -30,7 +30,7 @@ public class InjectHandler extends AbstractHandler {
 			}
 		} else {
 			//response.setHeader("X-Frame-Options", "deny"); // deny all iframes
-			response.setHeader("X-Frame-Options", "sameorigin"); // allow iframes on same site (needed for webfiles iframe)
+			//response.setHeader("X-Frame-Options", "sameorigin"); // allow iframes on same site (needed for webfiles iframe)
 		}
 		/*Enumeration<String> hs = request.getHeaderNames();
 		while(hs.hasMoreElements()) {

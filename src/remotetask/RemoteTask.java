@@ -12,7 +12,7 @@ import remotetask.pointdb.task_pointdb;
 import remotetask.rasterdb.task_rasterdb;
 import remotetask.vectordb.task_vectordb;
 
-public abstract class RemoteTask implements Runnable {
+public abstract class RemoteTask implements Runnable, MessageProxy {
 	private static final Logger log = LogManager.getLogger();
 	
 	private ConcurrentLinkedQueue<String> logMessages = new ConcurrentLinkedQueue<String>();
@@ -77,7 +77,7 @@ public abstract class RemoteTask implements Runnable {
 		return  tstart == -1 ? 0 : (tend == -1 ? System.currentTimeMillis() - tstart : tend - tstart);
 	}
 	
-	protected final void setMessage(String message) {
+	public final void setMessage(String message) {
 		lastMessageTime = System.currentTimeMillis();
 		this.message = message;
 		log(message);

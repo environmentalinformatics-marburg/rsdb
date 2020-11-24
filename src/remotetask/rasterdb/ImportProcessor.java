@@ -15,13 +15,14 @@ import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
+import remotetask.RemoteProxy;
 import remotetask.RemoteTask;
 import util.Range2d;
 import util.Util;
 import util.collections.vec.Vec;
 import util.raster.GdalReader;
 
-public class ImportRemoteTask extends RemoteTask {
+public class ImportProcessor extends RemoteProxy {
 	private static final Logger log = LogManager.getLogger();
 
 	private Broker broker;
@@ -33,7 +34,7 @@ public class ImportRemoteTask extends RemoteTask {
 	private final boolean update_pyramid;
 	private final boolean update_catalog;
 
-	public ImportRemoteTask(Broker broker, RasterDB rasterdb, GdalReader gdalreader, Vec<BandSpec> bandSpecs, double file_pixel_size_y, boolean update_pyramid, boolean update_catalog, int generalTimestamp) {
+	public ImportProcessor(Broker broker, RasterDB rasterdb, GdalReader gdalreader, Vec<BandSpec> bandSpecs, double file_pixel_size_y, boolean update_pyramid, boolean update_catalog, int generalTimestamp) {
 		this.broker = broker;
 		this.rasterdb = rasterdb;
 		this.gdalreader = gdalreader;
@@ -53,7 +54,7 @@ public class ImportRemoteTask extends RemoteTask {
 	}
 
 	@Override
-	protected void process() throws IOException {
+	public void process() throws IOException {
 		setMessage("importing");
 		double[] gdal_ref = gdalreader.getGeoRef();
 		double easting = gdal_ref[0];
@@ -232,6 +233,4 @@ public class ImportRemoteTask extends RemoteTask {
 			throw new RuntimeException("gdal data type not implemented for band type TYPE_FLOAT " + bandSpec.gdal_raster_data_type);				
 		}
 	}
-
-
 }

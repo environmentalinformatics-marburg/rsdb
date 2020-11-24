@@ -56,11 +56,11 @@ public class ImportSpec {
 	}
 
 	public void parse(JSONObject specification) {
-
-
+		log.info("parse spec " + specification);
 		Iterator<String> specIt = specification.keys();
 		while(specIt.hasNext()) {
 			String specKey = specIt.next();
+			log.info("specKey " + specKey);
 			switch(specKey) {
 			case "strategy": {
 				strategy = Strategy.of(specification.getString("strategy"));	
@@ -315,5 +315,15 @@ public class ImportSpec {
 			}
 			}
 		}		
+	}
+	
+	@Override
+	public String toString() {
+		return "ImportSpec [pixel_size_x=" + pixel_size_x + ", pixel_size_y=" + pixel_size_y
+				+ ", rasterdb_geo_offset_x=" + rasterdb_geo_offset_x + ", rasterdb_geo_offset_y="
+				+ rasterdb_geo_offset_y + ", geo_code=" + geo_code + ", proj4=" + proj4 + ", addBands=" + addBands
+				+ ", bandSpecs=" + bandSpecs + ", strategy=" + strategy + ", inf=" + inf + ", acl=" + acl + ", acl_mod="
+				+ acl_mod + ", update_pyramid=" + update_pyramid + ", update_catalog=" + update_catalog
+				+ ", generalTimestamp=" + generalTimestamp + ", storage_type=" + storage_type + "]";
 	}
 }

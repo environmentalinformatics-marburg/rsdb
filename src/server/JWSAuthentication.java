@@ -53,10 +53,6 @@ public class JWSAuthentication extends AbstractHandler {
 
 	private static final boolean ALWAYS_REFRESH_MUSTACHE = true;
 
-
-
-
-
 	private final Broker broker;
 
 	private final static int clock_skew = 60;
