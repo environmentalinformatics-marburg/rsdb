@@ -401,23 +401,23 @@ public class TileStorage implements RasterUnitStorage {
 			TileSlot tileSlotPre = null;
 			int concurrentUpdateOuterWaitCount = 0;
 			while(true) {
-				int concurrentUpdateInnterWaitCount = 0;
+				int concurrentUpdateInnerWaitCount = 0;
 				while(true) {
 					tileSlotPre = map.get(tileKey);
 					if(tileSlotPre == null) {
 						return null;
 					} else {
 						if(tileSlotPre.isConcurrentUpdate()) {
-							if(concurrentUpdateInnterWaitCount >= 10) {
+							if(concurrentUpdateInnerWaitCount >= 10) {
 								try {							
-									log.info("wait for concurrent update (" + concurrentUpdateInnterWaitCount + ")  " + tileKey.toString());
-									Thread.sleep(concurrentUpdateInnterWaitCount * 100);
+									log.info("wait for concurrent update (" + concurrentUpdateInnerWaitCount + ")  " + tileKey.toString());
+									Thread.sleep(concurrentUpdateInnerWaitCount * 100);
 								} catch (InterruptedException e) {
 									log.error(e);
 								}
 							}
-							concurrentUpdateInnterWaitCount++;
-							if(concurrentUpdateInnterWaitCount > 100) {
+							concurrentUpdateInnerWaitCount++;
+							if(concurrentUpdateInnerWaitCount > 100) {
 								String message = "could not read tile because of persisting concurrent updates " + tileKey.toString();
 								log.error(message);
 								throw new RuntimeException(message);

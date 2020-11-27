@@ -173,6 +173,10 @@ public class Band {
 		return type == TilePixel.TYPE_FLOAT;
 	}
 	
+	public byte getInt8NA() {
+		return 0;
+	}
+	
 	public short getInt16NA() {
 		return 0;
 	}

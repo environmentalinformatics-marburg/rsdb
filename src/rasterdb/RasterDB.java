@@ -298,6 +298,11 @@ public class RasterDB implements AutoCloseable {
 		writeMeta();
 		return removedBand; 
 	}
+	
+	public synchronized void invalidateLocalRange() {
+		local_extent = null;
+		writeMeta();
+	}
 
 	/**
 	 * 
@@ -348,6 +353,11 @@ public class RasterDB implements AutoCloseable {
 	public void setCode(String code) {
 		ref = ref.withCode(code, GeoReference.code_wms_transposed.contains(code));
 		log.info(ref + "   " + GeoReference.code_wms_transposed.contains(code));
+		writeMeta();
+	}
+	
+	public void setRef(GeoReference ref) {
+		this.ref = ref;
 		writeMeta();
 	}
 
@@ -495,7 +505,7 @@ public class RasterDB implements AutoCloseable {
 				throw new RuntimeException(e);
 			}
 		default:
-			throw new RuntimeException("unknown storage_type");
+			throw new RuntimeException("unknown storage_type: |" + storageType + "|");
 		}		
 	}
 
@@ -541,7 +551,7 @@ public class RasterDB implements AutoCloseable {
 		case "TileStorage":
 			return Files.exists(path.resolve("raster.idx"));
 		default:
-			throw new RuntimeException("unknown storage_type");
+			throw new RuntimeException("unknown storage_type: |" + storageType + "|");
 		}	
 
 	}
@@ -568,6 +578,11 @@ public class RasterDB implements AutoCloseable {
 
 	public void removeTimeSlice(int timeSlice) {
 		timeMap.remove(timeSlice);
+		writeMeta();
+	}
+
+	public void setAssociated(Associated associated) {
+		this.associated = associated;
 		writeMeta();
 	}
 }

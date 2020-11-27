@@ -34,6 +34,10 @@ public class DoubleFrame {
 	public static DoubleFrame ofExtent(DoubleFrame extent) {
 		return new DoubleFrame(new double[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
+	
+	public static DoubleFrame ofExtent(ByteFrame extent) {
+		return new DoubleFrame(new double[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
+	}
 
 	public static DoubleFrame ofRange2d(int width, int height, Range2d range2d) {
 		return new DoubleFrame(new double[height][width], range2d.xmin, range2d.ymin, range2d.xmax, range2d.ymax);		
@@ -76,6 +80,23 @@ public class DoubleFrame {
 			}
 		}
 		return target;
+	}
+	
+	public static DoubleFrame ofBytesWithNA(ByteFrame source, byte na) {
+		DoubleFrame target = ofExtent(source);
+		byteToDouble(source.data, target.data, source.width, source.height, na);
+		return target;
+	}
+
+	public static void byteToDouble(byte[][] src, double[][] dst, int width, int height, byte na) {
+		for (int y = 0; y < height; y++) {
+			byte[] s = src[y];
+			double[] t = dst[y];
+			for (int x = 0; x < width; x++) {
+				byte v = s[x];				
+				t[x] = v == na ? Double.NaN : v;
+			}
+		}
 	}
 
 	public static DoubleFrame minus(DoubleFrame a, DoubleFrame b) {

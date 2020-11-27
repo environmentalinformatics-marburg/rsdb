@@ -41,6 +41,10 @@ public class FloatFrame {
 	public static FloatFrame ofExtent(FloatFrame extent) {
 		return new FloatFrame(new float[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
+	
+	public static FloatFrame ofExtent(ByteFrame extent) {
+		return new FloatFrame(new float[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
+	}
 
 	public static FloatFrame ofRange2d(Range2d r, Range2d range2d) {
 		return new FloatFrame(new float[r.getHeight()][r.getWidth()], range2d.xmin, range2d.ymin, range2d.xmax, range2d.ymax);		
@@ -84,6 +88,23 @@ public class FloatFrame {
 			float[] t = dst[y];
 			for (int x = 0; x < width; x++) {
 				short v = s[x];				
+				t[x] = v == na ? Float.NaN : v;
+			}
+		}
+	}
+	
+	public static FloatFrame ofBytesWithNA(ByteFrame source, byte na) {
+		FloatFrame target = ofExtent(source);
+		byteToFloat(source.data, target.data, source.width, source.height, na);
+		return target;
+	}
+
+	public static void byteToFloat(byte[][] src, float[][] dst, int width, int height, byte na) {
+		for (int y = 0; y < height; y++) {
+			byte[] s = src[y];
+			float[] t = dst[y];
+			for (int x = 0; x < width; x++) {
+				byte v = s[x];				
 				t[x] = v == na ? Float.NaN : v;
 			}
 		}

@@ -14,8 +14,9 @@ import rasterdb.RasterdbConfig;
 import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
 import rasterunit.TileKey;
+import remotetask.RemoteProxy;
 
-public class Rebuild {
+public class Rebuild extends RemoteProxy {
 	private static final Logger log = LogManager.getLogger();
 
 	private final RasterDB src;
@@ -28,25 +29,27 @@ public class Rebuild {
 		this.storage_type = storage_type;
 	}
 
-	public void run() throws IOException {
+	@Override
+	public void process() throws IOException {
 		RasterUnitStorage srcStorage = src.rasterUnit();
 		String name_src = src.config.getName();
 		String name_dst = name_src + "_rebuild";
 		Path path_dst = rootPath.resolve(name_dst);
 		RasterdbConfig dstConfig = RasterdbConfig.ofPath(path_dst, storage_type);
 		dstConfig.set_fast_unsafe_import(true);
+		dstConfig.tilePixelLen = src.getTilePixelLen();
 		try(RasterDB dst = new RasterDB(dstConfig)) {
 			dst.setACL(src.getACL());
 			dst.setACL_mod(src.getACL_mod());
-			GeoReference srcRef = src.ref();
-			dst.setCode(srcRef.code);
-			dst.setProj4(srcRef.proj4);
+			dst.setRef(src.ref());
 			dst.setInformal(src.informal());
-			dst.setPixelSize(srcRef.pixel_size_x, srcRef.pixel_size_y, srcRef.offset_x, srcRef.offset_y);
+			dst.setAssociated(src.associated.copy());
 			RasterUnitStorage dstStorage = dst.rasterUnit();
 
+			int totalTiles = srcStorage.tileKeysReadonly().size();
 			Iterator<TileKey> it = srcStorage.tileKeysReadonly().iterator();
 
+			long totalWritten = 0;
 			int batchCnt = 0;
 			int batchMax = 256;
 			Tile[] batchCollector = new Tile[batchMax];
@@ -56,7 +59,9 @@ public class Rebuild {
 				batchCollector[batchCnt++] = tile;
 				if(batchCnt == batchMax) {
 					write(dstStorage, batchCollector, batchCnt);
+					totalWritten += batchCnt;
 					batchCnt = 0;
+					setMessage("tiles written: " + totalWritten + " of " + totalTiles);
 				}
 			}
 			if(batchCnt > 0) {
@@ -67,6 +72,7 @@ public class Rebuild {
 			for(Band band:src.bandMapReadonly.values()) {
 				dst.setBand(band);
 			}
+			
 			dst.rebuildPyramid(true);
 		}
 	}
@@ -78,5 +84,4 @@ public class Rebuild {
 		}
 		dstStorage.commit();
 	}
-
 }

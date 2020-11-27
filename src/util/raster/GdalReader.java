@@ -336,6 +336,23 @@ public class GdalReader {
 		}
 		return Util.arrayToArrayArray(in, x_range,targetData);
 	}
+	
+	/**
+	 * Get all Data of one band
+	 * @param band index number of band (starting with zero)
+	 * @param targetData maybe null, will be zero-filled at start.
+	 * @return targetData filled with data or new array if targetData is null or wrong dimensions
+	 * @throws IOException
+	 */
+	public byte[][] getDataByte(int bandIndex, byte[][] targetData, int yoff, int ysize) throws IOException {
+		Band band = dataset.GetRasterBand(bandIndex);
+		byte[] in = new byte[x_range * ysize];
+		int result = band.ReadRaster(0, yoff, x_range, ysize, in);
+		if(result!=0) {
+			throw new RuntimeException("read error "+result+"   in "+filename);
+		}
+		return Util.arrayToArrayArray(in, x_range,targetData);
+	}
 
 	public short[][] getDataShortOfByte(int bandIndex, short[][] targetData) throws IOException {
 		Band band = dataset.GetRasterBand(bandIndex);

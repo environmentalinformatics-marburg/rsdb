@@ -129,6 +129,21 @@ public class Util {
 		}
 		return temp;
 	}
+	
+	/**
+	 * reverses rows (y-direction)
+	 * @param data
+	 * @return
+	 */
+	public static byte[][] flipRows(byte[][] data) {
+		final int len = data.length;
+		final int max = len-1;
+		byte[][] temp = new byte[len][];		
+		for (int i = 0; i < len; i++) {
+			temp[i] = data[max-i];
+		}
+		return temp;
+	}
 
 	/**
 	 * reverses rows (y-direction)
@@ -169,7 +184,7 @@ public class Util {
 		return paths;
 	}
 
-	public static short[][] arrayToArrayArray(short[] a, int line, short r[][]) {
+	public static short[][] arrayToArrayArray(short[] a, int line, short[][] r) {
 		int count = a.length;
 		int lines = count/line;
 		if(r==null || r.length!=lines) {
@@ -184,8 +199,24 @@ public class Util {
 		}
 		return r;
 	}
+	
+	public static byte[][] arrayToArrayArray(byte[] a, int line, byte[][] r) {
+		int count = a.length;
+		int lines = count/line;
+		if(r == null || r.length != lines) {
+			return arrayToArrayArray(a, line);
+		}
+		for(int i=0;i<lines;i++) {
+			byte[] row = r[i];
+			if(row==null || row.length!=line) {
+				return arrayToArrayArray(a, line);
+			}
+			System.arraycopy(a, i*line, row, 0, line);
+		}
+		return r;
+	}
 
-	public static short[][] arrayToArrayArrayOfByte(byte[] a, int line, short r[][]) {
+	public static short[][] arrayToArrayArrayOfByte(byte[] a, int line, short[][] r) {
 		int count = a.length;
 		int lines = count/line;
 		if(r==null || r.length!=lines) {
@@ -225,6 +256,16 @@ public class Util {
 		int lines = count/line;
 		short[][] r = new short[lines][line];
 		for(int i=0;i<lines;i++) {
+			System.arraycopy(a, i*line, r[i], 0, line);
+		}
+		return r;
+	}
+	
+	public static byte[][] arrayToArrayArray(byte[] a, int line) {
+		int count = a.length;
+		int lines = count/line;
+		byte[][] r = new byte[lines][line];
+		for(int i = 0; i < lines; i++) {
 			System.arraycopy(a, i*line, r[i], 0, line);
 		}
 		return r;

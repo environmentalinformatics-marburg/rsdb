@@ -204,4 +204,9 @@ public class Associated {
 				&& Objects.equals(pointdb, other.pointdb) && Objects.equals(rasterdb, other.rasterdb)
 				&& Objects.equals(roi_groups, other.roi_groups) && Objects.equals(voxeldb, other.voxeldb);
 	}
+	
+	public Associated copy() {
+		Map<String, Object> data = this.toYaml();
+		return ofYaml(new YamlMap(data));
+	}
 }

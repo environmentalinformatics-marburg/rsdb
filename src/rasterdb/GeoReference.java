@@ -40,7 +40,9 @@ public class GeoReference {
 	public final boolean wms_transposed;
 
 	public static final Set<String> code_wms_transposed = Collections
-			.unmodifiableSet(new HashSet<String>(Arrays.asList("EPSG:4326")));
+			.unmodifiableSet(new HashSet<String>(Arrays.asList(
+					"EPSG:4326"
+					)));
 
 	protected GeoReference(double pixel_size_x, double pixel_size_y, double offset_x, double offset_y, String code,
 			boolean wms_transposed, String proj4) {
@@ -118,7 +120,7 @@ public class GeoReference {
 	public double pixelYToGeo(int pixelY) {
 		return (pixelY * pixel_size_y) + offset_y;
 	}
-	
+
 	public double pixelXToGeo(double pixelX) {
 		return (pixelX * pixel_size_x) + offset_x;
 	}
@@ -239,7 +241,7 @@ public class GeoReference {
 				+ offset_x + ", offset_y=" + offset_y + ", code=" + code + ", proj4=" + proj4 + ", wms_transposed="
 				+ wms_transposed + "]";
 	}
-	
+
 	/**
 	 * 
 	 * @return nullable
@@ -262,19 +264,19 @@ public class GeoReference {
 		}		
 		return null;
 	}
-	
+
 	public double getPixelSizeXdiv(int div) {
 		return pixel_size_x * div;
 	}
-	
+
 	public double getPixelSizeYdiv(int div) {
 		return pixel_size_y * div;
 	}
-	
+
 	public double pixelXdivToGeo(int div, int pixelX) {
 		return (pixelX * (pixel_size_x * div)) + offset_x;
 	}
-	
+
 	public double pixelYdivToGeo(int div, int pixelY) {
 		return (pixelY * (pixel_size_y * div)) + offset_y;
 	}

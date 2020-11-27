@@ -9,6 +9,7 @@ import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.cell.CellInt16;
+import rasterdb.cell.CellInt8;
 import rasterdb.cell.CellType;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingShort;
@@ -101,10 +102,13 @@ public class ImportProcessor extends RemoteProxy {
 			importBand(rasterdb, gdalreader, bandSpec, pixelXmin, pixelYmin, timestamp);
 			}
 		}*/
-		
-		setMessage("calculate extent");
+
+		rasterdb.invalidateLocalRange();
+
+		/*setMessage("calculate extent");
 		Range2d localRange = rasterdb.getLocalRange(true);
-		log.info("new local range " + localRange);
+		log.info("new local range " + localRange);*/
+
 
 		if(update_pyramid) {
 			setMessage("rebuild pyramid");
@@ -142,11 +146,15 @@ public class ImportProcessor extends RemoteProxy {
 			importBand_TYPE_SHORT(rasterdb, bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize, true);
 			break;
 		}
+		case CellType.INT8: {
+			importBand_TYPE_BYTE(rasterdb, bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize);
+			break;
+		}
 		default:
 			throw new RuntimeException("RasterDB band data type not implemented " + bandSpec.rastedb_band_data_type);			
 		}
 	}
-	
+
 	private static void importBand_TYPE_SHORT(RasterDB rasterdb, BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize, boolean isCellInt16) throws IOException {
 		short[][] dataShort = null;		
 		switch(bandSpec.gdal_raster_data_type) {
@@ -208,7 +216,7 @@ public class ImportProcessor extends RemoteProxy {
 		rasterUnit.commit();
 		log.info("tiles written: " + cnt);
 	}
-	
+
 	private static void importBand_TYPE_FLOAT(RasterDB rasterdb, BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize) throws IOException {
 		switch(bandSpec.gdal_raster_data_type) {
 		case GdalReader.GDAL_FLOAT64:
@@ -232,5 +240,41 @@ public class ImportProcessor extends RemoteProxy {
 		default:
 			throw new RuntimeException("gdal data type not implemented for band type TYPE_FLOAT " + bandSpec.gdal_raster_data_type);				
 		}
+	}
+
+	private static void importBand_TYPE_BYTE(RasterDB rasterdb, BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize) throws IOException {
+		byte[][] dataBytes = null;		
+		switch(bandSpec.gdal_raster_data_type) {
+		case GdalReader.GDAL_BYTE:
+		case GdalReader.GDAL_UINT16:
+		case GdalReader.GDAL_INT16:
+		case GdalReader.GDAL_FLOAT64:
+		case GdalReader.GDAL_FLOAT32: {
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
+				log.warn("convert uint16 raster data to int8");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_INT16) {
+				log.warn("convert int16 raster data to int8");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
+				log.warn("convert float64 raster data to int8");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
+				log.warn("convert float32 raster data to int8");
+			}
+			dataBytes = gdalreader.getDataByte(bandSpec.file_band_index, null, yoff, ysize);	
+			break;
+		}
+		default:
+			throw new RuntimeException("gdal data type not implemented for band type int8 " + bandSpec.gdal_raster_data_type);				
+		}			
+		dataBytes = Util.flipRows(dataBytes);
+		int cnt;
+		CellInt8 cellInt8 = new CellInt8(rasterdb.getTilePixelLen());
+		int xlen = dataBytes[0].length;
+		int ylen = dataBytes.length;
+		cnt = cellInt8.writeMerge(rasterUnit, timestamp, rasterdbBand, dataBytes, pixelYmin, pixelXmin, xlen, ylen);		
+		rasterUnit.commit();
+		log.info("tiles written: " + cnt);
 	}
 }
