@@ -2,7 +2,7 @@
 title: Server Installation
 ---
 
-RSDB server can be run on **Windows** or on **Ubuntu**. Ubuntu is preferred for multi-user usage over network. Windows may be more easy to use for local single user usage. 
+RSDB server can be run on **Windows** or on **Ubuntu**. Ubuntu is preferred for multi-user usage over network. Windows may be more easy to use for local single user usage. (Other Linux distributions may work too.)
 
 Quick start with download of [RSDB example distribution](https://github.com/environmentalinformatics-marburg/rsdb-data).
 
@@ -66,3 +66,10 @@ chmod +x *.sh
 
 Consult the [RSDB wiki](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Troubleshooting) if you encounter issues.
 
+## Other Linux distributions
+
+You may translate instructions of RSDB installation to other Linux distribution commands.
+
+Additionally you may need to modify `rsdb.sh` to point to correct paths of other Linux distributions.
+
+Currently `rsdb.sh` is prepared  for **Ubuntu** and for **Fedora**.
