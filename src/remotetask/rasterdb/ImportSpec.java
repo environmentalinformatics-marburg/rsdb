@@ -60,7 +60,7 @@ public class ImportSpec {
 		Iterator<String> specIt = specification.keys();
 		while(specIt.hasNext()) {
 			String specKey = specIt.next();
-			log.info("specKey " + specKey);
+			//log.info("specKey " + specKey);
 			switch(specKey) {
 			case "strategy": {
 				strategy = Strategy.of(specification.getString("strategy"));	

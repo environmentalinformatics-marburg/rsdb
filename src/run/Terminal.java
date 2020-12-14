@@ -351,7 +351,7 @@ public class Terminal {
 					if(!argCollector.isEmpty()) {
 						argCollector += ' ';
 					}
-					argCollector += arg.substring(0, argCollector.length() - 1);
+					argCollector += arg.substring(0, arg.length() - 1);
 					result.add(argCollector);
 					argCollector = "";
 				} else if(quoteTwo && arg.endsWith("\"")) {
@@ -359,7 +359,7 @@ public class Terminal {
 					if(!argCollector.isEmpty()) {
 						argCollector += ' ';
 					}
-					argCollector += arg.substring(0, argCollector.length() - 1);
+					argCollector += arg.substring(0, arg.length() - 1);
 					result.add(argCollector);
 					argCollector = "";
 				} else if(quoteParenthesis && arg.endsWith("}")) {

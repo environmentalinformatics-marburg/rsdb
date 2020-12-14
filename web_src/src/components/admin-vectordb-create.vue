@@ -10,7 +10,11 @@
                 </v-card-title>
 
                 <v-card-text>
-                    <v-text-field v-model="name" label="name" />
+                    On the newly created vector layer you can upload vecor data at the then shown <i>"vector layer details page"</i> - section <i>"Actions"</i> - button <i>"Files"</i>.                   
+                </v-card-text>
+
+                <v-card-text>
+                    <v-text-field v-model="name" label="name of the new vector layer" />
                     <i>Space, not latin chars and other special chars are not allowed. You may replace space chars by underscore.
                     <br>Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_</i>                    
                 </v-card-text>
@@ -29,11 +33,10 @@
                     <br><span style="color: red;" v-if="!name">ERROR: You need to specify a name for the new layer.</span>
                     <br><span style="color: red;" v-if="selectedRoles.length == 0 || selectedRolesMod.length == 0">ERROR: You need to specify at least one role for read and for modify.</span>                </v-card-text>
 
-
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn class="grey--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
-                    <v-btn class="green--text darken-1" flat="flat" @click.native="execute()" :disabled="!name || selectedRoles.length == 0 || selectedRolesMod.length == 0">Execute</v-btn>
+                    <v-btn class="green--text darken-1" flat="flat" @click.native="execute()" :disabled="!name || selectedRoles.length == 0 || selectedRolesMod.length == 0">Create</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>

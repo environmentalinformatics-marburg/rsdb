@@ -1,13 +1,11 @@
 package remotetask.rasterdb;
 
-import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
 import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.json.JSONWriter;
 
 import broker.Broker;
@@ -68,11 +66,7 @@ public class Task_import extends RemoteProxyTask {
 		if(task.has("bands")) {
 			layerBandIndices = JsonUtil.getIntArray(task, "bands");
 		}
-		APIHandler_inspect.createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices);
-		ImportSpec spec = new ImportSpec();
-		char[] specText = writer.toCharArray();
-		log.info(new String(specText));
-		spec.parse(new JSONObject(new JSONTokener(new CharArrayReader(specText))));
+		ImportSpec spec = APIHandler_inspect.createSpec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, layerBandIndices);		
 		spec.update_pyramid = update_pyramid;
 		spec.update_catalog = update_catalog;
 		log.info(spec);

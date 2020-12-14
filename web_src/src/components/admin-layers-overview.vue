@@ -53,7 +53,7 @@
               <v-card-text>
                 Layers of this type store spatial <b>general vector data</b>.
               </v-card-text>
-              <admin-vectordb-create @created_vectordb="$router.push({path: '/layers/vectordbs/' + $event});" /> Add an empty VectorDB-layer.
+              <admin-vectordb-create @created_vectordb="$router.push({path: '/layers/vectordbs/' + $event});" /> Add an empty VectorDB-layer and upload vector data.
             </v-card>
           </v-flex>
 

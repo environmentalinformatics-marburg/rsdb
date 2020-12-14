@@ -85,14 +85,7 @@ public class Import_soda {
 		String layerName = namePrefix + '_' + layerSubName;
 		log.info("layerName "+layerName);
 		
-		StringBuilder sb = new StringBuilder();
-		APIHandler_inspect.createJSONspec(path, Strategy.CREATE, filename, layerName, null, false, new JSONWriter(sb), null);
-		String s = sb.toString();
-		JSONObject json = new JSONObject(s);
-		log.info(json.toString(1));
-		ImportSpec spec = new ImportSpec();
-		spec.parse(json);
-		
+		ImportSpec spec = APIHandler_inspect.createSpec(path, Strategy.CREATE, filename, layerName, null, false, null);		
 		spec.storage_type = "TileStorage";
 		spec.generalTimestamp = timestamp;
 		spec.inf.title = "uav soda " + layerSubName;

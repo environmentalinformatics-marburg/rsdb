@@ -11,11 +11,10 @@ import java.time.temporal.ChronoField;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
-import org.json.JSONWriter;
 
 import broker.Broker;
 import broker.acl.ACL;
+import rasterdb.RasterDB;
 import remotetask.rasterdb.BandSpec;
 import remotetask.rasterdb.ImportBySpec;
 import remotetask.rasterdb.ImportProcessor;
@@ -28,23 +27,23 @@ import util.Util;
 
 public class Import_sequoia {
 	private static final Logger log = LogManager.getLogger();
-	
+
 	private final Broker broker;
 	private final String namePrefix;
 	private final String corresponding_contact;
-	
+
 	public Import_sequoia(Broker broker, String namePrefix, String corresponding_contact) {
 		this.broker = broker;
 		this.namePrefix = namePrefix;
 		this.corresponding_contact = corresponding_contact;
 	}
-	
+
 	public void importDirectory(Path root) throws Exception {
 		Timer.start("import_sequoia "+root);		
 		importDirectoryInternal(root, root.getFileName().toString());
 		log.info(Timer.stop("import_sequoia "+root));
 	}
-	
+
 	private void importDirectoryInternal(Path root, String dataName) throws Exception {
 		for(Path path:Util.getPaths(root)) {
 			if(path.toFile().isFile()) {
@@ -57,15 +56,15 @@ public class Import_sequoia {
 			}
 		}
 	}
-	
+
 	private static final DateTimeFormatter UNDERSCORE_DATE = new DateTimeFormatterBuilder()
-            .appendValue(ChronoField.DAY_OF_MONTH, 2)
-            .appendLiteral('_')
-            .appendValue(ChronoField.MONTH_OF_YEAR, 2)
-            .appendLiteral('_')
-            .appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)            
-            .toFormatter();
-	
+			.appendValue(ChronoField.DAY_OF_MONTH, 2)
+			.appendLiteral('_')
+			.appendValue(ChronoField.MONTH_OF_YEAR, 2)
+			.appendLiteral('_')
+			.appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)            
+			.toFormatter();
+
 	public void importFile(Path path) throws Exception {
 		String filename = path.getFileName().toString();
 		if(!filename.contains("sequoia_reflectance")) {
@@ -84,50 +83,80 @@ public class Import_sequoia {
 		LocalDateTime datetime = LocalDateTime.of(date, LocalTime.MIDNIGHT);
 		log.info("datetime " + datetime);
 		int timestamp = TimeUtil.toTimestamp(datetime);
-		String layerName = namePrefix + '_' + layerSubName;
+		String dateName = datetime.getYear() + "_" + (datetime.getMonthValue() <= 9 ? "0" : "") + datetime.getMonthValue() + "_" + (datetime.getDayOfMonth() <= 9 ? "0" : "") + datetime.getDayOfMonth();
+		String layerName = namePrefix + '_' + layerSubName + "_" + dateName;
 		log.info("layerName "+layerName);
-		
-		StringBuilder sb = new StringBuilder();
-		APIHandler_inspect.createJSONspec(path, Strategy.CREATE, filename, layerName, null, false, new JSONWriter(sb), null);
-		String s = sb.toString();
-		JSONObject json = new JSONObject(s);
-		log.info(json.toString(1));
-		ImportSpec spec = new ImportSpec();
-		spec.parse(json);
-		
+
+		Strategy strategy = Strategy.CREATE;
+		RasterDB rasterdb = null;
+		if(this.broker.hasRasterdb(layerName)) {
+			rasterdb = this.broker.getRasterdb(layerName);
+			strategy = Strategy.EXISTING_MERGE;
+		}
+
+		ImportSpec spec = APIHandler_inspect.createSpec(path, strategy, filename, layerName, rasterdb, false, null);
 		spec.storage_type = "TileStorage";
 		spec.generalTimestamp = timestamp;
-		spec.inf.title = "uav sequoia " + layerSubName;
+		//spec.inf.title = "uav sequoia " + layerSubName;
 		spec.inf.description = "UAV sequoia reflectance values at " + layerSubName;
-		spec.inf.acquisition_date = "(time series planned)";
+		spec.inf.acquisition_date = "(time series)";
 		spec.inf.corresponding_contact = corresponding_contact;
 		spec.inf.setTags("exploratories", "UAV", "sequoia", "reflectance", layerSubName);
-		spec.acl = ACL.of("be");
+		spec.acl = ACL.of("be", "exploratories_cartography");
 		log.info(spec.bandSpecs);
-		BandSpec band1 = spec.bandSpecs.get(0);
-		band1.band_name = "Green";
-		band1.visualisation = "blue";
-		band1.wavelength = 550;
-		band1.fwhm = 40;
-		
-		BandSpec band2 = spec.bandSpecs.get(1);
-		band2.band_name = "Red";
-		band2.visualisation = "";
-		band2.wavelength = 660;
-		band2.fwhm = 40;
-		
-		BandSpec band3 = spec.bandSpecs.get(2);
-		band3.band_name = "RedEdge";
-		band3.visualisation = "green";
-		band3.wavelength = 735;
-		band3.fwhm = 10;
-		
-		BandSpec band4 = spec.bandSpecs.get(3);
-		band4.band_name = "NIR";
-		band4.visualisation = "red";
-		band4.wavelength = 790;
-		band4.fwhm = 40;
-		
+
+		switch(spec.bandSpecs.size()) {
+		case 4: {
+			BandSpec band1 = spec.bandSpecs.get(0);
+			band1.band_name = "Green";
+			band1.visualisation = "blue";
+			band1.wavelength = 550;
+			band1.fwhm = 40;
+
+			BandSpec band2 = spec.bandSpecs.get(1);
+			band2.band_name = "Red";
+			band2.visualisation = "";
+			band2.wavelength = 660;
+			band2.fwhm = 40;
+
+			BandSpec band3 = spec.bandSpecs.get(2);
+			band3.band_name = "RedEdge";
+			band3.visualisation = "green";
+			band3.wavelength = 735;
+			band3.fwhm = 10;
+
+			BandSpec band4 = spec.bandSpecs.get(3);
+			band4.band_name = "NIR";
+			band4.visualisation = "red";
+			band4.wavelength = 790;
+			band4.fwhm = 40;
+			break;
+		}
+		case 3: { // special case with missing band 4
+			BandSpec band1 = spec.bandSpecs.get(0);
+			band1.band_name = "Green";
+			band1.visualisation = "blue";
+			band1.wavelength = 550;
+			band1.fwhm = 40;
+
+			BandSpec band2 = spec.bandSpecs.get(1);
+			band2.band_name = "Red";
+			band2.visualisation = "green";
+			band2.wavelength = 660;
+			band2.fwhm = 40;
+
+			BandSpec band3 = spec.bandSpecs.get(2);
+			band3.band_name = "RedEdge";
+			band3.visualisation = "red";
+			band3.wavelength = 735;
+			band3.fwhm = 10;
+			break;
+		}
+		default: {
+			throw new RuntimeException("unknown bands");
+		}
+		}
+
 		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, layerName, spec);
 		importProcessor.process();
 	}

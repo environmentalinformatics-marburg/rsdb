@@ -1,5 +1,7 @@
 package server.api.main;
 
+import java.io.CharArrayReader;
+import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,6 +16,8 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.gdal.gdal.Driver;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.json.JSONWriter;
 
 import broker.Broker;
@@ -21,8 +25,11 @@ import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.cell.CellType;
 import rasterdb.tile.TilePixel;
+import remotetask.rasterdb.ImportSpec;
 import server.api.APIHandler;
 import server.api.main.ChunkedUploader.ChunkedUpload;
+import util.CharArrayReaderUnsync;
+import util.CharArrayWriterUnsync;
 import util.TimeUtil;
 import util.Web;
 import util.raster.GdalReader;
@@ -89,11 +96,27 @@ public class APIHandler_inspect extends APIHandler {
 
 		}
 	}
+	
+	public static ImportSpec createSpec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices) {
+		log.info(fullPath);
+		GdalReader gdalreader = new GdalReader(fullPath.toString());
+		return createSpec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, layerBandIndices);
+	}
 
 	public static void createJSONspec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices) {
 		log.info(fullPath);
 		GdalReader gdalreader = new GdalReader(fullPath.toString());
 		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices);
+	}
+	
+	public static ImportSpec createSpec(GdalReader gdalreader, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices) {
+		CharArrayWriterUnsync writer = new CharArrayWriterUnsync();
+		JSONWriter json = new JSONWriter(writer);
+		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices);
+		ImportSpec spec = new ImportSpec();
+		CharArrayReaderUnsync reader = writer.toCharArrayReaderUnsync();
+		spec.parse(new JSONObject(new JSONTokener(reader)));
+		return spec;
 	}
 
 	public static void createJSONspec(GdalReader gdalreader, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices) {
