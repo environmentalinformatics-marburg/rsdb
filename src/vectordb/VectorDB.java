@@ -211,7 +211,7 @@ public class VectorDB {
 		}
 	}
 
-	
+
 	public Vec<String> getGML() {
 		Vec<String> gmls = new Vec<>();
 		DataSource datasource = getDataSource();
@@ -458,7 +458,9 @@ public class VectorDB {
 	}
 
 	public static void closeDataSource(DataSource dataSource) {
-		dataSource.delete();
+		if(dataSource != null) {
+			dataSource.delete();
+		}
 	}
 
 	public double[][] getPoints() {		
@@ -669,6 +671,126 @@ public class VectorDB {
 			log.warn(e);
 		}
 		return details;
+	}
+
+	@FunctionalInterface
+	public interface Layer0DefinitionsConsumer {
+		void consume(int fieldIndex, String fieldName);
+	}
+
+	public void forEachLayer0Definition(Layer0DefinitionsConsumer consumer) {
+		DataSource datasource = null;
+		try {
+			datasource = getDataSource();
+			if(datasource.GetLayerCount() == 0) {
+				return;
+			}
+			Layer layer = datasource.GetLayerByIndex(0);
+			FeatureDefn featureDfn = layer.GetLayerDefn();
+			int fieldCount = featureDfn.GetFieldCount();
+			for (int fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++) {
+				FieldDefn fieldDfn = featureDfn.GetFieldDefn(fieldIndex);
+				String fieldName = fieldDfn.GetName();
+				consumer.consume(fieldIndex, fieldName);
+			}
+		} catch(Exception e) {
+			log.warn(e);
+		} finally {
+			closeDataSource(datasource);
+		}
+	}
+
+	@FunctionalInterface
+	public interface Layer0FeaturesConsumer {
+		void consume(VectorFeature vectorFeature) throws Exception;
+	}
+
+	public void forEachLayer0Feature(Layer0FeaturesConsumer consumer) {
+		DataSource datasource = null;
+		VectorFeature vectorFeature = new VectorFeature(null);
+		try {
+			datasource = getDataSource();
+			if(datasource.GetLayerCount() == 0) {
+				return;
+			}
+			Layer layer = datasource.GetLayerByIndex(0);
+			layer.ResetReading();
+			Feature feature = layer.GetNextFeature();
+			while(feature != null) {
+				vectorFeature.feature = feature;
+				consumer.consume(vectorFeature);
+				feature = layer.GetNextFeature();
+			}
+		} catch(Exception e) {
+			log.warn(e);
+		} finally {
+			vectorFeature = null;
+			closeDataSource(datasource);
+		}
+	}
+
+
+
+	public static final class VectorFeature {
+		private volatile Feature feature;
+		
+		private VectorFeature() {}
+		
+		@FunctionalInterface
+		public interface VectorFeatureFieldConsumer {
+			void consume(VectorFeatureField vectorFeatureField) throws Exception;
+		}
+
+		public final class VectorFeatureField {
+			private volatile int fieldIndex = -1;
+			
+			private VectorFeatureField() {}
+			
+			public int getFieldIndex() {
+				return fieldIndex;
+			}
+			
+			public String getName() {
+				FieldDefn fieldDefn = feature.GetFieldDefnRef(fieldIndex);
+				if(fieldDefn == null) {
+					return null;
+				}
+				return fieldDefn.GetName();
+			}
+			
+			public String getAsString() {
+				return feature.GetFieldAsString(fieldIndex);
+			}
+		}
+
+		private VectorFeature(Feature feature) {
+			this.feature = feature;
+		}
+
+		public String getGeometryGML() {
+			Geometry geometry = feature.GetGeometryRef();
+			if(geometry == null) {
+				return null;
+			}
+			Vector<String> options = new Vector<String>();
+			options.add("FORMAT=GML3");
+			options.add("GML3_LONGSRS=NO");
+			String gml = geometry.ExportToGML(options);
+			return gml;
+		}
+
+		public void forEachField(VectorFeatureFieldConsumer consumer) throws Exception {
+			int fieldCount = feature.GetFieldCount();
+			VectorFeatureField vectorFeatureField = new VectorFeatureField();
+			try {
+				for(int fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++) {
+					vectorFeatureField.fieldIndex = fieldIndex;
+					consumer.consume(vectorFeatureField);
+				}
+			} finally {
+				vectorFeatureField.fieldIndex = -1;
+			}
+		}
 	}
 
 	public static String createValidID(String text) {
