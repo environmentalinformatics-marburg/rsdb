@@ -109,6 +109,7 @@ public class VectordbsHandler extends AbstractHandler {
 			try {
 				handler.handle(vectordb, subsubTarget, baseRequest, (Response) response, userIdentity);
 			} catch (Exception e) {
+				e.printStackTrace();
 				log.error(e);
 				try {
 					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

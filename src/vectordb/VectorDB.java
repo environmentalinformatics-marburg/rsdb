@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -210,6 +211,36 @@ public class VectorDB {
 		}
 	}
 
+	
+	public Vec<String> getGML() {
+		Vec<String> gmls = new Vec<>();
+		DataSource datasource = getDataSource();
+		try {
+			int layerCount = datasource.GetLayerCount();
+			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
+				Layer layer = datasource.GetLayerByIndex(layerIndex);
+				layer.ResetReading();
+				Feature feature = layer.GetNextFeature();
+				while(feature != null) {
+					Geometry geometry = feature.GetGeometryRef();
+					if(geometry != null) {						
+						Vector<String> options = new Vector<String>();
+						options.add("FORMAT=GML3");
+						options.add("GML3_LONGSRS=NO");
+						String gml = geometry.ExportToGML(options);	
+						//log.info(gml);
+						gmls.add(gml);
+					} else {
+						log.warn("missing geometry in feature : " + feature.GetFID());
+					}
+					feature = layer.GetNextFeature();
+				}
+			}
+		} finally {
+			closeDataSource(datasource);
+		}
+		return gmls;
+	}
 
 	public String getGeoJSON(int epsg, boolean justNameAttribute) {
 		String nameAttribute = null;

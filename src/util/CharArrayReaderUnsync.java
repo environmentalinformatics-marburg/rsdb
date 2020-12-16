@@ -12,6 +12,10 @@ public class CharArrayReaderUnsync extends Reader {
 	protected int pos;
 	protected int markedPos = 0;
 	protected int count;
+	
+	public static CharArrayReaderUnsync of(String gml) {
+		return new CharArrayReaderUnsync(gml.toCharArray());		
+	}
 
 	public CharArrayReaderUnsync(char buf[]) {
 		this.buf = buf;
@@ -90,5 +94,5 @@ public class CharArrayReaderUnsync extends Reader {
 
 	public void close() {
 		buf = null;
-	}
+	}	
 }
