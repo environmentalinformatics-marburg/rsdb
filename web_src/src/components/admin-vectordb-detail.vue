@@ -107,6 +107,14 @@
         </table>
         </div>
 
+        <v-divider class="meta-divider"></v-divider> 
+        <h3 class="subheading mb-0"> 
+            Applications
+        </h3>
+        <div class="meta-content">
+            <admin-vectordb-dialog-wfs :meta="meta" @changed="refresh" />
+        </div>         
+
         <div v-if="modify">
             <v-divider class="meta-divider"></v-divider>        
             <h3 class="subheading mb-0"> 
@@ -142,6 +150,7 @@ import adminVectordbStructuredAccess from './admin-vectordb-structured-access'
 import adminVectordbDialogSetInfo from './admin-vectordb-dialog-set-info.vue'
 import adminVectordbDialogSetAcl from './admin-vectordb-dialog-set-acl.vue'
 import adminVectordbDialogDataTable from './admin-vectordb-dialog-data-table.vue'
+import adminVectordbDialogWfs from './admin-vectordb-dialog-wfs.vue'
 
 export default {
     name: 'admin-vectordb-detail', 
@@ -154,6 +163,7 @@ export default {
         'admin-vectordb-dialog-set-info': adminVectordbDialogSetInfo,
         'admin-vectordb-dialog-set-acl': adminVectordbDialogSetAcl,
         'admin-vectordb-dialog-data-table': adminVectordbDialogDataTable,
+        'admin-vectordb-dialog-wfs': adminVectordbDialogWfs,
     },
     props: ['vectordb'],
     data() {

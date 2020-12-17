@@ -24,7 +24,9 @@ docs:
       - title: "WCS"
         url: /docs/wcs/        
       - title: "WMS"
-        url: /docs/wms/        
+        url: /docs/wms/
+      - title: "WFS"
+        url: /docs/wfs/                 
   - title: Layers
     url: /docs/layers/
     children:

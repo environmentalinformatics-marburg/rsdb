@@ -1,40 +1,46 @@
 <template>
     <span  style="display: inline-block;">
         <v-dialog v-model="dialog" lazy absolute>
-            <v-btn title="Show URL for WCS based access to this RasterDB layer." slot="activator">
-                <v-icon left>folder_open</v-icon>WCS access
+            <v-btn title="Show URL for WFS based access to this VectorDB layer." slot="activator">
+                <v-icon left>folder_open</v-icon>WFS access
             </v-btn>
             <v-card>
                 <v-card-title>
-                    <div class="headline">WCS access of <i>RasterDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
+                    <div class="headline">WFS access of <i>VectorDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
-                WCS URL:
-                <v-btn @click="onUrlCopy" title="copy WCS URL of this RasterDB layer to clipboard"><v-icon>content_copy</v-icon> Copy to clipboard</v-btn>
-                <div class="wcs-url">{{wcsUrl}}</div>
+                WFS URL:
+                <v-btn @click="onUrlCopy" title="copy WFS URL of this VectorDB layer to clipboard"><v-icon>content_copy</v-icon> Copy to clipboard</v-btn>
+                <div class="wfs-url">{{wfsUrl}}</div>
 
                 <br>
-                Web Coverage Service (WCS) <a href="http://www.opengeospatial.org/standards/wcs" target="_blank">specification</a>, 
-                <a href="https://en.wikipedia.org/wiki/Web_Coverage_Service" target="_blank"> Wikipedia entry</a>
+                Web Feature Service (WFS) <a href="https://www.ogc.org/standards/wfs" target="_blank">specification</a>, 
+                <a href="https://en.wikipedia.org/wiki/Web_Feature_Service" target="_blank"> Wikipedia entry</a>
                 <br>
                 <br>
 
-                <h2>WCS client <a href="https://qgis.org/" target="_blank">Qgis 3</a>:</h2>
-                At Qgis window <i>Browser</i>-Box rigth click on <i>WCS</i>-list-entry,
+                <h2>WFS client <a href="https://qgis.org/" target="_blank">Qgis 3</a>:</h2>
+                At Qgis window <i>Browser</i>-Box rigth click on <i>WFS</i>-list-entry,
                 click the shown <i>New Connection...</i>-Button,
-                the <i>Create a New WCS Connection</i>-dialog opens,
+                the <i>Create a New WFS Connection</i>-dialog opens,
                 <br>at <i>Connection Details</i> type a name in the <i>Name</i>-field (e.g. the layer name),
-                and in the <i>URL</i>-field type or paste the above WCS URL for this layer,
+                and in the <i>URL</i>-field type or paste the above WFS URL for this layer,
                 <br>if the RSDB server runs with login, at <i>Authentication</i> select the <i>Basic</i>-tab,
                 type your account details in the <i>User name</i>-field and the <i>Password</i>-field,
                 Qgis does support BASIC-Authentication, but not DIGEST-Authentication,
                 <br>click the <i>OK</i>-Button.
                 <br>
-                <br>The new layer is shown as list-entry in the sub-list of the <i>WCS</i>-list-entry,
+                <br>The new layer is shown as list-entry in the sub-list of the <i>WFS</i>-list-entry,
                 double click on the sub-list-entry,
                 a list-entry of the layer name is shown,
                 <br>double click on this list-entry to view in Qgis,
                 the layer is added to the Qgis-Layers in the <i>Layers</i>-Box.
                 <br>
+                <br>
+                <b>Note</b>: Qgis does cache received network data. If you changed layer (meta-)data and if it is not reflected in Qgis, do the following:
+                <br>Remove the relevant entries in the Qgis Layers-box.
+                <br>At Main-menu <i>Setting</i>, click <i>Options..."</i>-entry. The <i>Options</i> dialog-box opens. Select Page <i>Network</i> on the left. 
+                <br>At <i>Cache Settings</i>-section, <i>Content</i>-tab click the <i>trash can</i>-symbol-button.
+                <br>Cache is now cleared. Right click on the WFS-entry at the Browser-box, click <i>refresh</i>-button to load updated data.
 
                 <v-card-actions>
                     <v-spacer></v-spacer>
@@ -83,7 +89,7 @@ function copyTextToClipboard(text) {
 }
 
 export default {
-    name: 'admin-rasterdb-dialog-wcs',
+    name: 'admin-vectordb-dialog-wfs',
     props: ['meta'],        
     components: {
     },
@@ -114,7 +120,7 @@ export default {
         },
 
         onUrlCopy() {
-            copyTextToClipboard(this.wcsUrl);
+            copyTextToClipboard(this.wfsUrl);
             this.snackbarCopiedToClipboard = true;
         }
 
@@ -123,8 +129,8 @@ export default {
         identity() {
             return this.$store.state.identity.data;
         },        
-        wcsUrl() {
-            return this.identity === undefined || this.meta === undefined ? '[unknown]' : (this.identity.url_base + '/rasterdb/' + this.meta.name + '/wcs');
+        wfsUrl() {
+            return this.identity === undefined || this.meta === undefined ? '[unknown]' : (this.identity.url_base + '/vectordbs/' + this.meta.name + '/wfs');
         },
     },
     watch: {
@@ -146,7 +152,7 @@ export default {
 
 <style scoped>
 
-.wcs-url {
+.wfs-url {
     background-color: #000000c4;
     color: #e6e6e6;
     padding: 5px;

@@ -14,4 +14,6 @@ For local installation RSDB package needs to be downloaded.
 
 - [WMS](../wms)
 
+- [WFS](../wfs)
+
 - [Administration](../administration)

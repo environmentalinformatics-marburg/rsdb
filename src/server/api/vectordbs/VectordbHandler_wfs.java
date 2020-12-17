@@ -2,10 +2,14 @@ package server.api.vectordbs;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -25,6 +29,7 @@ import org.xml.sax.SAXException;
 
 import broker.Broker;
 import util.CharArrayReaderUnsync;
+import util.Timer;
 import util.Web;
 import vectordb.VectorDB;
 
@@ -72,6 +77,7 @@ public class VectordbHandler_wfs extends VectordbHandler {
 			reqParam = "GetCapabilities";
 		}		
 
+		
 		switch (reqParam) {
 		case "GetCapabilities":
 			handle_GetCapabilities(vectordb, request, response);
@@ -80,11 +86,12 @@ public class VectordbHandler_wfs extends VectordbHandler {
 			handle_DescribeFeatureType(vectordb, request, response);
 			break;
 		case "GetFeature":
+			Timer.start("GetFeature");
 			handle_GetFeature(vectordb, request, response);
+			log.info(Timer.stop("GetFeature"));
 			break;			
 		default:
 			log.error("unknown request "+reqParam);
-			return;
 		}		
 	}
 
@@ -115,12 +122,13 @@ public class VectordbHandler_wfs extends VectordbHandler {
 		PrintWriter out = response.getWriter();	
 		try {
 			//out.write(ff);
-			writeXML(out, doc -> xmlGetFeature(vectordb, doc));
+			//writeXML(out, doc -> xmlGetFeature(vectordb, doc));
+			xmlGetFeatureStream(vectordb, out);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	private Node xmlGetCapabilities(VectorDB vectordb, Document doc) {
 		Element rootElement = doc.createElementNS("http://www.opengis.net/wfs", "WFS_Capabilities");
 		rootElement.setAttribute("version", "1.1.0");		
@@ -136,7 +144,7 @@ public class VectordbHandler_wfs extends VectordbHandler {
 		addElement(eFeatureType, "DefaultSRS", "EPSG:" + epsg);
 		return rootElement;
 	}
-
+	
 	private Node xmlDescribeFeatureType(VectorDB vectordb, Document doc) {
 		Element rootElement = doc.createElementNS("http://www.w3.org/2001/XMLSchema", "schema");
 		rootElement.setAttribute("version", "0.1");
@@ -170,11 +178,44 @@ public class VectordbHandler_wfs extends VectordbHandler {
 
 		return rootElement;
 	}
+	
+	private void xmlGetFeatureStream(VectorDB vectordb, Writer out) throws XMLStreamException {
+		XMLOutputFactory factory = XMLOutputFactory.newInstance();
+		factory.setProperty("escapeCharacters", false);
+		XMLStreamWriter xmlWriter = factory.createXMLStreamWriter(out);
+		xmlWriter.writeStartDocument();
+		xmlWriter.writeStartElement("wfs:FeatureCollection");
+		xmlWriter.writeDefaultNamespace("http://www.geobasis.nrw.de");
+		xmlWriter.writeNamespace("wfs", "http://www.opengis.net/wfs");
+		xmlWriter.writeNamespace("gml", "http://www.opengis.net/gml");
+		
+		vectordb.forEachLayer0Feature(vectorFeature -> {			
+			xmlWriter.writeStartElement("gml:featureMember");
+			xmlWriter.writeStartElement(FEATURE_NAME);
+			xmlWriter.writeStartElement(GEOMETRY_PROPERTY_NAME);
+			String gml = vectorFeature.getGeometryGML();
+			xmlWriter.writeCharacters(gml);
+			xmlWriter.writeEndElement(); // GEOMETRY_PROPERTY_NAME
+			vectorFeature.forEachField(vectorFeatureField -> {
+				String fieldName = vectorFeatureField.getName();
+				String fieldValue = vectorFeatureField.getAsString();
+				xmlWriter.writeStartElement(fieldName);
+				xmlWriter.writeCharacters(fieldValue);
+				xmlWriter.writeEndElement(); // fieldName
+			});
+			xmlWriter.writeEndElement(); // FEATURE_NAME
+			xmlWriter.writeEndElement(); // gml:featureMember
+		});
+
+		xmlWriter.writeEndElement(); // wfs:FeatureCollection
+		xmlWriter.writeEndDocument();
+		xmlWriter.close();
+	}
 
 	private Node xmlGetFeature(VectorDB vectordb, Document doc) throws SAXException, IOException {
 		Element rootElement = doc.createElement("wfs:FeatureCollection");
 		rootElement.setAttribute("xmlns:gml", "http://www.opengis.net/gml");
-		rootElement.setAttribute("xmlns:wfs", "http://www.opengis.net/gml");
+		rootElement.setAttribute("xmlns:wfs", "http://www.opengis.net/wfs");
 		rootElement.setAttribute("xmlns", "http://www.geobasis.nrw.de");	
 		
 		vectordb.forEachLayer0Feature(vectorFeature -> {
