@@ -47,6 +47,7 @@ public class VectordbsHandler extends AbstractHandler {
 		addMethod(new VectordbHandler_package_zip(broker));
 		addMethod(new VectordbHandler_raster_png(broker));
 		addMethod(new VectordbHandler_wfs(broker));
+		addMethod(new VectordbHandler_wms(broker));
 	}
 
 	private void addMethod(VectordbHandler handler) {

@@ -12,6 +12,7 @@ import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
 
 import pointdb.base.Point2d;
+import util.Extent2d;
 import util.collections.vec.Vec;
 import util.image.ImageBufferARGB;
 
@@ -21,33 +22,50 @@ public class Renderer {
 	private static Color COLOR_POLYGON = new Color(0, 255, 0, 100);
 	private static Color COLOR_LINE = new Color(0, 0, 255, 100);
 	private static Color COLOR_POINT = new Color(255, 0, 0, 100);
-	private static Color COLOR_POINT_TOP = new Color(0, 0, 0, 100);
+	//private static Color COLOR_POINT_TOP = new Color(0, 0, 0, 100);
 
-	public static ImageBufferARGB render(DataSource datasource, int maxWidth, int maxHeight) {
-		double[] extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
-		double xlen = extent[2] - extent[0];
-		double ylen = extent[3] - extent[1];
+	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, int maxWidth, int maxHeight) {		
+		Extent2d extent = VectorDB.getExtent(VectorDB.getPoints(datasource));		
+		return renderProportionalMaxSize(datasource, extent, maxWidth, maxHeight);
+	}
+	
+	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Extent2d extent, int maxWidth, int maxHeight) {		
+		double xlen = extent.getWidth();
+		double ylen = extent.getHeight();
 
 		double xTargetScale = maxWidth / xlen;
 		double yTargetScale = maxHeight / ylen;
 
 		double targetScale = Math.min(xTargetScale, yTargetScale);
+		
 		int width = (int) Math.ceil(targetScale * xlen);
-		int height = (int) Math.ceil(targetScale * ylen);		
-
+		int height = (int) Math.ceil(targetScale * ylen);
+		
+		log.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
+		
+		return render(datasource, extent, width, height);
+	}
+	
+	public static ImageBufferARGB render(DataSource datasource, Extent2d extent, int width, int height) {
 		ImageBufferARGB image = new ImageBufferARGB(width, height);
 		Graphics2D gc = image.bufferedImage.createGraphics();
 		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		gc.setColor(Color.DARK_GRAY);
 		//gc.drawLine(0, 0, 99, 99);		
 
+		double xlen = extent.getWidth();
+		double ylen = extent.getHeight();
 
 		double xscale = (width - 4) / xlen;
-		double xoff = - extent[0] + 2 * (1 / xscale);
-		double yoff = extent[3] + 2 * (1 / xscale);
-		log.info("scale " + xscale);
-		log.info("1/scale " + (1 / xscale));
-		Drawer drawer = new Drawer(gc, xoff, yoff, xscale);
+		double yscale = (height - 4) / ylen;
+		
+		double xoff = - extent.xmin + 2 * (1 / xscale);
+		double yoff = extent.ymax + 2 * (1 / yscale);
+		log.info("xscale " + xscale);
+		log.info("yscale " + yscale);
+		log.info("1/xscale " + (1 / xscale));
+		log.info("1/yscale " + (1 / yscale));
+		Drawer drawer = new Drawer(gc, xoff, yoff, xscale, yscale);
 
 		/*traversePolygons(datasource, drawer);
 		traverseLines(datasource, drawer);
@@ -84,13 +102,15 @@ public class Renderer {
 		private final Graphics2D gc;
 		private final double xoff;
 		private final double yoff;
-		private final double scale;
+		private final double xscale;
+		private final double yscale;
 
-		public Drawer(Graphics2D gc, double xoff, double yoff, double scale) {
+		public Drawer(Graphics2D gc, double xoff, double yoff, double xscale, double yscale) {
 			this.gc = gc;
 			this.xoff = xoff;
 			this.yoff = yoff;
-			this.scale = scale;
+			this.xscale = xscale;
+			this.yscale = yscale;
 		}
 
 		public void drawPolyline(Object[] line) {
@@ -99,15 +119,15 @@ public class Renderer {
 			int[] ys = new int[len];
 			for (int i = 0; i < len; i++) {
 				double[] p = (double[]) line[i];
-				xs[i] = (int) ((p[0] + xoff) * scale);
-				ys[i] = (int) ((yoff - p[1]) * scale);
+				xs[i] = (int) ((p[0] + xoff) * xscale);
+				ys[i] = (int) ((yoff - p[1]) * yscale);
 			}
 			gc.drawPolyline(xs, ys, len);
 		}
 
 		public void drawPointCross(double x, double y) {
-			int x1 = (int) ((x + xoff) * scale);
-			int y1 = (int) ((yoff - y) * scale);
+			int x1 = (int) ((x + xoff) * xscale);
+			int y1 = (int) ((yoff - y) * yscale);
 			//log.info(x1 + " " + y1);
 			/*gc.setColor(Color.gray);
 			gc.drawLine(x1, y1-1, x1, y1+1);
@@ -121,16 +141,16 @@ public class Renderer {
 		}
 
 		public void drawPointTop(double x, double y) {
-			int x1 = (int) ((x + xoff) * scale);
-			int y1 = (int) ((yoff - y) * scale);
+			int x1 = (int) ((x + xoff) * xscale);
+			int y1 = (int) ((yoff - y) * yscale);
 			gc.drawLine(x1, y1, x1, y1);			
 		}
 
 		public void drawLine(double x, double y, double xa, double ya) {
-			int x1 = (int) ((x + xoff) * scale);
-			int y1 = (int) ((yoff - y) * scale);
-			int x2 = (int) ((xa + xoff) * scale);
-			int y2 = (int) ((yoff - ya) * scale);
+			int x1 = (int) ((x + xoff) * xscale);
+			int y1 = (int) ((yoff - y) * yscale);
+			int x2 = (int) ((xa + xoff) * xscale);
+			int y2 = (int) ((yoff - ya) * yscale);
 			log.info("draw line "+x1+" "+y1+"  "+x2+" "+y2+"   " + x +" " + y + "  " + xa + " " + ya);
 			gc.setColor(Color.DARK_GRAY);
 			gc.drawLine(x1, y1, x2, y2);			
@@ -142,8 +162,8 @@ public class Renderer {
 			int[] ys = new int[len];
 			for (int i = 0; i < len; i++) {
 				double[] p = points[i];
-				xs[i] = (int) ((p[0] + xoff) * scale);
-				ys[i] = (int) ((yoff - p[1]) * scale);
+				xs[i] = (int) ((p[0] + xoff) * xscale);
+				ys[i] = (int) ((yoff - p[1]) * yscale);
 			}
 			gc.setColor(Color.GREEN);
 			gc.fillPolygon(xs, ys, len);
@@ -155,8 +175,8 @@ public class Renderer {
 			int[] ys = new int[len];
 			for (int i = 0; i < len; i++) {
 				double[] p = (double[]) points[i];
-				xs[i] = (int) ((p[0] + xoff) * scale);
-				ys[i] = (int) ((yoff - p[1]) * scale);
+				xs[i] = (int) ((p[0] + xoff) * xscale);
+				ys[i] = (int) ((yoff - p[1]) * yscale);
 				//log.info("polygon point " + xs[i] + " " + ys[i]);
 			}
 			gc.fillPolygon(xs, ys, len);

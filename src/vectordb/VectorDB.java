@@ -43,6 +43,7 @@ import broker.group.Poi;
 import broker.group.Roi;
 import pointdb.base.Point2d;
 import server.api.vectordbs.VectordbDetails;
+import util.Extent2d;
 import util.Util;
 import util.collections.ReadonlyList;
 import util.collections.vec.Vec;
@@ -502,7 +503,7 @@ public class VectorDB {
 		return points;	
 	}
 
-	public static double[] getExtent(double[][] points) {
+	public static Extent2d getExtent(double[][] points) {
 		double xmin = Double.POSITIVE_INFINITY;
 		double ymin = Double.POSITIVE_INFINITY;
 		double xmax = Double.NEGATIVE_INFINITY;
@@ -523,7 +524,7 @@ public class VectorDB {
 				ymax = y;
 			}
 		}
-		return new double[] {xmin, ymin, xmax, ymax};
+		return new Extent2d(xmin, ymin, xmax, ymax);
 	}
 
 	public SpatialReference getSpatialReference() {
