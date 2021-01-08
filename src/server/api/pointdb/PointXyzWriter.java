@@ -3,12 +3,8 @@ package server.api.pointdb;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.eclipse.jetty.server.Response;
-
-import pointdb.PointDB;
 import pointdb.base.GeoPoint;
 import util.Receiver;
-import util.ResponseReceiver;
 import util.collections.vec.Vec;
 
 public class PointXyzWriter {

@@ -10,8 +10,6 @@ import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import util.Util;
-
 public class IFD {
 	private static final Logger log = LogManager.getLogger();
 	

@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import rasterdb.Band;
-import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.RasterdbConfig;
 import rasterunit.RasterUnitStorage;

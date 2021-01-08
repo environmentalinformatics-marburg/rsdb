@@ -48,22 +48,6 @@
         </v-list-tile>        
       </v-list-group>
 
-      <v-list-group v-if="filteredPointdbs.length !== 0">
-        <v-list-tile slot="activator">
-            <v-list-tile-content>
-              <v-list-tile-title><v-icon style="font-size: 1em;">blur_on</v-icon>&nbsp;<b>PointDBs</b> ({{filteredPointdbs.length}})</v-list-tile-title>
-            </v-list-tile-content>
-        </v-list-tile>
-        <v-list-tile v-for="item in filteredPointdbs" :key="item.name" @click="navigation = 'pointdbs/' + item.name;" :class="{activeNavigation: navigation === 'pointdbs/' + item.name}" :to="'/layers/pointdbs/' + item.name" replace>
-          <v-list-tile-action>
-            <v-icon>blur_on</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <v-list-tile-title>{{ item.title !== undefined ? item.title : item.name }}</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-      </v-list-group>
-
       <v-list-group v-if="filteredPointclouds.length !== 0">
         <v-list-tile slot="activator">
             <v-list-tile-content>
@@ -144,6 +128,21 @@
         </v-list-tile>
       </v-list-group>
 
+      <v-list-group v-if="filteredPointdbs.length !== 0">
+        <v-list-tile slot="activator">
+            <v-list-tile-content>
+              <v-list-tile-title><v-icon style="font-size: 1em;">blur_on</v-icon>&nbsp;<b>PointDBs</b> ({{filteredPointdbs.length}})</v-list-tile-title>
+            </v-list-tile-content>
+        </v-list-tile>
+        <v-list-tile v-for="item in filteredPointdbs" :key="item.name" @click="navigation = 'pointdbs/' + item.name;" :class="{activeNavigation: navigation === 'pointdbs/' + item.name}" :to="'/layers/pointdbs/' + item.name" replace>
+          <v-list-tile-action>
+            <v-icon>blur_on</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>{{ item.title !== undefined ? item.title : item.name }}</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list-group>
 
       <v-list-tile v-if="rasterdbsMode === 'init' || rasterdbsMode === 'load'">
         <ring-loader color="#000000" size="20px" />
@@ -152,15 +151,6 @@
       <v-list-tile v-if="rasterdbsMode === 'error'">
         <v-icon>error</v-icon>
         Could not load rasterdbs.
-      </v-list-tile>
-
-      <v-list-tile v-if="pointdbsMode === 'init' || pointdbsMode === 'load'">
-        <ring-loader color="#000000" size="20px" />
-        loading pointdbs...
-      </v-list-tile>
-      <v-list-tile v-if="pointdbsMode === 'error'">
-        <v-icon>error</v-icon>
-        Could not load pointdbs.
       </v-list-tile>
 
       <v-list-tile v-if="pointcloudsMode === 'init' || pointcloudsMode === 'load'">
@@ -207,7 +197,16 @@
         <v-icon>error</v-icon>
         Could not load roi groups.
       </v-list-tile>      
-    </v-list>
+
+      <v-list-tile v-if="pointdbsMode === 'init' || pointdbsMode === 'load'">
+        <ring-loader color="#000000" size="20px" />
+        loading pointdbs...
+      </v-list-tile>
+      <v-list-tile v-if="pointdbsMode === 'error'">
+        <v-icon>error</v-icon>
+        Could not load pointdbs.
+      </v-list-tile>      
+    </v-list>    
   </pane>
 
   <pane min-size="10" class="split-main">

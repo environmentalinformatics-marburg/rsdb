@@ -115,7 +115,7 @@
             </h3>
             <div class="meta-content">
 
-                <div style="padding-bottom: 10px;"><b>voxel attributes:</b><span v-for="name in meta.attributes" :key="name"><span class="point-attributes">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></div>
+                <div style="padding-bottom: 10px;"><b>voxel attributes:</b><span v-for="name in meta.attributes" :key="name"><span class="attributes">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></div>
 
                 <table class="table-details" style="display: inline-block;">
                     <thead>
@@ -250,6 +250,9 @@
                 Actions
             </h3>            
             <div class="meta-content" v-if="modify">
+                <b>Manage: </b>
+                <a href="#/tools/task"> at 'tools'-tab - 'task creation' (e.g. <b>layer renaming</b>)</a>
+                <br><br>
                 <admin-voxeldb-dialog-delete :meta="meta" @changed="refresh" />
             </div>
 
@@ -475,22 +478,24 @@ export default {
 }
 
 .meta-list {
-    background-color: rgb(243, 243, 243);
+    background-color: rgb(232, 232, 232);
     padding: 1px;
-    border-color: rgb(227, 227, 227);
+    margin-right: 5px;
+    border-color: rgba(0, 0, 0, 0.062);
     border-style: solid;
     border-width: 1px;
 }
 
-.point-attributes {
-    background-color: rgb(227, 224, 222);
+.attributes {
+    background-color: rgb(232, 232, 232);
     padding: 1px;
-    border-color: rgb(216, 214, 213);
+    margin-left: 2px;
+    margin-right: 3px;
+    border-color: rgba(0, 0, 0, 0.062);
     border-style: solid;
     border-width: 2px;
     color: #544141;
     border-radius: 5px;
-    margin: 3px;
 }
 
 .thumbnail {

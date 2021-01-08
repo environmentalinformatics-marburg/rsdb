@@ -16,6 +16,6 @@ public abstract class RemoteProxy {
 		return clazz.getSimpleName();
 	}
 	
-	protected abstract void process() throws Exception;
-	protected void close() {}
+	public abstract void process() throws Exception;
+	public void close() {}
 }

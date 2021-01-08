@@ -18,7 +18,6 @@ import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TilePixel;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import util.Serialisation;
 import util.Web;

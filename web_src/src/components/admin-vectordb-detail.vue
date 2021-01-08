@@ -125,6 +125,7 @@
                 <admin-vectordb-dialog-files :meta="meta" @changed="refresh" v-if="modify" />                
                 <admin-vectordb-attributes :meta="meta" @changed="refresh" v-if="modify" />                
                 <admin-vectordb-structured-access :meta="meta" @changed="refresh(); $store.dispatch('poi_groups/refresh'); $store.dispatch('roi_groups/refresh');" v-if="modify" />
+                <a href="#/tools/task"> more at 'tools'-tab - 'task creation' (e.g. <b>layer renaming</b>)</a>
                 <br>
                 <br>
                 <br>
@@ -285,9 +286,10 @@ export default {
 }
 
 .meta-list {
-    background-color: rgb(243, 243, 243);
+    background-color: rgb(232, 232, 232);
     padding: 1px;
-    border-color: rgb(227, 227, 227);
+    margin-right: 5px;
+    border-color: rgba(0, 0, 0, 0.062);
     border-style: solid;
     border-width: 1px;
 }
@@ -301,9 +303,11 @@ export default {
 }
 
 .attributes {
-    background-color: rgb(227, 224, 222);
+    background-color: rgb(232, 232, 232);
     padding: 1px;
-    border-color: rgb(216, 214, 213);
+    margin-left: 2px;
+    margin-right: 3px;
+    border-color: rgba(0, 0, 0, 0.062);
     border-style: solid;
     border-width: 2px;
     color: #544141;
@@ -311,9 +315,11 @@ export default {
 }
 
 .name-attribute {
-    background-color: rgb(192, 185, 185);
+    background-color: rgb(212, 212, 212);
     padding: 1px;
-    border-color: rgb(30, 30, 30);
+    margin-left: 2px;
+    margin-right: 3px;
+    border-color: rgba(0, 0, 0, 0.637);
     border-style: solid;
     border-width: 2px;
     color: #000000;

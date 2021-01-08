@@ -91,6 +91,7 @@ public class Task_to_pointcloud extends RemoteTask{
 		@Override
 		public void close() throws Exception {
 			checkFinishCommit();			
+			pointcloud.getGriddb().storage().flush();
 		}
 	}
 

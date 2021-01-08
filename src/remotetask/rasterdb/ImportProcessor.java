@@ -17,8 +17,6 @@ import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
 import remotetask.RemoteProxy;
-import remotetask.RemoteTask;
-import util.Range2d;
 import util.Util;
 import util.collections.vec.Vec;
 import util.raster.GdalReader;
@@ -47,7 +45,7 @@ public class ImportProcessor extends RemoteProxy {
 	}
 
 	@Override
-	protected void close() {
+	public void close() {
 		broker = null;
 		rasterdb = null;
 		gdalreader = null;

@@ -6,8 +6,6 @@ import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import util.Util;
-
 public class IFD_ASCII extends IFD_Entry { // 32 bit unsigned integer
 	private static final Logger log = LogManager.getLogger();
 	

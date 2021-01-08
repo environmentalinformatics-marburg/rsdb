@@ -190,24 +190,22 @@ export default {
     }
   },
   methods: {
-    refresh() {
-      var self = this;
-        this.mode = 'load';
-        var url = this.$store.getters.apiUrl('api/remote_task_entries');
-        axios.get(url)
-            .then(function(response) {
-              self.data = response.data.remote_task_categories;
-              self.mode = 'ready';
-            })
-            .catch(function(error) {
-              self.mode = 'error';
-              self.message = self.interpretError(error);
-              self.messageActive = true;
-            });
+    async refresh() {
       this.$store.dispatch('rasterdbs/init'); 
       this.$store.dispatch('pointdbs/init');      
       this.$store.dispatch('pointclouds/init'); 
-      this.$store.dispatch('vectordbs/init'); 
+      this.$store.dispatch('vectordbs/init');
+      this.mode = 'load';
+      var url = this.$store.getters.apiUrl('api/remote_task_entries');
+      try {
+        var response = await axios.get(url);
+        this.data = response.data.remote_task_categories;
+        this.mode = 'ready';
+      } catch(error) {
+        this.mode = 'error';
+        this.message = this.interpretError(error);
+        this.messageActive = true;
+      } 
     },
     interpretError(error) {
       if (error.response) {

@@ -5,13 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-import org.eclipse.jetty.server.Response;
-
-import pointdb.PointDB;
 import pointdb.base.GeoPoint;
 import util.LittleEndianDataOutputStream;
 import util.Receiver;
-import util.ResponseReceiver;
 import util.collections.vec.Vec;
 
 public class LasWriter {

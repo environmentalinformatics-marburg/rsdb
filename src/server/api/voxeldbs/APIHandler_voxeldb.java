@@ -18,12 +18,10 @@ import org.locationtech.proj4j.proj.Projection;
 import org.locationtech.proj4j.units.Unit;
 
 import broker.Broker;
-import broker.TimeSlice;
 import broker.Informal.Builder;
+import broker.TimeSlice;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
-import rasterunit.KeyRange;
-import util.Extent2d;
 import util.Extent3d;
 import util.JsonUtil;
 import util.Range3d;

@@ -1,7 +1,5 @@
 package remotetask.pointcloud;
 
-import java.io.IOException;
-
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -12,7 +10,7 @@ import rasterdb.RasterDB;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteTask;
+import remotetask.RemoteProxyTask;
 
 @task_pointcloud("rasterize")
 @Description("Create visualisation raster of PointCloud layer.")
@@ -22,7 +20,7 @@ import remotetask.RemoteTask;
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) RasterDB operation mode. (RasterUnit only, default false)", example="false", required=false)
 @Param(name="point_scale", type="number", desc="point coordinates to pixel scale factor (default: 4, results in 0.25 units pixel size)", example="4", required=false)
-public class Task_rasterize extends RemoteTask {
+public class Task_rasterize extends RemoteProxyTask {
 	//private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
@@ -39,7 +37,7 @@ public class Task_rasterize extends RemoteTask {
 	}
 
 	@Override
-	public void process() throws IOException {		
+	public void process() throws Exception {		
 		String rasterdb_name = task.optString("rasterdb", pointcloud.getName() + "_rasterized");
 		boolean transactions = true;
 		if(task.has("transactions")) {
@@ -60,11 +58,12 @@ public class Task_rasterize extends RemoteTask {
 		double point_scale = task.optDouble("point_scale", Rasterizer.DEFAULT_POINT_SCALE);
 		
 		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb, point_scale);
-		rasterizer.run();
-		rasterdb.rebuildPyramid(true);
+		setRemoteProxyAndRunAndClose(rasterizer);
+		setMessage("rebuild pyramid");
+		rasterdb.rebuildPyramid(true);		
 		if(associate) {
 			pointcloud.setAssociatedRasterDB(rasterdb_name);
 		}
-
+		setMessage("done");
 	}
 }

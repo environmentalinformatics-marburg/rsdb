@@ -6,7 +6,6 @@ import org.eclipse.jetty.server.Response;
 
 import util.Range3d;
 import voxeldb.CellFactory;
-import voxeldb.VoxelCell;
 import voxeldb.VoxelGeoRef;
 
 public abstract class AggregatedProcessingBool8 extends AggregatedProcessing {

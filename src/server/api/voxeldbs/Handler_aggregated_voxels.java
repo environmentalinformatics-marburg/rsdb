@@ -11,7 +11,6 @@ import org.eclipse.jetty.server.UserIdentity;
 import broker.TimeSlice;
 import util.Range3d;
 import util.Web;
-import voxeldb.CellFactory;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 

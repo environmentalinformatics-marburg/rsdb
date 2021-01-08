@@ -3,6 +3,8 @@
 import * as THREE from './three.module.r115.js';
 import {OrbitControls} from './OrbitControls.r115.js';
 
+var message_box = document.getElementById('message_box');
+
 class VoxelWorld {
   constructor(cellSize) {
     this.cellSize = cellSize;
@@ -287,8 +289,11 @@ async function init() {
 	args.product = 'count:uint8';
     url.search = new URLSearchParams(args);
     console.log(url);
+	message_box.innerHTML = 'Loading voxel data from server ...';
     let response = await fetch(url);
+	message_box.innerHTML = 'Converting voxel data ...';
     let buffer = await response.arrayBuffer();
+	message_box.innerHTML = 'Processing voxel data ...';
     let header = new DataView(buffer);
     let xlen = header.getInt32(0);
     let ylen = header.getInt32(4);
@@ -297,6 +302,7 @@ async function init() {
     console.log(xlen + "  " + ylen + "  " + zlen);
     console.log(data);
     main(data, xlen, ylen, zlen);
+	message_box.innerHTML = 'Ready.';
     refresh();
   } catch(e) {
     console.log(e);

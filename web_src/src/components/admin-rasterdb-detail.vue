@@ -257,6 +257,7 @@
                 <b>Manage:</b>
                 <admin-rasterdb-bands :meta="meta" @changed="refresh" />
                 <admin-rasterdb-dialog-remove-timestamps :meta="meta" @changed="refresh" />
+                <a href="#/tools/task">more at 'tools'-tab - 'task creation' (e.g. <b>layer renaming</b>)</a>
                 <br><br>
                 <admin-rasterdb-dialog-delete :meta="meta" @changed="refresh" />
             </div>
@@ -444,9 +445,10 @@ export default {
 }
 
 .meta-list {
-    background-color: rgb(243, 243, 243);
+    background-color: rgb(232, 232, 232);
     padding: 1px;
-    border-color: rgb(227, 227, 227);
+    margin-right: 5px;
+    border-color: rgba(0, 0, 0, 0.062);
     border-style: solid;
     border-width: 1px;
 }

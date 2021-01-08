@@ -9,7 +9,6 @@ import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import pointdb.PointDB;
 import pointdb.base.PdbConst;
 import pointdb.processing.tilemeta.StatisticsCreator.Statistics;

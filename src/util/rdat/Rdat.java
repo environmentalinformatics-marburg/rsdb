@@ -1,7 +1,6 @@
 package util.rdat;
 
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 

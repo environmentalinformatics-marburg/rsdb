@@ -3,9 +3,10 @@
 
    <div v-if="rasterdbs !== undefined">
     <v-icon style="font-size: 1em;">collections</v-icon><b>Raster Layer</b>
+    <div v-if="selectedRasterdb !== undefined && selectedRasterdb !== null" style="font-size: 0.8em; color: grey;">ID: {{selectedRasterdb.name}}</div>
     <multiselect v-model="selectedRasterdb" :options="rasterdbs" :searchable="true" :show-labels="false" placeholder="pick a layer" :allowEmpty="true">
       <template slot="singleLabel" slot-scope="{option}">
-        {{option.title}}
+        <div><b>{{option.title}}</b></div>
       </template>
       <template slot="option" slot-scope="{option}">
         {{option.title}}

@@ -21,7 +21,6 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import broker.catalog.CatalogKey;
 import util.JsonUtil;
 import util.Util;

@@ -10,7 +10,6 @@ import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.cell.CellInt16;
 import rasterdb.cell.CellType;
-import rasterdb.tile.Processing.Commiter;
 import rasterunit.BandKey;
 import rasterunit.RasterUnitStorage;
 import util.Range2d;

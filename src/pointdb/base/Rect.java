@@ -1,7 +1,6 @@
 package pointdb.base;
 
 import java.util.Arrays;
-import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

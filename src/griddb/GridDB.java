@@ -16,7 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableSet;
-import java.util.SortedSet;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;

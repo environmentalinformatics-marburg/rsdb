@@ -1,7 +1,6 @@
 package pointdb;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,7 +8,6 @@ import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.DBMaker.Maker;
-import org.mapdb.DataIO.DataOutputByteArray;
 
 import broker.Informal;
 import pointdb.base.Point;
@@ -22,7 +20,6 @@ import pointdb.processing.tile.TileProducer;
 import pointdb.processing.tilekey.TileKeyProducer;
 import pointdb.processing.tilemeta.TileMetaProducer;
 import pointdb.processing.tilepoint.TilePointProducer;
-import util.Timer;
 import util.Util;
 
 /**
@@ -188,6 +185,7 @@ public class PointDB {
 		return dbmaker.make();		
 	}
 
+	@SuppressWarnings("static-access")
 	private static BTreeMap<TileKey, Tile> createTileMap(DB db, String storageType) {
 		if(storageType.isEmpty()) { // current version
 			return db.treeMapCreate("tileMap")

@@ -14,7 +14,6 @@ import org.mapdb.DataIO.DataOutputByteArray;
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
 import util.Receiver;
-import util.ResponseReceiver;
 
 public class RdatPointDataFrame {
 

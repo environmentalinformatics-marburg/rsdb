@@ -2,7 +2,6 @@ package voxeldb;
 
 import java.io.IOException;
 
-import rasterunit.KeyRange;
 import rasterunit.TileKey;
 import util.Range3d;
 

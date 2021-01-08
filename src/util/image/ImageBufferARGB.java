@@ -10,7 +10,6 @@ import java.awt.image.WritableRaster;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.zip.Deflater;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageWriteParam;
@@ -24,7 +23,6 @@ import ar.com.hjg.pngj.FilterType;
 import ar.com.hjg.pngj.IImageLine;
 import ar.com.hjg.pngj.ImageInfo;
 import ar.com.hjg.pngj.PngWriter;
-import ar.com.hjg.pngj.pixels.PixelsWriter;
 import util.SpiUtil;
 import util.Timer;
 

@@ -3,7 +3,6 @@ package rasterdb.tile;
 import java.util.Collection;
 
 import rasterdb.Band;
-import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
 import util.Range2d;

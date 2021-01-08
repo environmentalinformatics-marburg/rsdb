@@ -170,9 +170,10 @@ export default {
 <style scoped>
 
 .meta-list {
-    background-color: rgb(243, 243, 243);
+    background-color: rgb(232, 232, 232);
     padding: 1px;
-    border-color: rgb(227, 227, 227);
+    margin-right: 5px;
+    border-color: rgba(0, 0, 0, 0.062);
     border-style: solid;
     border-width: 1px;
 }

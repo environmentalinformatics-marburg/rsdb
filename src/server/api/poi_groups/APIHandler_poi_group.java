@@ -12,7 +12,6 @@ import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import broker.group.Poi;
 import broker.group.PoiGroup;
 

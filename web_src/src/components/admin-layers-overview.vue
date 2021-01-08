@@ -20,15 +20,6 @@
 
           <v-flex xs12>
             <v-card>
-              <v-card-title primary-title><h3 class="headline mb-0"><v-icon style="font-size: 1em;">blur_on</v-icon>&nbsp;PointDB</h3> </v-card-title>
-              <v-card-text>
-                Layers of this type store spatial point cloud points. Especially suitable for <b>LiDAR data</b>.
-              </v-card-text>
-            </v-card>
-          </v-flex>
-
-          <v-flex xs12>
-            <v-card>
               <v-card-title primary-title><h3 class="headline mb-0"><v-icon style="font-size: 1em;">grain</v-icon>&nbsp;Pointcloud</h3> </v-card-title>
               <v-card-text>
                 Layers of this type store spatial <b>point cloud points</b>. Points may contain a variety of attribues such as RGB color values.
@@ -76,6 +67,16 @@
               </v-card-text>
             </v-card>
           </v-flex>
+
+          <v-flex xs12>
+            <v-card>
+              <v-card-title primary-title><h3 class="headline mb-0"><v-icon style="font-size: 1em;">blur_on</v-icon>&nbsp;PointDB</h3> </v-card-title>
+              <v-card-text>
+                (obsolete, use Pointcloud instead)
+                <br>Layers of this type store spatial point cloud points. Especially suitable for <b>LiDAR data</b>.
+              </v-card-text>
+            </v-card>
+          </v-flex>          
 
         </v-layout>
       </v-container>

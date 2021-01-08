@@ -1,6 +1,6 @@
 <template>
 <div>
-  <v-btn @click="$emit('tool-raster-export-show')" ><v-icon>cloud_download</v-icon>&nbsp;export</v-btn>
+  <v-btn v-if="meta !== undefined" @click="$emit('tool-raster-export-show')" ><v-icon>cloud_download</v-icon>&nbsp;export</v-btn>
   <span v-show="meta !== undefined && meta.associated !== undefined && (meta.associated.PointDB !== undefined  || meta.associated.pointcloud !== undefined)" style="font-size: 0.8em;">
     ! just visualisation raster !
   </span>
@@ -8,18 +8,18 @@
     <br>
     <hr>
     <v-icon style="font-size: 1em;">category</v-icon><b>Vector Layer</b>
-    <multiselect v-if="vectordbs !== undefined" 
-          v-model="selectedVectordb" 
-          :options="vectordbs" 
-          track-by="name" 
-          label="name" 
-          :allowEmpty="true" 
-          :searchable="false" 
-          :show-labels="false" 
-          placeholder=""
-          @open="filter_focus = true;" 
-          @close="filter_focus = false;" />
-    <a v-if="selectedVectordb !== undefined && selectedVectordb !== null" :href="urlPrefix + '../../vectordbs/' + selectedVectordb.name + '/package.zip'" :download="selectedVectordb.name + '.zip'" title="download as ZIP-file"><v-icon color="blue">cloud_download</v-icon>(download vector layer)</a>
+    <div v-if="selectedVectordb !== undefined && selectedVectordb !== null" style="font-size: 0.8em; color: grey;">ID: {{selectedVectordb.name}}</div>
+    <multiselect v-if="vectordbs !== undefined" v-model="selectedVectordb" :options="vectordbs" :searchable="true" :show-labels="false" placeholder="pick a vector layer" :allowEmpty="true">
+      <template slot="singleLabel" slot-scope="{option}">
+        {{option.title === undefined ? option.name : option.title}}
+      </template>
+      <template slot="option" slot-scope="{option}">
+        {{option.title === undefined ? option.name : option.title}}
+      </template>
+    </multiselect>
+    <div v-if="selectedVectordb !== undefined && selectedVectordb !== null">
+      <div><a :href="urlPrefix + '../../vectordbs/' + selectedVectordb.name + '/package.zip'" :download="selectedVectordb.name + '.zip'" title="download as ZIP-file"><v-icon color="blue">cloud_download</v-icon>(download vector layer)</a></div>
+    </div>
   </div>
   <div v-show="epsgCode === undefined" style="color: #db4c11; padding: 10px; background-color: #0000000d;" title="Set an EPSG-code for this raster-layer to enable feature 'vector overlay'!">
     ! missing EPSG-code !

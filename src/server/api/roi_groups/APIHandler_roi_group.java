@@ -12,7 +12,6 @@ import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import broker.group.Roi;
 import broker.group.RoiGroup;
 import pointdb.base.Point2d;

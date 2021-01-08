@@ -3,7 +3,6 @@ package util.rdat;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import org.eclipse.jetty.server.Response;
 import org.mapdb.DataIO.DataOutputByteArray;
 
 import pointdb.processing.geopoint.RasterSubGrid;

@@ -19,6 +19,12 @@ public class RemoteProxyTask extends RemoteTask {
 		this.remoteProxy = remoteProxy;
 		remoteProxy.setMessageProxy(this);
 	}
+	
+	public void setRemoteProxyAndRunAndClose(RemoteProxy remoteProxy) throws Exception {
+		setRemoteProxy(remoteProxy);
+		remoteProxy.process();
+		remoteProxy.close();
+	}
 
 	@Override
 	protected void process() throws Exception {

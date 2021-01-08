@@ -12,7 +12,6 @@ import griddb.GridDB;
 import rasterunit.KeyRange;
 import rasterunit.Tile;
 import rasterunit.TileKey;
-import util.Range2d;
 import util.Range3d;
 import util.collections.vec.Vec;
 

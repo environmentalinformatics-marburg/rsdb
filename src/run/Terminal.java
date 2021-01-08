@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,7 +17,6 @@ import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.gdal.gdal.gdal;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -825,7 +823,7 @@ public class Terminal {
 				PointCloud pointdb = broker.getPointCloud(args[1]);
 				RasterDB rasterdb = broker.createNewRasterdb(args[2], false);
 				pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointdb, rasterdb, pointcloud.Rasterizer.DEFAULT_POINT_SCALE);
-				rasterizer.run();
+				rasterizer.process();
 				rasterdb.flush();
 				rasterdb.rebuildPyramid(true);
 			} catch (Exception e) {

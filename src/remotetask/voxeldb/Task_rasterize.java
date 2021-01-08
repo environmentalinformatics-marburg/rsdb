@@ -8,16 +8,12 @@ import org.json.JSONObject;
 
 import broker.Broker;
 import broker.TimeSlice;
-import pointcloud.CellTable;
-import pointcloud.PointCloud;
 import rasterdb.Band;
 import rasterdb.BandProcessor;
 import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
-import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
-import rasterunit.Tile;
 import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;

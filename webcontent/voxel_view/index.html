@@ -18,13 +18,21 @@ body {
   display: block;
 }
 
+#message_box {
+	position: absolute;
+	pointer-events: none;
+	user-select: none;	
+}
+
 </style>
 
 <script type="module" src="index.js"></script>
 
 </head>
 <body>
-
+<div id="message_box">
+Loading voxel data. This may take several seconds ...
+</div>
 <canvas id="c">
 </canvas>
 

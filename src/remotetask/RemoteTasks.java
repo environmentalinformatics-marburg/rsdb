@@ -9,23 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import remotetask.pointcloud.Task_rasterize;
 import remotetask.pointcloud.task_pointcloud;
-import remotetask.pointdb.Task_index_raster;
-import remotetask.pointdb.Task_to_pointcloud;
-import remotetask.pointdb.Task_verify;
 import remotetask.pointdb.task_pointdb;
-import remotetask.rasterdb.Task_count_pixels;
-import remotetask.rasterdb.Task_create;
-import remotetask.rasterdb.Task_create_band;
-import remotetask.rasterdb.Task_import;
-import remotetask.rasterdb.Task_rebuild;
-import remotetask.rasterdb.Task_rebuild_pyramid;
-import remotetask.rasterdb.Task_refresh_extent;
-import remotetask.rasterdb.Task_remove_bands;
-import remotetask.rasterdb.Task_remove_timestamps;
 import remotetask.rasterdb.task_rasterdb;
-import remotetask.vectordb.RefreshCatalogEntryRemoteTask;
 import remotetask.vectordb.task_vectordb;
 import remotetask.voxeldb.task_voxeldb;
 import util.collections.vec.Vec;
@@ -43,39 +29,43 @@ public class RemoteTasks {
 
 	static {
 		//task_rasterdb
-		put(Task_remove_timestamps.class);
-		put(Task_remove_bands.class);
-		put(Task_create.class);
-		put(Task_create_band.class);
-		put(Task_import.class);
-		put(Task_rebuild.class);
-		put(Task_rebuild_pyramid.class);
-		put(Task_count_pixels.class);
-		put(Task_refresh_extent.class);		
-
-		//task_pointdb
-		put(remotetask.pointdb.Task_import.class);
-		put(remotetask.pointdb.Task_rasterize.class);
-		put(Task_index_raster.class);
-		put(Task_to_pointcloud.class);
-		put(Task_verify.class);
+		put(remotetask.rasterdb.Task_remove_timestamps.class);
+		put(remotetask.rasterdb.Task_remove_bands.class);
+		put(remotetask.rasterdb.Task_create.class);
+		put(remotetask.rasterdb.Task_create_band.class);
+		put(remotetask.rasterdb.Task_import.class);
+		put(remotetask.rasterdb.Task_rebuild.class);
+		put(remotetask.rasterdb.Task_rebuild_pyramid.class);
+		put(remotetask.rasterdb.Task_count_pixels.class);
+		put(remotetask.rasterdb.Task_refresh_extent.class);
+		put(remotetask.rasterdb.Task_rename.class);
 
 		//task_pointcloud
 		put(remotetask.pointcloud.Task_import.class);
-		put(Task_rasterize.class);
+		put(remotetask.pointcloud.Task_rasterize.class);
 		put(remotetask.pointcloud.Task_verify.class);
 		put(remotetask.pointcloud.Task_rebuild.class);
 		put(remotetask.pointcloud.Task_index_raster.class);
 		put(remotetask.pointcloud.Task_coverage.class);
 		put(remotetask.pointcloud.Task_to_voxel.class);
+		put(remotetask.pointcloud.Task_rename.class);
 		
 		//task_voxeldb
 		put(remotetask.voxeldb.Task_import.class);
 		put(remotetask.voxeldb.Task_rasterize.class);
 		put(remotetask.voxeldb.Task_voxel_to_pointcloud.class);
+		put(remotetask.voxeldb.Task_rename.class);
 
 		//task_vectordb
-		put(RefreshCatalogEntryRemoteTask.class);
+		put(remotetask.vectordb.RefreshCatalogEntryRemoteTask.class);
+		put(remotetask.vectordb.Task_rename.class);
+		
+		//task_pointdb
+		put(remotetask.pointdb.Task_import.class);
+		put(remotetask.pointdb.Task_rasterize.class);
+		put(remotetask.pointdb.Task_index_raster.class);
+		put(remotetask.pointdb.Task_to_pointcloud.class);
+		put(remotetask.pointdb.Task_verify.class);
 	}
 	
 	private static void put(Class<? extends RemoteTask> clazz) {
@@ -191,10 +181,10 @@ public class RemoteTasks {
 	public static Map<String, TreeMap<String, RemoteTaskInfo>> list() {
 		LinkedHashMap<String,TreeMap<String, RemoteTaskInfo>> map = new LinkedHashMap<>();
 		map.put("task_rasterdb", collectAsTreeMap(task_rasterdbMap));
-		map.put("task_pointdb", collectAsTreeMap(task_pointdbMap));
 		map.put("task_pointcloud", collectAsTreeMap(task_pointcloudMap));
 		map.put("task_voxeldb", collectAsTreeMap(task_voxeldbMap));
 		map.put("task_vectordb", collectAsTreeMap(task_vectordbMap));
+		map.put("task_pointdb", collectAsTreeMap(task_pointdbMap));		
 		return map;
 	}
 }

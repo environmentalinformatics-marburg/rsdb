@@ -13,9 +13,10 @@ import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
+import remotetask.RemoteProxy;
 import util.Range2d;
 
-public class Rasterizer {
+public class Rasterizer extends RemoteProxy {
 	private static final Logger log = LogManager.getLogger();
 	
 	public static final double DEFAULT_POINT_SCALE = 4;
@@ -28,7 +29,7 @@ public class Rasterizer {
 	private final double raster_pixel_size;
 	
 	private Band bandIntensity;
-	private  Band bandElevation;
+	private Band bandElevation;
 
 	private static final int raster_pixel_per_batch_row = TilePixel.PIXELS_PER_ROW * 32;
 	private static final int border_pixels = 3;
@@ -71,34 +72,41 @@ public class Rasterizer {
 		selectorIntensity.setXY();
 		selectorIntensity.intensity = true;
 	}
-
-	public void run() throws IOException {
+	
+	@Override
+	public void process() throws Exception {
 		AttributeSelector selector = pointcloud.getSelector();
 		if(selector.red) {
 			Band bandRed = rasterdb.createBand(TilePixel.TYPE_FLOAT, "red", null);
-			log.info("rasterize red");
+			setMessage("rasterize red");
 			run(bandRed, new AttributeSelector().setXY().setRed(), Rasterizer::processRed);
 		}
 		if(selector.green) {
 			Band bandGreen = rasterdb.createBand(TilePixel.TYPE_FLOAT, "green", null);
-			log.info("rasterize green");
+			setMessage("rasterize green");
 			run(bandGreen, new AttributeSelector().setXY().setGreen(), Rasterizer::processGreen);
 		}		
 		if(selector.blue) {
 			Band bandBlue = rasterdb.createBand(TilePixel.TYPE_FLOAT, "blue", null);
-			log.info("rasterize blue");
+			setMessage("rasterize blue");
 			run(bandBlue, new AttributeSelector().setXY().setBlue(), Rasterizer::processBlue);
 		}
 		if(selector.intensity) {
 			this.bandIntensity = rasterdb.createBand(TilePixel.TYPE_FLOAT, "intensity", null);
-			log.info("rasterize intensity");
+			setMessage("rasterize intensity");
 			run(bandIntensity, selectorIntensity, Rasterizer::processIntensity);
 		}
 		if(selector.z) {
 			this.bandElevation = rasterdb.createBand(TilePixel.TYPE_FLOAT, "elevation", null);
-			log.info("rasterize elevation");
+			setMessage("rasterize elevation");
 			run(bandElevation, selectorElevation, Rasterizer::processElevation);
 		}
+	}
+	
+	@Override
+	public void close() {
+		bandIntensity = null;
+		bandElevation = null;
 	}
 
 	private void run(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing) throws IOException {
