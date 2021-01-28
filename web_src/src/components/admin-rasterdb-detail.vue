@@ -12,7 +12,7 @@
                     <v-icon>zoom_in</v-icon>
                 </v-btn>
             </h3> 
-            <span v-if="meta !== undefined && meta.title !== undefined && meta.title !== ''"><span style="user-select: none;">id: </span><b>{{rasterdb}}</b></span>
+            <span v-if="meta !== undefined && meta.title !== undefined && meta.title !== ''"><span style="user-select: none;">Identifier: </span><b>{{rasterdb}}</b></span>
         </div>
         <div v-if="metaError">
             <b>ERROR</b> 
@@ -30,24 +30,59 @@
                 </a>
                 <table style="padding-right: 420px;">
                     <tr>
-                        <td><b>description:</b></td>
+                        <td><b>Description:</b></td>
                         <td><span v-if="meta.description.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.description}}</span></td>                        
                     </tr>
                     <tr>
-                        <td><b>acquisition date:</b></td>
+                        <td><b>Date:</b></td>
                         <td><span v-if="meta.acquisition_date === undefined" style="color: grey;">(none)</span><span v-else>{{meta.acquisition_date}}</span></td>                        
                     </tr>
                     <tr>
-                        <td><b>corresponding contact:</b></td>
+                        <td><b>Publisher:</b></td>
                         <td><span v-if="meta.corresponding_contact === undefined" style="color: grey;">(none)</span><span v-else>{{meta.corresponding_contact}}</span></td>                        
                     </tr>
                     <tr>
-                        <td><b>tags:</b></td>
+                        <td><b>Subject:</b></td>
                         <td>                      
                             <span v-for="tag in optArray(meta.tags)" :key="tag"><span class="meta-list">{{tag}}</span>&nbsp;&nbsp;&nbsp;</span>
                             <span v-if="optArray(meta.tags).length === 0" style="color: grey;">(none)</span>
                         </td>
                     </tr>
+
+                    <tr v-if="meta.Source !== undefined">
+                        <td><b>Source:</b></td>
+                        <td><span>{{meta.Source}}</span></td>                        
+                    </tr>
+                    <tr v-if="meta.Relationt !== undefined">
+                        <td><b>Relation:</b></td>
+                        <td><span>{{meta.Relation}}</span></td>                        
+                    </tr>
+                    <tr v-if="meta.Coverage !== undefined">
+                        <td><b>Coverage:</b></td>
+                        <td><span>{{meta.Coverage}}</span></td>                        
+                    </tr>
+                    <tr v-if="meta.Creatort !== undefined">
+                        <td><b>Creator:</b></td>
+                        <td><span>{{meta.Creator}}</span></td>                        
+                    </tr>
+                    <tr v-if="meta.Contributor !== undefined">
+                        <td><b>Contributor:</b></td>
+                        <td><span>{{meta.Contributor}}</span></td>                        
+                    </tr>
+                    <tr v-if="meta.Rights !== undefined">
+                        <td><b>Rights:</b></td>
+                        <td><span>{{meta.Rights}}</span></td>                        
+                    </tr>
+                    <tr v-if="meta.Audience !== undefined">
+                        <td><b>Audience:</b></td>
+                        <td><span>{{meta.Audience}}</span></td>                        
+                    </tr>
+                    <tr v-if="meta.Provenance !== undefined">
+                        <td><b>Provenance:</b></td>
+                        <td><span>{{meta.Provenance}}</span></td>                        
+                    </tr>
+
+
                 </table>               
             </div>
             <v-divider class="meta-divider"></v-divider> 

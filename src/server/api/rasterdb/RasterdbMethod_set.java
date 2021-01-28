@@ -84,6 +84,74 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					rasterdb.setInformal(informal.build());
 					break;
 				}
+				
+				
+				case "Source": {
+					rasterdb.checkMod(userIdentity);
+					Builder informal = rasterdb.informal().toBuilder();
+					String dc_Source = meta.getString("Source").trim();
+					informal.dc_Source = dc_Source;
+					rasterdb.setInformal(informal.build());
+					break;
+				}				
+				case "Relation": {
+					rasterdb.checkMod(userIdentity);
+					Builder informal = rasterdb.informal().toBuilder();
+					String dc_Relation = meta.getString("Relation").trim();
+					informal.dc_Relation = dc_Relation;
+					rasterdb.setInformal(informal.build());
+					break;
+				}
+				case "Coverage": {
+					rasterdb.checkMod(userIdentity);
+					Builder informal = rasterdb.informal().toBuilder();
+					String dc_Coverage = meta.getString("Coverage").trim();
+					informal.dc_Coverage = dc_Coverage;
+					rasterdb.setInformal(informal.build());
+					break;
+				}				
+				case "Creator": {
+					rasterdb.checkMod(userIdentity);
+					Builder informal = rasterdb.informal().toBuilder();
+					String dc_Creator = meta.getString("Creator").trim();
+					informal.dc_Creator = dc_Creator;
+					rasterdb.setInformal(informal.build());
+					break;
+				}
+				case "Contributor": {
+					rasterdb.checkMod(userIdentity);
+					Builder informal = rasterdb.informal().toBuilder();
+					String dc_Contributor = meta.getString("Contributor").trim();
+					informal.dc_Contributor = dc_Contributor;
+					rasterdb.setInformal(informal.build());
+					break;
+				}
+				case "Rights": {
+					rasterdb.checkMod(userIdentity);
+					Builder informal = rasterdb.informal().toBuilder();
+					String dc_Rights = meta.getString("Rights").trim();
+					informal.dc_Rights = dc_Rights;
+					rasterdb.setInformal(informal.build());
+					break;
+				}
+				case "Audience": {
+					rasterdb.checkMod(userIdentity);
+					Builder informal = rasterdb.informal().toBuilder();
+					String dc_Audience = meta.getString("Audience").trim();
+					informal.dc_Audience = dc_Audience;
+					rasterdb.setInformal(informal.build());
+					break;
+				}
+				case "Provenance": {
+					rasterdb.checkMod(userIdentity);
+					Builder informal = rasterdb.informal().toBuilder();
+					String dc_Provenance = meta.getString("Provenance").trim();
+					informal.dc_Provenance = dc_Provenance;
+					rasterdb.setInformal(informal.build());
+					break;
+				}				
+				
+				
 				case "proj4": {
 					rasterdb.checkMod(userIdentity);
 					updateCatalog = true;

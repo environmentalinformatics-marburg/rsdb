@@ -1,8 +1,13 @@
 package server.api.rasterdb;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,9 +26,10 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 import org.json.JSONWriter;
-
+import org.yaml.snakeyaml.Yaml;
 
 import broker.Broker;
+import broker.Informal;
 import broker.TimeSlice;
 import rasterdb.Band;
 import rasterdb.RasterDB;
@@ -174,6 +180,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			zipOutputStream.setMethod(ZipOutputStream.DEFLATED);
 		}*/
 		zipOutputStream.setLevel(spec.compression);
+		write_dublin_core(spec, zipOutputStream);
 		boolean tiled = true;
 		if(tiled) {
 			int tileSize = 4096 * spec.div;
@@ -254,5 +261,40 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		default:
 			throw new RuntimeException("unknown arrangement: "+spec.arrangement);
 		}		
+	}
+	
+	private void write_dublin_core(Spec spec, ZipOutputStream zipOutputStream) throws IOException {
+		zipOutputStream.putNextEntry(new ZipEntry("metadata.yaml"));
+		try {
+			write_dublin_core_metadata(spec, zipOutputStream);
+		} finally {
+			zipOutputStream.closeEntry();	
+		}		
+	}
+	
+	private void write_dublin_core_metadata(Spec spec, OutputStream out) {
+		RasterDB rasterdb = spec.rasterdb;
+		Informal informal = rasterdb.informal();
+		LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+		map.put("Title", informal.hasTitle() ? informal.title : rasterdb.config.getName());
+		map.put("Identifier", rasterdb.config.getName());
+		map.put("Subject", informal.tags);
+		map.put("Description", informal.description);
+		map.put("Type", "Raster");
+		map.put("Source", "Source");
+		map.put("Relation", "Relation");
+		map.put("Coverage", "Coverage");
+		map.put("Creator", "Creator");
+		map.put("Publisher", informal.corresponding_contact);
+		map.put("Contributor", "Contributor");
+		map.put("Rights", "Rights");
+		map.put("Date", informal.acquisition_date);
+		map.put("Audience", "Audience");
+		map.put("Provenance", "Provenance");
+		map.put("Format", "image/tiff");
+		
+
+		Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+		new Yaml().dump(map, writer);
 	}
 }
