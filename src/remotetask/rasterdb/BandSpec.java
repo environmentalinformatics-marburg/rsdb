@@ -12,6 +12,7 @@ public class BandSpec {
 	public Double no_data_value = null;
 	public boolean import_band = true;
 	public int timestamp = -1;
+	public String timeSlice = null;
 	@Override
 	public String toString() {
 		return "BandSpec [band_name=" + band_name + ", file_band_index=" + file_band_index + ", rasterdb_band_index="

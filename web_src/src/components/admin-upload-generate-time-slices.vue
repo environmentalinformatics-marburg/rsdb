@@ -1,14 +1,14 @@
 <template>
     <span>
         <v-dialog v-model="dialog" lazy absolute width="800px">
-            <v-btn title="generate sequence of timestamps" slot="activator">
-                <v-icon left>folder_open</v-icon>timestamps
+            <v-btn title="generate sequence of time slices" slot="activator">
+                <v-icon left>folder_open</v-icon>time slices
             </v-btn>
             <v-card>
                 <v-card-title>
-                    <div class="headline">generate sequence of timestamps ({{bandCount}})</div>
+                    <div class="headline">generate sequence of time slices ({{bandCount}})</div>
                 </v-card-title>
-                <span style="color: grey;"><v-icon style="color: grey;" title="note">event_note</v-icon> Click <i>apply</i>-button to commit generated timestamps. (You may need to scroll down.)</span>
+                <span style="color: grey;"><v-icon style="color: grey;" title="note">event_note</v-icon> Click <i>apply</i>-button to commit generated time slices. (You may need to scroll down.)</span>
                 <br>
                 <br>
                 <multiselect v-model="mode" :options="modes" track-by="id" label="title" :allowEmpty="false" :searchable="false" :show-labels="false" placeholder="select mode" />
@@ -57,7 +57,7 @@
 import Multiselect from 'vue-multiselect'
 
 export default {
-    name: 'admin-upload-generate-timestamps',
+    name: 'admin-upload-generate-time_slices',
     props: ['specification'],        
     components: {
         Multiselect,

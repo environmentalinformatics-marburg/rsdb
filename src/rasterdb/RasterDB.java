@@ -564,7 +564,21 @@ public class RasterDB implements AutoCloseable {
 			writeMeta();
 	}
 	
-	public synchronized TimeSlice addTimeSlice(TimeSliceBuilder timeSliceBuilder) {
+	public synchronized TimeSlice getTimeSliceByName(String name) {
+		for(TimeSlice value : timeMap.values()) {
+			if(value.hasName() && value.name.equals(name)) {
+				return value;
+			}
+		}
+		return null;
+	}
+	
+	public synchronized TimeSlice getOrCreateTimeSliceByName(String name) {
+		TimeSlice timeSlice = getTimeSliceByName(name);
+		return timeSlice == null ? createTimeSlice(new TimeSliceBuilder(name)) : timeSlice;
+	}
+	
+	public synchronized TimeSlice createTimeSlice(TimeSliceBuilder timeSliceBuilder) {
 			int id = 0;
 			while(timeMap.containsKey(id)) {
 				id++;

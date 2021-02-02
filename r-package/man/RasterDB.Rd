@@ -10,22 +10,23 @@ RasterDB \link{R6Class} object.
 remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 rasterdb <- remotesensing$rasterdb(name)
 
-raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')
-rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE)
-rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0, update_pyramid=TRUE, refresh_meta=TRUE)
+raster_stack <- rasterdb$raster(ext, time_slice=NULL, band=NULL, product=NULL, masking='center', timestamp=NULL)
+rasterdb$insert_RasterLayer(r, time_slice=NULL, band=1, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL)
+rasterdb$insert_RasterStack(r, time_slice=NULL, bands=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL)
 rasterdb$refresh_meta()
 rasterdb$update_pyramid()
 rasterdb$set_meta(meta)
 rasterdb$set_band_meta(bands)
 
 rasterdb$name
+rasterdb$time_slices
 rasterdb$bands
-rasterdb$timestamps
 rasterdb$pixel_size
 rasterdb$extent
 rasterdb$geo_code
 rasterdb$proj4
 rasterdb$description
+rasterdb$timestamps
 }
 \description{
 RasterDB class provides methods to access (hyperspectral) rasters of Remote Sensing Database.
@@ -44,8 +45,8 @@ name: Name of RasterDB.
 
 returns: RasterDB object}
 
-\item{$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')}{Request raster data from opened RasterDB.
-If neither band nor product are specified all bands are returned. Either band or product can be specified.
+\item{$raster(ext, time_slice=NULL, band=NULL, product=NULL, masking='center', timestamp=NULL)}{Request raster data from opened RasterDB layer.
+If neither band nor product are specified all bands are returned; either band or product can be specified.
 
 ext: object of one class:
 \itemize{
@@ -56,53 +57,66 @@ ext: object of one class:
  \item{\strong{sfc_POLYGON}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
 }
 
-band: vector or single number of requested band numbers
+time_slice: (optional) Point in time, has to match an existing time_slice on this RasterDB layer.
 
-timestamp: request raster of time. If not specified newest data is returned.
-Timestamp format is part of ISO 8601. Valid syntax is: YYYY-MM-DDThh:mm for exact timestamp (e.g. "2017-12-31T23:59")
-or shortened versions (YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DDThh) (e.g. 2017-12).
-When shortened version is used oldest data in layer within that timerange is returned.
+band: (optional) vector or single number of requested band numbers
 
-product: character vector of requested product specification. See section product.
+product: (optional) character vector of requested product specification. See section product.
 
-masking: (optional) if 'ext' parameter is an extent masking parameter is ignored
+masking: (optional) if 'ext' parameter is an extent masking parameter is ignored.
 
 \itemize{
  \item{\strong{'center'} raster is masked by polygon (in 'ext' parameter) for pixels that center is within the polygon, see \link[raster]{mask}}
  \item{\strong{'extent'}  just extent (in 'ext' parameter) is used, no masking}
 }
 
+timestamp: (optional) (obsolete, use time_slice) timestamp of requested raster data.
+Timestamp format is in ISO 8601. Valid syntax is: YYYY-MM-DDThh:mm for exact timestamp (e.g. "2017-12-31T23:59")
+or shortened versions (YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DDThh) (e.g. 2017-12).
+When shortened version is used oldest data in layer within that timerange is returned.
+Alternatively, when timestamp is an integer the timestamp is used as an internal timestamp-id to request data.
+
 returns: RasterLayer or RasterStack}
 
-\item{$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE)}{Insert raster data from RasterLayerinto RasterDB.
+\item{$insert_RasterLayer(r, time_slice=NULL, band=1, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL)}{Insert raster data from RasterLayer into RasterDB.
 
-If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
+If projection and/or resolution information is missing in the RasterDB layer then it is inserted form the given raster.
+
+r: inserted RasterLayer
+
+time_slice: (optional) Point in time, free text, but ISO 8601 preferred, e.g. 2021-02.
 
 band: (optional) integer band number, creates band if it does not exist
 
 band_title: (optional) title of band, only applied for newly created band
 
-timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
+flush: (optional) ensure that all data is persisted on disc when this call returns.
 
-flush: (optional) ensure that all data is persisted on disc now.
+update_pyramid: (optional) update pyramid with the new raster data.
 
-update_pyramid: (optional) update pyramid with new raster data.
+refresh_meta: (optional) load updated metadata in R.
 
-refresh_meta: (optional) load updated metadata.
+timestamp: (optional) (obsolete) integer representation of point in time, 0 represents missing timestamp. Or as specified in method 'raster, e.g. "2017-12-31T23:59".
 
 returns: success message}
 
-\item{insert_RasterStack(r, bands=NULL, timestamp=0, update_pyramid=TRUE, refresh_meta=TRUE)}{Insert raster data from RasterStack into RasterDB.
+\item{insert_RasterStack(r, time_slice=NULL, bands=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL)}{Insert raster data from RasterStack into RasterDB.
 
-If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
+If projection and/or resolution information is missing in the RasterDB layer then it is inserted form the given raster.
 
-band: (optional) vector or single number of inserted band numbers, creates bands if some do not exist
+r: inserted RasterStack
 
-timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
+time_slice: (optional) Point in time, free text, but ISO 8601 preferred, e.g. 2021-02.
 
-update_pyramid: (optional) update pyramid with new raster data.
+bands: (optional) integer band numbers, creates bands if not existing
 
-refresh_meta: (optional) load updated metadata.
+flush: (optional) ensure that all data is persisted on disc when this call returns.
+
+update_pyramid: (optional) update pyramid with the new raster data.
+
+refresh_meta: (optional) load updated metadata in R.
+
+timestamp: (optional) (obsolete) integer representation of point in time, 0 represents missing timestamp. Or as specified in method 'raster, e.g. "2017-12-31T23:59".
 
 returns: success message}
 
@@ -122,11 +136,11 @@ returns: success message}
 
  bands: data.frame with band numbers in column 'index' and several of following meta data columns: 'datatype' 'title' 'wavelength' 'fwhm' 'visualisation' 'vis_min' 'vis_max'}
 
-\item{$name}{name of RasterDB}
+\item{$name}{ID of RasterDB}
+
+\item{$time_slices}{data.frame of existing time_slices}
 
 \item{$bands}{data.frame of band information (band index, wavelength, fwhm (wavelength bandwidth), title)}
-
-\item{$timestamps}{data.frame of timestamps}
 
 \item{$pixel_size}{size of pixels in projection coordinates}
 
@@ -140,13 +154,15 @@ Note: Don't use this extent directly for queries on RasterDB as it may be very l
 
 \item{$description}{description text)}
 
+\item{$timestamps}{data.frame of timestamps}
+
 }
 }
 
 \section{Product}{
 
 
-Parameter product is a texuel specification of raster processing request.
+Parameter product is a texual specification of raster processing request.
 
 Syntax:
 \describe{
@@ -316,10 +332,11 @@ woellauer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$raster(
   ext,
+  time_slice = NULL,
   band = NULL,
-  timestamp = NULL,
   product = NULL,
-  masking = "center"
+  masking = "center",
+  timestamp = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -331,12 +348,13 @@ woellauer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterLayer(
   r,
+  time_slice = NULL,
   band = 1,
-  timestamp = 0,
   band_title = NULL,
   flush = TRUE,
   update_pyramid = TRUE,
-  refresh_meta = TRUE
+  refresh_meta = TRUE,
+  timestamp = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -348,10 +366,12 @@ woellauer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterStack(
   r,
+  time_slice = NULL,
   bands = NULL,
-  timestamp = 0,
+  flush = TRUE,
   update_pyramid = TRUE,
-  refresh_meta = TRUE
+  refresh_meta = TRUE,
+  timestamp = NULL
 )}\if{html}{\out{</div>}}
 }
 

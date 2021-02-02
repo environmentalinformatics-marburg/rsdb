@@ -116,38 +116,71 @@ public class TileFloat {
 		return cnt;
 	}
 	
-	public static short[][] floatToShort(float[][] sourceFloat, short[][] targeShort, short targetNA) {
+	public static short[][] floatToShort(float[][] sourceFloat, short[][] targetShort, short targetNA) {
 		int w = sourceFloat[0].length;
 		int h = sourceFloat.length;
-		if(targeShort == null || targeShort.length != h || targeShort[0].length != w) {
-			targeShort = new short[h][w];
+		if(targetShort == null || targetShort.length != h || targetShort[0].length != w) {
+			targetShort = new short[h][w];
 		}
 		for (int y = 0; y < h; y++) {
 			float[] a = sourceFloat[y];
-			short[] b = targeShort[y];
+			short[] b = targetShort[y];
 			for (int x = 0; x < w; x++) {
 				float v = a[x];
 				b[x] = Float.isFinite(v) ? (short) v : targetNA;
 			}
 		}
-		return targeShort;
+		return targetShort;
 	}
 
-	public static short[][] floatToShort(float[][] sourceFloat, short[][] targeShort, float sourceNA, short targetNA) {
+	public static short[][] floatToShort(float[][] sourceFloat, short[][] targetShort, float sourceNA, short targetNA) {
 		int w = sourceFloat[0].length;
 		int h = sourceFloat.length;
-		if(targeShort == null || targeShort.length != h || targeShort[0].length != w) {
-			targeShort = new short[h][w];
+		if(targetShort == null || targetShort.length != h || targetShort[0].length != w) {
+			targetShort = new short[h][w];
 		}
 		for (int y = 0; y < h; y++) {
 			float[] a = sourceFloat[y];
-			short[] b = targeShort[y];
+			short[] b = targetShort[y];
 			for (int x = 0; x < w; x++) {
 				float v = a[x];
 				b[x] = Float.isFinite(v) && v != sourceNA ? (short) v : targetNA;
 			}
 		}
-		return targeShort;
+		return targetShort;
 	}
 	
+	public static float[][] shortToFloat(short[][] sourceShort, float[][] targetFloat, short sourceNA) {
+		int w = sourceShort[0].length;
+		int h = sourceShort.length;
+		if(targetFloat == null || targetFloat.length != h || targetFloat[0].length != w) {
+			targetFloat = new float[h][w];
+		}
+		for (int y = 0; y < h; y++) {
+			short[] a = sourceShort[y];
+			float[] b = targetFloat[y];
+			for (int x = 0; x < w; x++) {
+				short v = a[x];
+				b[x] = v != sourceNA ? (float) v : Float.NaN;
+			}
+		}
+		return targetFloat;
+	}	
+	
+	public static float[][] shortToFloat(short[][] sourceShort, float[][] targetFloat, short sourceNA, float targetNA) {
+		int w = sourceShort[0].length;
+		int h = sourceShort.length;
+		if(targetFloat == null || targetFloat.length != h || targetFloat[0].length != w) {
+			targetFloat = new float[h][w];
+		}
+		for (int y = 0; y < h; y++) {
+			short[] a = sourceShort[y];
+			float[] b = targetFloat[y];
+			for (int x = 0; x < w; x++) {
+				short v = a[x];
+				b[x] = v != sourceNA ? (float) v : targetNA;
+			}
+		}
+		return targetFloat;
+	}	
 }

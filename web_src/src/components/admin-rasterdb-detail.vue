@@ -53,7 +53,7 @@
                         <td><b>Source:</b></td>
                         <td><span>{{meta.Source}}</span></td>                        
                     </tr>
-                    <tr v-if="meta.Relationt !== undefined">
+                    <tr v-if="meta.Relation !== undefined">
                         <td><b>Relation:</b></td>
                         <td><span>{{meta.Relation}}</span></td>                        
                     </tr>
@@ -61,7 +61,7 @@
                         <td><b>Coverage:</b></td>
                         <td><span>{{meta.Coverage}}</span></td>                        
                     </tr>
-                    <tr v-if="meta.Creatort !== undefined">
+                    <tr v-if="meta.Creator !== undefined">
                         <td><b>Creator:</b></td>
                         <td><span>{{meta.Creator}}</span></td>                        
                     </tr>

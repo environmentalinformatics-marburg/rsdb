@@ -36,6 +36,7 @@ public class ImportSpec {
 	public boolean update_pyramid = true;
 	public boolean update_catalog = true;
 	public int generalTimestamp = 0;
+	public String generalTimeSlice = null;
 	public String storage_type = "TileStorage";
 
 	public ImportSpec() {		
@@ -237,7 +238,11 @@ public class ImportSpec {
 								bandSpec.timestamp = TimeUtil.toTimestamp(timerange[0]);
 							}
 							break;
-						}						
+						}
+						case "time_slice": {
+							bandSpec.timeSlice  = band.getString("time_slice");
+							break;
+						}
 						default: {					
 							log.warn("unknown band key: "+bandKey);
 							//throw new RuntimeException("unknown key: "+key);
@@ -307,6 +312,10 @@ public class ImportSpec {
 					LocalDateTime[] timerange = TimeUtil.getDateTimeRange(timestampText);
 					generalTimestamp = TimeUtil.toTimestamp(timerange[0]);
 				}
+				break;
+			}
+			case "time_slice": {
+				generalTimeSlice = specification.getString("time_slice").trim();
 				break;
 			}
 			default: {

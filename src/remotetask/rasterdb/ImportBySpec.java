@@ -6,13 +6,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import broker.Broker;
+import broker.TimeSlice;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import util.raster.GdalReader;
 
 public class ImportBySpec {
 	private static final Logger log = LogManager.getLogger();
-	
+
 	public static ImportProcessor importPerpare(Broker broker, Path path, String rasterdbID, ImportSpec spec) {
 		if(path == null) {
 			throw new RuntimeException("no path");
@@ -21,8 +22,8 @@ public class ImportBySpec {
 		GdalReader gdalreader = new GdalReader(path.toString());	
 		return importPerpare(broker, gdalreader, rasterdbID, spec);
 	}
-	
-	
+
+
 	public static ImportProcessor importPerpare(Broker broker, GdalReader gdalreader, String rasterdbID, ImportSpec spec) {
 		if(broker == null) {
 			throw new RuntimeException("no broker");
@@ -68,15 +69,15 @@ public class ImportBySpec {
 		} else {
 			rasterdb = broker.getRasterdb(rasterdbID);
 		}
-		
+
 		if(!rasterdb.ref().has_pixel_size()) {
 			rasterdb.setPixelSize(spec.pixel_size_x, spec.pixel_size_y, spec.rasterdb_geo_offset_x, spec.rasterdb_geo_offset_y);			
 		}
-		
+
 		if(!rasterdb.ref().has_proj4()) {
 			rasterdb.setProj4(spec.proj4);			
 		}
-		
+
 		if(!rasterdb.ref().has_code()) {
 			rasterdb.setCode(spec.geo_code);			
 		}
@@ -88,6 +89,11 @@ public class ImportBySpec {
 					rasterdb.setBand(band);
 				}
 			}
+		}
+		
+		if(spec.generalTimeSlice != null) {
+			TimeSlice timeSlice = rasterdb.getOrCreateTimeSliceByName(spec.generalTimeSlice);
+			spec.generalTimestamp = timeSlice.id;
 		}
 
 		if(spec.bandSpecs != null) {
@@ -103,11 +109,17 @@ public class ImportBySpec {
 					bandSpec.wavelength = refBand.wavelength;
 					bandSpec.fwhm = refBand.fwhm;
 					bandSpec.visualisation = refBand.visualisation;
+					if(bandSpec.timeSlice != null) {
+						TimeSlice timeSlice = rasterdb.getOrCreateTimeSliceByName(bandSpec.timeSlice);
+						bandSpec.timestamp = timeSlice.id;
+					} else if(bandSpec.timestamp == -1) {
+						bandSpec.timestamp = spec.generalTimestamp;
+					}
 				}
 			}
-		}
+		}		
 
-		ImportProcessor importProcessor = new ImportProcessor(broker, rasterdb, gdalreader, spec.bandSpecs, spec.pixel_size_y, spec.update_pyramid, spec.update_catalog, spec.generalTimestamp);
+		ImportProcessor importProcessor = new ImportProcessor(broker, rasterdb, gdalreader, spec.bandSpecs, spec.pixel_size_y, spec.update_pyramid, spec.update_catalog);
 		return importProcessor;
 	}
 }

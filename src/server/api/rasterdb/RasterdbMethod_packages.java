@@ -262,7 +262,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			throw new RuntimeException("unknown arrangement: "+spec.arrangement);
 		}		
 	}
-	
+
 	private void write_dublin_core(Spec spec, ZipOutputStream zipOutputStream) throws IOException {
 		zipOutputStream.putNextEntry(new ZipEntry("metadata.yaml"));
 		try {
@@ -271,28 +271,54 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			zipOutputStream.closeEntry();	
 		}		
 	}
-	
+
 	private void write_dublin_core_metadata(Spec spec, OutputStream out) {
 		RasterDB rasterdb = spec.rasterdb;
 		Informal informal = rasterdb.informal();
 		LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
-		map.put("Title", informal.hasTitle() ? informal.title : rasterdb.config.getName());
 		map.put("Identifier", rasterdb.config.getName());
-		map.put("Subject", informal.tags);
-		map.put("Description", informal.description);
+		if(informal.hasTitle()) {
+			map.put("Title", informal.title);
+		}
+		if(!informal.tags.isEmpty()) {
+			map.put("Subject", informal.tags);
+		}
+		if(informal.hasDescription()) {
+			map.put("Description", informal.description);
+		}
 		map.put("Type", "Raster");
-		map.put("Source", "Source");
-		map.put("Relation", "Relation");
-		map.put("Coverage", "Coverage");
-		map.put("Creator", "Creator");
-		map.put("Publisher", informal.corresponding_contact);
-		map.put("Contributor", "Contributor");
-		map.put("Rights", "Rights");
-		map.put("Date", informal.acquisition_date);
-		map.put("Audience", "Audience");
-		map.put("Provenance", "Provenance");
+		if(informal.has_dc_Source()) {
+			map.put("Source", informal.dc_Source);
+		}
+		if(informal.has_dc_Relation()) {
+			map.put("Relation", informal.dc_Relation);
+		}
+		if(informal.has_dc_Coverage()) {
+			map.put("Coverage", informal.dc_Coverage);
+		}
+		if(informal.has_dc_Creator()) {
+			map.put("Creator", informal.dc_Creator);
+		}
+		if(informal.has_corresponding_contact()) {
+			map.put("Publisher", informal.corresponding_contact);
+		}
+		if(informal.has_dc_Contributor()) {
+			map.put("Contributor", informal.dc_Contributor);
+		}
+		if(informal.has_dc_Rights()) {
+			map.put("Rights", informal.dc_Rights);
+		}
+		if(informal.hasAcquisition_date()) {
+			map.put("Date", informal.acquisition_date);
+		}
+		if(informal.has_dc_Audience()) {
+			map.put("Audience", informal.dc_Audience);
+		}
+		if(informal.has_dc_Provenance()) {
+			map.put("Provenance", informal.dc_Provenance);
+		}
 		map.put("Format", "image/tiff");
-		
+
 
 		Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
 		new Yaml().dump(map, writer);

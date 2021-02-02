@@ -155,8 +155,8 @@ public class TimeUtil {
 		if(range[0] == null || range[1] == null) {
 			return null;
 		} else {
-			int min = range[0]==null?Integer.MIN_VALUE:toTimestamp(range[0]);
-			int max = range[1]==null?Integer.MAX_VALUE:toTimestamp(range[1]);
+			int min = range[0] == null ? Integer.MIN_VALUE : toTimestamp(range[0]);
+			int max = range[1] == null ? Integer.MAX_VALUE : toTimestamp(range[1]);
 			return new int[]{min, max};
 		}
 	}

@@ -18,7 +18,7 @@ RasterDB_public <- list( #      *********** public *****************************
     private$meta <- private$rsdbConnector$GET(paste0("/rasterdb/", private$name_, "/meta.json"))
   },
 
-  raster = function(ext, band=NULL, timestamp=NULL, product=NULL, masking='center') {
+  raster = function(ext, time_slice=NULL, band=NULL, product=NULL, masking='center', timestamp=NULL) {
     spMask <- NULL
     if(is(ext, 'sfc_MULTIPOLYGON')) {
       ext <- sf:::as_Spatial(ext)
@@ -36,16 +36,19 @@ RasterDB_public <- list( #      *********** public *****************************
       ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
     }
     extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
-    param_list <- c(ext=extText, timestamp=timestamp)
+    param_list <- c(ext=extText)
+    if(!is.null(time_slice)) {
+      param_list <- c(param_list, time_slice=time_slice)
+    }
     if(!is.null(band)) {
       bandText <- paste(as.integer(band), collapse=" ")
       param_list <- c(param_list, band=bandText)
     }
-    if(!is.null(timestamp)) {
-      param_list <- c(param_list, timestamp=timestamp)
-    }
     if(!is.null(product)) {
       param_list <- c(param_list, product=product)
+    }
+    if(!is.null(timestamp)) {
+      param_list <- c(param_list, timestamp=timestamp)
     }
     #r <- query_RDAT(private$url, "raster.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle))
     #return(r)
@@ -65,20 +68,24 @@ RasterDB_public <- list( #      *********** public *****************************
     return(rdat)
   },
 
-  insert_RasterLayer = function(r, band=1, timestamp=0, band_title=NULL, flush = TRUE, update_pyramid = TRUE, refresh_meta = TRUE) {
+  insert_RasterLayer = function(r, time_slice=NULL, band=1, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL) {
     stopifnot(is(r, "RasterLayer"))
     ext <- r@extent
     extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
-    #param_list <- c(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE)
     data <- raster::getValues(r)
-    #cat("data length", length(data), "\n")
-    out_data <- as.integer(data)
-    #cat("out_data length", length(out_data), "\n")
-    raw <- writeBin(object=out_data, con=raw(0), size=2, endian="little")
-    #cat("raw length", length(raw), "\n")
-    #result <- post_raw_get_json(raw=raw, api_url=private$url, method="insert_raster", param_list=param_list, curl=RCurl::dupCurlHandle(private$curlHandle)) #raw not send if with curlHandle
+    if(typeof(data) == "integer" & -32768 <= min(data, na.rm = TRUE) & max(data, na.rm = TRUE) <= 32767) {
+      data_type <- "int16"
+      raw <- writeBin(object=data, con=raw(0), size=2, endian="little")
+    } else {
+      data_type <- "float32"
+      if(typeof(data) != "numeric") {
+        data <- as.numeric(data)
+      }
+      raw <- writeBin(object=data, con=raw(0), size=4, endian="little")
+      #cat(length(data), length(raw), "\n")
+    }
     path <- paste0("/rasterdb/", private$name_, "/insert_raster")
-    query <- list(width=r@ncols, height=r@nrows, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE, band_title=band_title, flush = flush, update_pyramid = update_pyramid)
+    query <- list(width=r@ncols, height=r@nrows, time_slice=time_slice, timestamp=timestamp, band=band, ext=extText, proj4=r@crs@projargs, flip_y=TRUE, band_title=band_title, flush=flush, update_pyramid=update_pyramid, data_type=data_type)
     result <- private$rsdbConnector$POST_raw(path, query, raw)
     if(refresh_meta) {
       self$refresh_meta()
@@ -86,7 +93,7 @@ RasterDB_public <- list( #      *********** public *****************************
     return(result)
   },
 
-  insert_RasterStack = function(r, bands=NULL, timestamp=0, update_pyramid = TRUE, refresh_meta = TRUE) {
+  insert_RasterStack = function(r, time_slice=NULL, bands=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL) {
     stopifnot(is(r, "RasterStack"))
     len <- length(r@layers)
     if(is.null(bands)) {
@@ -96,15 +103,13 @@ RasterDB_public <- list( #      *********** public *****************************
     result <- lapply(c(1:len), function(i) {
       layer <- r@layers[[i]]
       band <- bands[[i]]
-      res <- self$insert_RasterLayer(layer, band, timestamp, flush = FALSE, update_pyramid = FALSE, refresh_meta = FALSE)
+      if(i < len) {
+        res <- self$insert_RasterLayer(r=layer, time_slice=time_slice, band=band, flush=FALSE, update_pyramid=FALSE, refresh_meta=FALSE, timestamp=timestamp)
+      } else {
+        res <- self$insert_RasterLayer(r=layer, time_slice=time_slice, band=band, flush=flush, update_pyramid=update_pyramid, refresh_meta=refresh_meta, timestamp=timestamp)
+      }
       return(res)
     })
-    if(update_pyramid) {
-      self$update_pyramid()
-    }
-    if(refresh_meta) {
-      self$refresh_meta()
-    }
     return(result)
   },
 
@@ -143,6 +148,10 @@ RasterDB_active <- list( #      *********** active *****************************
 
   bands = function() {
     return(private$meta$bands)
+  },
+
+  time_slices = function() {
+    return(private$meta$time_slices)
   },
 
   timestamps = function() {
@@ -196,22 +205,23 @@ RasterDB_private <- list( #      *********** private ***************************
 #' remotesensing <- RemoteSensing$new(url, userpwd=NULL)
 #' rasterdb <- remotesensing$rasterdb(name)
 #'
-#' raster_stack <- rasterdb$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')
-#' rasterdb$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE)
-#' rasterdb$insert_RasterStack(r, bands=NULL, timestamp=0, update_pyramid=TRUE, refresh_meta=TRUE)
+#' raster_stack <- rasterdb$raster(ext, time_slice=NULL, band=NULL, product=NULL, masking='center', timestamp=NULL)
+#' rasterdb$insert_RasterLayer(r, time_slice=NULL, band=1, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL)
+#' rasterdb$insert_RasterStack(r, time_slice=NULL, bands=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL)
 #' rasterdb$refresh_meta()
 #' rasterdb$update_pyramid()
 #' rasterdb$set_meta(meta)
 #' rasterdb$set_band_meta(bands)
 #'
 #' rasterdb$name
+#' rasterdb$time_slices
 #' rasterdb$bands
-#' rasterdb$timestamps
 #' rasterdb$pixel_size
 #' rasterdb$extent
 #' rasterdb$geo_code
 #' rasterdb$proj4
 #' rasterdb$description
+#' rasterdb$timestamps
 #'
 #' @format
 #' RasterDB \link{R6Class} object.
@@ -229,8 +239,8 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #' returns: RasterDB object}
 #'
-#' \item{$raster(ext, band=NULL, timestamp=NULL, product=NULL, masking='center')}{Request raster data from opened RasterDB.
-#' If neither band nor product are specified all bands are returned. Either band or product can be specified.
+#' \item{$raster(ext, time_slice=NULL, band=NULL, product=NULL, masking='center', timestamp=NULL)}{Request raster data from opened RasterDB layer.
+#' If neither band nor product are specified all bands are returned; either band or product can be specified.
 #'
 #' ext: object of one class:
 #' \itemize{
@@ -241,53 +251,66 @@ RasterDB_private <- list( #      *********** private ***************************
 #'  \item{\strong{sfc_POLYGON}  if masking=='center': polygon masked raster or if masking=='extent':  extent of polygon}
 #' }
 #'
-#' band: vector or single number of requested band numbers
+#' time_slice: (optional) Point in time, has to match an existing time_slice on this RasterDB layer.
 #'
-#' timestamp: request raster of time. If not specified newest data is returned.
-#' Timestamp format is part of ISO 8601. Valid syntax is: YYYY-MM-DDThh:mm for exact timestamp (e.g. "2017-12-31T23:59")
-#' or shortened versions (YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DDThh) (e.g. 2017-12).
-#' When shortened version is used oldest data in layer within that timerange is returned.
+#' band: (optional) vector or single number of requested band numbers
 #'
-#' product: character vector of requested product specification. See section product.
+#' product: (optional) character vector of requested product specification. See section product.
 #'
-#' masking: (optional) if 'ext' parameter is an extent masking parameter is ignored
+#' masking: (optional) if 'ext' parameter is an extent masking parameter is ignored.
 #'
 #' \itemize{
 #'  \item{\strong{'center'} raster is masked by polygon (in 'ext' parameter) for pixels that center is within the polygon, see \link[raster]{mask}}
 #'  \item{\strong{'extent'}  just extent (in 'ext' parameter) is used, no masking}
 #' }
 #'
+#' timestamp: (optional) (obsolete, use time_slice) timestamp of requested raster data.
+#' Timestamp format is in ISO 8601. Valid syntax is: YYYY-MM-DDThh:mm for exact timestamp (e.g. "2017-12-31T23:59")
+#' or shortened versions (YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DDThh) (e.g. 2017-12).
+#' When shortened version is used oldest data in layer within that timerange is returned.
+#' Alternatively, when timestamp is an integer the timestamp is used as an internal timestamp-id to request data.
+#'
 #' returns: RasterLayer or RasterStack}
 #'
-#' \item{$insert_RasterLayer(r, band=1, timestamp=0, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE)}{Insert raster data from RasterLayerinto RasterDB.
+#' \item{$insert_RasterLayer(r, time_slice=NULL, band=1, band_title=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL)}{Insert raster data from RasterLayer into RasterDB.
 #'
-#' If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
+#' If projection and/or resolution information is missing in the RasterDB layer then it is inserted form the given raster.
+#'
+#' r: inserted RasterLayer
+#'
+#' time_slice: (optional) Point in time, free text, but ISO 8601 preferred, e.g. 2021-02.
 #'
 #' band: (optional) integer band number, creates band if it does not exist
 #'
 #' band_title: (optional) title of band, only applied for newly created band
 #'
-#' timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
+#' flush: (optional) ensure that all data is persisted on disc when this call returns.
 #'
-#' flush: (optional) ensure that all data is persisted on disc now.
+#' update_pyramid: (optional) update pyramid with the new raster data.
 #'
-#' update_pyramid: (optional) update pyramid with new raster data.
+#' refresh_meta: (optional) load updated metadata in R.
 #'
-#' refresh_meta: (optional) load updated metadata.
+#' timestamp: (optional) (obsolete) integer representation of point in time, 0 represents missing timestamp. Or as specified in method 'raster, e.g. "2017-12-31T23:59".
 #'
 #' returns: success message}
 #'
-#' \item{insert_RasterStack(r, bands=NULL, timestamp=0, update_pyramid=TRUE, refresh_meta=TRUE)}{Insert raster data from RasterStack into RasterDB.
+#' \item{insert_RasterStack(r, time_slice=NULL, bands=NULL, flush=TRUE, update_pyramid=TRUE, refresh_meta=TRUE, timestamp=NULL)}{Insert raster data from RasterStack into RasterDB.
 #'
-#' If projection and/or resolution information is missing in RasterDB layer information of inserted raster is inserted.
+#' If projection and/or resolution information is missing in the RasterDB layer then it is inserted form the given raster.
 #'
-#' band: (optional) vector or single number of inserted band numbers, creates bands if some do not exist
+#' r: inserted RasterStack
 #'
-#' timestamp: (optional) integer representation of point in time, 0 represents missing timestamp
+#' time_slice: (optional) Point in time, free text, but ISO 8601 preferred, e.g. 2021-02.
 #'
-#' update_pyramid: (optional) update pyramid with new raster data.
+#' bands: (optional) integer band numbers, creates bands if not existing
 #'
-#' refresh_meta: (optional) load updated metadata.
+#' flush: (optional) ensure that all data is persisted on disc when this call returns.
+#'
+#' update_pyramid: (optional) update pyramid with the new raster data.
+#'
+#' refresh_meta: (optional) load updated metadata in R.
+#'
+#' timestamp: (optional) (obsolete) integer representation of point in time, 0 represents missing timestamp. Or as specified in method 'raster, e.g. "2017-12-31T23:59".
 #'
 #' returns: success message}
 #'
@@ -307,11 +330,11 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #'  bands: data.frame with band numbers in column 'index' and several of following meta data columns: 'datatype' 'title' 'wavelength' 'fwhm' 'visualisation' 'vis_min' 'vis_max'}
 #'
-#' \item{$name}{name of RasterDB}
+#' \item{$name}{ID of RasterDB}
+#'
+#' \item{$time_slices}{data.frame of existing time_slices}
 #'
 #' \item{$bands}{data.frame of band information (band index, wavelength, fwhm (wavelength bandwidth), title)}
-#'
-#' \item{$timestamps}{data.frame of timestamps}
 #'
 #' \item{$pixel_size}{size of pixels in projection coordinates}
 #'
@@ -325,11 +348,13 @@ RasterDB_private <- list( #      *********** private ***************************
 #'
 #' \item{$description}{description text)}
 #'
+#' \item{$timestamps}{data.frame of timestamps}
+#'
 #' }
 #'
 #' @section Product:
 #'
-#' Parameter product is a texuel specification of raster processing request.
+#' Parameter product is a texual specification of raster processing request.
 #'
 #' Syntax:
 #' \describe{

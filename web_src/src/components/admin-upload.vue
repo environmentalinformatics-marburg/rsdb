@@ -68,10 +68,15 @@
         <br>
         <table v-if="importMode.id === 'simple'">
         <tr>
-          <td>(optional) <b>timestamp</b> of inserted data within this layer &nbsp;&nbsp;</td>
+          <td>(optional) <b>time slice</b> of inserted data within this layer &nbsp;&nbsp;</td>
+          <td><input v-model="specification.time_slice" placeholder="time slice" /></td>
+          <td>&nbsp;&nbsp; <v-icon style="color: grey;" title="note">event_note</v-icon>Free text date format: e.g. <span style="color: grey;">June 2020</span> but <a href="https://www.iso.org/iso-8601-date-and-time-format.html" target="_blank">ISO 8601</a> format, as in timestamp, recommanded, e.g. <span style="color: grey;">2020-06</span></td>
+        </tr>
+        <tr>
+          <td>OR (optional) <span style="color: grey;">(obsolete)</span> <b>timestamp</b> &nbsp;&nbsp;</td>
           <td><input v-model="specification.timestamp" placeholder="timestamp" /></td>
           <td>&nbsp;&nbsp; <v-icon style="color: grey;" title="note">event_note</v-icon>Format: <b>yyyy-MM-dd'T'HH:mm</b> e.g. <span style="color: grey;">2001-12-31T23:59</span> or shortened forms e.g. <span style="color: grey;">2001-12-31</span> or <span style="color: grey;">2001-12</span> or <span style="color: grey;">2001</span></td>
-        </tr>           
+        </tr>                   
         </table>
       </div>
       <br>
@@ -204,20 +209,26 @@
 
       <div v-if="importMode.id === 'timeseries'">
         <br>
+        Autofill: generate 
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<admin-upload-generate-time-slices :specification="specification" @timestamp-sequence="fillTimeSlices($event)" />
+        or (obsolete)
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<admin-upload-generate-timestamps :specification="specification" @timestamp-sequence="fillTimestamps($event)" />
+        <br>
+        <v-icon style="color: grey;" title="note">event_note</v-icon>Specify either <b>time slices</b> or (obsolete) <b>timestamps</b>, not both.
         <br>
         <v-icon style="color: grey;" title="note">event_note</v-icon>timestamp format: <b>yyyy-MM-dd'T'HH:mm</b> e.g. <span style="color: grey;">2001-12-31T23:59</span> or shortened forms e.g. <span style="color: grey;">2001-12-31</span> or <span style="color: grey;">2001-12</span> or <span style="color: grey;">2001</span>
         <br>
         <table border="1" style="border-collapse: collapse;" bordercolor="#aaaaaa" cellpadding="10">
           <tr>
             <td colspan="3" align="center" style="background-color: rgb(196, 205, 213);"><b>file</b></td>
-            <td colspan="2" align="center" style="background-color: rgb(189, 206, 184);"><b>layer</b></td>
+            <td colspan="3" align="center" style="background-color: rgb(189, 206, 184);"><b>layer</b></td>
           </tr>
           <tr>
             <td align="center" style="background-color: #dee7ef;"><b>band</b></td>
             <td align="center" style="background-color: #dee7ef;"><b>type</b></td>
             <td align="center" style="background-color: #dee7ef;"><b>NA-value</b></td>
             <td align="center" style="background-color: rgb(211, 230, 205);"><b>band</b></td>
+            <td align="center" style="background-color: rgb(211, 230, 205);"><b>time slice</b></td>
             <td align="center" style="background-color: rgb(211, 230, 205);"><b>timestamp</b></td>
           </tr>
           <tr v-for="band in specification.bands" :key="band.file_band_index">
@@ -225,6 +236,7 @@
             <td align="center" style="background-color: rgb(244, 250, 255);">{{band.gdal_raster_data_type}}</td>
             <td align="center"><input v-model="band.no_data_value" placeholder="no data value" style="text-align: center; background-color: rgb(244, 250, 255);" /></td>
             <td align="center"><input v-model="band.rasterdb_band_index" placeholder="omit"  style="min-width: 10px; text-align: center; background-color: rgb(247, 255, 244);" /></td>
+            <td align="center"><input v-model="band.time_slice" placeholder="time slice"  style="min-width: 10px;text-align: center; background-color: rgb(247, 255, 244);" /></td>
             <td align="center"><input v-model="band.timestamp" placeholder="timestamp"  style="min-width: 10px;text-align: center; background-color: rgb(247, 255, 244);" /></td>
           </tr>
         </table>
@@ -343,6 +355,7 @@ import uploader from 'vue-simple-uploader'
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 
+import adminUploadGenerateTimeSlices from './admin-upload-generate-time-slices.vue'
 import adminUploadGenerateTimestamps from './admin-upload-generate-timestamps.vue'
 
 Vue.use(uploader)
@@ -362,6 +375,7 @@ export default {
   components: {
     PulseLoader,
     Multiselect,
+    'admin-upload-generate-time-slices': adminUploadGenerateTimeSlices,
     'admin-upload-generate-timestamps': adminUploadGenerateTimestamps,
   },
 
@@ -698,12 +712,21 @@ export default {
       this.specification.addBands = this.specification.addBands.concat(toAddBands);
     },
 
+    fillTimeSlices(timestamps) {
+      for(var i=0; i<timestamps.length; i++) {
+        console.log("set" + timestamps[i]);
+        this.specification.bands[i].time_slice = timestamps[i];
+        this.specification.bands[i].timestamp = undefined;
+      }
+    },
+
     fillTimestamps(timestamps) {
       for(var i=0; i<timestamps.length; i++) {
         console.log("set" + timestamps[i]);
+        this.specification.bands[i].time_slice = undefined;
         this.specification.bands[i].timestamp = timestamps[i];
       }
-    }
+    },
 
   },
   computed: {

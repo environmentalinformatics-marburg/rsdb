@@ -1,6 +1,7 @@
 package server.api.rasterdb;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.NavigableSet;
@@ -13,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
+import broker.TimeSlice;
 import rasterdb.BandProcessing;
 import rasterdb.BandProcessor;
 import rasterdb.GeoReference;
@@ -40,7 +42,7 @@ public class RequestProcessor {
 			//log.info("buffer size " + response.getBufferSize());
 			//response.setBufferSize(1024*1024);
 			format = Web.getString(request, "format", format);
-			
+
 			int scaleDiv = Web.getInt(request, "div", 1);
 			int reqWidth = Web.getInt(request, "width", -1);
 			int reqHeight = Web.getInt(request, "height", -1);
@@ -49,7 +51,7 @@ public class RequestProcessor {
 				return;
 			}
 
-			int timestamp = getTimestamp(request, rasterdb.rasterUnit());
+			int timestamp = getTimestamp(request, rasterdb.rasterUnit(), rasterdb);
 
 			if(reqWidth > 0 || reqHeight > 0) {
 				if(scaleDiv != 1) {
@@ -57,12 +59,12 @@ public class RequestProcessor {
 				}
 				scaleDiv = TimeBandProcessor.calcScale(range2d, reqWidth, reqHeight);
 			}
-			
+
 			Range2d rasterLocalRange = rasterdb.getLocalRange(false);
 			if(Web.getFlag(request, "clipped") && rasterLocalRange == null) {
 				return;
 			}
-			
+
 			BandProcessor processor = new BandProcessor(rasterdb, Web.getFlag(request, "clipped") ? range2d.clip(rasterLocalRange) : range2d, timestamp, scaleDiv);
 
 			log.info("processor dstRange " + processor.getDstRange());
@@ -116,46 +118,65 @@ public class RequestProcessor {
 		}
 	}
 
-	private static int getTimestamp(Request request, RasterUnitStorage rasterUnitStorage) {		
-		int time_slice_id = Web.getInt(request, "time_slice_id", Integer.MIN_VALUE);
+	private static int getTimestamp(Request request, RasterUnitStorage rasterUnitStorage, RasterDB rasterdb) {		
+		int time_slice_id = Web.getInt(request, "time_slice_id", Integer.MIN_VALUE); // obsolete ?
 		if(time_slice_id > Integer.MIN_VALUE) {
 			return time_slice_id;
-		}		
-		
-		int timestamp = -1;
+		}	
+
+		String time_sliceText = request.getParameter("time_slice");
 		String timestampText = request.getParameter("timestamp");
+
+		if(time_sliceText != null) {
+			if(timestampText != null) {
+				throw new RuntimeException("only one parameter can be specified: time_slice or timestamp");
+			}
+			TimeSlice timeSlice = rasterdb.getTimeSliceByName(time_sliceText);
+			if(timeSlice != null) {
+				return timeSlice.id;
+			} else {
+				throw new RuntimeException("time_slice not found: " + timeSlice);
+			}
+		}
+
 		if (timestampText == null) {
 			if(rasterUnitStorage.timeKeysReadonly().isEmpty()) {
 				throw new RuntimeException("no data in layer");
 			} else {
-				timestamp = rasterUnitStorage.timeKeysReadonly().last();
+				return rasterUnitStorage.timeKeysReadonly().last();
 			}
 		} else {
-			if(timestampText.equals("0")) {
-				timestamp = 0;
-			} else if(timestampText.length() > 4 && allNum(timestampText)) {
-				timestamp = Integer.parseInt(timestampText);
-			} else {			
-				//timestamp = Integer.parseInt(timestampText);
-				int[] timestampRange = TimeUtil.getTimestampRangeOrNull(timestampText);
-				if(timestampRange == null) {
-					throw new RuntimeException("could not parse timestamp parameter: " + timestampText);
-				} else {
-					NavigableSet<Integer> timestampSubset = rasterUnitStorage.timeKeysReadonly().subSet(timestampRange[0], true, timestampRange[1], true);
-					if(timestampSubset.isEmpty()) {
-						if(timestampRange[0] == timestampRange[1]) {
-							throw new RuntimeException("no data in layer for time: " + TimeUtil.toPrettyText(timestampRange[0]));	
-						} else {
-							throw new RuntimeException("no data in layer for time range: " + TimeUtil.toPrettyText(timestampRange));
-						}
-					} else {
-						timestamp = timestampSubset.first();
-					}
-				}
+			int[] timestampRange = null;
+			try{
+				timestampRange = TimeUtil.getTimestampRangeOrNull(timestampText);
+			}catch(Exception e) {
+				log.warn("could not parse timestamp: " + timestampText);
 			}
+			if(timestampRange != null) {
+				NavigableSet<Integer> timestampSubset = rasterUnitStorage.timeKeysReadonly().subSet(timestampRange[0], true, timestampRange[1], true);
+				if(timestampSubset.isEmpty()) {
+					if(timestampRange[0] == timestampRange[1]) {
+						throw new RuntimeException("no data in layer for time: " + TimeUtil.toPrettyText(timestampRange[0]));	
+					} else {
+						throw new RuntimeException("no data in layer for time range: " + TimeUtil.toPrettyText(timestampRange));
+					}
+				} else {
+					return timestampSubset.first();
+				}
+			} else {
+				int t = 0;
+				try{
+					t = Integer.parseInt(timestampText);					
+				}catch(Exception e) {
+					throw new RuntimeException("could not parse timestamp: "+timestampText);
+				}
+				if(rasterUnitStorage.timeKeysReadonly().contains(t)) {
+					return t;
+				} else {
+					throw new RuntimeException("no data in layer for time: " + TimeUtil.toPrettyText(t));
+				}
+			}			
 		}
-		log.info("timestamp   "+timestampText+"   "+timestamp+"    "+TimeUtil.toPrettyText(timestamp));
-		return timestamp;
 	}
 
 	private static boolean allNum(String s) {

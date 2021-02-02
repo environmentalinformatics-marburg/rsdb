@@ -29,11 +29,10 @@ public class ImportProcessor extends RemoteProxy {
 	private GdalReader gdalreader;
 	private Vec<BandSpec> bandSpecs;
 	private final double file_pixel_size_y;
-	private final int generealTimestamp;
 	private final boolean update_pyramid;
 	private final boolean update_catalog;
 
-	public ImportProcessor(Broker broker, RasterDB rasterdb, GdalReader gdalreader, Vec<BandSpec> bandSpecs, double file_pixel_size_y, boolean update_pyramid, boolean update_catalog, int generalTimestamp) {
+	public ImportProcessor(Broker broker, RasterDB rasterdb, GdalReader gdalreader, Vec<BandSpec> bandSpecs, double file_pixel_size_y, boolean update_pyramid, boolean update_catalog) {
 		this.broker = broker;
 		this.rasterdb = rasterdb;
 		this.gdalreader = gdalreader;
@@ -41,7 +40,6 @@ public class ImportProcessor extends RemoteProxy {
 		this.file_pixel_size_y = file_pixel_size_y;
 		this.update_pyramid = update_pyramid;
 		this.update_catalog = update_catalog;
-		this.generealTimestamp = generalTimestamp;
 	}
 
 	@Override
@@ -74,7 +72,7 @@ public class ImportProcessor extends RemoteProxy {
 		for(BandSpec bandSpec:bandSpecs) {
 			if(bandSpec.import_band) {
 				setMessage("importing band " + bandSpec.file_band_index);
-				int importBandTimestamp = bandSpec.timestamp == -1 ? generealTimestamp : bandSpec.timestamp;
+				int importBandTimestamp = bandSpec.timestamp;
 				log.info("pixelYmin "+ pixelYmin);
 				int yoff = 0;
 				while(yoff < yRange) {

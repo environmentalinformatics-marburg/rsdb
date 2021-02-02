@@ -474,6 +474,58 @@ public final class Serialisation {
 		}
 		return result;
 	}
+	
+	public static int[][] byteToIntArrayArray(byte[] data, int width, int height) {
+		int[][] result = new int[height][width];
+		int pos=0;
+		for(int y = 0; y < height; y++) {
+			int[] row = result[y];		
+			for(int x = 0; x < width; x++) {				
+				row[x] = (data[pos] & 0xFF) | ((data[pos+1] & 0xFF)<<8) | ((data[pos+2] & 0xFF)<<16) | (data[pos+3]<<24);						
+				pos += 4;
+			}
+		}
+		return result;
+	}
+	
+	public static int[][] byteToIntArrayArrayFlipY(byte[] data, int width, int height) {
+		int[][] result = new int[height][width];
+		int pos=0;
+		for(int y = height - 1; y >= 0; y--) {
+			int[] row = result[y];		
+			for(int x = 0; x < width; x++) {				
+				row[x] = (data[pos] & 0xFF) | ((data[pos+1] & 0xFF)<<8) | ((data[pos+2] & 0xFF)<<16) | (data[pos+3]<<24);						
+				pos += 4;
+			}
+		}
+		return result;
+	}
+	
+	public static float[][] byteToFloatArrayArray(byte[] data, int width, int height) {
+		float[][] result = new float[height][width];
+		int pos=0;
+		for(int y = 0; y < height; y++) {
+			float[] row = result[y];		
+			for(int x = 0; x < width; x++) {				
+				row[x] = Float.intBitsToFloat((data[pos] & 0xFF) | ((data[pos+1] & 0xFF)<<8) | ((data[pos+2] & 0xFF)<<16) | (data[pos+3]<<24));						
+				pos += 4;
+			}
+		}
+		return result;
+	}
+	
+	public static float[][] byteToFloatArrayArrayFlipY(byte[] data, int width, int height) {
+		float[][] result = new float[height][width];
+		int pos=0;
+		for(int y = height - 1; y >= 0; y--) {
+			float[] row = result[y];		
+			for(int x = 0; x < width; x++) {				
+				row[x] = Float.intBitsToFloat((data[pos] & 0xFF) | ((data[pos+1] & 0xFF)<<8) | ((data[pos+2] & 0xFF)<<16) | (data[pos+3]<<24));						
+				pos += 4;
+			}
+		}
+		return result;
+	}
 
 	public static void serializeIntArray(DataOutput out, int[] value) throws IOException {
 		out.writeInt(value.length);

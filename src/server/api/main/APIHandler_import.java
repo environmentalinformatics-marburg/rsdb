@@ -36,8 +36,6 @@ public class APIHandler_import extends APIHandler {
 		this.chunkedUploader = chunkedUploader;
 	}
 
-
-
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
 
