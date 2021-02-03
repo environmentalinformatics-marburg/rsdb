@@ -18,6 +18,10 @@ public class TimeSlice {
 		public TimeSliceBuilder(String name) {
 			this.name = name;
 		}
+		
+		public static TimeSliceBuilder of(TimeSlice timeSlice) {
+			return new TimeSliceBuilder(timeSlice.name);
+		}
 	}
 
 	public final int id;

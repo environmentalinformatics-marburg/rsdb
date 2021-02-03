@@ -2,6 +2,10 @@ package server.api.rasterdb;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -16,6 +20,8 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import broker.Informal.Builder;
+import broker.TimeSlice;
+import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import rasterdb.Band;
@@ -263,6 +269,40 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					log.info(jsonBands);
 					break;
 				}
+				case "time_slices": {
+					rasterdb.checkMod(userIdentity);
+					JSONArray jsonTimeSlices = meta.getJSONArray("time_slices");
+					int timeSlicesLen = jsonTimeSlices.length();
+					
+					Map<Integer, TimeSliceBuilder> changeMap = new LinkedHashMap<Integer, TimeSliceBuilder>();
+					
+					for (int i = 0; i < timeSlicesLen; i++) {
+						JSONObject jsonTimeSlice = jsonTimeSlices.getJSONObject(i);
+						int id = jsonTimeSlice.getInt("id");
+						String name = jsonTimeSlice.getString("name").trim();
+						
+						TimeSliceBuilder timeSliceBuilder = changeMap.get(id);
+						if(timeSliceBuilder == null) {
+							TimeSlice timeSlice = rasterdb.timeMapReadonly.get(id);
+							if(timeSlice == null) {
+								timeSliceBuilder = new TimeSliceBuilder(name);
+							} else {
+								timeSliceBuilder = TimeSliceBuilder.of(timeSlice);
+							}
+							changeMap.put(id, timeSliceBuilder);
+						}
+						
+						timeSliceBuilder.name = name;
+					}
+					List<TimeSlice> timeSlices = changeMap.entrySet().stream().map(e -> {
+						int id = e.getKey();
+						TimeSliceBuilder timeSliceBuilder = e.getValue();
+						return new TimeSlice(id, timeSliceBuilder);
+					}).collect(Collectors.toList());
+					rasterdb.setTimeSlices(timeSlices);
+					log.info(jsonTimeSlices);
+					break;
+				}				
 				case "associated": {
 					rasterdb.checkMod(userIdentity);
 					updateCatalog = true;

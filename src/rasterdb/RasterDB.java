@@ -43,7 +43,7 @@ public class RasterDB implements AutoCloseable {
 	private static final Logger log = LogManager.getLogger();
 
 	private static final String TYPE = "RasterDB";
-	
+
 	private final ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
 	public final NavigableMap<Integer, TimeSlice> timeMapReadonly = Collections.unmodifiableNavigableMap(timeMap);
 
@@ -297,7 +297,7 @@ public class RasterDB implements AutoCloseable {
 		writeMeta();
 		return removedBand; 
 	}
-	
+
 	public synchronized void invalidateLocalRange() {
 		local_extent = null;
 		writeMeta();
@@ -354,7 +354,7 @@ public class RasterDB implements AutoCloseable {
 		log.info(ref + "   " + GeoReference.code_wms_transposed.contains(code));
 		writeMeta();
 	}
-	
+
 	public void setRef(GeoReference ref) {
 		this.ref = ref;
 		writeMeta();
@@ -369,7 +369,7 @@ public class RasterDB implements AutoCloseable {
 		associated.setPointCloud(pointcloud);
 		writeMeta();
 	}
-	
+
 	public void setAssociatedVoxelDB(String voxeldb) {
 		associated.setVoxelDB(voxeldb);
 		writeMeta();
@@ -558,12 +558,21 @@ public class RasterDB implements AutoCloseable {
 	public int getTilePixelLen() {
 		return tilePixelLen;
 	}
-	
-	public synchronized void setTimeSlice(TimeSlice timeslice) {
-			timeMap.put(timeslice.id, timeslice);
-			writeMeta();
+
+	public synchronized void setTimeSlice(TimeSlice timeSlice) {
+		timeMap.put(timeSlice.id, timeSlice);
+		writeMeta();
 	}
-	
+
+	public synchronized void setTimeSlices(Iterable<TimeSlice> timeSlices) {
+		for(TimeSlice timeSlice:timeSlices) {
+			if(timeSlice != null) {
+				timeMap.put(timeSlice.id, timeSlice);
+			}
+		}
+		writeMeta();
+	}
+
 	public synchronized TimeSlice getTimeSliceByName(String name) {
 		for(TimeSlice value : timeMap.values()) {
 			if(value.hasName() && value.name.equals(name)) {
@@ -572,21 +581,21 @@ public class RasterDB implements AutoCloseable {
 		}
 		return null;
 	}
-	
+
 	public synchronized TimeSlice getOrCreateTimeSliceByName(String name) {
 		TimeSlice timeSlice = getTimeSliceByName(name);
 		return timeSlice == null ? createTimeSlice(new TimeSliceBuilder(name)) : timeSlice;
 	}
-	
+
 	public synchronized TimeSlice createTimeSlice(TimeSliceBuilder timeSliceBuilder) {
-			int id = 0;
-			while(timeMap.containsKey(id)) {
-				id++;
-			}
-			TimeSlice timeSlice = new TimeSlice(id, timeSliceBuilder);
-			timeMap.put(timeSlice.id, timeSlice);
-			writeMeta();
-			return timeSlice;
+		int id = 0;
+		while(timeMap.containsKey(id)) {
+			id++;
+		}
+		TimeSlice timeSlice = new TimeSlice(id, timeSliceBuilder);
+		timeMap.put(timeSlice.id, timeSlice);
+		writeMeta();
+		return timeSlice;
 	}
 
 	public void removeTimeSlice(int timeSlice) {

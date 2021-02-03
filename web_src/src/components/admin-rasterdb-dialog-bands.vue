@@ -1,12 +1,12 @@
 <template>
     <span style="display: inline-block;">
         <v-dialog v-model="dialog" lazy absolute min-width="800px">
-            <v-btn title="open dialog to edit band infos of this rasterdb layer" slot="activator">
+            <v-btn title="open dialog to edit / remove bands" slot="activator">
                 <v-icon left>folder_open</v-icon>bands
             </v-btn>
             <v-card>
                 <v-card-title>
-                    <div class="headline">Manage bands of <i>RasterDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
+                    <div class="headline">Manage bands of layer: &nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
                 <v-data-table v-bind:headers="bandTableHeaders" :items="bands" class="meta-content" hide-actions>
                     <template slot="items" slot-scope="props">
@@ -20,8 +20,8 @@
                     </template>
                 </v-data-table>
                 <v-card-text>
-                    <b>Edit</b> band titles by click on band title entry. 
-                    <br><b>Remove</b> bands by checkbox, all data of that band at all timestamps will be removed.
+                    <b>Edit</b> band properties by click on that entry. 
+                    <br><b>Remove</b> bands by checkbox selection, all data of that bands will be removed.
                 </v-card-text>
                 <br>
                 <v-card-actions>

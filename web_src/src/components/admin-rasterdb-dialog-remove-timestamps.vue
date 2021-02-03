@@ -1,21 +1,26 @@
 <template>
     <span  style="display: inline-block;">
         <v-dialog v-model="dialog" lazy absolute width="800px">
-            <v-btn title="open dialog to select and remove time slices of this rasterdb layer" slot="activator">
+            <v-btn title="open dialog to edit / remove time slices" slot="activator">
                 <v-icon left>folder_open</v-icon>Time slices
             </v-btn>
             <v-card>
                 <v-card-title>
-                    <div class="headline">remove time slices of <i>RasterDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
+                    <div class="headline">Manage time slices of layer: &nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
                 <v-data-table v-bind:headers="timeSliceTableHeaders" :items="timeSlices" class="meta-content" hide-actions>
                     <template slot="items" slot-scope="props">
                         <td><input type="checkbox" id="checkbox" v-model="props.item.remove" style="width: 40px;"/>remove time slice</td>
                         <td>{{props.item.id}}</td>
-                        <td>{{props.item.name}}</td>
+                        <td><input v-model="props.item.name" placeholder="name" /></td>
                         <td :class="{remove: props.item.remove}">{{props.item.remove ? 'remove time slice' : '(keep time slice)'}}</td>
                     </template>
                 </v-data-table>
+                <v-card-text>
+                    <b>Edit</b> time slice names by click on that name-entry.
+                    <br>Raster data is fixed stored at time slices IDs. So, take care to not confuse them at multi time slices rename edits. 
+                    <br><b>Remove</b> time slices by checkbox selection, all data of that time slices will be removed.
+                </v-card-text>
                 <br>
                 <v-card-actions>
                     <v-spacer></v-spacer>
@@ -60,35 +65,59 @@ export default {
         
         refresh() {
             this.timeSlices = this.meta.time_slices.map(function(timeSlice) {
-                return {id: timeSlice.id, name: timeSlice.name, remove: false};
+                return {id: timeSlice.id, name: timeSlice.name};
             });
         },
 
-        execute() {
-            var self = this;
+        async execute() {
+            var url = this.$store.getters.apiUrl('rasterdb/' + this.meta.name + '/set');
+            try {
+                var response = await axios.post(url, {
+                    meta: {
+                        time_slices: this.timeSlices,
+                    } 
+                });
+                console.log(response);
+                if(this.timeSlices.filter(b=>b.remove).length > 0) {
+                    this.execute_time_slices_remove();
+                } else {
+                    this.$emit('changed');
+                    this.dialog = false;
+                }
+            } catch(error) {
+                this.setError = true;
+                this.setErrorMessage = "Error setting property";
+                console.log(error);
+                this.$emit('changed');
+                this.dialog = false;
+            }                       
+        },
+
+        async execute_time_slices_remove() {
             var url = this.$store.getters.apiUrl('api/remote_tasks');
             var ts = this.timeSlices.filter(t=>t.remove).map(t=>t.id);
-            axios.post(url, {
-                remote_task: {
-                    task_rasterdb: "remove_timestamps",
-                    rasterdb: self.meta.name,
-                    timestamps: ts,
-                }
-            }).then(function(response) {
+            try {
+                var response = await axios.post(url, {
+                    remote_task: {
+                        task_rasterdb: "remove_timestamps",
+                        rasterdb: this.meta.name,
+                        timestamps: ts,
+                    }
+                });
                 console.log(response);
-                self.$emit('changed');
-                self.dialog = false;
+                this.$emit('changed');
+                this.dialog = false;
                 var remote_task = response.data.remote_task;
-                self.remote_task_id = remote_task.id;
-            }).catch(function(error) {
+                this.remote_task_id = remote_task.id;
+            } catch(error) {
                 console.log(error);
-                console.log(self.errorToText(error));
-                self.setError = true;
-                self.setErrorMessage = "Error: " + self.errorToText(error);
+                console.log(this.errorToText(error));
+                this.setError = true;
+                this.setErrorMessage = "Error: " + this.errorToText(error);
                 console.log(error);
-                self.$emit('changed');
-                self.dialog = false;
-            });                        
+                this.$emit('changed');
+                this.dialog = false;
+            }            
         },
 
         errorToText(error) {
