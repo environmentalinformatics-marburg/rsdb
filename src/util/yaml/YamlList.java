@@ -3,6 +3,7 @@ package util.yaml;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import util.collections.ReadonlyList;
 import util.collections.array.ReadonlyArray;
@@ -36,6 +37,12 @@ public class YamlList {
 		return result;
 	}
 	
+	public void asStrings(Consumer<String> consumer) {
+		for(Object e:list) {
+			consumer.accept(e.toString());
+		}
+	}	
+
 	public List<String> asStrings() {
 		ArrayList<String> result = new ArrayList<String>(list.size());
 		for(Object e:list) {

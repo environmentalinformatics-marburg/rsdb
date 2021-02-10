@@ -18,6 +18,8 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import util.collections.ReadonlyList;
+import util.collections.array.ReadonlyArray;
 import util.collections.array.ReadonlySizedArray;
 import util.collections.array.iterator.ReadonlyArrayIterator;
 import util.collections.array.iterator.ReadonlyArrayReverseIterator;
@@ -285,6 +287,11 @@ public class Vec<T> implements List<T> {
 	public Vec<T> copy() {
 		T[] elementData = Arrays.copyOf(items, size);
 		return new Vec<T>(elementData);		
+	}
+	
+	public ReadonlyArray<T> copyReadonly() {
+		T[] elementData = Arrays.copyOf(items, size);
+		return new ReadonlyArray<T>(elementData);		
 	}
 
 	/**

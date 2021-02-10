@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +21,7 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import broker.Informal.Builder;
+import broker.InformalProperties;
 import broker.TimeSlice;
 import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
@@ -314,6 +316,16 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					rasterdb.setAssociatedRoiGroups(JsonUtil.optStringTrimmedList(jsonAssociated, "roi_groups"));					
 					break;
 				}
+				case "properties": {
+					rasterdb.checkMod(userIdentity);
+					updateCatalog = true;	
+					Builder informal = rasterdb.informal().toBuilder();
+					JSONObject jsonProperties = meta.getJSONObject("properties");
+					InformalProperties.Builder properties = InformalProperties.Builder.ofJSON(jsonProperties);				
+					informal.properties = properties;
+					rasterdb.setInformal(informal.build());
+					break;
+				}				
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}

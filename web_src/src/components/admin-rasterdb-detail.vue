@@ -82,6 +82,12 @@
                         <td><span>{{meta.Provenance}}</span></td>                        
                     </tr>
 
+                    <template v-for="(contents, tag) in meta.properties">
+                        <tr v-for="(content, index) in contents" :key="tag + ':' + index">
+                            <td><b>{{tag}}:</b></td>
+                            <td><span>{{content}}</span></td>  
+                        </tr>
+                    </template>                    
 
                 </table>               
             </div>
