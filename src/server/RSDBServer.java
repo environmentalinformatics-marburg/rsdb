@@ -333,7 +333,12 @@ public class RSDBServer {
 
 		try {
 			Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-			System.out.println(gdal.VersionInfo("version"));			
+			System.out.println(gdal.VersionInfo("version"));
+			try {
+				System.out.println((Runtime.getRuntime().maxMemory() / (1024*1024)) + " MBytes max for RSDB allocated memory");
+			} catch(Exception e) {
+				log.warn(e);
+			}
 			System.out.println("-------------------------------------------------------------------");
 			System.out.println("Hostnames: ");
 			System.out.println();

@@ -41,7 +41,7 @@ public class FloatFrame {
 	public static FloatFrame ofExtent(FloatFrame extent) {
 		return new FloatFrame(new float[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
-	
+
 	public static FloatFrame ofExtent(ByteFrame extent) {
 		return new FloatFrame(new float[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
@@ -92,7 +92,7 @@ public class FloatFrame {
 			}
 		}
 	}
-	
+
 	public static FloatFrame ofBytesWithNA(ByteFrame source, byte na) {
 		FloatFrame target = ofExtent(source);
 		byteToFloat(source.data, target.data, source.width, source.height, na);
@@ -364,6 +364,23 @@ public class FloatFrame {
 				y[x1] = v;
 			}
 		}
+	}
 
-	}	
+	public static void rawMul(float[][] data, double factor) {
+		for(float[] row:data) {
+			int len = row.length;
+			for(int i=0; i<len; i++) {
+				row[i] *= factor;
+			}
+		}
+	}
+
+	public static void rawAdd(float[][] data, double add) {
+		for(float[] row:data) {
+			int len = row.length;
+			for(int i=0; i<len; i++) {
+				row[i] += add;
+			}
+		}
+	}
 }

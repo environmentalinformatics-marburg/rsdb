@@ -94,7 +94,7 @@ public class APIHandler_inspect extends APIHandler {
 
 		}
 	}
-	
+
 	public static ImportSpec createSpec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices) {
 		log.info(fullPath);
 		GdalReader gdalreader = new GdalReader(fullPath.toString());
@@ -106,7 +106,7 @@ public class APIHandler_inspect extends APIHandler {
 		GdalReader gdalreader = new GdalReader(fullPath.toString());
 		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices);
 	}
-	
+
 	public static ImportSpec createSpec(GdalReader gdalreader, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices) {
 		CharArrayWriterUnsync writer = new CharArrayWriterUnsync();
 		JSONWriter json = new JSONWriter(writer);
@@ -174,7 +174,7 @@ public class APIHandler_inspect extends APIHandler {
 		double[] gdal_ref = gdalreader.getGeoRef();
 		double easting = gdal_ref[0];
 		double northing = gdal_ref[1];
-		
+
 		if(strategy.isCreate() || !rasterdb.ref().has_pixel_size()) {
 			json.key("pixel_size_x");
 			json.value(file_pixel_size_x);
@@ -232,7 +232,7 @@ public class APIHandler_inspect extends APIHandler {
 			json.key("proj4");
 			json.value(rasterdb.ref().proj4);	
 		}
-		
+
 		if(strategy.isCreate() || !rasterdb.ref().has_code()) {
 			json.key("geo_code");
 			json.value(file_geo_code == null ? "" : file_geo_code);
@@ -252,7 +252,7 @@ public class APIHandler_inspect extends APIHandler {
 		if(layerBandIndices != null && layerBandIndices.length < cnt) {
 			cnt = layerBandIndices.length;
 		}
-		
+
 		for (int i = 0; i < cnt; i++) {
 			int fileIndex = i + 1;
 
@@ -312,18 +312,70 @@ public class APIHandler_inspect extends APIHandler {
 				json.value("unknown");				
 			}
 
+			boolean hasBandValueScale = false;
+			double bandValueScale = 1d;
+			try {
+				Double[] bandValueScaleHolder = new Double[1];
+				gdalRasterBand.GetScale(bandValueScaleHolder);
+				if(bandValueScaleHolder[0] != null 
+						&& bandValueScaleHolder[0].doubleValue() != 1d
+						&& Double.isFinite(bandValueScaleHolder[0].doubleValue())) {
+					hasBandValueScale = true;
+					bandValueScale = bandValueScaleHolder[0].doubleValue();
+				}			
+			} catch (Exception e) {
+				log.warn(e);
+			}
+			if(hasBandValueScale) {
+				json.key("value_scale");
+				json.value(bandValueScale);
+			}
+
+			boolean hasBandValueOffset = false;
+			double bandValueOffset = 0d;
+			try {
+				Double[] bandValueOffsetHolder = new Double[1];
+				gdalRasterBand.GetOffset(bandValueOffsetHolder);
+				if(bandValueOffsetHolder[0] != null 
+						&& bandValueOffsetHolder[0].doubleValue() != 0d
+						&& Double.isFinite(bandValueOffsetHolder[0].doubleValue())) {
+					hasBandValueOffset = true;
+					bandValueOffset = bandValueOffsetHolder[0].doubleValue();
+				}			
+			} catch (Exception e) {
+				log.warn(e);
+			}
+			if(hasBandValueOffset) {
+				json.key("value_offset");
+				json.value(bandValueOffset);
+			}
+			
+			boolean hasValueDerivation = hasBandValueScale || hasBandValueOffset;
+
 			json.key("rastedb_band_data_type");
 			switch(gdalRasterDataType) {
 			case GdalReader.GDAL_BYTE: {
-				json.value("short");	
+				if(hasValueDerivation) {
+					json.value("float");	
+				} else {
+					json.value("short");
+				}
 				break;
 			}
 			case GdalReader.GDAL_UINT16: {
-				json.value("short");	
+				if(hasValueDerivation) {
+					json.value("float");	
+				} else {
+					json.value("short");
+				}
 				break;
 			}
 			case GdalReader.GDAL_INT16: {
-				json.value("short");	
+				if(hasValueDerivation) {
+					json.value("float");	
+				} else {
+					json.value("short");
+				}
 				break;
 			}
 			case GdalReader.GDAL_UINT32: {
@@ -363,6 +415,7 @@ public class APIHandler_inspect extends APIHandler {
 			Double[] noDataValueHolder = new Double[1];
 			gdalRasterBand.GetNoDataValue(noDataValueHolder);
 			json.value(noDataValueHolder[0] != null ? noDataValueHolder[0].toString() : "");
+			
 
 			json.key("timestamp");
 			json.value("");

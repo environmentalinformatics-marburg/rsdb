@@ -289,7 +289,13 @@ public class RasterDBimporter {
 			org.gdal.gdal.Band gdalRasterBand = gdalreader.dataset.GetRasterBand(fileBandIndex);
 			Double[] noDataValueHolder = new Double[1];
 			gdalRasterBand.GetNoDataValue(noDataValueHolder);
+			Double[] bandValueScaleHolder = new Double[1];
+			gdalRasterBand.GetScale(bandValueScaleHolder);
+			Double[] bandValueOffsetHolder = new Double[1];
+			gdalRasterBand.GetOffset(bandValueOffsetHolder);
 			log.info("NA "+Arrays.toString(noDataValueHolder));
+			log.info("bandValueScale "+Arrays.toString(bandValueScaleHolder));
+			log.info("bandValueOffset "+Arrays.toString(bandValueOffsetHolder));
 			int gdalRasterDataType = gdalRasterBand.GetRasterDataType();
 			Band band = existingBand;
 			if(band == null && useExistingBandsOrCreate) {

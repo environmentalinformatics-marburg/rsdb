@@ -15,7 +15,7 @@ public class DynamicPropertyUserStore extends PropertyUserStore {
 			Field field = PropertyUserStore.class.getSuperclass().getDeclaredField("_identityService");
 			field.setAccessible(true);
 			field.set(this, FastIdentityService.DEFAULT);
-			log.info("ref " + field.get(this));
+			//log.info("ref " + field.get(this));
 		} catch (Exception e) {
 			log.warn(e);
 		}

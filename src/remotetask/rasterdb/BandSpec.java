@@ -13,6 +13,8 @@ public class BandSpec {
 	public boolean import_band = true;
 	public int timestamp = -1;
 	public String timeSlice = null;
+	public double value_scale = Double.NaN;
+	public double value_offset = Double.NaN;
 	@Override
 	public String toString() {
 		return "BandSpec [band_name=" + band_name + ", file_band_index=" + file_band_index + ", rasterdb_band_index="

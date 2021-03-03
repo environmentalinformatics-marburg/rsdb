@@ -132,7 +132,7 @@ public class ImportSpec {
 							String v = band.getString("visualisation");
 							bandSpec.visualisation  = v.isEmpty() || v.equals("(not specified)") ? null : v;
 							break;
-						}
+						}						
 						default: {					
 							log.warn("unknown band key: "+bandKey);
 							//throw new RuntimeException("unknown key: "+key);
@@ -241,6 +241,16 @@ public class ImportSpec {
 						}
 						case "time_slice": {
 							bandSpec.timeSlice  = band.getString("time_slice");
+							break;
+						}
+						case "value_scale": {
+							double v = band.get("value_scale").toString().trim().isEmpty() ? Double.NaN : band.getDouble("value_scale");
+							bandSpec.value_scale = Double.isFinite(v) ? v : Double.NaN;
+							break;
+						}
+						case "value_offset": {
+							double v = band.get("value_offset").toString().trim().isEmpty() ? Double.NaN : band.getDouble("value_offset");
+							bandSpec.value_offset = Double.isFinite(v) ? v : Double.NaN;
 							break;
 						}
 						default: {					

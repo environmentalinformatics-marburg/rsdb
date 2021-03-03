@@ -18,13 +18,13 @@
                 </v-card-text>
                 <v-divider />
                 <v-card-text>
-                    <v-textarea label="title" auto-grow rows="1" v-model="newTitle" title="The name of the layer. If left empty defaults to the layer Idetifier-field." />
+                    <v-textarea label="title" auto-grow rows="1" v-model="newTitle" title="The name of the layer. If left empty defaults to the layer ID (Idetifier-field)." />
                     <div title="Keywords describing the layer." style="margin-bottom: 15px;">
                         <span style="color: grey;">subject</span>
                         <multiselect v-model="selectedTags" :options="layer_tags" multiple :taggable="true" @tag="createTag" placeholder="select or type subjects" tagPlaceholder="Press enter to create a tag"/>
                     </div>
 
-                    <v-textarea v-model="newDescription" label="description.abstract" auto-grow rows="1" />
+                    <v-textarea v-model="newDescription" label="description.abstract" auto-grow rows="1" title="Concise layer description. For extensive details, use field 'description'." />
 
 
                     <!--<v-text-field label="Description" v-model="newDescription" title="Content description of the layer."></v-text-field>
@@ -43,7 +43,7 @@
                     <v-text-field label="Provenance" v-model="new_Provenance" title="Layer history and changes in ownership."></v-text-field>-->
 
                     <template v-for="(contents, tag) in newProperties">
-                        <v-textarea v-for="(content, index) in contents" :key="tag + ':' + index" :label="tag" v-model="newProperties[tag][index]" :title="tag" auto-grow rows="1" append-outer-icon="remove_circle" @click:append-outer="removeField(tag, index)" />
+                        <v-textarea v-for="(content, index) in contents" :key="tag + ':' + index" :label="tag" v-model="newProperties[tag][index]" :title="tag + ' field'" auto-grow rows="1" append-outer-icon="remove_circle" @click:append-outer="removeField(tag, index)" />
                     </template>
                                     
                 </v-card-text>

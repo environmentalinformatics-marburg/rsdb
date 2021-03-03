@@ -283,5 +283,21 @@ public class ShortFrame {
 		return new BooleanFrame(mask, local_min_x, local_min_y, local_max_x, local_max_y);		
 	}
 	
-	
+	public static void rawMul(short[][] data, double factor) {
+		for(short[] row:data) {
+			int len = row.length;
+			for(int i=0; i<len; i++) {
+				row[i] *= factor;
+			}
+		}
+	}
+
+	public static void rawAdd(short[][] data, double add) {
+		for(short[] row:data) {
+			int len = row.length;
+			for(int i=0; i<len; i++) {
+				row[i] += add;
+			}
+		}
+	}	
 }

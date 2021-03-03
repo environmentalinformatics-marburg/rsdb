@@ -19,6 +19,9 @@ import rasterunit.RasterUnitStorage;
 import remotetask.RemoteProxy;
 import util.Util;
 import util.collections.vec.Vec;
+import util.frame.ByteFrame;
+import util.frame.FloatFrame;
+import util.frame.ShortFrame;
 import util.raster.GdalReader;
 
 public class ImportProcessor extends RemoteProxy {
@@ -198,7 +201,15 @@ public class ImportProcessor extends RemoteProxy {
 		}
 		default:
 			throw new RuntimeException("gdal data type not implemented for band type TYPE_SHORT " + bandSpec.gdal_raster_data_type);				
-		}			
+		}
+		if(Double.isFinite(bandSpec.value_scale)) {
+			log.info("value_scale " + bandSpec.value_scale);
+			ShortFrame.rawMul(dataShort, bandSpec.value_scale);
+		}
+		if(Double.isFinite(bandSpec.value_offset)) {
+			log.info("value_offset " + bandSpec.value_offset);
+			ShortFrame.rawAdd(dataShort, bandSpec.value_offset);
+		}
 		dataShort = Util.flipRows(dataShort);
 		int cnt;
 		if(isCellInt16) {
@@ -226,6 +237,14 @@ public class ImportProcessor extends RemoteProxy {
 				dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, yoff, ysize);					
 			} else {
 				dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, bandSpec.no_data_value.floatValue(), yoff, ysize);
+			}
+			if(Double.isFinite(bandSpec.value_scale)) {
+				log.info("value_scale " + bandSpec.value_scale);
+				FloatFrame.rawMul(dataFloat, bandSpec.value_scale);
+			}
+			if(Double.isFinite(bandSpec.value_offset)) {
+				log.info("value_offset " + bandSpec.value_offset);
+				FloatFrame.rawAdd(dataFloat, bandSpec.value_offset);
 			}
 			dataFloat = Util.flipRows(dataFloat);
 			int cnt = ProcessingFloat.writeMerge(rasterUnit, timestamp, rasterdbBand, dataFloat, pixelYmin, pixelXmin);
@@ -263,7 +282,15 @@ public class ImportProcessor extends RemoteProxy {
 		}
 		default:
 			throw new RuntimeException("gdal data type not implemented for band type int8 " + bandSpec.gdal_raster_data_type);				
-		}			
+		}
+		if(Double.isFinite(bandSpec.value_scale)) {
+			log.info("value_scale " + bandSpec.value_scale);
+			ByteFrame.rawMul(dataBytes, bandSpec.value_scale);
+		}
+		if(Double.isFinite(bandSpec.value_offset)) {
+			log.info("value_offset " + bandSpec.value_offset);
+			ByteFrame.rawAdd(dataBytes, bandSpec.value_offset);
+		}
 		dataBytes = Util.flipRows(dataBytes);
 		int cnt;
 		CellInt8 cellInt8 = new CellInt8(rasterdb.getTilePixelLen());
