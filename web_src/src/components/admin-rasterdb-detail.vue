@@ -29,57 +29,24 @@
                     <img :key="meta.name" :src="$store.getters.apiUrl('rasterdb/' + meta.name + '/raster.png?width=200')" alt="" class="thumbnail" /> 
                 </a>
                 <table style="padding-right: 420px;">
-                    <tr>
-                        <td><b>Description:</b></td>
+                    <tr v-if="meta.description.length !== 0">
+                        <td><b>description.abstract:</b></td>
                         <td><span v-if="meta.description.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.description}}</span></td>                        
                     </tr>
-                    <tr>
-                        <td><b>Date:</b></td>
+                    <tr v-if="meta.acquisition_date !== undefined">
+                        <td><b>date.created:</b></td>
                         <td><span v-if="meta.acquisition_date === undefined" style="color: grey;">(none)</span><span v-else>{{meta.acquisition_date}}</span></td>                        
                     </tr>
-                    <tr>
-                        <td><b>Publisher:</b></td>
+                    <tr v-if="meta.corresponding_contact !== undefined">
+                        <td><b>publisher:</b></td>
                         <td><span v-if="meta.corresponding_contact === undefined" style="color: grey;">(none)</span><span v-else>{{meta.corresponding_contact}}</span></td>                        
                     </tr>
-                    <tr>
-                        <td><b>Subject:</b></td>
+                    <tr v-if="optArray(meta.tags).length > 0">
+                        <td><b>subject:</b></td>
                         <td>                      
                             <span v-for="tag in optArray(meta.tags)" :key="tag"><span class="meta-list">{{tag}}</span>&nbsp;&nbsp;&nbsp;</span>
                             <span v-if="optArray(meta.tags).length === 0" style="color: grey;">(none)</span>
                         </td>
-                    </tr>
-
-                    <tr v-if="meta.Source !== undefined">
-                        <td><b>Source:</b></td>
-                        <td><span>{{meta.Source}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.Relation !== undefined">
-                        <td><b>Relation:</b></td>
-                        <td><span>{{meta.Relation}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.Coverage !== undefined">
-                        <td><b>Coverage:</b></td>
-                        <td><span>{{meta.Coverage}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.Creator !== undefined">
-                        <td><b>Creator:</b></td>
-                        <td><span>{{meta.Creator}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.Contributor !== undefined">
-                        <td><b>Contributor:</b></td>
-                        <td><span>{{meta.Contributor}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.Rights !== undefined">
-                        <td><b>Rights:</b></td>
-                        <td><span>{{meta.Rights}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.Audience !== undefined">
-                        <td><b>Audience:</b></td>
-                        <td><span>{{meta.Audience}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.Provenance !== undefined">
-                        <td><b>Provenance:</b></td>
-                        <td><span>{{meta.Provenance}}</span></td>                        
                     </tr>
 
                     <template v-for="(contents, tag) in meta.properties">

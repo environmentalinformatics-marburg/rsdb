@@ -84,6 +84,7 @@ public class ScaleDownMax2 {
 				float s11 = srcY1[xDstSrcPos + 1];
 				float s1 = s10 + (s11 - s10) * xFrac;
 				float s = s0 + (s1 - s0) * yFrac;
+				dstY[xDst] = s;
 			}
 		}
 		return dst;

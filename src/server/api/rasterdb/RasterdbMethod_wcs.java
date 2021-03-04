@@ -174,7 +174,9 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, extent2d.xmin, extent2d.ymin, geoXres, geoYres, (short)ref.getEPSG(0));
 
 		Timer.start("raster convert");
-		if((tiffdataType == TiffDataType.INT16 || tiffdataType == TiffDataType.FLOAT32) && ScaleDownMax2.validScaleDownMax2(srcRange.getWidth(), srcRange.getHeight(), dstWidth, dstHeight)) {
+		boolean direct = (tiffdataType == TiffDataType.INT16 || tiffdataType == TiffDataType.FLOAT32) && ScaleDownMax2.validScaleDownMax2(srcRange.getWidth(), srcRange.getHeight(), dstWidth, dstHeight);
+		//boolean direct = false;
+		if(direct) {
 			log.info("direct");
 			directConvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
 		} else {

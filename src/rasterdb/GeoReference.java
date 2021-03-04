@@ -41,7 +41,8 @@ public class GeoReference {
 
 	public static final Set<String> code_wms_transposed = Collections
 			.unmodifiableSet(new HashSet<String>(Arrays.asList(
-					"EPSG:4326"
+					"EPSG:4326",
+					"EPSG:3044"
 					)));
 
 	protected GeoReference(double pixel_size_x, double pixel_size_y, double offset_x, double offset_y, String code,

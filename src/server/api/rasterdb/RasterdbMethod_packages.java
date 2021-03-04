@@ -30,8 +30,10 @@ import org.yaml.snakeyaml.Yaml;
 
 import broker.Broker;
 import broker.Informal;
+import broker.InformalProperties.Builder;
 import broker.TimeSlice;
 import rasterdb.Band;
+import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
@@ -41,6 +43,8 @@ import util.Range2d;
 import util.StreamReceiver;
 import util.TimeUtil;
 import util.Web;
+import util.collections.array.iterator.ReadonlyArrayIterator;
+import util.collections.vec.Vec;
 
 public class RasterdbMethod_packages extends RasterdbMethod {
 	private static final Logger log = LogManager.getLogger();
@@ -275,52 +279,78 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 	private void write_dublin_core_metadata(Spec spec, OutputStream out) {
 		RasterDB rasterdb = spec.rasterdb;
 		Informal informal = rasterdb.informal();
+
+		Builder properties = informal.toBuilder().properties;
+
 		LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
-		map.put("Identifier", rasterdb.config.getName());
+		map.put("identifier", rasterdb.config.getName());
 		if(informal.hasTitle()) {
-			map.put("Title", informal.title);
+			properties.prepend("title", informal.title);
 		}
 		if(!informal.tags.isEmpty()) {
-			map.put("Subject", informal.tags);
+			properties.prepend("subject", informal.tags);
 		}
 		if(informal.hasDescription()) {
-			map.put("Description", informal.description);
-		}
-		map.put("Type", "Raster");
-		if(informal.has_dc_Source()) {
-			map.put("Source", informal.dc_Source);
-		}
-		if(informal.has_dc_Relation()) {
-			map.put("Relation", informal.dc_Relation);
-		}
-		if(informal.has_dc_Coverage()) {
-			map.put("Coverage", informal.dc_Coverage);
-		}
-		if(informal.has_dc_Creator()) {
-			map.put("Creator", informal.dc_Creator);
-		}
-		if(informal.has_corresponding_contact()) {
-			map.put("Publisher", informal.corresponding_contact);
-		}
-		if(informal.has_dc_Contributor()) {
-			map.put("Contributor", informal.dc_Contributor);
-		}
-		if(informal.has_dc_Rights()) {
-			map.put("Rights", informal.dc_Rights);
+			properties.prepend("description.abstract", informal.description);
 		}
 		if(informal.hasAcquisition_date()) {
-			map.put("Date", informal.acquisition_date);
+			properties.prepend("date.created", informal.acquisition_date);
 		}
-		if(informal.has_dc_Audience()) {
-			map.put("Audience", informal.dc_Audience);
+		if(informal.has_corresponding_contact()) {
+			properties.prepend("publisher", informal.corresponding_contact);
 		}
-		if(informal.has_dc_Provenance()) {
-			map.put("Provenance", informal.dc_Provenance);
-		}
-		map.put("Format", "image/tiff");
+		properties.prepend("type", "raster");		
+		properties.prepend("format", "image/tiff");
 
+		if(spec.ext != null) {
+			String coverage = "extent (" + spec.ext[0] + ", " + spec.ext[1] + " to " + spec.ext[2] + ", " + spec.ext[3] + ")";
+			GeoReference ref = rasterdb.ref();
+			if(ref.has_code() || ref.has_proj4()) {
+				coverage += "   in ";
+				if(ref.has_code()) {
+					coverage += ref.code;
+					if(ref.has_proj4()) {
+						coverage += "    ";
+					}
+				}
+				if(ref.has_proj4()) {
+					coverage += "PROJ4: " + ref.proj4;
+				}
+			}
+
+			if(!spec.time_slice_ids.isEmpty()) {
+				Vec<String> slices = new Vec<String>();
+				for(int slice : spec.time_slice_ids) {
+					if(slice == 0) {
+						slices.add("unspecified time");
+					} else {
+						TimeSlice timeSlice = rasterdb.timeMapReadonly.get(slice);
+						if(timeSlice != null) {
+							slices.add(timeSlice.name);
+						} else {
+							slices.add(TimeUtil.toText(slice));
+						}
+					}
+				}
+				if(!slices.isEmpty()) {
+					coverage += "   at ";
+					ReadonlyArrayIterator<String> it = slices.iterator();
+					while(true) {
+						coverage += it.next();
+						if(!it.hasNext()) {
+							break;
+						}
+						coverage += ", ";
+					}
+				}
+			}
+
+			properties.prepend("coverage", coverage);
+		}
+
+		Map<String, Object> outMap = properties.build().toSortedYaml();
 
 		Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-		new Yaml().dump(map, writer);
+		new Yaml().dump(outMap, writer);
 	}
 }

@@ -122,7 +122,7 @@ public class GdalReader {
 	 */
 	public String getCRS_code() {
 		try {
-			SpatialReference sprSrc = new SpatialReference("");
+			SpatialReference sprSrc = new SpatialReference(""); 			
 			String projRef = dataset.GetProjectionRef();
 			if(projRef == null || projRef.isEmpty()) {
 				return null;

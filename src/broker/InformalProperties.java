@@ -1,5 +1,6 @@
 package broker;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -10,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import util.collections.ReadonlyList;
 import util.collections.array.ReadonlyArray;
 import util.collections.vec.Vec;
 
@@ -48,6 +50,24 @@ public class InformalProperties {
 				yamlMap.put(tag, contents);
 			}
 		});	
+		return yamlMap;
+	}
+
+	public Map<String, Object> toSortedYaml() {
+		LinkedHashMap<String, Object> yamlMap = new LinkedHashMap<String, Object>();
+		map.keySet().stream().sorted().forEach(tag -> {
+			ReadonlyArray<String> contents = map.get(tag);
+			if(contents != null) {
+				int len = contents.size();
+				if(len == 0) {
+					// nothing
+				} else if(len == 1){
+					yamlMap.put(tag, contents.first());
+				} else {
+					yamlMap.put(tag, contents);
+				}
+			}
+		});
 		return yamlMap;
 	}
 
@@ -91,5 +111,62 @@ public class InformalProperties {
 			}
 			return builder;
 		}
+
+		public void clear() {
+			map.clear();
+		}
+
+		public void add(String tag, String content) {
+			Vec<String> prev = map.get(tag);
+			if(prev == null) {
+				Vec<String> contents = Vec.ofOne(content);
+				map.put(tag, contents);	
+			} else {
+				prev.add(content);
+			}					
+		}
+
+		public void add(String tag, Vec<String> contents) {
+			Vec<String> prev = map.get(tag);
+			if(prev == null) {
+				map.put(tag, contents);	
+			} else {
+				prev.addAll(contents);
+			}					
+		}
+
+		public void prepend(String tag, String content) {
+			Vec<String> prev = map.get(tag);
+			if(prev == null) {
+				Vec<String> contents = Vec.ofOne(content);
+				map.put(tag, contents);	
+			} else {
+				Vec<String> contents = Vec.ofOne(content);
+				contents.addAll(prev);
+				map.put(tag, contents);	
+			}					
+		}
+
+		public void prepend(String tag, Vec<String> contents) {
+			Vec<String> prev = map.get(tag);
+			if(prev == null) {
+				map.put(tag, contents);	
+			} else {
+				contents.addAll(prev);
+				map.put(tag, contents);	
+			}					
+		}
+
+		public void prepend(String tag, Collection<String> collection) {
+			Vec<String> prev = map.get(tag);
+			if(prev == null) {
+				Vec<String> contents = Vec.of(collection);
+				map.put(tag, contents);	
+			} else {
+				Vec<String> contents = Vec.of(collection);
+				contents.addAll(prev);
+				map.put(tag, contents);	
+			}
+		}		
 	}
 }

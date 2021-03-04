@@ -2,6 +2,7 @@ package server.api.rasterdb;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -89,7 +90,13 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");
 		String[] bbox = request.getParameter("BBOX").split(",");
-		Range2d range2d = rasterdb.ref().parseBboxToRange2d(bbox, false);
+		log.info("bbox "+Arrays.toString(bbox));
+		//boolean transposed = rasterdb.ref().wms_transposed;
+		boolean transposed = false;
+		if(transposed) {
+			log.info("!!!            transposed                !!!");
+		}
+		Range2d range2d = rasterdb.ref().parseBboxToRange2d(bbox, transposed);
 		BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
 		ImageBufferARGB image = null;
 		if(bandText.equals("color")) {
@@ -183,7 +190,9 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			return;
 		}
 		GeoReference ref = rasterdb.ref();
-		if (ref.wms_transposed) {
+		//boolean transposed = ref.wms_transposed;
+		boolean transposed = false;
+		if (transposed) {
 			eBoundingBox.setAttribute("minx", "" + ref.pixelYToGeo(localRange.ymin));
 			eBoundingBox.setAttribute("miny", "" + ref.pixelXToGeo(localRange.xmin));
 			eBoundingBox.setAttribute("maxx", "" + ref.pixelYToGeo(localRange.ymax + 1));

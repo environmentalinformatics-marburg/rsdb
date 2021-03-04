@@ -37,6 +37,12 @@ public class Vec<T> implements List<T> {
 	public static <T> Vec<T> ofOne(T e) {
 		return new Vec<T>((T[]) new Object[] {e}, 1);
 	}
+	
+	public static <T> Vec<T> of(Collection<T> collection) {
+		@SuppressWarnings("unchecked")
+		T[] items = (T[]) collection.toArray();
+		return new Vec<T>(items);
+	}
 
 	@SuppressWarnings("unchecked")
 	public Vec() {

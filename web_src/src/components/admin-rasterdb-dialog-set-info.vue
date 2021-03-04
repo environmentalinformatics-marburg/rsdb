@@ -25,22 +25,8 @@
                     </div>
 
                     <v-textarea v-model="newDescription" label="description.abstract" auto-grow rows="1" title="Concise layer description. For extensive details, use field 'description'." />
-
-
-                    <!--<v-text-field label="Description" v-model="newDescription" title="Content description of the layer."></v-text-field>
-                    <v-text-field label="Date" v-model="newAcquisition_date" title="Creation or processing date of the layer."></v-text-field>
-                    <v-text-field label="Publisher" v-model="new_corresponding_contact" title="Person or group that provides the layer."></v-text-field>-->
-
-
-
-                    <!--<v-text-field label="Source" v-model="new_Source" title="Source describtion of the layer data."></v-text-field>
-                    <v-text-field label="Relation" v-model="new_Relation" title="Layers that are related to this layer."></v-text-field>
-                    <v-text-field label="Coverage" v-model="new_Coverage" title="Spatial and Temporal extent of this layer."></v-text-field>
-                    <v-text-field label="Creator" v-model="new_Creator" title="Person or group that created the layer."></v-text-field>
-                    <v-text-field label="Contributor" v-model="new_Contributor" title="Persons or groups that contributed to this layer."></v-text-field>
-                    <v-text-field label="Rights" v-model="new_Rights" title="Notice about rights on this layer."></v-text-field>
-                    <v-text-field label="Audience" v-model="new_Audience" title="Target groups expected for layer usage."></v-text-field>
-                    <v-text-field label="Provenance" v-model="new_Provenance" title="Layer history and changes in ownership."></v-text-field>-->
+                    <v-textarea v-model="newAcquisition_date" label="date.created" auto-grow rows="1" title="Creation or processing date of the layer." />
+                    <v-textarea v-model="new_corresponding_contact" label="publisher" auto-grow rows="1" title="Person or group that provides the layer." />
 
                     <template v-for="(contents, tag) in newProperties">
                         <v-textarea v-for="(content, index) in contents" :key="tag + ':' + index" :label="tag" v-model="newProperties[tag][index]" :title="tag + ' field'" auto-grow rows="1" append-outer-icon="remove_circle" @click:append-outer="removeField(tag, index)" />
@@ -120,21 +106,12 @@ export default {
             dialog: false,
             newTitle: "",
             newDescription: "",
-            /*newAcquisition_date: "",*/
-            /*new_corresponding_contact: "",*/
+            newAcquisition_date: "",
+            new_corresponding_contact: "",
             setError: false,
             setErrorMessage: undefined,
             selectedTags: [],
             createdTags: [],
-
-            /*new_Source: "",
-            new_Relation: "",
-            new_Coverage: "",
-            new_Creator: "",
-            new_Contributor: "",
-            new_Rights: "",
-            new_Audience: "",
-            new_Provenance: "",*/
 
             newProperties: {},
 
@@ -153,7 +130,7 @@ export default {
                 'creator',
                 'date',
                 'date.available',
-                'date.created',
+                /*'date.created',*/
                 'date.dateAccepted',
                 'date.dateCopyrighted',
                 'date.dateSubmitted',
@@ -171,7 +148,7 @@ export default {
                 'instructionalMethod',
                 'language',
                 'provenance',
-                'publisher',
+                /*'publisher',*/
                 'relation',
                 'relation.conformsTo',
                 'relation.hasFormat',
@@ -218,18 +195,9 @@ export default {
         refresh() {
             this.newTitle = this.meta.title;
             this.newDescription = this.meta.description;
-            //this.newAcquisition_date = this.meta.acquisition_date === undefined ? '' : this.meta.acquisition_date;
-            //this.new_corresponding_contact = this.meta.corresponding_contact === undefined ? '' : this.meta.corresponding_contact;
+            this.newAcquisition_date = this.meta.acquisition_date === undefined ? '' : this.meta.acquisition_date;
+            this.new_corresponding_contact = this.meta.corresponding_contact === undefined ? '' : this.meta.corresponding_contact;
             this.selectedTags = optArray(this.meta.tags);
-
-            /*this.new_Source = this.meta.Source === undefined ? '' : this.meta.Source;
-            this.new_Relation = this.meta.Relation === undefined ? '' : this.meta.Relation;
-            this.new_Coverage = this.meta.Coverage === undefined ? '' : this.meta.Coverage;
-            this.new_Creator = this.meta.Creator === undefined ? '' : this.meta.Creator;
-            this.new_Contributor = this.meta.Contributor === undefined ? '' : this.meta.Contributor;
-            this.new_Rights = this.meta.Rights === undefined ? '' : this.meta.Rights;
-            this.new_Audience = this.meta.Audience === undefined ? '' : this.meta.Audience;
-            this.new_Provenance = this.meta.Provenance === undefined ? '' : this.meta.Provenance;*/
 
             this.newProperties = JSON.parse(JSON.stringify(this.meta.properties));
 
@@ -242,19 +210,9 @@ export default {
                 meta: {
                     title: self.newTitle,
                     description: self.newDescription,
-                    //acquisition_date: self.newAcquisition_date,
-                    //corresponding_contact: self.new_corresponding_contact,
+                    acquisition_date: self.newAcquisition_date,
+                    corresponding_contact: self.new_corresponding_contact,
                     tags: self.selectedTags,
-
-                    /*Source: self.new_Source,
-                    Relation: self.new_Relation,
-                    Coverage: self.new_Coverage,
-                    Creator: self.new_Creator,
-                    Contributor: self.new_Contributor,
-                    Rights: self.new_Rights,
-                    Audience: self.new_Audience,
-                    Provenance: self.new_Provenance,*/
-
                     properties: self.newProperties,
                 } 
             }).then(function(response) {
