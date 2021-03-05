@@ -83,10 +83,34 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 
 	public void handle_GetMap(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		String layers = Web.getString(request, "LAYERS", "color");
+		String[] layerList = layers.split(",");
+		if(layerList.length > 1) {
+			log.warn("multiple layers specified in LAYERS. Using first layer only.");
+		}
+		String layer = layerList[0];
 
-		String[] lparam = layers.split("/");
-		String bandText = lparam[0];
-		int timestamp = lparam.length > 1 ? Integer.parseInt(lparam[1]) : rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
+		String[] lparams = layers.split("/");
+		String bandText = lparams[0];
+		int timestamp = lparams.length > 1 ? Integer.parseInt(lparams[1]) : rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
+
+		String styles = Web.getString(request, "STYLES");
+		if(styles != null && !styles.isEmpty()) {
+			String[] stylesList = styles.split(",");
+			if(stylesList.length > 1) {
+				log.warn("styles for multiple layers specified in STYLES. Using styles of first layer only.");
+			}
+			String style = stylesList[0];
+			String[] sParams = style.split("/");
+			for(String sParam : sParams) {
+				String[] args = sParam.split(" ");
+				switch(args[0]) {
+				default:
+					log.warn("unknown style type: " + args[0]);
+				}
+			}
+		}
+
+
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");
 		String[] bbox = request.getParameter("BBOX").split(",");
@@ -212,7 +236,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 				addElement(eTimeLayer, "Title", title + " / " + TimeUtil.toPrettyText(timeKey));
 			}
 		}*/
-		
+
 		TreeSet<Integer> timestamps = new TreeSet<Integer>();
 		timestamps.addAll(rasterdb.rasterUnit().timeKeysReadonly());
 		timestamps.addAll(rasterdb.timeMapReadonly.keySet());

@@ -230,11 +230,7 @@ public class GdalReader {
 		String wkt = sprDst.ExportToWkt();
 		log.info(wkt);
 
-
-
 		outDataset.SetProjection(wkt);
-
-
 
 		//Xp = padfTransform[0] + px*padfTransform[1] + py*padfTransform[2];
 		//Yp = padfTransform[3] + px*padfTransform[4] + py*padfTransform[5];
@@ -256,7 +252,6 @@ public class GdalReader {
 		outDataset.SetGeoTransform(tr);
 
 		log.info("dst "+Arrays.toString(outDataset.GetGeoTransform()));
-
 
 		Timer.start("reproject");
 		//gdal.ReprojectImage(dataset, outDataset);

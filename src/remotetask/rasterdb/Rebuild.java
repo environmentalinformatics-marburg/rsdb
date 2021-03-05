@@ -21,11 +21,13 @@ public class Rebuild extends RemoteProxy {
 	private final RasterDB src;
 	private final Path rootPath;
 	private final String storage_type;
+	private final String pyramid_type; // nullable
 
-	public Rebuild(RasterDB src, Path rootPath, String storage_type) {
+	public Rebuild(RasterDB src, Path rootPath, String storage_type, String pyramid_type) {
 		this.src = src;
 		this.rootPath = rootPath;
 		this.storage_type = storage_type;
+		this.pyramid_type = pyramid_type;
 	}
 
 	@Override
@@ -43,6 +45,9 @@ public class Rebuild extends RemoteProxy {
 			dst.setRef(src.ref());
 			dst.setInformal(src.informal());
 			dst.setAssociated(src.associated.copy());
+			if(pyramid_type != null) {
+				dst.unsafeSetPyramidType(pyramid_type);
+			}
 			RasterUnitStorage dstStorage = dst.rasterUnit();
 
 			int totalTiles = srcStorage.tileKeysReadonly().size();
@@ -71,7 +76,7 @@ public class Rebuild extends RemoteProxy {
 			for(Band band:src.bandMapReadonly.values()) {
 				dst.setBand(band);
 			}
-			
+
 			dst.rebuildPyramid(true);
 		}
 	}

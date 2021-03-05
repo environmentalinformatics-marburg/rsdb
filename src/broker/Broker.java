@@ -446,8 +446,6 @@ public class Broker implements AutoCloseable {
 		}		
 	}
 
-
-
 	/**
 	 * create new rasterdb 
 	 * if exists then delete old

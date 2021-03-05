@@ -33,5 +33,4 @@ public class Task_rebuild_pyramid extends RemoteTask {
 	public void process() throws IOException {
 		rasterdb.rebuildPyramid(true);		
 	}
-
 }

@@ -44,6 +44,9 @@ public class RasterDB implements AutoCloseable {
 
 	private static final String TYPE = "RasterDB";
 
+	public static final String PYRAMID_TYPE_FILES_DIV4 = "files_div4";
+	public static final String PYRAMID_TYPE_COMPACT_DIV2 = "compact_div2";
+
 	private final ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
 	public final NavigableMap<Integer, TimeSlice> timeMapReadonly = Collections.unmodifiableNavigableMap(timeMap);
 
@@ -72,6 +75,7 @@ public class RasterDB implements AutoCloseable {
 	private final Path path;
 	private String storageType = null;
 	private int tilePixelLen = 0;
+	private String pyramidType = null;
 
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
@@ -139,7 +143,7 @@ public class RasterDB implements AutoCloseable {
 	}
 
 	public boolean isInternalPyramid() {
-		return false;
+		return pyramidType != null && pyramidType.equals(PYRAMID_TYPE_COMPACT_DIV2);
 	}
 
 	public void rebuildPyramid(boolean flush) throws IOException {
@@ -192,6 +196,9 @@ public class RasterDB implements AutoCloseable {
 				map.put("local_extent", local_extent.toYaml());
 			}
 			map.put("storage_type", storageType);
+			if(pyramidType != null) {
+				map.put("pyramid_type", pyramidType);
+			}
 			map.put("tile_pixel_len", tilePixelLen);
 			if(!timeMap.isEmpty()) {
 				map.put("time_slices", TimeSlice.timeMapToYaml(timeMap));					
@@ -246,6 +253,7 @@ public class RasterDB implements AutoCloseable {
 					local_extent = null;
 				}
 				storageType = yamlMap.optString("storage_type", "RasterUnit");
+				pyramidType = yamlMap.optString("pyramid_type", null);
 				tilePixelLen = yamlMap.optInt("tile_pixel_len", tilePixelLen);
 				timeMap.clear();
 				if(yamlMap.contains("time_slices")) {
@@ -606,5 +614,24 @@ public class RasterDB implements AutoCloseable {
 	public void setAssociated(Associated associated) {
 		this.associated = associated;
 		writeMeta();
+	}
+	
+	public static boolean isValidPyramidTypeString(String pyramidType) {
+		if(pyramidType == null || pyramidType.isEmpty()) {
+			return false;
+		}
+		if(PYRAMID_TYPE_FILES_DIV4.equals(pyramidType) || PYRAMID_TYPE_COMPACT_DIV2.equals(pyramidType)) {
+			return true;
+		}
+		return false;
+	}
+
+	public synchronized void unsafeSetPyramidType(String pyramidType) {
+		if(isValidPyramidTypeString(pyramidType)) {
+			this.pyramidType = pyramidType;
+			writeMeta();
+		} else {
+			throw new RuntimeException("unknown pyramid_type: " + pyramidType);
+		}		
 	}
 }
