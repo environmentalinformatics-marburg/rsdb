@@ -1,6 +1,7 @@
 package util;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -174,6 +175,13 @@ public class JsonUtil {
 	public static void optPutString(JSONWriter json, String key, Object value) {
 		if(value != null) {
 			optPut(json, key, value.toString());
+		}		
+	}
+	
+	public static void optFunString(JSONObject jsonObject, String name, Consumer<String> fun) {
+		String value = jsonObject.optString(name, null);
+		if(value != null) {
+			fun.accept(value);
 		}		
 	}
 }

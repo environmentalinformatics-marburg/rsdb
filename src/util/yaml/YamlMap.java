@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.Function;
@@ -274,5 +275,9 @@ public class YamlMap {
 	@Override
 	public String toString() {
 		return map.toString();
+	}
+	
+	public void forEachKey(BiConsumer<YamlMap, String> consumer) {
+		map.keySet().forEach(key -> consumer.accept(this, key));
 	}
 }

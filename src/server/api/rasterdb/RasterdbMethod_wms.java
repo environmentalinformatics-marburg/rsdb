@@ -3,6 +3,7 @@ package server.api.rasterdb;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -27,6 +28,7 @@ import org.w3c.dom.Node;
 import broker.Broker;
 import broker.TimeSlice;
 import rasterdb.BandProcessor;
+import rasterdb.CustomWMS;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.Rasterizer;
@@ -39,6 +41,7 @@ import util.TimeUtil;
 import util.Web;
 import util.frame.DoubleFrame;
 import util.image.ImageBufferARGB;
+import util.image.MonoColor;
 import util.image.Renderer;
 
 public class RasterdbMethod_wms extends RasterdbMethod {
@@ -82,6 +85,34 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 	}
 
 	public void handle_GetMap(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
+
+		double gamma = Double.NaN;
+		int[] palette = null;
+
+		if(!target.isEmpty()) {
+			log.info("target |" + target + "|");
+			CustomWMS customWMS = rasterdb.customWmsMapReadonly.get(target);
+			if(customWMS != null) {
+				if(customWMS.hasGamma()) {
+					if(customWMS.gamma.equals("auto")) {
+						gamma = Double.NaN;
+					} else {
+						try {
+							gamma = Double.parseDouble(customWMS.gamma);
+						} catch (Exception e) {
+							log.warn("unknown gamma value: " + e + "   " + customWMS.gamma);
+						}
+					}
+				}
+				if(customWMS.hasPalette()) {
+					palette = MonoColor.getPaletteDefaultNull(customWMS.palette);
+				}
+			} else {
+				log.warn("custom WMS not found |" + target + "|");
+			}
+		}
+
+
 		String layers = Web.getString(request, "LAYERS", "color");
 		String[] layerList = layers.split(",");
 		if(layerList.length > 1) {
@@ -114,7 +145,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");
 		String[] bbox = request.getParameter("BBOX").split(",");
-		log.info("bbox "+Arrays.toString(bbox));
+		//log.info("bbox "+Arrays.toString(bbox));
 		//boolean transposed = rasterdb.ref().wms_transposed;
 		boolean transposed = false;
 		if(transposed) {
@@ -124,15 +155,23 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
 		ImageBufferARGB image = null;
 		if(bandText.equals("color")) {
-			image = Rasterizer.rasterizeRGB(processor, width, height, Double.NaN, null, false, null);
+			image = Rasterizer.rasterizeRGB(processor, width, height, gamma, null, false, null);
 		} else if(bandText.startsWith("band")) {
 			int bandIndex = Integer.parseInt(bandText.substring(4));
 			TimeBand timeBand = processor.getTimeBand(bandIndex);
-			image = Rasterizer.rasterizeGrey(processor, timeBand, width, height, Double.NaN, null, null);
+			if(palette == null) {
+				image = Rasterizer.rasterizeGrey(processor, timeBand, width, height, gamma, null, null);
+			} else {
+				image = Rasterizer.rasterizePalette(processor, timeBand, width, height, gamma, null, palette, null);	
+			}
 		} else {
 			ErrorCollector errorCollector = new ErrorCollector();
 			DoubleFrame[] doubleFrames = DSL.process(bandText, errorCollector, processor);
-			image = Renderer.renderGreyDouble(doubleFrames[0], width, height, Double.NaN, null);
+			if(palette == null) {
+				image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, null);
+			} else {
+				image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, null, palette);
+			}
 		}
 		response.setContentType("image/png");
 		image.writePngCompressed(response.getOutputStream());

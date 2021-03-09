@@ -278,6 +278,13 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 					log.warn(e);
 				}
 			}
+			json.key("custom_wms");
+			json.object();
+			rasterdb.customWmsMapReadonly.forEach((key, customWMS) -> {
+				json.key(key);
+				customWMS.writeJson(json);
+			});
+			json.endObject();
 			json.endObject(); // end full object
 		} catch(Exception e) {
 			e.printStackTrace();

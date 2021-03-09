@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,9 @@ public class RasterDB implements AutoCloseable {
 
 	private final ConcurrentSkipListMap<Integer, Band> bandMap;
 	public final  NavigableMap<Integer, Band> bandMapReadonly;
+	
+	private final ConcurrentSkipListMap<String, CustomWMS> customWmsMap = new ConcurrentSkipListMap<String, CustomWMS>();
+	public final NavigableMap<String, CustomWMS> customWmsMapReadonly = Collections.unmodifiableNavigableMap(customWmsMap);
 
 	private RasterUnitStorage rasterUnit = null;
 	private RasterUnitStorage rasterPyr1Unit = null;
@@ -203,6 +207,13 @@ public class RasterDB implements AutoCloseable {
 			if(!timeMap.isEmpty()) {
 				map.put("time_slices", TimeSlice.timeMapToYaml(timeMap));					
 			}
+			if(!customWmsMap.isEmpty()) {
+				LinkedHashMap<String, Object> m = new LinkedHashMap<String, Object>();
+				customWmsMap.forEach((key, customWMS) -> {
+					m.put(key, customWMS.toYaml());	
+				});
+				map.put("custom_wms", m);	
+			}
 			Yaml yaml = new Yaml();
 			Path writepath = Paths.get(metaPath.toString()+"_temp");
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(writepath.toFile())));
@@ -258,6 +269,13 @@ public class RasterDB implements AutoCloseable {
 				timeMap.clear();
 				if(yamlMap.contains("time_slices")) {
 					TimeSlice.yamlToTimeMap((Map<?, Object>) yamlMap.getObject("time_slices"), timeMap);					
+				}
+				customWmsMap.clear();
+				if(yamlMap.contains("custom_wms")) {
+					yamlMap.getMap("custom_wms").forEachKey((yaml, key) -> {
+						CustomWMS customWMS = CustomWMS.ofYaml(yaml.getMap(key));
+						customWmsMap.put(key, customWMS);
+					});
 				}
 			}
 			//log.info("*** ref *** " + ref + "    of   " + metaPath);
@@ -633,5 +651,11 @@ public class RasterDB implements AutoCloseable {
 		} else {
 			throw new RuntimeException("unknown pyramid_type: " + pyramidType);
 		}		
+	}
+
+	public synchronized void setCustomWMS(HashMap<String, CustomWMS> map) {
+		customWmsMap.clear();
+		customWmsMap.putAll(map);
+		writeMeta();
 	}
 }

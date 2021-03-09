@@ -138,6 +138,8 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 	private static final AtomicLong memFileIdCounter = new AtomicLong(0);
 
 	public void handle_GetCoverage(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
+		//log.info("handle");
+		Timer.start("WCS processing");
 		int dstWidth = Web.getInt(request, "WIDTH", -1);
 		int dstHeight = Web.getInt(request, "HEIGHT", -1);
 
@@ -150,8 +152,8 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 
 		GeoReference ref = rasterdb.ref();
 		Range2d range2d = ref.bboxToRange2d(extent2d.xmin, extent2d.ymin, extent2d.xmax, extent2d.ymax);
-		log.info(extent2d);
-		log.info(range2d);
+		//log.info(extent2d);
+		//log.info(range2d);
 
 
 		int timestamp = rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
@@ -173,22 +175,26 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands); // all bands need same data type for tiff reader compatibility (e.g. GDAL)
 		TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, extent2d.xmin, extent2d.ymin, geoXres, geoYres, (short)ref.getEPSG(0));
 
-		Timer.start("raster convert");
+		//Timer.start("raster convert");
 		boolean direct = (tiffdataType == TiffDataType.INT16 || tiffdataType == TiffDataType.FLOAT32) && ScaleDownMax2.validScaleDownMax2(srcRange.getWidth(), srcRange.getHeight(), dstWidth, dstHeight);
 		//boolean direct = false;
 		if(direct) {
-			log.info("direct");
+			//log.info("direct");
 			directConvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
 		} else {
 			log.info("GDAL");
 			GDALconvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
 		}
-		log.info(Timer.stop("raster convert"));
-
+		//log.info(Timer.stop("raster convert"));
+		log.info(Timer.stop("WCS processing"));
+		
+		Timer.start("WCS transfer");
 		resceiver.setStatus(HttpServletResponse.SC_OK);
 		resceiver.setContentType("image/tiff");
-		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
+		long tiffSize = tiffWriter.exactSizeOfWriteAuto();
+		resceiver.setContentLength(tiffSize);
 		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));
+		log.info(Timer.stop("WCS transfer") + "  " + (tiffSize >= 1024*1024 ? ((tiffSize / (1024*1024)) + " MBytes") : (tiffSize + " Bytes") ) + "  " + dstWidth + " x " + dstHeight + " pixel  " + processingBands.size() + " bands of " + tiffdataType);
 	}
 
 	private void directConvert(BandProcessor processor, List<TimeBand> processingBands, TiffDataType tiffdataType, int dstWidth, int dstHeight, TiffWriter tiffWriter) {

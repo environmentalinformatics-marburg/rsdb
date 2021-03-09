@@ -152,7 +152,7 @@ export default {
         onUrlCopy() {
             copyTextToClipboard(this.wmsUrl);
             this.snackbarCopiedToClipboard = true;
-        }
+        },
 
     },
     computed: {
