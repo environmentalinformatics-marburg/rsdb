@@ -138,8 +138,13 @@ export default {
 
         addEntry(id, c, edit) {
             let v = {};
+            v.value_range = c.value_range !== undefined ? c.value_range : 'auto';
+            v.value_range_static_min = c.value_range_static_min !== undefined ? c.value_range_static_min: '0';
+            v.value_range_static_max = c.value_range_static_max !== undefined ? c.value_range_static_max: '255';
             v.gamma = c.gamma !== undefined ? c.gamma : 'auto';
+            v.gamma_auto_sync = c.gamma_auto_sync !== undefined ? c.gamma_auto_sync : false;
             v.palette = c.palette !== undefined ? c.palette : 'grey';
+            v.format = c.format !== undefined ? c.format : 'png:compressed';
             this.$set(this.custom_wms, id, v);
             this.addEntryVisible = false;
             if(edit) {

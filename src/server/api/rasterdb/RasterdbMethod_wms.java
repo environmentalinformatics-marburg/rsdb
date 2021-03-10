@@ -86,16 +86,32 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 
 	public void handle_GetMap(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 
+		double[] range = null;
 		double gamma = Double.NaN;
+		boolean gamma_auto_sync = false;
 		int[] palette = null;
+		String format = "png";
 
 		if(!target.isEmpty()) {
 			log.info("target |" + target + "|");
 			CustomWMS customWMS = rasterdb.customWmsMapReadonly.get(target);
 			if(customWMS != null) {
+				if(customWMS.hasValue_range()) {
+					switch(customWMS.value_range) {
+					case "auto":
+						range = null;
+						break;
+					case "static":
+						range = new double[] {customWMS.value_range_static_min, customWMS.value_range_static_max};
+						break;
+					default:
+						log.warn("unknown value_range: " + customWMS.value_range);
+					}
+				}
 				if(customWMS.hasGamma()) {
 					if(customWMS.gamma.equals("auto")) {
 						gamma = Double.NaN;
+						gamma_auto_sync = customWMS.gamma_auto_sync;
 					} else {
 						try {
 							gamma = Double.parseDouble(customWMS.gamma);
@@ -106,6 +122,9 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 				}
 				if(customWMS.hasPalette()) {
 					palette = MonoColor.getPaletteDefaultNull(customWMS.palette);
+				}
+				if(customWMS.hasFormat()) {
+					format = customWMS.format;
 				}
 			} else {
 				log.warn("custom WMS not found |" + target + "|");
@@ -120,7 +139,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		}
 		String layer = layerList[0];
 
-		String[] lparams = layers.split("/");
+		String[] lparams = layer.split("/");
 		String bandText = lparams[0];
 		int timestamp = lparams.length > 1 ? Integer.parseInt(lparams[1]) : rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
 
@@ -155,26 +174,49 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
 		ImageBufferARGB image = null;
 		if(bandText.equals("color")) {
-			image = Rasterizer.rasterizeRGB(processor, width, height, gamma, null, false, null);
+			image = Rasterizer.rasterizeRGB(processor, width, height, gamma, range, gamma_auto_sync, null);
 		} else if(bandText.startsWith("band")) {
 			int bandIndex = Integer.parseInt(bandText.substring(4));
 			TimeBand timeBand = processor.getTimeBand(bandIndex);
 			if(palette == null) {
-				image = Rasterizer.rasterizeGrey(processor, timeBand, width, height, gamma, null, null);
+				image = Rasterizer.rasterizeGrey(processor, timeBand, width, height, gamma, range, null);
 			} else {
-				image = Rasterizer.rasterizePalette(processor, timeBand, width, height, gamma, null, palette, null);	
+				image = Rasterizer.rasterizePalette(processor, timeBand, width, height, gamma, range, palette, null);	
 			}
 		} else {
 			ErrorCollector errorCollector = new ErrorCollector();
 			DoubleFrame[] doubleFrames = DSL.process(bandText, errorCollector, processor);
 			if(palette == null) {
-				image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, null);
+				image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, range);
 			} else {
-				image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, null, palette);
+				image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, range, palette);
 			}
 		}
-		response.setContentType("image/png");
-		image.writePngCompressed(response.getOutputStream());
+
+		switch(format) {
+		case "jpg": {
+			response.setContentType("image/jpeg");
+			image.writeJpg(response.getOutputStream(), 0.7f);
+			break;
+		}
+		case "jpg:small": {
+			response.setContentType("image/jpeg");
+			image.writeJpg(response.getOutputStream(), 0.3f);
+			break;
+		}
+		case "png:uncompressed": {
+			response.setContentType("image/png");
+			image.writePng(response.getOutputStream(), 0);
+			break;
+		}
+		case "png":
+		case "png:compressed":
+		default: {
+			response.setContentType("image/png");
+			image.writePngCompressed(response.getOutputStream());
+		}
+		}
+
 	}
 
 	public void handle_GetCapabilities(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {

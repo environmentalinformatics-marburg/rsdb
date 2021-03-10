@@ -2,6 +2,7 @@ package util;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -9,6 +10,7 @@ import org.json.JSONWriter;
 
 import util.collections.ReadonlyList;
 import util.collections.vec.Vec;
+import util.yaml.YamlMap.BooleanConsumer;
 
 public class JsonUtil {
 	
@@ -183,5 +185,20 @@ public class JsonUtil {
 		if(value != null) {
 			fun.accept(value);
 		}		
+	}
+
+	public static void optFunBoolean(JSONObject jsonObject, String name, BooleanConsumer fun) {
+		boolean valueF = jsonObject.optBoolean(name, false);
+		boolean valueT = jsonObject.optBoolean(name, true);
+		if(valueF == valueT) {
+			fun.accept(valueF);
+		}		
+	}
+
+	public static void optFunDouble(JSONObject jsonObject, String name, DoubleConsumer fun) {
+		double value = jsonObject.optDouble(name, Double.NaN);
+		if(Double.isFinite(value)) {
+			fun.accept(value);
+		}			
 	}
 }

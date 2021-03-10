@@ -262,6 +262,12 @@ public class YamlMap {
 		}	
 	}
 	
+	public void optFunDouble(String name, DoubleConsumer fun) {
+		if(contains(name)) {
+			fun.accept(getDouble(name));
+		}	
+	}
+	
 	public void funString(String name, Consumer<String> fun) {
 		if(contains(name)) {
 			fun.accept(getString(name));
