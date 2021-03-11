@@ -18,6 +18,7 @@ import org.locationtech.proj4j.proj.Projection;
 import org.locationtech.proj4j.units.Unit;
 
 import broker.Broker;
+import broker.InformalProperties;
 import broker.Informal.Builder;
 import broker.TimeSlice;
 import broker.acl.ACL;
@@ -366,6 +367,16 @@ public class APIHandler_voxeldb {
 					voxeldb = null;
 					break;
 				}
+				case "properties": {
+					voxeldb.checkMod(userIdentity);
+					updateCatalog = true;	
+					Builder informal = voxeldb.informal().toBuilder();
+					JSONObject jsonProperties = meta.getJSONObject("properties");
+					InformalProperties.Builder properties = InformalProperties.Builder.ofJSON(jsonProperties);				
+					informal.properties = properties;
+					voxeldb.setInformal(informal.build());
+					break;
+				}					
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}

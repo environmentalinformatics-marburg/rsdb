@@ -19,18 +19,8 @@
                 Info
             </h3> 
             <div class="meta-content">
+                <box-info :meta="meta" /> 
                 <table>
-                    <tr>
-                        <td><b>description:</b></td>
-                        <td><span v-if="meta.description.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.description}}</span></td>                        
-                    </tr>
-                    <tr>
-                        <td><b>tags:</b></td>
-                        <td>                      
-                            <span v-for="tag in optArray(meta.tags)" :key="tag"><span class="meta-list">{{tag}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="optArray(meta.tags).length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
                     <tr>
                         <td><b>EPSG:</b></td>
                         <td><span v-if="meta.epsg.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.epsg}}</span></td>                        
@@ -80,13 +70,15 @@
 import { mapState, mapGetters } from 'vuex'
 import axios from 'axios'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
+import boxInfo from './box-info.vue'
 
 
 
 export default {
     name: 'admin-poi_group-detail',
     components: {
-        PulseLoader,        
+        PulseLoader,
+        'box-info': boxInfo,        
     },
     props: ['poi_group'],
     data() {

@@ -526,6 +526,17 @@ public class VectorDB {
 		}
 		return new Extent2d(xmin, ymin, xmax, ymax);
 	}
+	
+	public Extent2d getExtent() {
+		Extent2d extent = null;
+		DataSource datasource = getDataSource();
+		try {		
+			extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
+		} finally {
+			VectorDB.closeDataSource(datasource);
+		}
+		return extent;
+	}
 
 	public SpatialReference getSpatialReference() {
 		String fullFileName = config.dataPath.resolve(dataFilename).toString();

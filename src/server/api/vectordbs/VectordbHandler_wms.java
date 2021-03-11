@@ -153,13 +153,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
 		eBoundingBox.setAttribute("CRS", code);
 
-		Extent2d extent = null;
-		DataSource datasource = vectordb.getDataSource();
-		try {		
-			extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
-		} finally {
-			VectorDB.closeDataSource(datasource);
-		}
+		Extent2d extent = vectordb.getExtent();
 
 		eBoundingBox.setAttribute("minx", "" + extent.xmin);
 		eBoundingBox.setAttribute("miny", "" + extent.ymin);

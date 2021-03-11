@@ -22,30 +22,19 @@
 
             <v-divider class="meta-divider"></v-divider> 
             <h3 class="subheading mb-0"> 
-                <admin-vectordb-dialog-set-info :meta="meta" @changed="refresh" v-if="modify" />
+                <dialog-set-info 
+                    @changed="refresh" 
+                    v-if="modify"
+                    :meta="meta" 
+                    :url="$store.getters.apiUrl('vectordbs/' + meta.name)" 
+                />                
                 Info
             </h3>
             <div class="meta-content" style="poisition: relative;">
                 <a :href="'#/vectorviewer/' + vectordb" target="_blank" title="open layer in viewer on new tab">
                     <img :key="meta.name" :src="$store.getters.apiUrl('vectordbs/' + meta.name + '/raster.png?width=400&height=600&datatag=' + meta.datatag)" alt="" class="thumbnail" /> 
                 </a>
-                <table style="padding-right: 420px;">
-                    <tr>
-                        <td><b>description:</b></td>
-                        <td><span v-if="meta.description.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.description}}</span></td>                        
-                    </tr>
-                    <tr>
-                        <td><b>corresponding contact:</b></td>
-                        <td><span v-if="meta.corresponding_contact === undefined" style="color: grey;">(none)</span><span v-else>{{meta.corresponding_contact}}</span></td>                        
-                    </tr>
-                    <tr>
-                        <td><b>tags:</b></td>
-                        <td>                      
-                            <span v-for="tag in optArray(meta.tags)" :key="tag"><span class="meta-list">{{tag}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="optArray(meta.tags).length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-                </table>
+                <box-info :meta="meta" /> 
             </div>
             
             <v-divider class="meta-divider"></v-divider>
@@ -143,12 +132,12 @@
 import { mapState, mapGetters } from 'vuex'
 import axios from 'axios'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
-
+import dialogSetInfo from './dialog-set-info.vue'
+import boxInfo from './box-info.vue'
 import adminVectordbDelete from './admin-vectordb-delete'
 import adminVectordbDialogFiles from './admin-vectordb-dialog-files'
 import adminVectordbAttributes from './admin-vectordb-attributes'
 import adminVectordbStructuredAccess from './admin-vectordb-structured-access'
-import adminVectordbDialogSetInfo from './admin-vectordb-dialog-set-info.vue'
 import adminVectordbDialogSetAcl from './admin-vectordb-dialog-set-acl.vue'
 import adminVectordbDialogDataTable from './admin-vectordb-dialog-data-table.vue'
 import adminVectordbDialogWfs from './admin-vectordb-dialog-wfs.vue'
@@ -157,11 +146,12 @@ export default {
     name: 'admin-vectordb-detail', 
     components: {
         PulseLoader,
+        'dialog-set-info':dialogSetInfo,
+        'box-info': boxInfo,
         'admin-vectordb-delete': adminVectordbDelete,
         'admin-vectordb-dialog-files': adminVectordbDialogFiles,
         'admin-vectordb-attributes': adminVectordbAttributes,
         'admin-vectordb-structured-access': adminVectordbStructuredAccess,
-        'admin-vectordb-dialog-set-info': adminVectordbDialogSetInfo,
         'admin-vectordb-dialog-set-acl': adminVectordbDialogSetAcl,
         'admin-vectordb-dialog-data-table': adminVectordbDialogDataTable,
         'admin-vectordb-dialog-wfs': adminVectordbDialogWfs,

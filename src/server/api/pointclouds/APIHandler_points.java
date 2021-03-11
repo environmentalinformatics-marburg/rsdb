@@ -1,6 +1,12 @@
 package server.api.pointclouds;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -10,8 +16,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
+import org.yaml.snakeyaml.Yaml;
 
 import broker.Broker;
+import broker.Informal;
+import broker.InformalProperties.Builder;
 import pointcloud.AttributeSelector;
 import pointcloud.CellTable;
 import pointcloud.CellTable.ChainedFilterFunc;
@@ -105,6 +114,7 @@ public class APIHandler_points {
 			response.setContentType("application/zip");
 			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
+			write_dublin_core(pointcloud, boundingRect, zipOutputStream);
 			Receiver receiver = new StreamReceiver(zipOutputStream);
 			Region rr = requestRegion;
 			boundingRect.tiles_utmm(1000_000, 1000_000, (xtile, ytile, tileRect) -> {
@@ -129,5 +139,63 @@ public class APIHandler_points {
 			ResponseReceiver receiver = new ResponseReceiver(response);		
 			PointProcessor.process(pointcloud, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, format, receiver, request, selector);
 		}
+	}
+	
+	private void write_dublin_core(PointCloud pointcloud, Rect ext, ZipOutputStream zipOutputStream) throws IOException {
+		zipOutputStream.putNextEntry(new ZipEntry("metadata.yaml"));
+		try {
+			write_dublin_core_metadata(pointcloud, ext, zipOutputStream);
+		} finally {
+			zipOutputStream.closeEntry();	
+		}		
+	}
+
+	private void write_dublin_core_metadata(PointCloud pointcloud, Rect ext, OutputStream out) {
+		Informal informal = pointcloud.informal();
+
+		Builder properties = informal.toBuilder().properties;
+
+		LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+		map.put("identifier", pointcloud.getName());
+		if(informal.hasTitle()) {
+			properties.prepend("title", informal.title);
+		}
+		if(!informal.tags.isEmpty()) {
+			properties.prepend("subject", informal.tags);
+		}
+		if(informal.hasDescription()) {
+			properties.prepend("description.abstract", informal.description);
+		}
+		if(informal.hasAcquisition_date()) {
+			properties.prepend("date.created", informal.acquisition_date);
+		}
+		if(informal.has_corresponding_contact()) {
+			properties.prepend("publisher", informal.corresponding_contact);
+		}
+		properties.prepend("type", "pointcloud");		
+		properties.prepend("format", "points-file");
+
+		if(ext != null) {
+			String coverage = "extent (" + ext.getUTMd_min_x() + ", " + ext.getUTMd_min_y() + " to " + ext.getUTMd_max_x() + ", " + ext.getUTMd_max_y() + ")";
+			
+			if(pointcloud.hasCode()|| pointcloud.hasProj4()) {
+				coverage += "   in ";
+				if(pointcloud.hasCode()) {
+					coverage += pointcloud.getCode();
+					if(pointcloud.hasProj4()) {
+						coverage += "    ";
+					}
+				}
+				if(pointcloud.hasProj4()) {
+					coverage += "PROJ4: " + pointcloud.getProj4();
+				}
+			}
+			properties.prepend("coverage", coverage);
+		}
+
+		Map<String, Object> outMap = properties.build().toSortedYaml();
+
+		Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+		new Yaml().dump(outMap, writer);
 	}
 }

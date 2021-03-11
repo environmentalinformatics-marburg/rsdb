@@ -1,12 +1,12 @@
 <template>
     <span>
-        <v-dialog v-model="dialog" lazy absolute width="800px">
+        <v-dialog v-model="dialog" lazy absolute width="800px" persistent>
             <v-btn icon class="indigo--text" slot="activator" title="edit">
                 <v-icon>create</v-icon>
             </v-btn>
             <v-card>
                 <v-card-title>
-                    <div class="headline">Set Infos of <i>RasterDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
+                    <div class="headline">Set Infos of layer &nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
                 <v-card-text>
                     <ul>
@@ -95,7 +95,7 @@ function optArray(a) {
 
 export default {
     name: 'admin-rasterdb-dialog-set-info',
-    props: ['meta'],
+    props: ['meta', 'url', 'data_name'],
 
     components: {
         Multiselect,
@@ -203,29 +203,28 @@ export default {
 
             this.$store.dispatch('layer_tags/refresh');
         },
-        set() {
-            var self = this;
-            var url = this.$store.getters.apiUrl('rasterdb/' + self.meta.name + '/set');
-            axios.post(url, {
-                meta: {
-                    title: self.newTitle,
-                    description: self.newDescription,
-                    acquisition_date: self.newAcquisition_date,
-                    corresponding_contact: self.new_corresponding_contact,
-                    tags: self.selectedTags,
-                    properties: self.newProperties,
-                } 
-            }).then(function(response) {
+        async set() {
+            try {
+                let props = {
+                    title: this.newTitle,
+                    description: this.newDescription,
+                    acquisition_date: this.newAcquisition_date,
+                    corresponding_contact: this.new_corresponding_contact,
+                    tags: this.selectedTags,
+                    properties: this.newProperties,
+                };
+                let data = this.data_name === undefined ? props : { [this.data_name]: props };                
+                let response = await axios.post(this.url, data);
                 console.log(response);
-                self.$emit('changed');
-                self.dialog = false;
-            }).catch(function(error) {
-                self.setError = true;
-                self.setErrorMessage = "Error setting property";
+                this.$emit('changed');
+                this.dialog = false;
+            } catch(error) {
+                this.setError = true;
+                this.setErrorMessage = "Error setting property";
                 console.log(error);
-                self.$emit('changed');
-                self.dialog = false;
-            });
+                this.$emit('changed');
+                this.dialog = false;
+            }
         },
         appendField(selectedPropertyTag) {
             if(selectedPropertyTag === undefined || selectedPropertyTag === null) {

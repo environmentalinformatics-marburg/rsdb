@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import broker.Broker;
+import broker.InformalProperties;
 import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
@@ -133,7 +134,7 @@ public class VectordbHandler_root extends VectordbHandler {
 	}
 
 	private final static Set<String> POST_PROPS_MANDATORY = Util.of();
-	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "name_attribute", "structured_access", "name");
+	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "acquisition_date", "name_attribute", "structured_access", "name", "properties");
 
 	private final static Set<String> STRUCTURED_ACCESS_PROPS_MANDATORY = Util.of();
 	private final static Set<String> STRUCTURED_ACCESS_PROPS = Util.of("poi", "roi");
@@ -216,6 +217,16 @@ public class VectordbHandler_root extends VectordbHandler {
 				writeMeta = true;
 				break;
 			}
+			case "acquisition_date": {
+				vectordb.checkMod(userIdentity);
+				String acquisition_date = json.getString("acquisition_date");
+				Builder informal = vectordb.informal().toBuilder();
+				informal.acquisition_date = acquisition_date.trim();
+				vectordb.setInformal(informal.build());
+				updateCatalog = true;
+				writeMeta = true;
+				break;
+			}
 			case "tags": {
 				vectordb.checkMod(userIdentity);
 				Builder informal = vectordb.informal().toBuilder();
@@ -262,6 +273,17 @@ public class VectordbHandler_root extends VectordbHandler {
 				}
 				break;
 			}
+			case "properties": {
+				vectordb.checkMod(userIdentity);
+				Builder informal = vectordb.informal().toBuilder();
+				JSONObject jsonProperties = json.getJSONObject("properties");
+				InformalProperties.Builder properties = InformalProperties.Builder.ofJSON(jsonProperties);				
+				informal.properties = properties;
+				vectordb.setInformal(informal.build());
+				updateCatalog = true;
+				writeMeta = true;
+				break;
+			}	
 			default: 
 				throw new RuntimeException("unknown key: "+key);
 			}

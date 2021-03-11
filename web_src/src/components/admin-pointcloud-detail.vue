@@ -21,34 +21,20 @@
         <div  v-if="meta != undefined">
             <v-divider class="meta-divider"></v-divider> 
             <h3 class="subheading mb-0"> 
-                <admin-pointcloud-dialog-set-info :meta="meta" @changed="refresh" v-if="modify" />
+                <dialog-set-info 
+                    @changed="refresh" 
+                    v-if="modify"
+                    :meta="meta" 
+                    :url="$store.getters.apiUrl('pointclouds/' + meta.name)" 
+                    data_name="pointcloud"
+                />
                 Info
             </h3>
             <div class="meta-content">
                 <a v-if="meta.associated.rasterdb !== undefined" :href="'#/viewer/' + meta.associated.rasterdb" target="_blank" title="open layer in viewer on new tab">
                     <img :key="meta.associated.rasterdb" :src="$store.getters.apiUrl('rasterdb/' + meta.associated.rasterdb + '/raster.png?width=200')" alt="" class="thumbnail" />
                 </a>
-                <table style="padding-right: 420px;">
-                    <tr>
-                        <td><b>description:</b></td>
-                        <td><span v-if="meta.description.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.description}}</span></td>                        
-                    </tr>
-                    <tr>
-                        <td><b>acquisition date:</b></td>
-                        <td><span v-if="meta.acquisition_date === undefined" style="color: grey;">(none)</span><span v-else>{{meta.acquisition_date}}</span></td>                        
-                    </tr>
-                    <tr>
-                        <td><b>corresponding contact:</b></td>
-                        <td><span v-if="meta.corresponding_contact === undefined" style="color: grey;">(none)</span><span v-else>{{meta.corresponding_contact}}</span></td>                        
-                    </tr>                                        
-                    <tr>
-                        <td><b>tags:</b></td>
-                        <td>                      
-                            <span v-for="tag in optArray(meta.tags)" :key="tag"><span class="meta-list">{{tag}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="optArray(meta.tags).length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-                </table>
+                <box-info :meta="meta" /> 
                 </div>
             <v-divider class="meta-divider"></v-divider> 
             <h3 class="subheading mb-0"> 
@@ -232,7 +218,8 @@
 
 import { mapGetters } from 'vuex'
 import axios from 'axios'
-import adminPointcloudDialogSetInfo from './admin-pointcloud-dialog-set-info.vue'
+import dialogSetInfo from './dialog-set-info.vue'
+import boxInfo from './box-info.vue'
 import adminPointcloudDialogSetProjection from './admin-pointcloud-dialog-set-projection.vue'
 import adminPointcloudDialogSetAssociated from './admin-pointcloud-dialog-set-associated.vue'
 import adminPointcloudDialogSetAcl from './admin-pointcloud-dialog-set-acl.vue'
@@ -243,7 +230,8 @@ import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 export default {
     name: 'admin-pointcloud-detail',
     components: {
-        'admin-pointcloud-dialog-set-info': adminPointcloudDialogSetInfo,
+        'dialog-set-info':dialogSetInfo,
+        'box-info': boxInfo,
         'admin-pointcloud-dialog-set-projection': adminPointcloudDialogSetProjection,
         'admin-pointcloud-dialog-set-associated': adminPointcloudDialogSetAssociated,
         'admin-pointcloud-dialog-set-acl': adminPointcloudDialogSetAcl,

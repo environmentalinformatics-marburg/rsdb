@@ -18,6 +18,7 @@ import org.locationtech.proj4j.proj.Projection;
 import org.locationtech.proj4j.units.Unit;
 
 import broker.Broker;
+import broker.InformalProperties;
 import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
@@ -442,6 +443,16 @@ public class APIHandler_pointcloud {
 					pointcloud = null;
 					break;
 				}
+				case "properties": {
+					pointcloud.checkMod(userIdentity);
+					updateCatalog = true;	
+					Builder informal = pointcloud.informal().toBuilder();
+					JSONObject jsonProperties = meta.getJSONObject("properties");
+					InformalProperties.Builder properties = InformalProperties.Builder.ofJSON(jsonProperties);				
+					informal.properties = properties;
+					pointcloud.setInformal(informal.build());
+					break;
+				}				
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}

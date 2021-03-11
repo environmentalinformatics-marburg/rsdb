@@ -20,43 +20,21 @@
         </div>
         <div  v-if="meta != undefined">
             <v-divider class="meta-divider"></v-divider> 
-            <h3 class="subheading mb-0"> 
-                <admin-rasterdb-dialog-set-info :meta="meta" @changed="refresh" v-if="modify" />
+            <h3 class="subheading mb-0">
+                <dialog-set-info 
+                    @changed="refresh" 
+                    v-if="modify"
+                    :meta="meta" 
+                    :url="$store.getters.apiUrl('rasterdb/' + meta.name + '/set')" 
+                    data_name="meta"
+                />
                 Info
             </h3>
             <div class="meta-content" style="poisition: relative;">
                 <a :href="'#/viewer/' + rasterdb" target="_blank" title="open layer in viewer on new tab">
                     <img :key="meta.name" :src="$store.getters.apiUrl('rasterdb/' + meta.name + '/raster.png?width=200')" alt="" class="thumbnail" /> 
                 </a>
-                <table style="padding-right: 420px;">
-                    <tr v-if="meta.description.length !== 0">
-                        <td><b>description.abstract:</b></td>
-                        <td><span v-if="meta.description.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.description}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.acquisition_date !== undefined">
-                        <td><b>date.created:</b></td>
-                        <td><span v-if="meta.acquisition_date === undefined" style="color: grey;">(none)</span><span v-else>{{meta.acquisition_date}}</span></td>                        
-                    </tr>
-                    <tr v-if="meta.corresponding_contact !== undefined">
-                        <td><b>publisher:</b></td>
-                        <td><span v-if="meta.corresponding_contact === undefined" style="color: grey;">(none)</span><span v-else>{{meta.corresponding_contact}}</span></td>                        
-                    </tr>
-                    <tr v-if="optArray(meta.tags).length > 0">
-                        <td><b>subject:</b></td>
-                        <td>                      
-                            <span v-for="tag in optArray(meta.tags)" :key="tag"><span class="meta-list">{{tag}}</span>&nbsp;&nbsp;&nbsp;</span>
-                            <span v-if="optArray(meta.tags).length === 0" style="color: grey;">(none)</span>
-                        </td>
-                    </tr>
-
-                    <template v-for="(contents, tag) in meta.properties">
-                        <tr v-for="(content, index) in contents" :key="tag + ':' + index">
-                            <td><b>{{tag}}:</b></td>
-                            <td><span>{{content}}</span></td>  
-                        </tr>
-                    </template>                    
-
-                </table>               
+                <box-info :meta="meta" />               
             </div>
             <v-divider class="meta-divider"></v-divider> 
             <h3 class="subheading mb-0"> 
@@ -280,7 +258,8 @@
 
 import { mapGetters } from 'vuex'
 import axios from 'axios'
-import adminRasterdbDialogSetInfo from './admin-rasterdb-dialog-set-info.vue'
+import dialogSetInfo from './dialog-set-info.vue'
+import boxInfo from './box-info.vue'
 import adminRasterdbDialogSetProjection from './admin-rasterdb-dialog-set-projection.vue'
 import adminRasterdbDialogSetAssociated from './admin-rasterdb-dialog-set-associated.vue'
 import adminRasterdbDialogSetAcl from './admin-rasterdb-dialog-set-acl.vue'
@@ -295,7 +274,8 @@ import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 export default {
     name: 'admin-rasterdb-detail', 
     components: {
-        'admin-rasterdb-dialog-set-info': adminRasterdbDialogSetInfo,
+        'dialog-set-info': dialogSetInfo,
+        'box-info': boxInfo,
         'admin-rasterdb-dialog-set-projection': adminRasterdbDialogSetProjection,
         'admin-rasterdb-dialog-set-associated': adminRasterdbDialogSetAssociated,
         'admin-rasterdb-dialog-set-acl': adminRasterdbDialogSetAcl,

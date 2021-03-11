@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import util.collections.array.ReadonlyArray;
+import util.collections.vec.Vec;
 
 public class Util {
 	private static final Logger log = LogManager.getLogger();
@@ -432,12 +433,22 @@ public class Util {
 	public static void checkProps(Set<String> propsMandatory, Set<String> props, JSONObject json) {
 		Set<String> set = json.keySet();
 		if(!props.containsAll(set)) {
-			throw new RuntimeException("some unknown keys");
+			Vec<String> vec = new Vec<String>();
+			for(String prop : set) {
+				if(!props.contains(prop)) {
+					vec.add(prop);
+				}
+			}
+			throw new RuntimeException("some unknown keys: " + vec);
 		}
 		if(!set.containsAll(propsMandatory)) {
-			throw new RuntimeException("some missing keys");
+			Vec<String> vec = new Vec<String>();
+			for(String prop : propsMandatory) {
+				if(!set.contains(prop)) {
+					vec.add(prop);
+				}
+			}
+			throw new RuntimeException("some missing keys: " + vec);
 		}
-
 	}
-
 }
