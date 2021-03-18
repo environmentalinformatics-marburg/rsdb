@@ -54,7 +54,7 @@ public class VectorDB {
 	private static final String TYPE = "vectordb";
 
 	public static final SpatialReference WEB_MERCATOR_SPATIAL_REFERENCE = new SpatialReference("");
-	private static final int WEB_MERCATOR_EPSG = 3857;
+	public static final int WEB_MERCATOR_EPSG = 3857;
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
 	static {
@@ -73,6 +73,8 @@ public class VectorDB {
 
 	private boolean structured_access_poi = false;
 	private boolean structured_access_roi = false;
+
+	private VectorStyle vectorStyle = null;
 
 	public VectorDB(VectordbConfig config) {
 		this.config = config;		
@@ -147,6 +149,13 @@ public class VectorDB {
 		structuredAccessMap.put("poi", structured_access_poi);
 		structuredAccessMap.put("roi", structured_access_roi);
 		map.put("structured_access", structuredAccessMap);
+		if(vectorStyle != null) {
+			try {
+				map.put("vector_style", vectorStyle.toYaml());
+			} catch(Exception e) {
+				log.error(e);
+			}
+		}
 	}
 
 	private synchronized void yamlToMeta(YamlMap yamlMap) {
@@ -162,6 +171,12 @@ public class VectorDB {
 		YamlMap structuredAccessMap = yamlMap.optMap("structured_access");
 		structured_access_poi = structuredAccessMap.optBoolean("poi", false);
 		structured_access_roi = structuredAccessMap.optBoolean("roi", false);
+		try {
+			vectorStyle = yamlMap.optMapConv("vector_style", VectorStyle::ofYaml, null);
+		} catch(Exception e) {
+			vectorStyle = null;
+			log.error(e);
+		}
 	}
 
 	public String getName() {
@@ -526,7 +541,7 @@ public class VectorDB {
 		}
 		return new Extent2d(xmin, ymin, xmax, ymax);
 	}
-	
+
 	public Extent2d getExtent() {
 		Extent2d extent = null;
 		DataSource datasource = getDataSource();
@@ -745,9 +760,9 @@ public class VectorDB {
 
 	public static final class VectorFeature {
 		private volatile Feature feature;
-		
+
 		private VectorFeature() {}
-		
+
 		@FunctionalInterface
 		public interface VectorFeatureFieldConsumer {
 			void consume(VectorFeatureField vectorFeatureField) throws Exception;
@@ -755,13 +770,13 @@ public class VectorDB {
 
 		public final class VectorFeatureField {
 			private volatile int fieldIndex = -1;
-			
+
 			private VectorFeatureField() {}
-			
+
 			public int getFieldIndex() {
 				return fieldIndex;
 			}
-			
+
 			public String getName() {
 				FieldDefn fieldDefn = feature.GetFieldDefnRef(fieldIndex);
 				if(fieldDefn == null) {
@@ -769,7 +784,7 @@ public class VectorDB {
 				}
 				return fieldDefn.GetName();
 			}
-			
+
 			public String getAsString() {
 				return feature.GetFieldAsString(fieldIndex);
 			}
@@ -985,5 +1000,13 @@ public class VectorDB {
 
 	public StructuredAccess getStructuredAccess() {
 		return new StructuredAccess(structured_access_poi, structured_access_roi);
+	}
+
+	public void setVectorStyle(VectorStyle vectorStyle) {
+		this.vectorStyle = vectorStyle;		
+	}
+
+	public VectorStyle getVectorStyle() {
+		return vectorStyle;
 	}
 }

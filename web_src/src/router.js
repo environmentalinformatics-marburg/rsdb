@@ -59,8 +59,8 @@ export default new Router({
       ],    
     },
     {path: '/files', component: adminFiles},  
-    //{path: '/vectorviewer/:vectordb?', component: adminVectorviewer, props: true},
-    {path: '/vectorviewer/:vectordb?', redirect: to => {console.log(to); return { path: '/viewer', query: {vectordb: to.params.vectordb} };}},
+    {path: '/vectorviewer/:vectordb?', component: adminVectorviewer, props: true},
+    //{path: '/vectorviewer/:vectordb?', redirect: to => {console.log(to); return { path: '/viewer', query: {vectordb: to.params.vectordb} };}},
     {path: '*', redirect: '/' },
   ]
 })

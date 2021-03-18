@@ -186,6 +186,13 @@ public class JsonUtil {
 			fun.accept(value);
 		}		
 	}
+	
+	public static void optFunJSONObject(JSONObject jsonObject, String name, Consumer<JSONObject> fun) {
+		JSONObject value = jsonObject.optJSONObject(name);
+		if(value != null) {
+			fun.accept(value);
+		}		
+	}
 
 	public static void optFunBoolean(JSONObject jsonObject, String name, BooleanConsumer fun) {
 		boolean valueF = jsonObject.optBoolean(name, false);

@@ -3,6 +3,7 @@ package vectordb;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,25 +11,61 @@ import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
+import org.gdal.osr.CoordinateTransformation;
 
 import pointdb.base.Point2d;
 import util.Extent2d;
 import util.collections.vec.Vec;
 import util.image.ImageBufferARGB;
+import util.yaml.YamlMap;
+import vectordb.PointStyle.PointStyleBox;
+import vectordb.PolygonStyle.PolygonStyleBox;
 
 public class Renderer {
 	private static final Logger log = LogManager.getLogger();
 
-	private static Color COLOR_POLYGON = new Color(0, 255, 0, 100);
+	public static Color COLOR_POLYGON = new Color(0, 255, 0, 100);
+	public static Color COLOR_POLYGON_OUTLINE = new Color(128, 128, 128, 100);
 	private static Color COLOR_LINE = new Color(0, 0, 255, 100);
-	private static Color COLOR_POINT = new Color(255, 0, 0, 100);
+	static Color COLOR_POINT = new Color(255, 0, 0, 255);
 	//private static Color COLOR_POINT_TOP = new Color(0, 0, 0, 100);
+	
+	private static PointStyle POINT_STYLE_DEFAULT = new PointStyle.PointStyleBox();
+
+
+	public static String colorToString(Color c) {
+		int v = (c.getRed() << 24) | (c.getGreen() << 16) | (c.getBlue() << 8) | (c.getAlpha() << 0);		
+		String hex = '#' + Integer.toHexString(v).toUpperCase();
+		//log.info(Integer.toHexString(c.getRed()).toUpperCase() + " " + Integer.toHexString(c.getGreen()).toUpperCase() + " " + Integer.toHexString(c.getBlue()).toUpperCase() + " " + Integer.toHexString(c.getAlpha()).toUpperCase() + " -> " + hex);
+		return hex;
+	}
+	
+	private static final Color COLOR_ERROR = new Color(255, 255, 0, 255);
+
+	public static Color stringToColor(String hex) {
+		if(hex.startsWith("#")) {
+			try {
+				int v = Integer.parseUnsignedInt(hex.substring(1), 16);
+				int r = (v >> 24) & 0xFF;
+				int g = (v >> 16) & 0xFF;
+				int b = (v >> 8) & 0xFF;
+				int a = (v >> 0) & 0xFF;
+				Color c = new Color(r, g, b, a);
+				//log.info(hex + " -> " + Integer.toHexString(c.getRed()).toUpperCase() + " " + Integer.toHexString(c.getGreen()).toUpperCase() + " " + Integer.toHexString(c.getBlue()).toUpperCase() + " " + Integer.toHexString(c.getAlpha()).toUpperCase());
+				return c;
+			} catch(Exception e) {
+				return COLOR_ERROR;
+			}
+		} 
+		return COLOR_ERROR;
+		
+	}	
 
 	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, int maxWidth, int maxHeight) {		
 		Extent2d extent = VectorDB.getExtent(VectorDB.getPoints(datasource));		
 		return renderProportionalMaxSize(datasource, extent, maxWidth, maxHeight);
 	}
-	
+
 	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Extent2d extent, int maxWidth, int maxHeight) {		
 		double xlen = extent.getWidth();
 		double ylen = extent.getHeight();
@@ -37,16 +74,26 @@ public class Renderer {
 		double yTargetScale = maxHeight / ylen;
 
 		double targetScale = Math.min(xTargetScale, yTargetScale);
-		
+
 		int width = (int) Math.ceil(targetScale * xlen);
 		int height = (int) Math.ceil(targetScale * ylen);
-		
+
 		log.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
-		
-		return render(datasource, extent, width, height);
+
+		return render(datasource, extent, width, height, null, null);
 	}
-	
-	public static ImageBufferARGB render(DataSource datasource, Extent2d extent, int width, int height) {
+
+	public static ImageBufferARGB render(DataSource datasource, Extent2d extent, int width, int height, CoordinateTransformation ct, VectorStyle vectorStyle) {
+		PointStyle pointStyle = null;
+		if(vectorStyle != null) {
+			pointStyle = vectorStyle.getPointStyle();
+		}
+		if(pointStyle == null) {
+			pointStyle = POINT_STYLE_DEFAULT;
+		}
+		PolygonStyleBox polygonStyle = new PolygonStyle.PolygonStyleBox();
+
+
 		ImageBufferARGB image = new ImageBufferARGB(width, height);
 		Graphics2D gc = image.bufferedImage.createGraphics();
 		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -58,7 +105,7 @@ public class Renderer {
 
 		double xscale = (width - 4) / xlen;
 		double yscale = (height - 4) / ylen;
-		
+
 		double xoff = - extent.xmin + 2 * (1 / xscale);
 		double yoff = extent.ymax + 2 * (1 / yscale);
 		log.info("xscale " + xscale);
@@ -75,19 +122,14 @@ public class Renderer {
 		Vec<Point2d> points = new Vec<Point2d>();
 		Vec<Object[]> lines = new Vec<Object[]>();
 		Vec<Object[]> polygons = new Vec<Object[]>();
-		collectDataSource(datasource, points, lines, polygons);
-		gc.setColor(COLOR_POLYGON);
-		for(Object[] polygon:polygons) {
-			drawer.drawPolygon(polygon);
-		}
+		collectDataSource(datasource, points, lines, polygons, ct);
+		polygonStyle.draw(gc, drawer, polygons);
 		gc.setColor(COLOR_LINE);
 		for(Object[] line:lines) {
 			drawer.drawPolyline(line);
-		}
-		gc.setColor(COLOR_POINT);
-		for(Point2d p:points) {
-			drawer.drawPointCross(p.x, p.y);
-		}
+		}		
+		pointStyle.draw(gc, drawer, points);
+
 		/*gc.setColor(COLOR_POINT_TOP);
 		for(Point2d p:points) {
 			drawer.drawPointTop(p.x, p.y);
@@ -99,11 +141,11 @@ public class Renderer {
 	}
 
 	static class Drawer {
-		private final Graphics2D gc;
-		private final double xoff;
-		private final double yoff;
-		private final double xscale;
-		private final double yscale;
+		public final Graphics2D gc;
+		public final double xoff;
+		public final double yoff;
+		public final double xscale;
+		public final double yscale;
 
 		public Drawer(Graphics2D gc, double xoff, double yoff, double xscale, double yscale) {
 			this.gc = gc;
@@ -125,7 +167,7 @@ public class Renderer {
 			gc.drawPolyline(xs, ys, len);
 		}
 
-		public void drawPointCross(double x, double y) {
+		public void drawPointBox(double x, double y) {
 			int x1 = (int) ((x + xoff) * xscale);
 			int y1 = (int) ((yoff - y) * yscale);
 			//log.info(x1 + " " + y1);
@@ -138,6 +180,13 @@ public class Renderer {
 			gc.drawLine(x1-1, y1-1, x1+1, y1-1);
 			gc.drawLine(x1-1, y1, x1+1, y1);
 			gc.drawLine(x1-1, y1+1, x1+1, y1+1);
+		}
+		
+		public void drawPointCross(double x, double y) {
+			int x1 = (int) ((x + xoff) * xscale);
+			int y1 = (int) ((yoff - y) * yscale);
+			gc.drawLine(x1-7, y1-7, x1+7, y1+7);
+			gc.drawLine(x1-7, y1+7, x1+7, y1-7);
 		}
 
 		public void drawPointTop(double x, double y) {
@@ -168,8 +217,13 @@ public class Renderer {
 			gc.setColor(Color.GREEN);
 			gc.fillPolygon(xs, ys, len);
 		}
+		
+		@FunctionalInterface
+		interface PolygonDrawer {
+			void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
+		}
 
-		public void drawPolygon(Object[] points) {
+		public void drawPolygon(Object[] points, PolygonDrawer polygonDrawer) {
 			int len = points.length;
 			int[] xs = new int[len];
 			int[] ys = new int[len];
@@ -179,7 +233,7 @@ public class Renderer {
 				ys[i] = (int) ((yoff - p[1]) * yscale);
 				//log.info("polygon point " + xs[i] + " " + ys[i]);
 			}
-			gc.fillPolygon(xs, ys, len);
+			polygonDrawer.drawPolygon(gc, xs, ys, len);			
 		}
 	}
 
@@ -401,21 +455,21 @@ public class Renderer {
         100 No Geometry
 	 */
 
-	public static void collectDataSource(DataSource datasource, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons) {
+	public static void collectDataSource(DataSource datasource, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
 		int layerCount = datasource.GetLayerCount();
 		for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 			Layer layer = datasource.GetLayerByIndex(layerIndex);
-			collectLayer(layer, points, lines, polygons);
+			collectLayer(layer, points, lines, polygons, ct);
 		}
 	}
 
-	public static void collectLayer(Layer layer, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons) {
+	public static void collectLayer(Layer layer, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
 		layer.ResetReading();
 		Feature feature = layer.GetNextFeature();
 		while(feature != null) {
 			Geometry geometry = feature.GetGeometryRef();
 			if(geometry != null) {
-				collectGeometry(geometry, points, lines, polygons);
+				collectGeometry(geometry, points, lines, polygons, ct);
 			} else {
 				log.warn("missing geometry");
 			}
@@ -423,25 +477,35 @@ public class Renderer {
 		}		
 	}
 
-	public static void collectGeometry(Geometry geometry, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons) {
+	public static void collectGeometry(Geometry geometry, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
 		int type = geometry.GetGeometryType();
 		switch (type) {
 		case 1:  // 1  POINT
 		case -2147483647: { //  0x80000001 Point25D
+			//log.info("read point");
 			double x = geometry.GetX();
 			double y = geometry.GetY();
+			if(ct != null) {
+				double[] p = new double[] {x, y, 0};
+				ct.TransformPoint(p);
+				x = p[0];
+				y = p[1];
+			}
 			points.add(new Point2d(x, y));
 			break;
 		}
 		case 2: // 2  LINESTRING
 		case -2147483646: { // 0x80000002  LineString25D
-			Object[] linePoints = geometry.GetPoints();
+			//log.info("read line");
+			double[][] linePoints = geometry.GetPoints();
+			if(ct != null) {
+				ct.TransformPoints(linePoints);
+			}
 			lines.add(linePoints);
 			break;
 		}
 		case 3: // 3  POLYGON 
-		case -2147483645: { // 0x80000003  Polygon25D
-			//log.info("collect polygon");
+		case -2147483645: { // 0x80000003  Polygon25D			
 			int geoCount = geometry.GetGeometryCount();
 			for(int i=0; i<geoCount; i++) {
 				Geometry subGeo = geometry.GetGeometryRef(i);
@@ -449,7 +513,11 @@ public class Renderer {
 				switch (subType) {
 				case 2: // 2  LINESTRING
 				case -2147483646: { // 0x80000002  LineString25D
-					Object[] polygonPoints = subGeo.GetPoints();
+					//log.info("read polygon");
+					double[][] polygonPoints = subGeo.GetPoints();
+					if(ct != null) {
+						ct.TransformPoints(polygonPoints);
+					}
 					polygons.add(polygonPoints);
 					break;
 				}
@@ -461,8 +529,12 @@ public class Renderer {
 		}
 		case 4: // 4  MultiPoint
 		case -2147483644: { // 0x80000004  MultiPoint25D
-			Object[] ps = geometry.GetPoints();
-			for(Object p:ps) {
+			//log.info("read points");
+			double[][] ps = geometry.GetPoints();
+			if(ct != null) {
+				ct.TransformPoints(ps);
+			}
+			for(Object p : ps) {
 				double[] pp = (double[]) p;
 				points.add(new Point2d(pp[0], pp[1]));
 			}
@@ -477,7 +549,11 @@ public class Renderer {
 				switch (subType) {
 				case 2: // 2  LINESTRING
 				case -2147483646: { // 0x80000002  LineString25D
-					Object[] linePoints = subGeo.GetPoints();
+					//log.info("read lines");
+					double[][] linePoints = subGeo.GetPoints(3); // 3 dimensions needed for correct parameter TransformPoints
+					if(ct != null) {
+						ct.TransformPoints(linePoints);
+					}
 					lines.add(linePoints);
 					break;
 				}
@@ -503,8 +579,13 @@ public class Renderer {
 						switch (subsubType) {
 						case 2: // 2  LINESTRING
 						case -2147483646: { // 0x80000002  LineString25D
-							Object[] polygonPoints = subsubGeo.GetPoints();
+							//log.info("read polygons");
+							double[][] polygonPoints = subsubGeo.GetPoints();
+							if(ct != null) {
+								ct.TransformPoints(polygonPoints);
+							}
 							polygons.add(polygonPoints);
+							
 							break;
 						}
 						default: 

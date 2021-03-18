@@ -274,6 +274,22 @@ public class YamlMap {
 		}		
 	}
 	
+	public void optMapFun(String name, Consumer<YamlMap> fun) {
+		if(contains(name)) {
+			YamlMap m = optMap(name);
+			fun.accept(m);
+		}
+	}
+	
+	public <T> T optMapConv(String name, Function<YamlMap, T> conv, T def) {
+		if(contains(name)) {
+			YamlMap m = optMap(name);
+			T t = conv.apply(m);
+			return t;
+		}
+		return def;
+	}
+	
 	public Set<String> keys() {
 		return map.keySet();
 	}

@@ -21,6 +21,15 @@
           </multiselect>
         </v-list-tile>
 
+        <v-list-tile v-if="meta != undefined">
+        <v-btn @click="$refs.dialogVectorStyle.show = true;">Style</v-btn>
+        <dialog-vector-style 
+          ref="dialogVectorStyle" 
+          :meta="meta"
+          @changed="updateMeta();" 
+        />
+        </v-list-tile>
+
         <v-list-tile v-if="selectedVectordb !== undefined && selectedVectordb !== null">
           <input type="checkbox" id="labels" v-model="showLabels">
           <label for="labels">Show Labels</label>
@@ -88,6 +97,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 
 import axios from 'axios';
 
+import dialogVectorStyle from './dialog-vector-style.vue'
 
 //var srcProj = ol_proj.get('EPSG:4326'); // WGS84
 //var dstProj = ol_proj.get('EPSG:3857'); // Web Mercator
@@ -105,6 +115,7 @@ export default {
   components: {
       RingLoader,    
       Multiselect,
+      'dialog-vector-style': dialogVectorStyle,
   },
   data() {
     return {
@@ -116,8 +127,11 @@ export default {
       olmap: undefined,
       vectorSource: undefined,
       vectorLayer: undefined,
-      vectorLabelLayer: undefined,
+      vectorLabelLayer: undefined,      
       filter_focus: false,
+      vectorWmsLayer: undefined,
+
+      meta: undefined,
       geojson: undefined,
       table:{attibutes: [], data: []},
       selectedVectordb: undefined,
@@ -146,7 +160,7 @@ export default {
     loadGeojson() {
       var self = this;
       var messageID = this.addMessage("loading vector data of layer ...");
-      var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/geometry.json?epsg=3857');
+      var url = this.$store.getters.apiUrl('vectordbs/' + this.meta.name + '/geometry.json?epsg=3857');
       axios.get(url)
       .then(function(response) {
         self.geojson = response.data;
@@ -161,7 +175,7 @@ export default {
     loadTable() {
       var self = this;
       var messageID = this.addMessage("loading table data of layer ...");
-      var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name + '/table.json');
+      var url = this.$store.getters.apiUrl('vectordbs/' + this.meta.name + '/table.json');
       axios.get(url)
       .then(function(response) {
         self.table = response.data;
@@ -190,25 +204,47 @@ export default {
       //console.log("refreshVectorSource done");
     },
     refreshRoute() {
-      //console.log("refreshRoute");
-      //this.$router.push('/viewer/' + rasterdb);
-      if(this.selectedVectordb === undefined) {
-        this.$router.push({path: '/vectorviewer'});
-      } else {
-        //this.$router.push({path: '/vectorviewer'});
-        this.$router.push({path: '/vectorviewer/' + this.selectedVectordb.name});
+      if(this.vectordbs != undefined) {
+        let path = '/vectorviewer';
+        if(this.selectedVectordb !== undefined) {
+          path += '/' + this.selectedVectordb.name;
+        }
+        if(path !== this.$router.currentRoute.path) {
+            //console.log("change route: " + this.$router.currentRoute.path +"  to  " + path);
+            this.$router.push({path: path});
+        }
       }
     },
     updateSelectedVectordb() {
-      var self = this;
-      if(self.vectordbs !== undefined && self.vectordb !== undefined) {
-        var foundVectordb = self.vectordbs.find(function(v) {
-          return v.name === self.vectordb;
+      console.log("updateSelectedVectordb");
+      if(this.vectordbs !== undefined && this.vectordb !== undefined) {
+        var foundVectordb = this.vectordbs.find(v => {
+          return v.name === this.vectordb;
         });
         if(foundVectordb === undefined) {
-          this.addnotification("vectordb not found: " + self.vectordb);
+          this.addnotification("vectordb not found: " + this.vectordb);
+          this.selectedVectordb = undefined;
+        } else {
+          console.log(this.vectordb);
+          console.log(this.selectedVectordb);
+          console.log(foundVectordb);
+          this.selectedVectordb = foundVectordb;          
         }
-        self.selectedVectordb = foundVectordb;
+      }
+    },
+    async updateMeta() {
+      if(this.selectedVectordb !== undefined && this.selectedVectordb !== null) {
+        var messageID = this.addMessage("loading table data of layer ...");
+        var url = this.$store.getters.apiUrl('vectordbs/' + this.selectedVectordb.name);
+        this.meta = undefined;
+        try {
+          let response = await axios.get(url);
+          this.meta = response.data.vectordb;
+          this.removeMessage(messageID);
+        } catch {        
+          this.addnotification('ERROR meta data of layer');
+          this.removeMessage(messageID);
+        }
       }
     },
   },
@@ -241,20 +277,35 @@ export default {
     vectordbs() {
       this.updateSelectedVectordb();
     },
-    selectedVectordb() {
-      if(this.selectedVectordb !== undefined) {
-        //console.log("changed: " + this.selectedVectordb);
+    vectordb: {
+      immediate: true,
+      handler() {
+        console.log("watch " + this.vectordb);
+        this.updateSelectedVectordb();
+      }
+    },    
+    selectedVectordb: {
+      immediate: true,
+      handler() {
+        this.updateMeta();      
+        this.refreshRoute();
+      }
+    },    
+    meta() {
+      if(this.meta !== undefined) {
         this.loadGeojson();
         this.loadTable();
+        let vectorWmsSource = new ol_source.ImageWMS({
+          url: this.$store.getters.apiUrl('vectordbs/' + this.meta.name + '/wms'),
+          ratio: 1,
+        });
+        this.vectorWmsLayer.setSource(vectorWmsSource);
       } else {
         this.geojson = undefined;
         this.table = {attibutes: [], data: []};
         this.refreshVectorSource();
+        this.vectorWmsLayer.setSource(undefined);
       }
-      this.refreshRoute();
-    },
-    vectordb() {
-      this.updateSelectedVectordb();
     },
     showLabels() {
       this.vectorLabelLayer.setVisible(this.showLabels);
@@ -305,29 +356,25 @@ export default {
       //renderMode: 'image',
     });
 
-    /*var labelBackgroundStroke = new ol_style.Stroke({
-      //color: 'rgba(95, 112, 245, 0.3)',
-      color: 'rgba(255,255,255,0.5)',
-      width: 2,
-    });*/
-    var labelBackgroundFill = new ol_style.Fill({
-      color: 'rgba(255,255,255,0.6)',
-    });
-    function vectorLabelStyleFun(feature) {
-      var text = new ol_style.Text({
-        font: '15px sans-serif',
-        text: feature.getProperties().name,
+    var vectorLabelStyle = new ol_style.Style({
+      text: new ol_style.Text({
+        font: '16px sans-serif',
+        fill: new ol_style.Fill({
+          color: 'rgba(0, 0, 0, 1)',
+        }),
+        stroke: new ol_style.Stroke({
+          color: 'rgba(255, 255, 255, 0.8)',
+          width: 3,
+        }),
         overflow: true,
-        //backgroundStroke: labelBackgroundStroke,
-        backgroundFill: labelBackgroundFill,
-        padding: [2, 2, 2, 2],
-      });
-      return new ol_style.Style({
-        text: text,
-      });
-    }
+      }),
+    });
+
      this.vectorLabelLayer = new ol_layer.VectorImage({
-      style: vectorLabelStyleFun,
+      style: feature => {
+        vectorLabelStyle.getText().setText(feature.get(this.meta.name_attribute));
+        return vectorLabelStyle;
+      },     
       declutter: true,
       renderMode: 'image',
     });
@@ -344,16 +391,20 @@ export default {
       url: backgroundSourceUrl,
     });*/
 
+    this.vectorWmsLayer = new ol_layer.Image({
+    });
+
     self.olmap = new ol_Map({
         target: 'olmap-vectorviewer',
         layers: [
           new ol_layer.Tile({
-            source: backgroundSource,
+            //source: backgroundSource,
           }),
           /*new ol_layer.VectorTile({
             source: backgroundSource,
           }),*/
-          this.vectorLayer,
+          this.vectorWmsLayer,
+          //this.vectorLayer,
           this.vectorLabelLayer,
         ],
         view: new ol_View({
@@ -374,9 +425,11 @@ export default {
 
     self.olmap.on('click', function(e) {
       var feature = self.vectorSource.getClosestFeatureToCoordinate(e.coordinate);
-      //console.log("clicked " + feature.getId()+"  ");
-      self.selectedFeatures = [feature];
-      self.featureDetailsShow = true;
+      if(feature !== null) {
+        //console.log("clicked " + feature.getId()+"  ");
+        self.selectedFeatures = [feature];
+        self.featureDetailsShow = true;
+      }
     });
 
     this.refreshVectorSource();

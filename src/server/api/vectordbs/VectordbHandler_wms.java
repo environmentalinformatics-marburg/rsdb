@@ -19,6 +19,8 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.gdal.ogr.DataSource;
+import org.gdal.osr.CoordinateTransformation;
+import org.gdal.osr.SpatialReference;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -73,12 +75,40 @@ public class VectordbHandler_wms extends VectordbHandler {
 	public void handle_GetMap(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");
+		String crs = Web.getString(request, "CRS");
+		CoordinateTransformation ct = null;
+		{
+			SpatialReference refDst = null;
+			if(crs != null) {
+				log.info(crs);
+				if(crs.startsWith("EPSG:")) {
+					int epsg = Integer.parseInt(crs.substring(5));
+					log.info(epsg);
+					if(epsg >= 0) {					
+						if(epsg == VectorDB.WEB_MERCATOR_EPSG) {
+							refDst = VectorDB.WEB_MERCATOR_SPATIAL_REFERENCE;
+						} else {
+							refDst = new SpatialReference("");
+							refDst.ImportFromEPSG(epsg);			
+						}
+					}
+				}
+			}
+
+			if(refDst != null) {
+				SpatialReference refSrc = vectordb.getSpatialReference();
+				if(refSrc != null) {
+					ct = CoordinateTransformation.CreateCoordinateTransformation(refSrc, refDst);	
+				}
+			}
+		}
+
 		String[] bbox = request.getParameter("BBOX").split(",");
 		Extent2d extent = Extent2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
 		ImageBufferARGB image = null;
 		DataSource datasource = vectordb.getDataSource();
 		try {		
-			image = Renderer.render(datasource, extent, width, height);
+			image = Renderer.render(datasource, extent, width, height, ct, vectordb.getVectorStyle());
 		} finally {
 			VectorDB.closeDataSource(datasource);
 		}
