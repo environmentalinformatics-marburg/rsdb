@@ -42,8 +42,8 @@ export default {
     methods: {
       commit() {
         if(this.colors.hex8 !== undefined) {
-          console.log(this.colors);
-          console.log(this.colors.hex8);
+          //console.log(this.colors);
+          //console.log(this.colors.hex8);
           this.$emit("input", this.colors.hex8);
         }
         this.show = false;

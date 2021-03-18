@@ -102,6 +102,7 @@
         </h3>
         <div class="meta-content">
             <admin-vectordb-dialog-wfs :meta="meta" @changed="refresh" />
+            <admin-vectordb-dialog-wms :meta="meta" @changed="refresh" />
         </div>         
 
         <div v-if="modify">
@@ -141,6 +142,7 @@ import adminVectordbStructuredAccess from './admin-vectordb-structured-access'
 import adminVectordbDialogSetAcl from './admin-vectordb-dialog-set-acl.vue'
 import adminVectordbDialogDataTable from './admin-vectordb-dialog-data-table.vue'
 import adminVectordbDialogWfs from './admin-vectordb-dialog-wfs.vue'
+import adminVectordbDialogWms from './admin-vectordb-dialog-wms.vue'
 
 export default {
     name: 'admin-vectordb-detail', 
@@ -155,6 +157,7 @@ export default {
         'admin-vectordb-dialog-set-acl': adminVectordbDialogSetAcl,
         'admin-vectordb-dialog-data-table': adminVectordbDialogDataTable,
         'admin-vectordb-dialog-wfs': adminVectordbDialogWfs,
+        'admin-vectordb-dialog-wms': adminVectordbDialogWms,
     },
     props: ['vectordb'],
     data() {

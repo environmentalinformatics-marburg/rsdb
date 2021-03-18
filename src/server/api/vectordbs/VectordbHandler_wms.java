@@ -80,10 +80,10 @@ public class VectordbHandler_wms extends VectordbHandler {
 		{
 			SpatialReference refDst = null;
 			if(crs != null) {
-				log.info(crs);
+				//log.info(crs);
 				if(crs.startsWith("EPSG:")) {
 					int epsg = Integer.parseInt(crs.substring(5));
-					log.info(epsg);
+					//log.info(epsg);
 					if(epsg >= 0) {					
 						if(epsg == VectorDB.WEB_MERCATOR_EPSG) {
 							refDst = VectorDB.WEB_MERCATOR_SPATIAL_REFERENCE;
@@ -177,11 +177,12 @@ public class VectordbHandler_wms extends VectordbHandler {
 	private void addRootLayer(VectorDB vectordb, Element eCapability, String name, String title) {
 		Element eRootLayer = addElement(eCapability, "Layer");
 		String code = vectordb.getDetails().epsg;
+		String crs = "EPSG:" + code;
 		addElement(eRootLayer, "Name", name);
 		addElement(eRootLayer, "Title", title);
-		addElement(eRootLayer, "CRS", code);
+		addElement(eRootLayer, "CRS", crs);
 		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
-		eBoundingBox.setAttribute("CRS", code);
+		eBoundingBox.setAttribute("CRS", crs);
 
 		Extent2d extent = vectordb.getExtent();
 

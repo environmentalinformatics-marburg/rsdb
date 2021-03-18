@@ -10,17 +10,16 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
-import pointdb.base.Point2d;
 import util.JsonUtil;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap;
 import vectordb.Renderer.Drawer;
 
-public abstract class PointStyle {
+public abstract class LineStyle {
 
-	protected String point_type;
+	protected String line_type;
 
-	public abstract void draw(Graphics2D gc, Drawer drawer, Vec<Point2d> points);
+	public abstract void draw(Graphics2D gc, Drawer drawer, Vec<Object[]> lines);
 	protected abstract void toYamlProperties(Map<String, Object> yamlMap);
 	protected abstract void writeJsonProperties(JSONWriter json);
 	public abstract void parseYamlProperties(YamlMap yamlMap);		 
@@ -28,45 +27,45 @@ public abstract class PointStyle {
 
 	public final Map<String, Object> toYaml() {
 		LinkedHashMap<String, Object> yamlMap = new LinkedHashMap<String, Object>();
-		yamlMap.put("point_type", point_type);
+		yamlMap.put("line_type", line_type);
 		toYamlProperties(yamlMap);
 		return yamlMap;
 	}
 	
 	public final void writeJson(JSONWriter json) {
 		json.object();
-		JsonUtil.put(json, "point_type", point_type);
+		JsonUtil.put(json, "line_type", line_type);
 		writeJsonProperties(json);
 		json.endObject();
 	}
 
-	public static PointStyle ofYaml(YamlMap yamlMap) {
-		String point_type = yamlMap.getString("point_type");
-		PointStyle s = ofType(point_type);
-		s.point_type = point_type;
+	public static LineStyle ofYaml(YamlMap yamlMap) {
+		String line_type = yamlMap.getString("line_type");
+		LineStyle s = ofType(line_type);
+		s.line_type = line_type;
 		s.parseYamlProperties(yamlMap);
 		return s;
 	}
 	
-	public static PointStyle ofJSON(JSONObject json) {
-		String point_type = json.getString("point_type");
-		PointStyle s = ofType(point_type);
-		s.point_type = point_type;
+	public static LineStyle ofJSON(JSONObject json) {
+		String line_type = json.getString("line_type");
+		LineStyle s = ofType(line_type);
+		s.line_type = line_type;
 		s.parseJsonProperties(json);
 		return s;
 	}
 	
-	public static PointStyle ofType(String point_type) {
-		switch(point_type) {
+	public static LineStyle ofType(String line_type) {
+		switch(line_type) {
 		case "box":
-			return new PointStyleBox();
+			return new LineStyleBox();
 		default: 
-			throw new RuntimeException("unknown point_type: " + point_type);
+			throw new RuntimeException("unknown line_type: " + line_type);
 		}			
 	}
 	
-	public static abstract class PointStyleColor extends PointStyle {
-		protected Color color = Renderer.COLOR_POINT;
+	public static abstract class LineStyleColor extends LineStyle {
+		protected Color color = Renderer.COLOR_LINE;
 
 		@Override
 		public void parseYamlProperties(YamlMap yamlMap) {
@@ -89,14 +88,15 @@ public abstract class PointStyle {
 		}	
 	}
 
-	public static class PointStyleBox extends PointStyleColor {
+	public static class LineStyleBox extends LineStyleColor {
+
 		@Override
-		public void draw(Graphics2D gc, Drawer drawer, Vec<Point2d> points) {
+		public void draw(Graphics2D gc, Drawer drawer, Vec<Object[]> lines) {
 			gc.setColor(color);
 			Stroke s = new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 			gc.setStroke(s);
-			for(Point2d p:points) {
-				drawer.drawPointCross(p.x, p.y);
+			for(Object[] line:lines) {
+				drawer.drawPolyline(line);
 			}			
 		}		
 	}

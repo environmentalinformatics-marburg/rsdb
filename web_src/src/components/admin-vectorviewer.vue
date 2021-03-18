@@ -216,7 +216,7 @@ export default {
       }
     },
     updateSelectedVectordb() {
-      console.log("updateSelectedVectordb");
+      //console.log("updateSelectedVectordb");
       if(this.vectordbs !== undefined && this.vectordb !== undefined) {
         var foundVectordb = this.vectordbs.find(v => {
           return v.name === this.vectordb;
@@ -225,9 +225,9 @@ export default {
           this.addnotification("vectordb not found: " + this.vectordb);
           this.selectedVectordb = undefined;
         } else {
-          console.log(this.vectordb);
-          console.log(this.selectedVectordb);
-          console.log(foundVectordb);
+          //console.log(this.vectordb);
+          //console.log(this.selectedVectordb);
+          //console.log(foundVectordb);
           this.selectedVectordb = foundVectordb;          
         }
       }
@@ -280,7 +280,7 @@ export default {
     vectordb: {
       immediate: true,
       handler() {
-        console.log("watch " + this.vectordb);
+        //console.log("watch " + this.vectordb);
         this.updateSelectedVectordb();
       }
     },    
@@ -298,6 +298,9 @@ export default {
         let vectorWmsSource = new ol_source.ImageWMS({
           url: this.$store.getters.apiUrl('vectordbs/' + this.meta.name + '/wms'),
           ratio: 1,
+          params: {
+            rev: Date.now(),
+          },
         });
         this.vectorWmsLayer.setSource(vectorWmsSource);
       } else {
