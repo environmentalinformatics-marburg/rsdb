@@ -3,7 +3,6 @@ package vectordb;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,10 +16,8 @@ import pointdb.base.Point2d;
 import util.Extent2d;
 import util.collections.vec.Vec;
 import util.image.ImageBufferARGB;
-import util.yaml.YamlMap;
-import vectordb.LineStyle.LineStyleBox;
-import vectordb.PointStyle.PointStyleBox;
-import vectordb.PolygonStyle.PolygonStyleBox;
+import vectordb.style.BasicStyle;
+import vectordb.style.Style;
 
 public class Renderer {
 	private static final Logger log = LogManager.getLogger();
@@ -28,13 +25,10 @@ public class Renderer {
 	public static Color COLOR_POLYGON = new Color(0, 255, 0, 100);
 	public static Color COLOR_POLYGON_OUTLINE = new Color(128, 128, 128, 100);
 	static Color COLOR_LINE = new Color(0, 0, 255, 100);
-	static Color COLOR_POINT = new Color(255, 0, 0, 255);
+	public static Color COLOR_POINT = new Color(255, 0, 0, 255);
 	//private static Color COLOR_POINT_TOP = new Color(0, 0, 0, 100);
 	
-	private static PointStyle POINT_STYLE_DEFAULT = new PointStyle.PointStyleBox();
-	private static LineStyleBox LINE_STYLE_DEFAULT = new LineStyle.LineStyleBox();
-	private static PolygonStyle POLYGON_STYLE_DEFAULT = new PolygonStyle.PolygonStyleBox();
-
+	private static final BasicStyle STYLE_DEFAULT = new BasicStyle();
 
 	public static String colorToString(Color c) {
 		int v = (c.getRed() << 24) | (c.getGreen() << 16) | (c.getBlue() << 8) | (c.getAlpha() << 0);		
@@ -64,12 +58,12 @@ public class Renderer {
 		
 	}	
 
-	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, int maxWidth, int maxHeight, CoordinateTransformation ct, VectorStyle vectorStyle) {		
+	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
 		Extent2d extent = VectorDB.getExtent(VectorDB.getPoints(datasource));		
-		return renderProportionalMaxSize(datasource, extent, maxWidth, maxHeight, ct, vectorStyle);
+		return renderProportionalMaxSize(datasource, extent, maxWidth, maxHeight, ct, style);
 	}
 
-	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Extent2d extent, int maxWidth, int maxHeight, CoordinateTransformation ct, VectorStyle vectorStyle) {		
+	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Extent2d extent, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
 		double xlen = extent.getWidth();
 		double ylen = extent.getHeight();
 
@@ -83,26 +77,12 @@ public class Renderer {
 
 		log.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
 
-		return render(datasource, extent, width, height, ct, vectorStyle);
+		return render(datasource, extent, width, height, ct, style);
 	}
 
-	public static ImageBufferARGB render(DataSource datasource, Extent2d extent, int width, int height, CoordinateTransformation ct, VectorStyle vectorStyle) {
-		PointStyle pointStyle = null;
-		PolygonStyle polygonStyle = null;
-		LineStyle lineStyle = null;
-		if(vectorStyle != null) {
-			pointStyle = vectorStyle.getPointStyle();
-			lineStyle = vectorStyle.getLineStyle();
-			polygonStyle = vectorStyle.getPolygonStyle();
-		}
-		if(pointStyle == null) {
-			pointStyle = POINT_STYLE_DEFAULT;
-		}
-		if(lineStyle == null) {
-			lineStyle = LINE_STYLE_DEFAULT;
-		}
-		if(polygonStyle == null) {
-			polygonStyle = POLYGON_STYLE_DEFAULT;
+	public static ImageBufferARGB render(DataSource datasource, Extent2d extent, int width, int height, CoordinateTransformation ct, Style style) {
+		if(style == null) {
+			style = STYLE_DEFAULT;
 		}
 
 		ImageBufferARGB image = new ImageBufferARGB(width, height);
@@ -134,9 +114,9 @@ public class Renderer {
 		Vec<Object[]> lines = new Vec<Object[]>();
 		Vec<Object[]> polygons = new Vec<Object[]>();
 		collectDataSource(datasource, points, lines, polygons, ct);
-		polygonStyle.draw(gc, drawer, polygons);
-		lineStyle.draw(gc, drawer, lines);				
-		pointStyle.draw(gc, drawer, points);
+		style.drawPolygons(gc, drawer, polygons);
+		style.drawLines(gc, drawer, lines);				
+		style.drawPoints(gc, drawer, points);
 
 		/*gc.setColor(COLOR_POINT_TOP);
 		for(Point2d p:points) {
@@ -148,7 +128,7 @@ public class Renderer {
 		return image;
 	}
 
-	static class Drawer {
+	public static class Drawer {
 		public final Graphics2D gc;
 		public final double xoff;
 		public final double yoff;
@@ -227,8 +207,9 @@ public class Renderer {
 		}
 		
 		@FunctionalInterface
+		public
 		interface PolygonDrawer {
-			void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
+			void drawPolygons(Graphics2D gc, int[] xs, int[] ys, int len);
 		}
 
 		public void drawPolygon(Object[] points, PolygonDrawer polygonDrawer) {
@@ -241,7 +222,7 @@ public class Renderer {
 				ys[i] = (int) ((yoff - p[1]) * yscale);
 				//log.info("polygon point " + xs[i] + " " + ys[i]);
 			}
-			polygonDrawer.drawPolygon(gc, xs, ys, len);			
+			polygonDrawer.drawPolygons(gc, xs, ys, len);			
 		}
 	}
 

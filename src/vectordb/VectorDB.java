@@ -48,6 +48,7 @@ import util.Util;
 import util.collections.ReadonlyList;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap;
+import vectordb.style.Style;
 
 public class VectorDB {
 	private static final Logger log = LogManager.getLogger();
@@ -74,7 +75,7 @@ public class VectorDB {
 	private boolean structured_access_poi = false;
 	private boolean structured_access_roi = false;
 
-	private VectorStyle vectorStyle = null;
+	private Style style = null;
 
 	public VectorDB(VectordbConfig config) {
 		this.config = config;		
@@ -149,9 +150,9 @@ public class VectorDB {
 		structuredAccessMap.put("poi", structured_access_poi);
 		structuredAccessMap.put("roi", structured_access_roi);
 		map.put("structured_access", structuredAccessMap);
-		if(vectorStyle != null) {
+		if(style != null) {
 			try {
-				map.put("vector_style", vectorStyle.toYaml());
+				map.put("style", style.toYaml());
 			} catch(Exception e) {
 				log.error(e);
 			}
@@ -172,9 +173,9 @@ public class VectorDB {
 		structured_access_poi = structuredAccessMap.optBoolean("poi", false);
 		structured_access_roi = structuredAccessMap.optBoolean("roi", false);
 		try {
-			vectorStyle = yamlMap.optMapConv("vector_style", VectorStyle::ofYaml, null);
+			style = yamlMap.optMapConv("style", Style::ofYaml, null);
 		} catch(Exception e) {
-			vectorStyle = null;
+			style = null;
 			log.error(e);
 		}
 	}
@@ -1002,11 +1003,11 @@ public class VectorDB {
 		return new StructuredAccess(structured_access_poi, structured_access_roi);
 	}
 
-	public void setVectorStyle(VectorStyle vectorStyle) {
-		this.vectorStyle = vectorStyle;		
+	public void setStyle(Style style) {
+		this.style = style;		
 	}
 
-	public VectorStyle getVectorStyle() {
-		return vectorStyle;
+	public Style getStyle() {
+		return style;
 	}
 }

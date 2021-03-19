@@ -25,7 +25,7 @@ import util.JsonUtil;
 import util.Util;
 import util.Web;
 import vectordb.VectorDB;
-import vectordb.VectorStyle;
+import vectordb.style.Style;
 
 public class VectordbHandler_root extends VectordbHandler {
 	private static final Logger log = LogManager.getLogger();
@@ -109,9 +109,9 @@ public class VectordbHandler_root extends VectordbHandler {
 			}
 			json.endArray();*/
 
-			if(vectordb.getVectorStyle() != null) {
-				json.key("vector_style");
-				vectordb.getVectorStyle().writeJson(json);
+			if(vectordb.getStyle() != null) {
+				json.key("style");
+				vectordb.getStyle().writeJson(json);
 			}
 
 			json.endObject(); // vectordb object	
@@ -140,7 +140,7 @@ public class VectordbHandler_root extends VectordbHandler {
 	}
 
 	private final static Set<String> POST_PROPS_MANDATORY = Util.of();
-	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "acquisition_date", "name_attribute", "structured_access", "name", "properties", "vector_style");
+	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "acquisition_date", "name_attribute", "structured_access", "name", "properties", "style");
 
 	private final static Set<String> STRUCTURED_ACCESS_PROPS_MANDATORY = Util.of();
 	private final static Set<String> STRUCTURED_ACCESS_PROPS = Util.of("poi", "roi");
@@ -291,10 +291,10 @@ public class VectordbHandler_root extends VectordbHandler {
 					writeMeta = true;
 					break;
 				}
-				case "vector_style": {
+				case "style": {
 					vectordb.checkMod(userIdentity);
-					VectorStyle vectorStyle = VectorStyle.ofJSON(json.getJSONObject("vector_style"));
-					vectordb.setVectorStyle(vectorStyle);				
+					Style style = Style.ofJSON(json.getJSONObject("style"));
+					vectordb.setStyle(style);				
 					writeMeta = true;
 					break;
 				}				

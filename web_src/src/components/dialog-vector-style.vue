@@ -1,34 +1,31 @@
 <template>
-    <v-dialog :value="show" lazy persistent max-width="500px">
+    <v-dialog :value="show" lazy persistent max-width="600px">
       <v-card>
-        <v-card-title class="headline">Styles</v-card-title>
+        <v-card-title class="headline">Style</v-card-title>
+        <v-card-text>
+            Change <b>stroke color</b> (<v-icon>brush</v-icon>), change <b>fill color</b> (<v-icon>format_color_fill</v-icon>).
+        </v-card-text>        
         <hr>
-        <v-card-title class="headline">Point feature</v-card-title>
-        <v-card-text v-if="point_style != undefined">
-            <span :style="{color: point_style.color}">_______</span>
-            <dialog-color v-model="point_style.color" ref="point_style_color"/>
-            <v-btn @click="$refs.point_style_color.show = true;">color</v-btn>
-            {{point_style.color}}
-        </v-card-text>
         <hr>
-        <v-card-title class="headline">Line feature</v-card-title>
-         <v-card-text v-if="line_style != undefined">
-            <div>
-            <span :style="{color: line_style.color}">_______</span>
-            <dialog-color v-model="line_style.color" ref="line_style_color"/>            
-            <v-btn @click="$refs.line_style_color.show = true;">color</v-btn>
-            </div>
-            {{line_style.color}}
-        </v-card-text>
-        <hr>
-        <v-card-title class="headline">Polygon feature</v-card-title>
-         <v-card-text v-if="polygon_style != undefined">
-            <div>
-            <span :style="{color: polygon_style.color}">_______</span>
-            <dialog-color v-model="polygon_style.color" ref="polygon_style_color"/>            
-            <v-btn @click="$refs.polygon_style_color.show = true;">color</v-btn>
-            </div>
-            {{polygon_style.color}}
+        <v-card-text v-if="style != undefined">             
+            <table>
+                <tr>
+                    <td><dialog-color v-model="style.stroke_color" ref="stroke_color"/><v-btn @click="$refs.stroke_color.show = true;" icon><v-icon>brush</v-icon></v-btn></td>
+                    <td><b>Stroke</b></td>                    
+                    <td :style="{'background-color': 'white', color: style.stroke_color}">_______</td>                    
+                    <td style="padding-left: 10px; padding-right: 10px;">+</td>
+                    <td><dialog-color v-model="style.fill_color" ref="fill_color"/><v-btn @click="$refs.fill_color.show = true;" icon><v-icon>format_color_fill</v-icon></v-btn></td>
+                    <td><b>Fill</b></td>                    
+                    <td :style="{'background-color': style.fill_color}" style="padding-left: 80px;"></td>
+                    <td style="padding-left: 10px; padding-right: 10px;"> --> </td>
+                    <td style="background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(255,255,255,1) 100%);">
+                        <span :style="{'background-color': style.fill_color, 'border-style': 'solid', 'border-color': style.stroke_color, 'border-width': '2px',}" style="margin: 5px; padding-left: 50px; padding-top: 10px; padding-bottom: 10px;"></span>   
+                    </td>
+                    <td style="background: linear-gradient(90deg, red, yellow, lime, aqua, blue, magenta);">
+                        <span :style="{'background-color': style.fill_color, 'border-style': 'solid', 'border-radius': '20px', 'border-color': style.stroke_color, 'border-width': '2px',}" style="margin: 1px; padding-left: 60px; padding-top: 10px; padding-bottom: 10px;"></span>   
+                    </td>
+                </tr>
+            </table>
         </v-card-text>
         <hr>
         <v-card-text>
@@ -36,7 +33,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="green darken-1" flat="flat" @click.native="show = false">Cancel</v-btn>
+          <v-btn color="green darken-1" flat="flat" @click.native="show = false">Discard</v-btn>
           <v-btn color="green darken-1" flat="flat" @click.native="apply">Apply</v-btn>
         </v-card-actions>
       </v-card>
@@ -61,9 +58,7 @@ export default {
         return {
             show: false,
             postMessage: undefined,
-            point_style: undefined,
-            line_style: undefined,
-            polygon_style: undefined,
+            style: undefined,
         }
     },
     computed: {
@@ -72,25 +67,15 @@ export default {
         async apply() {
             try {
                 this.postMessage = "Sending style...";  
-                let vector_style = {};
-                if(this.point_style !== undefined) {
-                   vector_style.point_style = this.point_style;
-                }
-                if(this.line_style !== undefined) {
-                   vector_style.line_style = this.line_style;
-                }
-                if(this.polygon_style !== undefined) {
-                   vector_style.polygon_style = this.polygon_style;
-                }
-                let data = {vector_style: vector_style};
+                let data = {style: this.style};
                 var url = this.$store.getters.apiUrl('vectordbs/' + this.meta.name);             
-                let response = await axios.post(url, data);
+                await axios.post(url, data);
                 this.postMessage = undefined;
                 //console.log(response);
                 this.$emit('changed');
                 this.show = false;
             } catch(error) {
-                this.postMessage = "Error sending syle.";
+                this.postMessage = "Error sending style.";
                 console.log(error);
                 this.$emit('changed');
                 //this.show = false;
@@ -101,38 +86,15 @@ export default {
         meta: {
             immediate: true,
             handler() {
-                let vector_style = this.meta === undefined ? undefined : this.meta.vector_style;
-                if(vector_style === undefined) {
-                vector_style = {};  
+                let style = this.meta === undefined ? undefined : this.meta.style;
+                if(style === undefined) {
+                    style = {
+                        type: 'basic',
+                        stroke_color: '#772B2BFF',
+                        fill_color: '#772B2BFF',
+                    };  
                 }
-
-                let point_style = vector_style.point_style;
-                if(point_style === undefined) {
-                    point_style = {
-                        point_type: 'box',
-                        color: '#772B2BFF',
-                    }; 
-                }
-                this.point_style = point_style;
-
-                let line_style = vector_style.line_style;
-                if(line_style === undefined) {
-                    line_style = {
-                        line_type: 'box',
-                        color: '#772B2BFF',
-                    }; 
-                }
-                this.line_style = line_style;
-
-                let polygon_style = vector_style.polygon_style;
-                if(polygon_style === undefined) {
-                    polygon_style = {
-                        polygon_type: 'box',
-                        color: '#772B2BFF',
-                        outline_color: '#772B2BFF',
-                    }; 
-                }
-                this.polygon_style = polygon_style;
+                this.style = style;
             }
         },
     },

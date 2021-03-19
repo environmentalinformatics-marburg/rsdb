@@ -108,7 +108,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 		ImageBufferARGB image = null;
 		DataSource datasource = vectordb.getDataSource();
 		try {		
-			image = Renderer.render(datasource, extent, width, height, ct, vectordb.getVectorStyle());
+			image = Renderer.render(datasource, extent, width, height, ct, vectordb.getStyle());
 		} finally {
 			VectorDB.closeDataSource(datasource);
 		}

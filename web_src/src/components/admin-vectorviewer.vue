@@ -401,7 +401,7 @@ export default {
         target: 'olmap-vectorviewer',
         layers: [
           new ol_layer.Tile({
-            //source: backgroundSource,
+            source: backgroundSource,
           }),
           /*new ol_layer.VectorTile({
             source: backgroundSource,
