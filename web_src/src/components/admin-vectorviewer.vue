@@ -126,6 +126,7 @@ export default {
 
       olmap: undefined,
       vectorSource: undefined,
+      prevVectorSourceExt: undefined,
       vectorLayer: undefined,
       vectorLabelLayer: undefined,      
       filter_focus: false,
@@ -135,7 +136,7 @@ export default {
       geojson: undefined,
       table:{attibutes: [], data: []},
       selectedVectordb: undefined,
-      showLabels: true,
+      showLabels: false,
       featureDetailsShow: false,
       selectedFeatures: [],
     }
@@ -199,7 +200,15 @@ export default {
 
       if(features.length > 0) {
         var ext = this.vectorSource.getExtent();
-        this.olmap.getView().fit(ext);
+        if(this.prevVectorSourceExt === undefined 
+          || this.prevVectorSourceExt[0] !== ext[0] 
+          || this.prevVectorSourceExt[1] !== ext[1] 
+          || this.prevVectorSourceExt[2] !== ext[2] 
+          || this.prevVectorSourceExt[3] !== ext[3]) {        
+            console.log("fit");
+            this.olmap.getView().fit(ext);
+            this.prevVectorSourceExt = ext;
+        }
       }
       //console.log("refreshVectorSource done");
     },
@@ -389,6 +398,13 @@ export default {
       //url: backgroundSourceUrl,
     });
 
+    var backgroundLayer = new ol_layer.Tile({
+      source: backgroundSource,
+    });
+    backgroundLayer.setVisible(false);
+
+    this.vectorLabelLayer.setVisible(this.showLabels);
+
     /*var backgroundSource = new ol_source.VectorTile({
       format: new ol_format.MVT(),
       url: backgroundSourceUrl,
@@ -400,9 +416,7 @@ export default {
     self.olmap = new ol_Map({
         target: 'olmap-vectorviewer',
         layers: [
-          new ol_layer.Tile({
-            source: backgroundSource,
-          }),
+          backgroundLayer,
           /*new ol_layer.VectorTile({
             source: backgroundSource,
           }),*/

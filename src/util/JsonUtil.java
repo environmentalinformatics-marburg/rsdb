@@ -13,11 +13,11 @@ import util.collections.vec.Vec;
 import util.yaml.YamlMap.BooleanConsumer;
 
 public class JsonUtil {
-	
+
 	public static ReadonlyList<String> optStringReadonlyList(JSONObject json, String key) {
 		return ReadonlyList.of(optStringArray(json, key));
 	}
-	
+
 	public static Vec<String> optStringList(JSONObject json, String key) {
 		Vec<String> list = new Vec<String>();
 		if(json.has(key)) {
@@ -43,7 +43,7 @@ public class JsonUtil {
 		}
 		return list;
 	}
-	
+
 	public static Vec<String> optStringTrimmedList(JSONObject json, String key) {
 		Vec<String> list = new Vec<String>();
 		if(json.has(key)) {
@@ -69,15 +69,15 @@ public class JsonUtil {
 		}
 		return list;
 	}
-	
+
 	public static String[] optStringArray(JSONObject json, String key) {
 		return optStringList(json, key).toArray(new String[0]);
 	}
-	
+
 	public static String[] optStringTrimmedArray(JSONObject json, String key) {
 		return optStringTrimmedList(json, key).toArray(new String[0]);
 	}
-	
+
 	public static int[] getIntArray(JSONObject json, String key) {
 		JSONArray jsonArray = json.optJSONArray(key);
 		if(jsonArray == null) {
@@ -91,15 +91,15 @@ public class JsonUtil {
 		}
 		return a;
 	}
-	
+
 	public static int getInt(JSONObject json, String key) {
 		return Integer.parseInt(json.get(key).toString());
 	}
-	
+
 	public static String getString(JSONObject json, String key)  {
 		return json.get(key).toString();
 	}
-	
+
 	public static Vec<Integer> getIntegerVec(JSONObject json, String key) {
 		JSONArray jsonArray = json.getJSONArray(key);
 		int len = jsonArray.length();
@@ -109,7 +109,7 @@ public class JsonUtil {
 		}
 		return new Vec<Integer>(a);
 	}
-	
+
 	public static double[] getDoubleArray(JSONObject json, String key) {
 		JSONArray jsonArray = json.getJSONArray(key);
 		int len = jsonArray.length();
@@ -119,7 +119,7 @@ public class JsonUtil {
 		}
 		return a;
 	}
-	
+
 	public static double getDouble(JSONObject json, String key) {
 		if(json.get(key).toString().trim().isEmpty()) {
 			return Double.NaN;
@@ -127,7 +127,7 @@ public class JsonUtil {
 		double v = json.getDouble(key);
 		return Double.isFinite(v) ? v : Double.NaN;
 	}
-	
+
 	public static void writeOptList(JSONWriter json, String key, List<?> list) {
 		if(list.isEmpty()) {
 			return;
@@ -144,7 +144,7 @@ public class JsonUtil {
 		}
 		json.endArray();
 	}
-	
+
 	public static void writeOptArray(JSONWriter json, String key, Object[] a) {
 		if(a==null || a.length == 0) {
 			return;
@@ -161,8 +161,13 @@ public class JsonUtil {
 		}
 		json.endArray();
 	}
-	
+
 	public static void put(JSONWriter json, String key, String value) {
+		json.key(key);
+		json.value(value);
+	}
+
+	public static void putFloat(JSONWriter json, String key, float value) {
 		json.key(key);
 		json.value(value);
 	}
@@ -179,14 +184,14 @@ public class JsonUtil {
 			optPut(json, key, value.toString());
 		}		
 	}
-	
+
 	public static void optFunString(JSONObject jsonObject, String name, Consumer<String> fun) {
 		String value = jsonObject.optString(name, null);
 		if(value != null) {
 			fun.accept(value);
 		}		
 	}
-	
+
 	public static void optFunJSONObject(JSONObject jsonObject, String name, Consumer<JSONObject> fun) {
 		JSONObject value = jsonObject.optJSONObject(name);
 		if(value != null) {
@@ -207,5 +212,35 @@ public class JsonUtil {
 		if(Double.isFinite(value)) {
 			fun.accept(value);
 		}			
+	}
+
+	public static float[] optFloatArray(JSONObject json, String name, float[] optValue) {
+		JSONArray jsonArray = json.optJSONArray(name);
+		if(jsonArray == null) {
+			float v = json.optFloat(name);
+			return Float.isFinite(v) ? new float[] {v} : optValue;
+		}
+		int len = jsonArray.length();
+		if(len == 0) {
+			return optValue;
+		}
+		float[] vs = new float[len];
+		for (int i = 0; i < len; i++) {
+			float v = jsonArray.optFloat(i);
+			if(!Float.isFinite(v)) {
+				throw new RuntimeException("wrong value in float array");
+			}
+			vs[i] = v;
+		}
+		return vs;
+	}
+
+	public static void putFloatArray(JSONWriter json, String name, float[] values) {
+		json.key(name);
+		json.array();
+		for(float value : values) {
+			json.value(value);
+		}
+		json.endArray();		
 	}
 }

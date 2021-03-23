@@ -4,8 +4,11 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
+import java.util.Arrays;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
@@ -19,37 +22,68 @@ import vectordb.Renderer.Drawer.PolygonDrawer;
 
 
 public class BasicStyle extends Style implements PolygonDrawer {
-	
-	private Stroke stroke = new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);	
-	private Color stroke_color = Renderer.COLOR_POINT;	
+	private static final Logger log = LogManager.getLogger();
+
+	private static final float DEFAULT_STROKE_WIDTH = 2f;
+
+	private BasicStroke stroke = createStroke(DEFAULT_STROKE_WIDTH, null);	
+	private Color stroke_color = Renderer.COLOR_POINT;
 	private Color fill_color = Renderer.COLOR_POLYGON;
-	
+
+	private static BasicStroke createStroke(float stroke_width, float[] stroke_dash) {
+		float miterlimit = 10.0f;
+		float dash_phase = 0.0f;
+		return new BasicStroke(stroke_width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, miterlimit, stroke_dash, dash_phase);
+	}
+
 	public BasicStyle() {}
-	
+
 	@Override
 	public void parseYamlProperties(YamlMap yamlMap) {
 		yamlMap.optFunString("stroke_color", text -> stroke_color = Renderer.stringToColor(text));
+		float stroke_width = yamlMap.optFloat("stroke_width", DEFAULT_STROKE_WIDTH);
+		float[] stroke_dash = yamlMap.optFloatArray("stroke_dash", null);
+		log.info(Arrays.toString(stroke_dash));
+		stroke = createStroke(stroke_width, stroke_dash);
 		yamlMap.optFunString("fill_color", text -> fill_color = Renderer.stringToColor(text));
 	}
-	
+
 	@Override
 	protected void parseJsonProperties(JSONObject json) {
 		JsonUtil.optFunString(json, "stroke_color", text -> stroke_color = Renderer.stringToColor(text));
+		float stroke_width = json.optFloat("stroke_width", DEFAULT_STROKE_WIDTH);
+		float[] stroke_dash = JsonUtil.optFloatArray(json, "stroke_dash", null);
+		log.info(Arrays.toString(stroke_dash));
+		stroke = createStroke(stroke_width, stroke_dash);
 		JsonUtil.optFunString(json, "fill_color", text -> fill_color = Renderer.stringToColor(text));
 	}	
 
 	@Override
 	protected void toYamlProperties(Map<String, Object> yamlMap) {
 		yamlMap.put("stroke_color", Renderer.colorToString(stroke_color));
+		yamlMap.put("stroke_width", stroke.getLineWidth());
+		float[] dash = stroke.getDashArray();
+		if(dash != null && dash.length > 0) {
+			if(dash.length == 1) {
+				yamlMap.put("stroke_dash", dash[0]);
+			} else {
+				yamlMap.put("stroke_dash", dash);
+			}
+		}
 		yamlMap.put("fill_color", Renderer.colorToString(fill_color));
 	}
 
 	@Override
 	protected void writeJsonProperties(JSONWriter json) {
 		JsonUtil.put(json, "stroke_color", Renderer.colorToString(stroke_color));
+		JsonUtil.putFloat(json, "stroke_width", stroke.getLineWidth());
+		float[] dash = stroke.getDashArray();
+		if(dash != null && dash.length > 0) {
+			JsonUtil.putFloatArray(json, "stroke_dash", dash);
+		}
 		JsonUtil.put(json, "fill_color", Renderer.colorToString(fill_color));
 	}	
-	
+
 	@Override
 	public void drawPoints(Graphics2D gc, Drawer drawer, Vec<Point2d> points) {
 		gc.setStroke(stroke);

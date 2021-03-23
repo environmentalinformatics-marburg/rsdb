@@ -54,7 +54,7 @@ public class YamlMap {
 	 * @return
 	 */
 	public boolean contains(String name) {
-		return map.containsKey(name) && map.get(name)!=null;
+		return map.containsKey(name) && map.get(name) != null;
 	}
 		
 	public String getString(String name) {
@@ -262,6 +262,22 @@ public class YamlMap {
 		}	
 	}
 	
+	public interface FloatConsumer {
+
+	    void accept(float value);
+
+	    default FloatConsumer andThen(FloatConsumer after) {
+	        Objects.requireNonNull(after);
+	        return (float t) -> { accept(t); after.accept(t); };
+	    }
+	}
+	
+	public void optFunFloat(String name, FloatConsumer fun) { 
+		if(contains(name)) {
+			fun.accept(getFloat(name));
+		}	
+	}
+	
 	public void optFunDouble(String name, DoubleConsumer fun) {
 		if(contains(name)) {
 			fun.accept(getDouble(name));
@@ -301,5 +317,17 @@ public class YamlMap {
 	
 	public void forEachKey(BiConsumer<YamlMap, String> consumer) {
 		map.keySet().forEach(key -> consumer.accept(this, key));
+	}
+
+	public float[] optFloatArray(String name, float[] optValue) {
+		if(!contains(name)) {
+			return optValue;
+		}
+		YamlList yamlList = optList(name);
+		float[] vs = yamlList.asFloatArray();
+		if(vs.length == 0) {
+			return optValue;
+		}
+		return vs;
 	}
 }
