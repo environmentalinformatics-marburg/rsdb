@@ -16,8 +16,8 @@ remote_task <- remotesensing$submit_task(task)
 # Get current task status information.
 status <- remote_task$status
 
-# Wait until task has finished processing.
-status <- remote_task$wait()
+# Wait until task has finished processing, check task status every polling_interval seconds.
+status <- remote_task$wait(polling_interval = 0.5)
 }
 \description{
 RemoteTask class provides methods to manage a remote task running at RSDB server.
@@ -64,7 +64,7 @@ woellauer
 \if{latex}{\out{\hypertarget{method-wait}{}}}
 \subsection{Method \code{wait()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RemoteTask$wait()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RemoteTask$wait(polling_interval = 0.5)}\if{html}{\out{</div>}}
 }
 
 }

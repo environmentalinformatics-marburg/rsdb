@@ -127,7 +127,7 @@ RemoteSensing_public <- list( #      *********** public ************************
     return(VoxelDB$new(private$rsdbConnector, name))
   },
 
-  submit_task = function(task, wait = TRUE) {
+  submit_task = function(task, wait = TRUE, polling_interval = 0.5) {
     params <- task
     if(is.list(task)) {
       # nothing
@@ -139,7 +139,7 @@ RemoteSensing_public <- list( #      *********** public ************************
     response <- private$rsdbConnector$POST_json("/api/remote_tasks", data = list(remote_task = params))
     remote_task <- RemoteTask$new(private$rsdbConnector, response$remote_task$id)
     if(wait) {
-      result <- remote_task$wait()
+      result <- remote_task$wait(polling_interval = polling_interval)
       return(result)
     } else {
       return(remote_task)
@@ -283,7 +283,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' remotesensing$tasks_pointcloud
 #' remotesensing$tasks_voxeldb
 #' remotesensing$tasks_vectordb
-#' remotesensing$submit_task(task, wait = TRUE)
+#' remotesensing$submit_task(task, wait = TRUE, polling_interval = 0.5)
 #'
 #' remotesensing$web()
 #'
@@ -377,13 +377,17 @@ RemoteSensing_private <- list( #      *********** private **********************
 #'
 #' returns: data.frame with task details}
 #'
-#' \item{$submit_task(task, wait = TRUE)}{Submit a remote task to RSDB server.
+#' \item{$submit_task(task, wait = TRUE, polling_interval = 0.5)}{Submit a remote task to RSDB server.
 #'
 #' task: remote task parameters. List of parameters or character containing parameters as JSON text.
 #'
 #' wait: wait until task finished. Then return result. Default: TRUE.
 #'
-#' returns: RemoteTask object}
+#' polling_interval: if wait = TRUE, check task status every polling_interval seconds.
+#'
+#' returns: RemoteTask object
+#'
+#' If wait = FALSE, on the returned RemoteTask object $wait() needs to be called to check for task finish. If wait = TRUE that wait() is called internally.}
 #'
 #' \item{$web()}{Open web interface in browser.}
 #' }

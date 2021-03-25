@@ -10,33 +10,49 @@ RsdbConnector_public <- list( #      *********** public ************************
     self$GET("/pointdb/")
   },
 
-  GET = function(url_path, url_query = NULL) {
-    r <- self$VERB("GET", url_path, url_query)
+  GET = function(url_path, url_query = NULL, timeout = NULL) {
+    r <- self$VERB("GET", url_path, url_query, NULL, timeout)
     return(r)
   },
 
-  POST_json = function(url_path, url_query = NULL, data = NULL) {
+  POST_json = function(url_path, url_query = NULL, data = NULL, timeout = NULL) {
     json_data <- charToRaw(jsonlite::toJSON(data, auto_unbox=TRUE, digits=NA)) # digits=NA max precision for numeric
-    r <- self$VERB("POST", url_path, url_query, json_data)
+    r <- self$VERB("POST", url_path, url_query, json_data, timeout)
     return(r)
   },
 
-  POST_raw = function(url_path, url_query = NULL, data = NULL) {
-    r <- self$VERB("POST", url_path, url_query, data)
+  POST_raw = function(url_path, url_query = NULL, data = NULL, timeout = NULL) {
+    r <- self$VERB("POST", url_path, url_query, data, timeout)
     return(r)
   },
 
-  VERB = function(verb, url_path, url_query = NULL, data = NULL) {
+  VERB = function(verb, url_path, url_query = NULL, data = NULL, timeout = NULL) {
     url <- paste0(private$base_url, url_path)
     httr::handle_reset(url)
     if(private$authentication == "none") {
-      r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer))
+      if(is.null(timeout)) {
+        r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer))
+      } else {
+        r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::timeout(timeout))
+      }
     } else if(private$authentication == "login_sha2_512") {
-      r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::set_cookies(session=private$session))
+      if(is.null(timeout)) {
+        r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::set_cookies(session=private$session))
+      } else {
+        r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::set_cookies(session=private$session), httr::timeout(timeout))
+      }
     } else if(private$authentication == "Digest") {
-      r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::authenticate(private$username, private$password, "digest"))
+      if(is.null(timeout)) {
+        r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::authenticate(private$username, private$password, "digest"))
+      } else {
+        r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::authenticate(private$username, private$password, "digest"), httr::timeout(timeout))
+      }
     } else if(private$authentication == "basic") {
-      r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::authenticate(private$username, private$password, "basic"))
+      if(is.null(timeout)) {
+        r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::authenticate(private$username, private$password, "basic"))
+      } else {
+        r <- httr::VERB(verb, url, query = url_query, body = data, httr::config(ssl_verifypeer = private$ssl_verifypeer), httr::authenticate(private$username, private$password, "basic"), httr::timeout(timeout))
+      }
     }else {
       stop("unkown authentication method")
     }

@@ -5,14 +5,46 @@ RemoteTask_public <- list( #      *********** public ***************************
     private$id_ <- id
   },
 
-  wait = function() {
-    status <- self$status
-    while (status$active)
-    {
-      cat("\r", status$status, ' ', (status$runtime / 1000), 's', '-', status$message, '                                             ')
-      Sys.sleep(0.5)
-      status <- self$status
+  wait = function(polling_interval = 0.5) {
+    busy <- '-'
+    status <- NULL
+
+    while(TRUE) {
+
+      wenv <- new.env()
+      wenv$status <- status
+      tryCatch({
+        wenv$status <- self$status
+      }, error = function(err) {
+        if(startsWith(err$message, 'Timeout was reached')) {
+          cat(err$message, '  try again...\n')
+          wenv$status <- NULL
+        } else {
+          stop(err)
+        }
+      })
+      status <- wenv$status
+
+      if(!is.null(status)) {
+        if(status$active) {
+          cat("\r", busy, status$status, ' ', (status$runtime / 1000), 's', '-', status$message, '                                             ')
+        } else {
+          break
+        }
+      }
+      Sys.sleep(polling_interval)
+
+      if(busy == '-') {
+        busy = '\\'
+      } else if(busy == '\\') {
+        busy = '|'
+      } else if(busy == '|') {
+        busy = '/'
+      } else if(busy == '/') {
+        busy = '-'
+      }
     }
+
     cat("\r", status$status, ' ', (status$runtime / 1000), 's', '-', status$message, '                                             ')
     return(status)
   }
@@ -25,7 +57,7 @@ RemoteTask_active <- list( #      *********** active ***************************
     return(private$id_)
   },
   status = function() {
-    response <- private$rsdbConnector$GET(paste0("/api/remote_tasks/", private$id_))
+    response <- private$rsdbConnector$GET(paste0("/api/remote_tasks/", private$id_), NULL, 60)
     return(response$remote_task)
   }
 
@@ -58,8 +90,8 @@ RemoteTask_private <- list( #      *********** private *************************
 #' # Get current task status information.
 #' status <- remote_task$status
 #'
-#' # Wait until task has finished processing.
-#' status <- remote_task$wait()
+#' # Wait until task has finished processing, check task status every polling_interval seconds.
+#' status <- remote_task$wait(polling_interval = 0.5)
 #'
 #' @format
 #' RemoteTask \link{R6Class} object.
