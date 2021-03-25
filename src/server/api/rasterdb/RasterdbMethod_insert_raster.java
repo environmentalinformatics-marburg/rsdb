@@ -185,7 +185,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 				short[][] pixels = flipY ? Serialisation.byteToShortArrayArrayFlipY(raw, width, height) : Serialisation.byteToShortArrayArray(raw, width, height);
 				if(band == null) {
 					band = Band.of(TilePixel.TYPE_SHORT, bandIndex, band_title, null);
-					rasterdb.setBand(band);
+					rasterdb.setBand(band, true);
 				}
 				switch(band.type) {
 				case TilePixel.TYPE_SHORT: {
@@ -209,7 +209,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 				float[][] pixels = flipY ? Serialisation.byteToFloatArrayArrayFlipY(raw, width, height) : Serialisation.byteToFloatArrayArray(raw, width, height);
 				if(band == null) {
 					band = Band.of(TilePixel.TYPE_FLOAT, bandIndex, band_title, null);
-					rasterdb.setBand(band);
+					rasterdb.setBand(band, true);
 				}
 				switch(band.type) {
 				case TilePixel.TYPE_SHORT: {

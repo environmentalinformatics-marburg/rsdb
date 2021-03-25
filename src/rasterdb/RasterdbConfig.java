@@ -11,8 +11,9 @@ public class RasterdbConfig {
 	private Path path;
 	private String name;
 	private boolean fast_unsafe_import;
-	public String preferredStorageType; // nullable if rasterdb is existing
-	public int tilePixelLen = 256;
+	public String preferredStorageType = RasterDB.STORAGE_TYPE_TILE_STORAGE; // nullable
+	public String preferredPyramidType = RasterDB.PYRAMID_TYPE_COMPACT_DIV2; // nullable
+	public int preferredTilePixelLen = 256;
 
 	private RasterdbConfig() {
 		fast_unsafe_import = false;
@@ -22,6 +23,12 @@ public class RasterdbConfig {
 	public static RasterdbConfig ofYAML(YamlMap map) {
 		RasterdbConfig config = new RasterdbConfig();
 		map.optFunStringConv("path",  Paths::get, config::setPath);		
+		return config;
+	}
+	
+	public static RasterdbConfig ofPath(Path path) {
+		RasterdbConfig config = new RasterdbConfig();
+		config.setPath(path);
 		return config;
 	}
 	

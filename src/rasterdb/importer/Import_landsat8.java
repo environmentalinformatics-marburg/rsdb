@@ -177,11 +177,11 @@ public class Import_landsat8 {
 				Band band = Band.ofSpectralBand(TilePixel.TYPE_SHORT, bandIndex, (wvmin + wvmax) / 2, (wvmax - wvmin) / 2, bandTitles[i], bandVisualisations[i]);
 				switch(bandRes[i]) {
 				case 30:
-					rasterdb_30m.setBand(band);
+					rasterdb_30m.setBand(band, true);
 					rasterdbimporter_30m.importFile_GDAL(filename, band, false, 0);
 					break;
 				case 15:
-					rasterdb_15m.setBand(band);
+					rasterdb_15m.setBand(band, true);
 					rasterdbimporter_15m.importFile_GDAL(filename, band, false, 0);
 					break;
 				default:

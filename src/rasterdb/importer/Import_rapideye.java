@@ -70,7 +70,7 @@ public class Import_rapideye {
 			double wvmin = bandWvmin[i];
 			double wvmax = bandWvmax[i];
 			Band band = Band.ofSpectralBand(TilePixel.TYPE_SHORT, i + 1, (wvmin + wvmax) / 2, (wvmax - wvmin) / 2, bandTitles[i], bandVisualisations[i]);
-			rasterdb.setBand(band);
+			rasterdb.setBand(band, true);
 		}		
 		
 		importDirectoryInternal(root, root.getFileName().toString());

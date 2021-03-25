@@ -428,6 +428,12 @@ public class Broker implements AutoCloseable {
 	public synchronized RasterDB createOrGetRasterdb(String name, boolean transaction) {
 		return createOrGetRasterdb(name, transaction, "TileStorage");
 	}
+	
+	public RasterdbConfig createRasterdbConfig(String name) {
+		Util.checkStrictID(name);
+		RasterdbConfig rasterdbConfig = RasterdbConfig.ofPath(rasterdb_root.resolve(name));
+		return rasterdbConfig;
+	}
 
 	public synchronized RasterDB createOrGetRasterdb(String name, boolean transaction, String storage_type) {
 		Util.checkStrictID(name);
@@ -455,6 +461,14 @@ public class Broker implements AutoCloseable {
 	 */
 	public synchronized RasterDB createNewRasterdb(String name) {
 		return createNewRasterdb(name, true);
+	}
+	
+	public synchronized RasterDB createNewRasterdb(RasterdbConfig config) {
+		String name = config.getName();
+		Util.checkStrictID(name);
+		deleteRasterdb(config.getName());
+		rasterdbConfigMap.put(name, config);
+		return getRasterdb(name);
 	}
 
 	public synchronized boolean closeRasterdb(String name) {
@@ -971,4 +985,5 @@ public class Broker implements AutoCloseable {
 			throw new RuntimeException("renamed Vectordb not found: ["+ newName +"]");
 		}
 	}
+
 }

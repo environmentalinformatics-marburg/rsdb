@@ -47,6 +47,8 @@ public class RasterDB implements AutoCloseable {
 
 	public static final String PYRAMID_TYPE_FILES_DIV4 = "files_div4";
 	public static final String PYRAMID_TYPE_COMPACT_DIV2 = "compact_div2";
+	
+	public static final String STORAGE_TYPE_TILE_STORAGE = "TileStorage";
 
 	private final ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
 	public final NavigableMap<Integer, TimeSlice> timeMapReadonly = Collections.unmodifiableNavigableMap(timeMap);
@@ -91,9 +93,16 @@ public class RasterDB implements AutoCloseable {
 		bandMapReadonly = Collections.unmodifiableNavigableMap(bandMap);
 
 		this.metaPath = path.resolve("meta.yaml");
-		this.storageType = config.preferredStorageType == null ? "TileStorage" : config.preferredStorageType;
-		this.tilePixelLen = config.tilePixelLen; // will be overwritten if already exists in meta
-		readMeta(); // possibly overwrite storage_type from meta
+		
+		// *** Set config properties for new RasterDB, will be overwritten from meta if RasterDB already exists.
+		this.storageType = config.preferredStorageType == null ? STORAGE_TYPE_TILE_STORAGE : config.preferredStorageType;
+		this.tilePixelLen = config.preferredTilePixelLen;
+		//log.info("tilePixelLen " + tilePixelLen);
+		this.pyramidType = config.preferredPyramidType;
+		// ***
+		
+		readMeta(); // possibly overwrite config properties from meta
+		//log.info("tilePixelLen " + tilePixelLen);
 	}
 
 	public synchronized void flush() throws IOException {
@@ -263,9 +272,9 @@ public class RasterDB implements AutoCloseable {
 				} else {
 					local_extent = null;
 				}
-				storageType = yamlMap.optString("storage_type", "RasterUnit");
-				pyramidType = yamlMap.optString("pyramid_type", null);
-				tilePixelLen = yamlMap.optInt("tile_pixel_len", tilePixelLen);
+				storageType = yamlMap.optString("storage_type", "RasterUnit"); // Compatibility with old formats
+				pyramidType = yamlMap.optString("pyramid_type", PYRAMID_TYPE_FILES_DIV4); // Compatibility with old formats
+				tilePixelLen = yamlMap.optInt("tile_pixel_len", 256); // Compatibility with old formats
 				timeMap.clear();
 				if(yamlMap.contains("time_slices")) {
 					TimeSlice.yamlToTimeMap((Map<?, Object>) yamlMap.getObject("time_slices"), timeMap);					
@@ -285,7 +294,13 @@ public class RasterDB implements AutoCloseable {
 		}
 	}
 
-	public Band createSpectralBand(int type, double wavelength, double fwhm, String title, String visualisation) {
+	public synchronized Band createSpectralBand(int type, double wavelength, double fwhm, String title, String visualisation) {
+		if(type == TilePixel.TYPE_SHORT && tilePixelLen != 256) {
+			throw new RuntimeException("tile type 1  tile_pixel_len = 256 is supported only");
+		}
+		if(type == TilePixel.TYPE_FLOAT && tilePixelLen != 256) {
+			throw new RuntimeException("tile type 2  tile_pixel_len = 256 is supported only");
+		}
 		int index = 0;
 		for (Band band : bandMap.values()) {
 			index = band.index;
@@ -298,7 +313,13 @@ public class RasterDB implements AutoCloseable {
 		return band;
 	}
 
-	public Band createBand(int type, String title, String visualisation) {
+	public synchronized Band createBand(int type, String title, String visualisation) {
+		if(type == TilePixel.TYPE_SHORT && tilePixelLen != 256) {
+			throw new RuntimeException("tile type 1  tile_pixel_len = 256 is supported only");
+		}
+		if(type == TilePixel.TYPE_FLOAT && tilePixelLen != 256) {
+			throw new RuntimeException("tile type 2  tile_pixel_len = 256 is supported only");
+		}
 		int index = 0;
 		for (Band band : bandMap.values()) {
 			index = band.index;
@@ -306,19 +327,29 @@ public class RasterDB implements AutoCloseable {
 		index++;
 		Band band = Band.of(type, index, title, visualisation);
 		log.info("create band " + band.index);
-		setBand(band);
+		setBand(band, false);
 		return band;
 	}
 
-	public void setBand(Band band) {
+	public synchronized void setBand(Band band, boolean replaceIfExisting) {
 		if (bandMap.containsKey(band.index)) {
+			if(replaceIfExisting) {
 			log.warn("replace band" + band);
+			} else {
+				throw new RuntimeException("band already existing: " + band.toString());
+			}
+		}
+		if(band.type == TilePixel.TYPE_SHORT && tilePixelLen != 256) {
+			throw new RuntimeException("tile type 1  tile_pixel_len = 256 is supported only");
+		}
+		if(band.type == TilePixel.TYPE_FLOAT && tilePixelLen != 256) {
+			throw new RuntimeException("tile type 2  tile_pixel_len = 256 is supported only");
 		}
 		bandMap.put(band.index, band);
 		writeMeta();
 	}
 
-	public Band removeBand(int band_number) {
+	public synchronized Band removeBand(int band_number) {
 		Band removedBand = bandMap.remove(band_number);
 		writeMeta();
 		return removedBand; 
@@ -644,16 +675,16 @@ public class RasterDB implements AutoCloseable {
 		return false;
 	}
 
-	public synchronized void unsafeSetPyramidType(String pyramidType) {
+	/*public synchronized void unsafeSetPyramidType(String pyramidType) {
 		if(isValidPyramidTypeString(pyramidType)) {
 			this.pyramidType = pyramidType;
 			writeMeta();
 		} else {
 			throw new RuntimeException("unknown pyramid_type: " + pyramidType);
 		}		
-	}
+	}*/
 
-	public synchronized void setCustomWMS(HashMap<String, CustomWMS> map) {
+	public synchronized void setCustomWMS(Map<String, CustomWMS> map) {
 		customWmsMap.clear();
 		customWmsMap.putAll(map);
 		writeMeta();

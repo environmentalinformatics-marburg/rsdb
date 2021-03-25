@@ -28,6 +28,17 @@ public class Band {
 		public double vis_min; // optional
 		public double vis_max; // optional
 		
+		public Builder(int type, int index) {
+			this.type = type;
+			this.index = index;
+			this.wavelength = Double.NaN;
+			this.fwhm =  Double.NaN;
+			this.title = null;
+			this.visualisation = null;
+			this.vis_min = Double.NaN;
+			this.vis_max = Double.NaN;
+		}
+		
 		public Builder(int type, int index, double wavelength, double fwhm, String title, String visualisation, double vis_min, double vis_max) {
 			this.type = type;
 			this.index = index;

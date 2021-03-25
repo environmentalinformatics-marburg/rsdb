@@ -34,7 +34,7 @@ public class TimeBandProcessor {
 	private RasterUnitStorage pyramid_rasterUnit;
 	private Range2d pyramid_srcRange;
 	private Range2d pyramid_dstRange;
-	private int pyramidDiv;
+	private int pyramidLayerInternalDiv;
 	private int pyramid;
 
 
@@ -44,7 +44,7 @@ public class TimeBandProcessor {
 		this.pyramid_rasterUnit = rasterdb.rasterUnit();
 		this.pyramid_srcRange = range2d;
 		this.pyramid_dstRange = range2d;
-		this.pyramidDiv = 1;
+		this.pyramidLayerInternalDiv = 1;
 		this.pyramid = 0;
 		this.scale = 1;
 	}
@@ -54,6 +54,7 @@ public class TimeBandProcessor {
 		this.range2d = range2d;
 		this.scale = scale;
 		if(rasterdb.isInternalPyramid()) {
+			//log.info("setScaleInternalPyramid");
 			setScaleInternalPyramid(scale);
 		} else {
 			this.pyramid = 0;
@@ -113,103 +114,103 @@ public class TimeBandProcessor {
 			pyramid_rasterUnit = rasterdb.rasterUnit();
 			pyramid_dstRange = range2d;
 			pyramid_srcRange = range2d;
-			pyramidDiv = 1;
+			pyramidLayerInternalDiv = 1;
 			break;
 		case 2:
 			pyramid_rasterUnit = rasterdb.rasterUnit();
 			pyramid_dstRange = range2d.floorDiv(2);
-			pyramidDiv = 2;
-			pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidDiv);
+			pyramidLayerInternalDiv = 2;
+			pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidLayerInternalDiv);
 			break;			
 		case 4:
 			pyramid_rasterUnit = rasterdb.rasterPyr1Unit();
 			pyramid_dstRange = range2d.floorDiv(4);
 			pyramid_srcRange = pyramid_dstRange;
-			pyramidDiv = 1;
+			pyramidLayerInternalDiv = 1;
 			break;
 		case 8:
 			pyramid_rasterUnit = rasterdb.rasterPyr1Unit();
 			pyramid_dstRange = range2d.floorDiv(8);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(2);
-			pyramidDiv = 2;
+			pyramidLayerInternalDiv = 2;
 			break;			
 		case 16:
 			pyramid_rasterUnit = rasterdb.rasterPyr2Unit();
 			pyramid_dstRange = range2d.floorDiv(16);
 			pyramid_srcRange = pyramid_dstRange;
-			pyramidDiv = 1;
+			pyramidLayerInternalDiv = 1;
 			break;
 		case 32:
 			pyramid_rasterUnit = rasterdb.rasterPyr2Unit();
 			pyramid_dstRange = range2d.floorDiv(32);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(2);
-			pyramidDiv = 2;
+			pyramidLayerInternalDiv = 2;
 			break;			
 		case 64:
 			pyramid_rasterUnit = rasterdb.rasterPyr3Unit();
 			pyramid_dstRange = range2d.floorDiv(64);
 			pyramid_srcRange = pyramid_dstRange;
-			pyramidDiv = 1;
+			pyramidLayerInternalDiv = 1;
 			break;
 		case 128:
 			pyramid_rasterUnit = rasterdb.rasterPyr3Unit();
 			pyramid_dstRange = range2d.floorDiv(128);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(2);
-			pyramidDiv = 2;
+			pyramidLayerInternalDiv = 2;
 			break;			
 		case 256:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(256);
 			pyramid_srcRange = pyramid_dstRange;
-			pyramidDiv = 1;
+			pyramidLayerInternalDiv = 1;
 			break;
 		case 512:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(512);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(2);
-			pyramidDiv = 2;
+			pyramidLayerInternalDiv = 2;
 			break;
 		case 1024:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(1024);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(4);
-			pyramidDiv = 4;
+			pyramidLayerInternalDiv = 4;
 			break;
 		case 2048:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(2048);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(8);
-			pyramidDiv = 8;
+			pyramidLayerInternalDiv = 8;
 			break;
 		case 4096:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(4096);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(16);
-			pyramidDiv = 16;
+			pyramidLayerInternalDiv = 16;
 			break;
 		case 8192:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(8192);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(32);
-			pyramidDiv = 32;
+			pyramidLayerInternalDiv = 32;
 			break;
 		case 16384:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(16384);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(64);
-			pyramidDiv = 64;
+			pyramidLayerInternalDiv = 64;
 			break;
 		case 32768:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(32768);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(128);
-			pyramidDiv = 128;
+			pyramidLayerInternalDiv = 128;
 			break;
 		case 65536:
 			pyramid_rasterUnit = rasterdb.rasterPyr4Unit();
 			pyramid_dstRange = range2d.floorDiv(65536);
 			pyramid_srcRange = pyramid_dstRange.mulExpand(256);
-			pyramidDiv = 256;
+			pyramidLayerInternalDiv = 256;
 			break;
 		default:
 			throw new RuntimeException("unknown scale " + scale);
@@ -223,28 +224,30 @@ public class TimeBandProcessor {
 			pyramid_rasterUnit = rasterdb.rasterUnit();
 			pyramid_dstRange = range2d;
 			pyramid_srcRange = range2d;
-			pyramidDiv = 1;
+			pyramidLayerInternalDiv = 1;
 			pyramid = 0;
-			this.scale = pyramidDiv;
+			this.scale = pyramidLayerInternalDiv;
 		} else {
 			pyramid_rasterUnit = rasterdb.rasterPyr1Unit();			
 			int tmax = Processing.getTFromPyramidTimestamp(optimal_pyramid, Processing.TIMESTAMP_MAX);
 			BandKey maxPyramidBandKey = pyramid_rasterUnit.bandKeysReadonly().floor(BandKey.toBandKeyMax(tmax));
 			if(maxPyramidBandKey == null) {
 				pyramid_rasterUnit = rasterdb.rasterUnit();
-				pyramidDiv = scale > maxDiv ? maxDiv : scale;
-				pyramid_dstRange = range2d.floorDiv(pyramidDiv);
-				pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidDiv);
+				pyramidLayerInternalDiv = scale > maxDiv ? maxDiv : scale;
+				pyramid_dstRange = range2d.floorDiv(pyramidLayerInternalDiv);
+				pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidLayerInternalDiv);
 				pyramid = 0;
-				this.scale = pyramidDiv;
+				this.scale = pyramidLayerInternalDiv;
 			} else {
+				//log.info("max pyramid " + Processing.getPyramidFromT(pyramid_rasterUnit.bandKeysReadonly().last().t));
 				pyramid = Processing.getPyramidFromT(maxPyramidBandKey.t);
+				int toPyramidDiv = 1 << pyramid; 
 				int div = scale >>> pyramid;
-				pyramidDiv = div > maxDiv ? maxDiv : div;
-				this.scale = pyramidDiv << pyramid; 
-				pyramid_dstRange = range2d.floorDiv(pyramidDiv * this.scale);
-				pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidDiv);
-				
+				pyramidLayerInternalDiv = div > maxDiv ? maxDiv : div;
+				this.scale = pyramidLayerInternalDiv << pyramid; 
+				pyramid_dstRange = range2d.floorDiv(toPyramidDiv).floorDiv(pyramidLayerInternalDiv);
+				pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidLayerInternalDiv);
+				log.info("scale " + scale + "  toPyramidDiv " + toPyramidDiv +  "  pyramid " + pyramid + "  pyramidLayerInternalDiv " + pyramidLayerInternalDiv  + " ->scale " + scale);				
 			}
 		}		
 	}
@@ -252,13 +255,13 @@ public class TimeBandProcessor {
 	private short[][] readInt16(int timestamp, Band band) {
 		CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
-		return cellInt16.read(pyramid_rasterUnit, t, band, pyramid_srcRange, pyramidDiv);	
+		return cellInt16.read(pyramid_rasterUnit, t, band, pyramid_srcRange, pyramidLayerInternalDiv);	
 	}
 	
 	private byte[][] readInt8(int timestamp, Band band) {
 		CellInt8 cellInt8 = new CellInt8(rasterdb.getTilePixelLen());
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
-		return cellInt8.read(pyramid_rasterUnit, t, band, pyramid_srcRange, pyramidDiv);	
+		return cellInt8.read(pyramid_rasterUnit, t, band, pyramid_srcRange, pyramidLayerInternalDiv);	
 	}
 
 
@@ -267,7 +270,7 @@ public class TimeBandProcessor {
 		//log.info("src " + pyramid_srcRange);
 		//log.info("src " + pyramid_dstRange);
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
-		return ProcessingShort.readPixels(pyramidDiv, pyramid_rasterUnit, t, band, pyramid_srcRange);		
+		return ProcessingShort.readPixels(pyramidLayerInternalDiv, pyramid_rasterUnit, t, band, pyramid_srcRange);		
 	}
 
 	private short[][] readShort(TimeBand timeband) {
@@ -276,7 +279,7 @@ public class TimeBandProcessor {
 
 	private float[][] readFloat(int timestamp, Band band) {
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
-		return ProcessingFloat.readPixels(pyramidDiv, pyramid_rasterUnit, t, band, pyramid_srcRange);	
+		return ProcessingFloat.readPixels(pyramidLayerInternalDiv, pyramid_rasterUnit, t, band, pyramid_srcRange);	
 	}
 
 	private float[][] readFloat(TimeBand timeband) {

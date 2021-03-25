@@ -199,7 +199,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 							}
 							}
 						}
-						rasterdb.setBand(builder.build());
+						rasterdb.setBand(builder.build(), true);
 					}
 					log.info(jsonBands);
 					break;

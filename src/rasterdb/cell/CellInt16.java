@@ -166,13 +166,6 @@ public class CellInt16 extends Cell<short[][]>{
 		int SIZE_INTS = data.length/4;
 		int[] inter2 = new int[SIZE_INTS];
 		java.nio.ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(inter2);
-		/*int[] inter2 = null;
-		try {
-			inter2 = Snappy.uncompressIntArray(data);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
 		IntWrapper inpos = new IntWrapper();
 		int[] result = new int[cell_pixel_count];
 		IntWrapper outpos = new IntWrapper();

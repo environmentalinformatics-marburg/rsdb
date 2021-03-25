@@ -1,5 +1,7 @@
 package remotetask.rasterdb;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -7,6 +9,7 @@ import broker.Broker;
 import broker.acl.EmptyACL;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
+import rasterdb.RasterdbConfig;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
@@ -20,7 +23,9 @@ import remotetask.RemoteTask;
 @Param(name="code", desc="Projection code.", format="EPSG:code", example="EPSG:32632", required=false)
 @Param(name="proj4", desc="Projection.", format="PROJ4", example="+proj=utm +zone=32 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Param(name="tile_pixel_len", type="integer", desc="Tile width and height in pixels, defaults to 256. Note for band type 1=tile_int16 and 2=tile_float32 size 256 is supported only", example="256")
 public class Task_create extends RemoteTask {
+	private static final Logger log = LogManager.getLogger();
 	
 	private final Broker broker;
 	private final JSONObject task;
@@ -94,15 +99,18 @@ public class Task_create extends RemoteTask {
 			}
 		}
 		
-		RasterDB rasterdb = broker.createNewRasterdb(name);
-		
+		RasterdbConfig config = broker.createRasterdbConfig(name);
 		if(task.has("storage_type")) {
 			String storage_type = task.getString("storage_type");
-			rasterdb = broker.createNewRasterdb(name, true, storage_type);
-		} else {
-			rasterdb = broker.createNewRasterdb(name, true);	
+			config.preferredStorageType = storage_type;
 		}
+		if(task.has("tile_pixel_len")) {
+			int tile_pixel_len = task.getInt("tile_pixel_len");
+			log.info("tile_pixel_len " + tile_pixel_len);
+			config.preferredTilePixelLen = tile_pixel_len;
+		}		
 		
+		RasterDB rasterdb = broker.createNewRasterdb(config);		
 		
 		rasterdb.setPixelSize(pixel_size_x, pixel_size_y, offset_x, offset_y);
 		
@@ -114,8 +122,6 @@ public class Task_create extends RemoteTask {
 		String proj4 = task.optString("proj4");
 		if(proj4 != null) {
 			rasterdb.setProj4(proj4);
-		}
-		
+		}		
 	}
-
 }

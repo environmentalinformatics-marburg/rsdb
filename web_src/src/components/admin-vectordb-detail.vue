@@ -8,7 +8,10 @@
         <div style="text-align: center; padding-right: 400px;">
             <h3 class="headline mb-0">
                 {{meta === undefined || meta.title === undefined || meta.title === '' ? vectordb : meta.title}}
-                <v-btn icon class="indigo--text" :href="'#/vectorviewer/' + vectordb" target="_blank" title="open layer in viewer on new tab">
+                <!--<v-btn icon class="indigo--text" :href="'#/vectorviewer/' + vectordb" target="_blank" title="open layer in viewer on new tab">
+                    <v-icon>zoom_in</v-icon>
+                </v-btn>-->
+                <v-btn icon class="indigo--text" :href="'#/viewer?vectordb=' + vectordb" target="_blank" title="open layer in viewer on new tab">
                     <v-icon>zoom_in</v-icon>
                 </v-btn>
             </h3> 

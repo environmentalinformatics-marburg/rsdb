@@ -91,7 +91,7 @@ public abstract class Cell<T> {
 	};
 
 	public T read(RasterUnitStorage storage, int t, Band band, Range2d pixelRange, int div) {
-		log.info("read " + pixelRange);
+		//log.info("read " + pixelRange);
 		if(div < 1 || pixel_len / div < 1 || pixel_len % div != 0) {
 			throw new RuntimeException("invalid div for pixel_len   " + pixel_len + " / " + div);
 		}

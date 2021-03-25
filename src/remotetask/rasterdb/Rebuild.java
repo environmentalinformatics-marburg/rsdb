@@ -37,17 +37,15 @@ public class Rebuild extends RemoteProxy {
 		String name_dst = name_src + "_rebuild";
 		Path path_dst = rootPath.resolve(name_dst);
 		RasterdbConfig dstConfig = RasterdbConfig.ofPath(path_dst, storage_type);
+		dstConfig.preferredPyramidType = pyramid_type;
 		dstConfig.set_fast_unsafe_import(true);
-		dstConfig.tilePixelLen = src.getTilePixelLen();
+		dstConfig.preferredTilePixelLen = src.getTilePixelLen();
 		try(RasterDB dst = new RasterDB(dstConfig)) {
 			dst.setACL(src.getACL());
 			dst.setACL_mod(src.getACL_mod());
 			dst.setRef(src.ref());
 			dst.setInformal(src.informal());
 			dst.setAssociated(src.associated.copy());
-			if(pyramid_type != null) {
-				dst.unsafeSetPyramidType(pyramid_type);
-			}
 			RasterUnitStorage dstStorage = dst.rasterUnit();
 
 			int totalTiles = srcStorage.tileKeysReadonly().size();
@@ -74,8 +72,10 @@ public class Rebuild extends RemoteProxy {
 			}
 			dstStorage.flush();
 			for(Band band:src.bandMapReadonly.values()) {
-				dst.setBand(band);
+				dst.setBand(band, true);
 			}
+			dst.setTimeSlices(src.timeMapReadonly.values());
+			dst.setCustomWMS(src.customWmsMapReadonly);
 
 			dst.rebuildPyramid(true);
 		}
