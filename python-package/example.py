@@ -1,17 +1,33 @@
 import rsdb
-from rsdb.connection import RsdbConnection
+from rsdb.connection import RSDB
 
-r = RsdbConnection('http://127.0.0.1:8081')
+rsdb = RSDB('http://127.0.0.1:8081')
 
-rs = r.getRasterDBs()
+rasterdb_list = rsdb.getRasterDBs()
 
-print(rs)
+print(rasterdb_list)
 
-rasterdb = r.getRasterDB('hyperspectral_forest_edge')
+rasterdb = rsdb.getRasterDB('hyperspectral_forest_edge')
 
-meta = rasterdb.getMeta()
+rasterdb_meta = rasterdb.getMeta()
 
-print(meta)
+print(rasterdb_meta)
+
+
+vectordb_list = rsdb.getVectorDBs()
+
+print(vectordb_list)
+
+vectordb = rsdb.getVectorDB('plots_forest_edge')
+
+vectordb_meta = vectordb.getMeta()
+
+gdf = vectordb.getGeoDataFrameWGS84()
+
+gdf.plot()
+import matplotlib.pyplot as plt
+plt.show()
+
 
 print('...')
 print('---')
