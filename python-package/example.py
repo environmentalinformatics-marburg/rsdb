@@ -1,7 +1,9 @@
 import rsdb
 from rsdb.connection import RSDB
 
-rsdb = RSDB('http://127.0.0.1:8081')
+#rsdb = RSDB('http://127.0.0.1:8081', user='user', password='pw1')
+#rsdb = RSDB('https://127.0.0.1:8082', user='user', password='pw1', ssl_verify=False)
+rsdb = RSDB('https://127.0.0.1:8083', user='user', password='pw1', ssl_verify=False)
 
 rasterdb_list = rsdb.getRasterDBs()
 
