@@ -94,7 +94,7 @@ public class Import_sequoia {
 			strategy = Strategy.EXISTING_MERGE;
 		}
 
-		ImportSpec spec = APIHandler_inspect.createSpec(path, strategy, filename, layerName, rasterdb, false, null);
+		ImportSpec spec = APIHandler_inspect.createSpec(path, strategy, filename, layerName, rasterdb, false, null, null);
 		spec.storage_type = "TileStorage";
 		spec.generalTimestamp = timestamp;
 		//spec.inf.title = "uav sequoia " + layerSubName;

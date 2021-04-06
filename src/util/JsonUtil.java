@@ -91,6 +91,20 @@ public class JsonUtil {
 		}
 		return a;
 	}
+	
+	public static String[] getStringArray(JSONObject json, String key) {
+		JSONArray jsonArray = json.optJSONArray(key);
+		if(jsonArray == null) {
+			String a0 = getString(json, key);
+			return new String[] {a0};
+		}
+		int len = jsonArray.length();
+		String[] a = new String[len];
+		for(int i=0; i<len; i++) {
+			a[i] = jsonArray.get(i).toString();
+		}
+		return a;
+	}
 
 	public static int getInt(JSONObject json, String key) {
 		return Integer.parseInt(json.get(key).toString());

@@ -24,7 +24,8 @@ import util.raster.GdalReader;
 @Description("Import raster file data into rasterdb layer.")
 @Param(name="rasterdb", type="layer_id", desc="ID of RasterDB layer. (new or existing)", example="rasterdb1")
 @Param(name="file", format="path", desc="Raster file to import. (located on server)", example="data/raster.tiff")
-@Param(name="bands", type="integer_array", desc="Array of integer band numbers of target layer. 0 is placeholder to not import that band. ( e.g. [2,0,7] leads to  file-band1 -> layer-band2, file-band3 -> layer-band7). If parameter is missing alle bands are imported starting with layer-band1", example="1, 2, 3", required=false)
+@Param(name="bands", type="integer_array", desc="Array of integer band numbers at target layer. 0 is placeholder to not import that band. ( e.g. [2,0,7] leads to  file-band1 -> layer-band2, file-band3 -> layer-band7). If parameter is missing all bands are imported starting with layer-band1", example="1, 2, 3", required=false)
+@Param(name="timeslices", type="string_array", desc="Array of timeslice names at target layer. ( e.g. [2020 spring, 2020 autumn] ). Array needs to be same length as bands parameter array. If parameter is missing all bands are imported into default timeslice.", example="2018, 2019, 2020", required=false)
 @Param(name="update_pyramid", type="boolean", desc="Build pyramid of scaled down raster including imported data. Needed for visualisations. (default true. Use 'false' if you import multiple rasters for import speed up. After import, run task rebuild_pyramid once.)", example="false", required=false)
 @Param(name="update_catalog", type="boolean", desc="Update extent with new imported data. (default true. Use 'false' if you import multiple rasters for import speed up. After import, run task rebuild_pyramid once.)", example="false", required=false)
 public class Task_import extends RemoteProxyTask {
@@ -66,7 +67,13 @@ public class Task_import extends RemoteProxyTask {
 		if(task.has("bands")) {
 			layerBandIndices = JsonUtil.getIntArray(task, "bands");
 		}
-		ImportSpec spec = APIHandler_inspect.createSpec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, layerBandIndices);		
+		
+		String[] timesliceNames = null;
+		if(task.has("timeslices")) {
+			timesliceNames = JsonUtil.getStringArray(task, "timeslices");
+		}
+		
+		ImportSpec spec = APIHandler_inspect.createSpec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, layerBandIndices, timesliceNames);		
 		spec.update_pyramid = update_pyramid;
 		spec.update_catalog = update_catalog;
 		log.info(spec);

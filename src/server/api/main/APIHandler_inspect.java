@@ -95,29 +95,29 @@ public class APIHandler_inspect extends APIHandler {
 		}
 	}
 
-	public static ImportSpec createSpec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices) {
+	public static ImportSpec createSpec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices, String[] timesliceNames) {
 		log.info(fullPath);
 		GdalReader gdalreader = new GdalReader(fullPath.toString());
-		return createSpec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, layerBandIndices);
+		return createSpec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, layerBandIndices, timesliceNames);
 	}
 
-	public static void createJSONspec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices) {
+	public static void createJSONspec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices, String[] timesliceNames) {
 		log.info(fullPath);
 		GdalReader gdalreader = new GdalReader(fullPath.toString());
-		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices);
+		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices, timesliceNames);
 	}
 
-	public static ImportSpec createSpec(GdalReader gdalreader, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices) {
+	public static ImportSpec createSpec(GdalReader gdalreader, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices, String[] timesliceNames) {
 		CharArrayWriterUnsync writer = new CharArrayWriterUnsync();
 		JSONWriter json = new JSONWriter(writer);
-		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices);
+		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices, timesliceNames);
 		ImportSpec spec = new ImportSpec();
 		CharArrayReaderUnsync reader = writer.toCharArrayReaderUnsync();
 		spec.parse(new JSONObject(new JSONTokener(reader)));
 		return spec;
 	}
 
-	public static void createJSONspec(GdalReader gdalreader, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices) {
+	public static void createJSONspec(GdalReader gdalreader, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices, String[] timesliceNames) {
 		json.object();
 
 		json.key("strategy");
@@ -251,6 +251,15 @@ public class APIHandler_inspect extends APIHandler {
 		int cnt = gdalreader.getRasterCount();
 		if(layerBandIndices != null && layerBandIndices.length < cnt) {
 			cnt = layerBandIndices.length;
+		}
+		
+		if(timesliceNames != null) {
+			if(layerBandIndices == null) {
+				throw new RuntimeException("IF timesliceNames != null ==> layerBandIndices != null");				
+			}
+			if(timesliceNames.length != layerBandIndices.length) {
+				throw new RuntimeException("timesliceNames need to be of same length as layerBandIndices");
+			}
 		}
 
 		for (int i = 0; i < cnt; i++) {
@@ -419,6 +428,12 @@ public class APIHandler_inspect extends APIHandler {
 
 			json.key("timestamp");
 			json.value("");
+			
+			if(timesliceNames != null) {
+				String timesliceName = timesliceNames[i];
+				json.key("time_slice");
+				json.value(timesliceName);
+			}
 
 			json.endObject();
 			rastedbIndex++;
@@ -585,7 +600,7 @@ public class APIHandler_inspect extends APIHandler {
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("specification");
-		createJSONspec(path, strategy, fileID, id, rasterdb, guessTimestamp, json, null);	
+		createJSONspec(path, strategy, fileID, id, rasterdb, guessTimestamp, json, null, null);	
 		json.endObject();
 	}
 }

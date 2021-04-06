@@ -83,7 +83,7 @@ public class Import_soda {
 		String layerName = namePrefix + '_' + layerSubName;
 		log.info("layerName "+layerName);
 		
-		ImportSpec spec = APIHandler_inspect.createSpec(path, Strategy.CREATE, filename, layerName, null, false, null);		
+		ImportSpec spec = APIHandler_inspect.createSpec(path, Strategy.CREATE, filename, layerName, null, false, null, null);		
 		spec.storage_type = "TileStorage";
 		spec.generalTimestamp = timestamp;
 		spec.inf.title = "uav soda " + layerSubName;
