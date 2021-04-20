@@ -16,6 +16,8 @@
 
   <div v-if="meta !== undefined && meta.time_slices.length > 0" >
       <b>Time slice</b>
+      <div style="display: flex;">
+      <button @click="movePrevSelectedTimeSlice" :disabled="!selectedTimeSliceIndexHasPrev" :class="{hidden: !selectedTimeSliceIndexHasPrev}">◀</button>
       <multiselect v-if="meta.time_slices.length > 1" v-model="selectedTimeSlice" :options="meta.time_slices" :searchable="true" :show-labels="false" placeholder="pick a time slice" :allowEmpty="false" trackBy="id">
         <template slot="singleLabel" slot-scope="{option}">
           {{option.name}}
@@ -24,6 +26,8 @@
           {{option.name}}
         </template>
       </multiselect>
+      <button @click="moveNextSelectedTimeSlice" :disabled="!selectedTimeSliceIndexHasNext" :class="{hidden: !selectedTimeSliceIndexHasNext}">▶</button>
+      </div>
       <div v-if="meta.time_slices.length === 1">
         {{meta.time_slices[0].name}}
       </div>
@@ -99,8 +103,13 @@ export default {
         return;
       }
       if(this.currentTimestamp === undefined) {
-        this.selectedTimeSlice = null;
-        return;
+        if(this.meta.time_slices.length > 0) {
+          this.selectedTimeSlice = this.meta.time_slices[0];
+          return;
+        } else {
+          this.selectedTimeSlice = null;
+          return;
+        }
       }
       for (const timeSlice of this.meta.time_slices) {
           if(timeSlice.id == this.currentTimestamp) { // number to string compare
@@ -135,6 +144,16 @@ export default {
         this.$emit('selected-product', this.selectedProduct);
       }
     },
+    movePrevSelectedTimeSlice() {
+      if(this.selectedTimeSliceIndex !== undefined && this.selectedTimeSliceIndexHasPrev) {
+        return this.selectedTimeSlice = this.meta.time_slices[this.selectedTimeSliceIndex - 1];
+      }
+    },
+    moveNextSelectedTimeSlice() {
+      if(this.selectedTimeSliceIndex !== undefined && this.selectedTimeSliceIndexHasNext) {
+        return this.selectedTimeSlice = this.meta.time_slices[this.selectedTimeSliceIndex + 1];
+      }
+    },
   },
   computed: {
     rasterdbs() {
@@ -146,7 +165,32 @@ export default {
         return [];
       }
       return this.meta.wms.styles.concat({name: 'custom', title: 'user defined'});
-    }
+    },
+    selectedTimeSliceIndex() {
+      if(this.selectedTimeSlice === undefined || this.selectedTimeSlice === null || this.meta === undefined || this.meta.time_slices === undefined || this.meta.time_slices.length <= 1) {
+        return undefined;
+      }
+      var i = this.meta.time_slices.findIndex(timeSlice => timeSlice.id === this.selectedTimeSlice.id);
+      return (i >= 0) ? i : undefined;
+    },
+    timeSliceIndexMax() {
+      if(this.meta === undefined || this.meta.time_slices === undefined) {
+        return undefined;
+      }
+      return this.meta.time_slices.length - 1;
+    },
+    selectedTimeSliceIndexHasPrev() {
+      if(this.selectedTimeSliceIndex === undefined) {
+        return false;
+      }
+      return this.selectedTimeSliceIndex > 0;
+    },
+    selectedTimeSliceIndexHasNext() {
+      if(this.selectedTimeSliceIndex === undefined) {
+        return false;
+      }
+      return this.selectedTimeSliceIndex < this.timeSliceIndexMax;
+    },
   },
   watch: {
     rasterdbs() {
@@ -202,6 +246,10 @@ export default {
   border-style: solid;
   border-color: #00000054;
   border-width: 1px;
+}
+
+.hidden {
+  visibility: hidden;
 }
 
 </style>

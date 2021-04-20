@@ -250,7 +250,7 @@ export default {
     },
 
     async refreshMeta() {
-      console.log("refreshMeta");
+      //console.log("refreshMeta");
       this.meta = undefined;
       if(this.selectedRasterdb === undefined || this.selectedRasterdb === null) {
         this.setVectorView();
@@ -283,7 +283,7 @@ export default {
       });
     },
 
-    refreshWMS() {
+    refreshWMS(resetExtent) {
       var self = this;
 
       if(this.meta === undefined) {
@@ -344,7 +344,9 @@ export default {
       });
 
       this.layerWMS.setSource(this.sourceWMS);
-      this.layerWMS.setExtent(extent);
+      if(resetExtent) {
+        this.layerWMS.setExtent(extent);
+      }
 
       this.setWmsView();
     },
@@ -752,15 +754,15 @@ export default {
     }
   },
   watch: {
-    $route(to) {
+    /*$route(to) {
       console.log(to);
-    },
+    },*/
     selectedRasterdb() {
       this.refreshMeta();
       this.refreshRoute();
     },
     meta() {
-      this.refreshWMS();
+      this.refreshWMS(true);
       this.interactionExtent.setExtent();
       var projectionTitle = 'unknown projection';
       if(this.meta !== undefined && this.meta.ref !== undefined) {
@@ -773,7 +775,7 @@ export default {
       document.getElementById('foot-start-1').innerHTML = projectionTitle;
     },
     selectedTimeSlice() {
-      this.refreshWMS();
+      //this.refreshWMS(false);
       this.refreshRoute();
     },
     selectedProduct() {
