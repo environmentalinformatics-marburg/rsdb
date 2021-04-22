@@ -628,13 +628,17 @@ public class Catalog {
 			log.warn(e);
 		}
 	}
+	
+	public void collectRoles(Set<String> roles) {
+		for(CatalogEntry e:map.values()) {
+			e.acl.collectRoles(roles);
+			e.acl_mod.collectRoles(roles);
+		}
+	}
 
 	public String[] getRoles() {
 		HashSet<String> collector = new HashSet<String>();
-		for(CatalogEntry e:map.values()) {
-			e.acl.collectRoles(collector);
-			e.acl_mod.collectRoles(collector);
-		}
+		collectRoles(collector);
 		String[] result = collector.toArray(new String[0]);
 		Arrays.sort(result, String.CASE_INSENSITIVE_ORDER);
 		return result;

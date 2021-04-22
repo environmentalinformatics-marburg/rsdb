@@ -27,6 +27,7 @@ import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.LoginService;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.security.authentication.DigestAuthenticator;
 import org.eclipse.jetty.server.Connector;
@@ -458,9 +459,9 @@ public class RSDBServer {
 	private static final File REALM_IP_CSV_FILE = new File("realm_ip.csv");
 
 	private static Handler createAuthentication(HandlerList handlerList, Handler handler, Broker broker) {
-		//HashLoginService loginService = new HashLoginService("server");
-		HashLoginService loginService = new HashLoginService(""); // RCurl bug empty realm
-		loginService.setUserStore(broker.getUserStore());
+		/*HashLoginService loginService = new HashLoginService(""); // RCurl bug empty realm
+		loginService.setUserStore(broker.getUserStore());*/
+		LoginService loginService = broker.accountManager();
 		Map<String, String> ipMap = new HashMap<String, String>();
 		if(REALM_IP_CSV_FILE.exists()) {
 			Table ipTable = Table.readCSV(REALM_IP_CSV_FILE, ',');
@@ -472,14 +473,14 @@ public class RSDBServer {
 				if(ipMap.containsKey(ip)) {
 					log.warn("overwrite existing entry of "+ip+"  "+ipMap.get(ip)+" with "+user+"    in "+REALM_IP_CSV_FILE);
 				}
-				if(broker.getUserStore().getUserIdentity(user) == null) {
+				if(broker.accountManager().getUserIdentity(user) == null) {
 					log.warn("user does not exist entry of "+ip+" with "+user+"    in "+REALM_IP_CSV_FILE);
 				}
 				ipMap.put(ip, user);
 			}
 		}
 
-		IpAuthentication ipAuthentication = new IpAuthentication(broker.getUserStore(), ipMap);
+		IpAuthentication ipAuthentication = new IpAuthentication(broker.accountManager(), ipMap);
 
 		JWSAuthentication jwsAuthentication = new JWSAuthentication(broker);
 

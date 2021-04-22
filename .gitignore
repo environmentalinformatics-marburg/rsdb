@@ -22,6 +22,7 @@
 /.classpath
 /.project
 /.Rproj.user
+/accounts.yaml
 /config.yaml
 /keystore
 /realm.properties

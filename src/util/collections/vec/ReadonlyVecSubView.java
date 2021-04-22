@@ -67,7 +67,7 @@ public class ReadonlyVecSubView<T> extends AbstractList<T> implements ReadonlyLi
 	}
 
 	@Override
-	public T[] toArray(IntFunction<T[]> generator) {
+	public <E> E[] toArray(IntFunction<E[]> generator) {
 		return vec.toArray(generator, offset, offset + offset);
 	}
 }

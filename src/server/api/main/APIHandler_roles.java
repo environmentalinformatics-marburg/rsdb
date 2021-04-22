@@ -2,6 +2,8 @@ package server.api.main;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -30,10 +32,16 @@ public class APIHandler_roles extends APIHandler {
 		UserIdentity userIdentity = Web.getUserIdentity(request);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
+		
+		HashSet<String> collector = new HashSet<>();
+		broker.accountManager().collectRoles(collector);
+		broker.catalog.collectRoles(collector);
+		String[] roles = collector.toArray(new String[0]);
+		Arrays.sort(roles, String.CASE_INSENSITIVE_ORDER);		
+		
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("roles");
-		String[] roles = broker.catalog.getRoles();
 		if(!EmptyACL.ADMIN.isAllowed(userIdentity)) {
 			roles = Arrays.stream(roles).filter(role -> userIdentity.isUserInRole(role, null)).toArray(String[]::new);
 		}

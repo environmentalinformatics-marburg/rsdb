@@ -16,6 +16,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
 
+import broker.Account;
 import broker.Broker;
 import broker.acl.FastUserIdentity;
 import server.api.APIHandler;
@@ -53,6 +54,10 @@ public class APIHandler_identity extends APIHandler {
 				log.warn("could not get roles " + e);
 				return new String[] {};
 			}
+		}
+		if(userIdentity instanceof Account) {
+			Account account = ((Account) userIdentity);
+			return account.roles;
 		}
 		log.warn("could not get roles " + userIdentity.getClass());
 		return new String[] {};

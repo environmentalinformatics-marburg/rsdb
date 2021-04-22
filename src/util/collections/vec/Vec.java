@@ -3,26 +3,34 @@ package util.collections.vec;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.stream.Collector.Characteristics;
 
 import util.collections.ReadonlyList;
 import util.collections.array.ReadonlyArray;
 import util.collections.array.ReadonlySizedArray;
 import util.collections.array.iterator.ReadonlyArrayIterator;
 import util.collections.array.iterator.ReadonlyArrayReverseIterator;
+import util.collections.vec.Vec.VecCollector;
 import util.collections.vec.iterator.VecListIterator;
 
 public class Vec<T> implements List<T> {
@@ -128,16 +136,16 @@ public class Vec<T> implements List<T> {
 		return a;
 	}
 	
-	public T[] toArray(IntFunction<T[]> generator) {
+	public <E> E[] toArray(IntFunction<E[]> generator) {
 		int len = size;
-		T[] a = generator.apply(len);
+		E[] a = generator.apply(len);
 		System.arraycopy(items, 0, a, 0, len);
 		return a;
 	}
 	
-	public T[] toArray(IntFunction<T[]> generator, int fromIndex, int toIndex) {
+	public <E> E[] toArray(IntFunction<E[]> generator, int fromIndex, int toIndex) {
 		int len = toIndex - fromIndex;
-		T[] a = generator.apply(len);
+		E[] a = generator.apply(len);
 		System.arraycopy(items, fromIndex, a, 0, len);
 		return a;
 	}
@@ -860,5 +868,44 @@ public class Vec<T> implements List<T> {
 			sum += fun.applyAsInt(data[i]);
 		}
 		return sum;
+	}
+	
+	public static class VecCollector<E> implements Collector<E, Vec<E>, Vec<E>> {
+		
+		private static final EnumSet<Characteristics> CH_ID = EnumSet.of(Collector.Characteristics.IDENTITY_FINISH);
+		
+		private VecCollector() {}
+
+		@Override
+		public Supplier<Vec<E>> supplier() {
+			return Vec::new;
+		}
+
+		@Override
+		public BiConsumer<Vec<E>, E> accumulator() {
+			return Vec::addFast;
+		}
+
+		@Override
+		public BinaryOperator<Vec<E>> combiner() {
+			return (left, right) -> { left.addAll(right); return left; };
+		}
+
+		@Override
+		public Function<Vec<E>, Vec<E>> finisher() {
+			return lds -> lds;
+		}
+
+		@Override
+		public Set<Characteristics> characteristics() {
+			return CH_ID;
+		}
+	}
+	
+	public static final VecCollector<?> COLLECTOR = new VecCollector<>();
+	
+	@SuppressWarnings("unchecked")
+	public static <E> VecCollector<E> collector() {
+		return (VecCollector<E>) COLLECTOR;
 	}
 }

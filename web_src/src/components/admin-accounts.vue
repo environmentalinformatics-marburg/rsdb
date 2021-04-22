@@ -8,25 +8,44 @@
           <v-btn flat icon color="green" @click="refresh()" title="reload accounts from source and refresh view">
             <v-icon>refresh</v-icon>
           </v-btn>
+          {{refreshMessage}}
           </h3>
           <v-divider></v-divider>
           <v-data-table :headers="headers" :items="accounts" v-if="accounts != undefined" hide-actions>
               <template slot="items" slot-scope="props">
-                <td :class="{admin: accountIsAdmin(props.item), empty: props.item.roles.length == 0}"><v-icon v-if="accountIsAdmin(props.item)">admin_panel_settings</v-icon><v-icon v-else>account_box</v-icon><span class="user-list">{{props.item.name}}</span></td>
+                <td :class="{admin: accountIsAdmin(props.item), empty: props.item.roles.length == 0}">
+                  <v-icon v-if="accountIsAdmin(props.item)" title="Account is admin.">admin_panel_settings</v-icon><v-icon v-else title="User account, no admin.">account_box</v-icon>
+                  <v-icon v-if="!props.item.managed" title="Account can not be changed or removed.">lock</v-icon>
+                  <span class="user-list">{{props.item.name}}</span>
+                </td>
                 <td>
                   <span v-for="role in props.item.roles" :key="role"><span class="role-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
                   <span v-if="props.item.roles.length === 0" style="color: grey;">(none)</span>
                 </td>
+                <td v-if="props.item.managed">
+                  <v-btn @click="selectedAccount = props.item; $refs.manage_account.show = true;" icon color="grey lighten-3">
+                    <v-icon title="Manage account.">folder_open</v-icon>
+                  </v-btn>
+                  <v-btn @click="selectedAccount = props.item; $refs.remove_account.show = true;" icon color="grey lighten-3">
+                    <v-icon title="Delete account.">delete_forever</v-icon>
+                  </v-btn>
+                </td>
               </template>
           </v-data-table>
           <v-divider></v-divider>
-          <v-divider></v-divider>
+          <dialog-add-account ref="add_account" @changed="refresh"/>
+          <v-btn @click="$refs.add_account.show = true;" title="Insert a new account."><v-icon>add</v-icon> Add account</v-btn>
+          <dialog-manage-account ref="manage_account" :account="selectedAccount" @changed="refresh"/>
+          <dialog-remove-account ref="remove_account" :account="selectedAccount" @changed="refresh"/>
+          <br>
+          <br>         
+
           <br>
           <h3 class="headline mb-0">Roles</h3>
           <v-divider></v-divider>
           <v-data-table :headers="roles_headers" :items="roles" v-if="acl_roles != undefined" hide-actions>
               <template slot="items" slot-scope="props">
-                <td><v-icon>vpn_key</v-icon><span class="role-list">{{props.item.role}}</span></td>
+                <td><!--<v-icon>vpn_key</v-icon>--><span class="role-list">{{props.item.role}}</span></td>
                 <td>
                   <span v-for="user in props.item.users" :key="user"><span class="user-list">{{user}}</span></span>
                   <!--<span v-if="props.item.users.length === 0" style="color: grey;">(none)</span>-->
@@ -50,36 +69,55 @@
 import { mapState } from 'vuex'
 import axios from 'axios'
 
+import dialogAddAccount from './dialog-add-account.vue'
+import dialogManageAccount from './dialog-manage-account.vue'
+import dialogRemoveAccount from './dialog-remove-account.vue'
+
 export default {
   name: 'admin-overview',
+
+  components: {
+    'dialog-add-account': dialogAddAccount,
+    'dialog-manage-account': dialogManageAccount,
+    'dialog-remove-account': dialogRemoveAccount,
+  },
+
   data() {
     return {
       accounts: undefined,
       accountsError: false,
       accountsErrorMessage: undefined,
+      refreshMessage: 'init...',
 
       headers: [
-        {text: "user", value: "name"},
-        {text: "roles", value: "roles"},        
+        {text: "User", value: "name"},
+        {text: "Roles", value: "roles"},        
+        {text: "Actions", value: "managed"}, 
       ],
       
       roles_headers: [
-        {text: "role", value: "role"},    
-        {text: "users", value: "users"}, 
+        {text: "Role", value: "role"},    
+        {text: "Users", value: "users"}, 
       ],
+
+      selectedAccount: undefined,
     }
   },
   methods: {
     refresh() {
+      this.$store.dispatch('acl_roles/refresh');
+      this.refreshMessage = "Reloading accounts list...";
       var self = this;
       axios.get(this.urlPrefix + '../../api/accounts')
         .then(function(response) {
           self.accounts = response.data.accounts;
+          self.refreshMessage = "";
         })
         .catch(function(error) {
           console.log(error);
           self.accountsError = true;
           self.accountsErrorMessage = "ERROR getting accounts: " + error;
+          self.refreshMessage = "Error loading accounts.";
         });
     },
     accountIsAdmin(account) {
@@ -145,20 +183,20 @@ export default {
  .role-list {
   background-color: rgb(243, 243, 243);
   padding: 5px;
-  border-color: rgb(227, 227, 227);
+  /*border-color: rgb(227, 227, 227);
   border-style: solid;
-  border-width: 1px;
+  border-width: 1px;*/
   margin: 5px;
   border-radius: 25px;
   color: #0064ff;
 }
 
  .user-list {
-  background-color: rgb(219, 219, 219);
   padding: 5px;
-  border-color: rgb(136, 136, 136);
+  background-color: rgb(243, 243, 243);
+  /*border-color: rgb(136, 136, 136);
   border-style: solid;
-  border-width: 1px;
+  border-width: 1px;*/
   margin: 5px;
   border-radius: 3px;
 }

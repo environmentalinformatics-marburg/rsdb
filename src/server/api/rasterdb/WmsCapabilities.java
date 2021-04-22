@@ -84,13 +84,13 @@ public class WmsCapabilities {
 			log.info("load " + name);
 			RasterDB rasterdb = broker.getRasterdb(name);
 			if(rasterdb.getACL().isAllowed(userIdentity)) {
-			// int default_epsg = 4326; // WGS-84 / geographisch 2D weltweites System für
-			// GPS-Geräte, OpenStreetMap Datenbank
-			String default_epsg = "EPSG:3857"; // WGS 84 / Pseudo-Mercator Google Maps, OpenStreetMap und andere
-												// Kartenanbieter im Netz.
-			// int default_epsg = 32737;
-			String code = rasterdb.ref().optCode(default_epsg);
-			addLayer(eRootLayer, code, rasterdb);
+				// int default_epsg = 4326; // WGS-84 / geographisch 2D weltweites System für
+				// GPS-Geräte, OpenStreetMap Datenbank
+				String default_epsg = "EPSG:3857"; // WGS 84 / Pseudo-Mercator Google Maps, OpenStreetMap und andere
+				// Kartenanbieter im Netz.
+				// int default_epsg = 32737;
+				String code = rasterdb.ref().optCode(default_epsg);
+				addLayer(eRootLayer, code, rasterdb);
 			}
 		}
 		return rootElement;
@@ -170,9 +170,9 @@ public class WmsCapabilities {
 			eBoundingBox.setAttribute("maxx", "" + ref.pixelXToGeo(localRange.xmax + 1));
 			eBoundingBox.setAttribute("maxy", "" + ref.pixelYToGeo(localRange.ymax + 1));
 		}
-		
+
 		addTime(eLayer, rasterdb);
-		
+
 		for (WmsStyle style : getWmsStyles(rasterdb)) {
 			addStyle(eLayer, style.name, style.title, style.description);
 		}
@@ -201,6 +201,15 @@ public class WmsCapabilities {
 		ArrayList<WmsStyle> list = new ArrayList<WmsStyle>();
 		if (rasterdb.bandMapReadonly.size() > 1) {
 			list.add(new WmsStyle("color", "color", "best fitting rgb visualisation"));
+		}
+		for (Band band : rasterdb.bandMapReadonly.values()) {
+			String bandName = "band" + band.index;
+			String bandTitle = band.has_title() ? band.title
+					: band.has_wavelength() ? band.wavelength + " nm wavelength" : bandName;
+			String bandDescription = "one band visualisation";
+			list.add(new WmsStyle(bandName, bandTitle, bandDescription));
+		}
+		if (rasterdb.bandMapReadonly.size() > 1) {
 			if (rasterdb.bandMapReadonly.values().stream().anyMatch(Band::has_wavelength)) {
 				list.add(new WmsStyle("ndvi", "NDVI", "ndvi"));
 				list.add(new WmsStyle("evi", "EVI", "evi"));
@@ -214,13 +223,6 @@ public class WmsCapabilities {
 				list.add(new WmsStyle("veg", "VEG", "veg"));
 				list.add(new WmsStyle("tgi", "TGI", "tgi"));
 			}
-		}
-		for (Band band : rasterdb.bandMapReadonly.values()) {
-			String bandName = "band" + band.index;
-			String bandTitle = band.has_title() ? band.title
-					: band.has_wavelength() ? band.wavelength + " nm wavelength" : bandName;
-			String bandDescription = "one band visualisation";
-			list.add(new WmsStyle(bandName, bandTitle, bandDescription));
 		}
 		return list;
 	}

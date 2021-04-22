@@ -86,8 +86,8 @@ public class ReadonlySizedArray<E> implements ReadonlyList<E>, RandomAccess, Ser
 	}
 
 	@Override
-	public E[] toArray(IntFunction<E[]> generator) {
-		E[] r = generator.apply(size);
+	public <T> T[] toArray(IntFunction<T[]> generator) {
+		T[] r = generator.apply(size);
 		System.arraycopy(a, 0, r, 0, size);
 		return r;
 	}

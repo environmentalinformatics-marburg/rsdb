@@ -17,16 +17,16 @@
   <div v-if="meta !== undefined && meta.time_slices.length > 0" >
       <b>Time slice</b>
       <div style="display: flex;">
-      <button @click="movePrevSelectedTimeSlice" :disabled="!selectedTimeSliceIndexHasPrev" :class="{hidden: !selectedTimeSliceIndexHasPrev}">◀</button>
-      <multiselect v-if="meta.time_slices.length > 1" v-model="selectedTimeSlice" :options="meta.time_slices" :searchable="true" :show-labels="false" placeholder="pick a time slice" :allowEmpty="false" trackBy="id">
-        <template slot="singleLabel" slot-scope="{option}">
-          {{option.name}}
-        </template>
-        <template slot="option" slot-scope="{option}">
-          {{option.name}}
-        </template>
-      </multiselect>
-      <button @click="moveNextSelectedTimeSlice" :disabled="!selectedTimeSliceIndexHasNext" :class="{hidden: !selectedTimeSliceIndexHasNext}">▶</button>
+        <button @click="movePrevSelectedTimeSlice" :disabled="!selectedTimeSliceIndexHasPrev" :class="{hidden: !selectedTimeSliceIndexHasPrev}">◀</button>
+        <multiselect v-if="meta.time_slices.length > 1" v-model="selectedTimeSlice" :options="meta.time_slices" :searchable="true" :show-labels="false" placeholder="pick a time slice" :allowEmpty="false" trackBy="id">
+          <template slot="singleLabel" slot-scope="{option}">
+            {{option.name}}
+          </template>
+          <template slot="option" slot-scope="{option}">
+            {{option.name}}
+          </template>
+        </multiselect>
+        <button @click="moveNextSelectedTimeSlice" :disabled="!selectedTimeSliceIndexHasNext" :class="{hidden: !selectedTimeSliceIndexHasNext}">▶</button>
       </div>
       <div v-if="meta.time_slices.length === 1">
         {{meta.time_slices[0].name}}
@@ -35,14 +35,18 @@
 
     <div v-if="styles.length > 0">
       <b>Raster Visualisation</b>
-      <multiselect v-if="styles.length > 1" v-model="selectedProduct" :options="styles" label="title" :searchable="true" :show-labels="false" placeholder="pick a band" :allowEmpty="false" trackBy="name">
-        <template slot="singleLabel" slot-scope="{option}">
-          {{option.name}} - {{option.title}}
-        </template>
-        <template slot="option" slot-scope="{option}">
-          {{option.name}} - {{option.title}}
-        </template>
-      </multiselect>
+      <div style="display: flex;">
+        <button @click="movePrevSelectedProduct" :disabled="!selectedProductIndexHasPrev" :class="{hidden: !selectedProductIndexHasPrev}">◀</button>
+        <multiselect v-if="styles.length > 1" v-model="selectedProduct" :options="styles" label="title" :searchable="true" :show-labels="false" placeholder="pick a band" :allowEmpty="false" trackBy="name">
+          <template slot="singleLabel" slot-scope="{option}">
+            {{option.name}} - {{option.title}}
+          </template>
+          <template slot="option" slot-scope="{option}">
+            {{option.name}} - {{option.title}}
+          </template>
+        </multiselect>
+        <button @click="moveNextSelectedProduct" :disabled="!selectedProductIndexHasNext" :class="{hidden: !selectedProductIndexHasNext}">▶</button>
+      </div>
       <div v-if="selectedProduct !== undefined && selectedProduct !== null &&selectedProduct.name === 'custom'">
         custom: 
         <input type="text" id="name" name="name" class="text-input" placeholder="type text, e.g. [b1,b2,b3]" v-model="customProductText" title="e.g. for RGB visualisation with bands 1,3,5 type: [b1,b3,b5]" />
@@ -154,6 +158,16 @@ export default {
         return this.selectedTimeSlice = this.meta.time_slices[this.selectedTimeSliceIndex + 1];
       }
     },
+    movePrevSelectedProduct() {
+      if(this.selectedProductIndex !== undefined && this.selectedProductIndexHasPrev) {
+        return this.selectedProduct = this.styles[this.selectedProductIndex - 1];
+      }
+    },
+    moveNextSelectedProduct() {
+      if(this.selectedProductIndex !== undefined && this.selectedProductIndexHasNext) {
+        return this.selectedProduct = this.styles[this.selectedProductIndex + 1];
+      }
+    },    
   },
   computed: {
     rasterdbs() {
@@ -167,7 +181,7 @@ export default {
       return this.meta.wms.styles.concat({name: 'custom', title: 'user defined'});
     },
     selectedTimeSliceIndex() {
-      if(this.selectedTimeSlice === undefined || this.selectedTimeSlice === null || this.meta === undefined || this.meta.time_slices === undefined || this.meta.time_slices.length <= 1) {
+      if(this.selectedTimeSlice === undefined || this.selectedTimeSlice === null || this.meta === undefined || this.meta.time_slices === undefined || this.meta.time_slices.length < 1) {
         return undefined;
       }
       var i = this.meta.time_slices.findIndex(timeSlice => timeSlice.id === this.selectedTimeSlice.id);
@@ -190,6 +204,31 @@ export default {
         return false;
       }
       return this.selectedTimeSliceIndex < this.timeSliceIndexMax;
+    },
+    selectedProductIndex() {
+      if(this.selectedProduct === undefined || this.selectedProduct === null || this.styles.length < 1) {
+        return undefined;
+      }
+      var i = this.styles.findIndex(style => style.name === this.selectedProduct.name);
+      return (i >= 0) ? i : undefined;
+    },
+    productIndexMax() {
+      if(this.styles.length < 1) {
+        return undefined;
+      }
+      return this.styles.length - 1;
+    },
+    selectedProductIndexHasPrev() {
+      if(this.selectedProductIndex === undefined) {
+        return false;
+      }
+      return this.selectedProductIndex > 0;
+    },
+    selectedProductIndexHasNext() {
+      if(this.selectedProductIndex === undefined) {
+        return false;
+      }
+      return this.selectedProductIndex < this.productIndexMax;
     },
   },
   watch: {

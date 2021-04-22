@@ -90,9 +90,9 @@ public class ReadonlySubArray<E> implements ReadonlyList<E>, RandomAccess, Seria
 	}
 	
 	@Override
-	public E[] toArray(IntFunction<E[]> generator) {
+	public <T> T[] toArray(IntFunction<T[]> generator) {
 		int len = toIndex - fromIndex;
-		E[] r = generator.apply(len);
+		T[] r = generator.apply(len);
 		System.arraycopy(a, fromIndex, r, 0, len);
 		return r;
 	}

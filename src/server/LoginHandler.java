@@ -30,6 +30,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+import broker.Account;
 import broker.Broker;
 import server.api.main.APIHandler_identity;
 import util.Hex;
@@ -38,17 +39,17 @@ import util.TemplateUtil;
 
 public class LoginHandler extends AbstractHandler {
 	private static final Logger log = LogManager.getLogger();
-	
+
 	public static final String salt = Nonce.get(8);
-	
+
 	public static final String user_salt = Nonce.get(8);
-	
+
 	public static final int user_hash_size = 1;
-	
+
 	public static final Charset charset = StandardCharsets.UTF_8;
 
 	private final Broker broker;
-	
+
 	private static MessageDigest getHasher() {
 		/*SHA3_512 md = new SHA3_512(); // get SHA-3 512
 		return md;*/
@@ -138,33 +139,23 @@ public class LoginHandler extends AbstractHandler {
 	}
 
 	private UserIdentity getUser(String user_hash, String server_nonce, String client_nonce, String client_hash) {
-		Map<String, UserIdentity> userMap = broker.getUserStore().getKnownUserIdentities();
-		for(Entry<String, UserIdentity> e:userMap.entrySet()) {
-			String username = e.getKey();
-			String username_hash = doUser_hash(username);
-			log.info(username + "    " + username_hash + " cmp " + user_hash+ "    user_salt " + user_salt);
-			if(username_hash.equals(user_hash)) {
-				log.info(username + "    " + username_hash + " cmp " + user_hash + "   OK");
-				UserIdentity identity = e.getValue();
-				String password;
-				try {
-					Set<Object> cp = identity.getSubject().getPrivateCredentials();
-					log.info(cp.size());
-					log.info(cp.iterator().next());
-					Object passwordObject = cp.iterator().next();
-					Field f = passwordObject.getClass().getDeclaredField("_pw"); //NoSuchFieldException
-					f.setAccessible(true);
-					password = (String) f.get(passwordObject); //IllegalAccessException
+		Account[] validAccount = new Account[1];
+		broker.accountManager().foreachAccount(account -> {
+			if(validAccount[0] == null) {
+				String username = account.user;
+				String username_hash = doUser_hash(username);
+				log.info(username + "    " + username_hash + " cmp " + user_hash+ "    user_salt " + user_salt);
+				if(username_hash.equals(user_hash)) {
+					log.info(username + "    " + username_hash + " cmp " + user_hash + "   OK");
+					String password = account.password;					
 					if(validate(username, password, server_nonce, client_nonce, client_hash)) {
 						log.info(username_hash + "  " + username + "  " + user_hash + "  VALID");
-						return identity;
+						validAccount[0] = account;
 					}
-				} catch(Exception e1) {
-					log.warn(e1);
 				}
 			}
-		}
-		return null;
+		});
+		return validAccount[0];
 	}
 
 	@Override
@@ -194,7 +185,7 @@ public class LoginHandler extends AbstractHandler {
 			if(!Hex.isValid(client_hash, 128)) {
 				throw new LoginException("missing hash");
 			}
-			
+
 			UserIdentity identity = getUser(user_hash, server_nonce, client_nonce, client_hash);
 			if(identity == null) {
 				log.warn("missing identity");
@@ -227,8 +218,8 @@ public class LoginHandler extends AbstractHandler {
 			UserIdentity userIdentity = new DefaultUserIdentity(subject, principal, roles);
 			Authentication authentication = new UserAuthentication("login", userIdentity);
 			session.setAttribute("authentication", authentication);
-			
-			
+
+
 
 			response.setHeader(HttpHeader.LOCATION.asString(), loc);
 			response.setStatus(HttpServletResponse.SC_FOUND);

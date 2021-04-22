@@ -76,7 +76,10 @@ public class Broker implements AutoCloseable {
 	TreeMap<String, PoiGroup> poiGroupMap = new TreeMap<String, PoiGroup>();
 	TreeMap<String, RoiGroup> roiGroupMap = new TreeMap<String, RoiGroup>(); 
 	public final Catalog catalog;
-	private DynamicPropertyUserStore userStore;
+	
+	private AccountManager accountManager;
+	private volatile AccountManager accountManagerVolatile;
+	private Object accountManagerLoadLock = new Object();
 
 	public Broker() {		
 		if(new File("config.yaml").exists()) {
@@ -782,25 +785,6 @@ public class Broker implements AutoCloseable {
 		return Informal.EMPTY;
 	}
 
-	private synchronized DynamicPropertyUserStore openUserStore() {
-		if(this.userStore == null) {
-			DynamicPropertyUserStore userStore = new DynamicPropertyUserStore();
-			userStore.setConfigPath(REALM_PROPERTIES_PATH);
-			try {
-				userStore.start();
-			} catch (Exception e) {
-				log.error(e);
-			}
-			this.userStore = userStore;
-		}
-		return userStore;
-	}
-
-	public DynamicPropertyUserStore getUserStore() {
-		DynamicPropertyUserStore us = userStore;
-		return us == null ? openUserStore() : us;
-	}
-
 	private synchronized VectorDB openVectorDB(String name) { // guarantee to load each VectorDB once only
 		VectorDB vectordb = vectordbMap.get(name);
 		if(vectordb != null) {
@@ -985,5 +969,25 @@ public class Broker implements AutoCloseable {
 			throw new RuntimeException("renamed Vectordb not found: ["+ newName +"]");
 		}
 	}
+	
+	public AccountManager accountManager() {		
+		return accountManager != null ? accountManager : loadAccountManager();
+	}
 
+	private AccountManager loadAccountManager() {
+		AccountManager a = accountManagerVolatile;
+		if(a != null) {
+			return a;
+		}
+		synchronized (accountManagerLoadLock) {
+			a = accountManagerVolatile;
+			if(a != null) {
+				return a;
+			}
+			a = new AccountManager(Paths.get("accounts.yaml"), Paths.get("realm.properties"));
+			accountManagerVolatile = a;
+			accountManager = a;
+			return a;
+		}
+	}
 }

@@ -1,9 +1,9 @@
 package util.collections;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -88,7 +88,28 @@ public interface ReadonlyList<E> extends List<E> {
 		throw new UnsupportedOperationException("readonly");
 	}
 	
-	public E[] toArray(IntFunction<E[]> generator);
+	public <T> T[] toArray(IntFunction<T[]> generator);
+	
+	public default <T> T[] mapArray(Function<E, T> mapper) {
+		@SuppressWarnings("unchecked")
+		T[] a = (T[]) new Object[size()];
+		int i = 0;
+		for(E e : this) {
+			T v = mapper.apply(e);
+			a[i] = v;
+		}
+		return a;
+	}
+	
+	public default <T> T[] mapArray(IntFunction<T[]> generator, Function<E, T> mapper) {
+		T[] a = generator.apply(size());
+		int i = 0;
+		for(E e : this) {
+			T v = mapper.apply(e);
+			a[i] = v;
+		}
+		return a;
+	}
 	
 	public default E first() {
 		return this.get(0);
