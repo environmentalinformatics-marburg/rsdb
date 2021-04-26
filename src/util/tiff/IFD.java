@@ -246,14 +246,6 @@ public class IFD {
 		add(new IFD_ASCII((short)0x87B1, ascii));
 	}
 	
-	public void add_GDAL_NODATA(short noDataValue) { // TIFF Tag GDAL_NODATA
-		add(new IFD_ASCII((short)0xA481, Short.toString(noDataValue)));
-	}
-	
-	public void add_GDAL_NODATA_float_NaN() { // TIFF Tag GDAL_NODATA
-		add(new IFD_ASCII((short)0xA481, "nan"));
-	}
-	
 	public void add_ImageDescription(String text) { // TIFFTAG_IMAGEDESCRIPTION
 		add(new IFD_ASCII((short)0x010E, text));
 	}
@@ -289,4 +281,16 @@ public class IFD {
 	public void add_TileByteCounts(long... stripByteCounts) {
 		add(new IFD_longs((short) 0x0145, stripByteCounts));
 	}
+	
+	public void add_GDAL_NODATA(short noDataValue) { // TIFF Tag GDAL_NODATA
+		add(new IFD_ASCII((short)0xA481, Short.toString(noDataValue)));
+	}
+	
+	public void add_GDAL_NODATA_float_NaN() { // TIFF Tag GDAL_NODATA
+		add(new IFD_ASCII((short)0xA481, "nan"));
+	}
+	
+	public void add_GDAL_METADATA(String text) { // TIFF Tag GDAL_METADATA,  https://www.awaresystems.be/imaging/tiff/tifftags/gdal_metadata.html
+		add(new IFD_ASCII((short)0xA480, text));
+	}	
 }

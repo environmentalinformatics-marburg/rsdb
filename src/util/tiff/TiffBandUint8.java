@@ -5,8 +5,8 @@ import java.io.IOException;
 
 public abstract class TiffBandUint8 extends TiffBand {
 
-	public TiffBandUint8(int width, int height) {
-		super(width, height);
+	public TiffBandUint8(int width, int height, String description) {
+		super(width, height, description);
 	}
 	
 	protected abstract byte[][] getData();

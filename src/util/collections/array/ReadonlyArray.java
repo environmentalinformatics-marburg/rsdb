@@ -15,13 +15,15 @@ import java.util.stream.Stream;
 
 import util.collections.ReadonlyList;
 import util.collections.array.iterator.ReadonlyArrayIterator;
+import util.collections.vec.IndexedConsumer;
+import util.collections.vec.IndexedThrowableConsumer;
 
-public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializable, Cloneable {
+public class ReadonlyArray<T> implements ReadonlyList<T>, RandomAccess, Serializable, Cloneable {
 	private static final long serialVersionUID = -125263339894434798L;
 
-	private final E[] a;	
+	private final T[] a;	
 
-	public ReadonlyArray(E[] array) {
+	public ReadonlyArray(T[] array) {
 		a = Objects.requireNonNull(array);
 	}
 
@@ -37,7 +39,7 @@ public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializ
 
 	@Override
 	public boolean contains(Object o) {
-		E[] a = this.a;
+		T[] a = this.a;
 		if (o == null) {
 			for (int i = 0; i < a.length; i++)
 				if (a[i] == null)
@@ -51,8 +53,8 @@ public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializ
 	}
 
 	@Override
-	public Iterator<E> iterator() {
-		return new ReadonlyArrayIterator<E>(a);
+	public Iterator<T> iterator() {
+		return new ReadonlyArrayIterator<T>(a);
 	}
 
 	@Override
@@ -62,10 +64,10 @@ public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializ
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(T[] target) { //derived from ArrayList
+	public <E> E[] toArray(E[] target) { //derived from ArrayList
 		int size = a.length;
 		if (target.length < size) {
-			return (T[]) Arrays.copyOf(a, size, target.getClass());
+			return (E[]) Arrays.copyOf(a, size, target.getClass());
 		}
 		System.arraycopy(a, 0, target, 0, size);
 		if (target.length > size) {
@@ -75,9 +77,9 @@ public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializ
 	}
 	
 	@Override
-	public <T> T[] toArray(IntFunction<T[]> generator){
+	public <E> E[] toArray(IntFunction<E[]> generator){
 		int len = a.length;
-		T[] r = generator.apply(len);
+		E[] r = generator.apply(len);
 		System.arraycopy(a, 0, r, 0, len);
 		return r;
 	}
@@ -101,7 +103,7 @@ public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializ
 		if (getClass() != obj.getClass())
 			return false;
 		@SuppressWarnings("unchecked")
-		ReadonlyArray<E> other = (ReadonlyArray<E>) obj;
+		ReadonlyArray<T> other = (ReadonlyArray<T>) obj;
 		if (!Arrays.equals(a, other.a))
 			return false;
 		return true;
@@ -113,19 +115,37 @@ public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializ
 	}
 
 	@Override
-	public void forEach(Consumer<? super E> action) {		
-		for(E e:a) {
+	public void forEach(Consumer<? super T> action) {		
+		for(T e:a) {
 			action.accept(e);
+		}
+	}
+	
+	@Override
+	public void forEachIndexed(IndexedConsumer<? super T> consumer) {
+		T[] data = a;
+		int len = data.length;
+		for (int i = 0; i < len; i++) {
+			consumer.accept(data[i], i);
+		}
+	}
+	
+	@Override
+	public <E extends Exception> void forEachIndexedThrowable(IndexedThrowableConsumer<? super T, E> consumer) throws E {
+		T[] data = a;
+		int len = data.length;
+		for (int i = 0; i < len; i++) {
+			consumer.accept(data[i], i);
 		}
 	}
 
 	@Override
-	public Spliterator<E> spliterator() {
+	public Spliterator<T> spliterator() {
 		return Arrays.spliterator(a);
 	}
 
 	@Override
-	public Stream<E> stream() {
+	public Stream<T> stream() {
 		return Arrays.stream(a);
 	}
 
@@ -136,11 +156,11 @@ public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializ
 
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		return new ReadonlyArray<E>(a.clone());
+		return new ReadonlyArray<T>(a.clone());
 	}
 
 	@Override
-	public E get(int index) {
+	public T get(int index) {
 		return a[index];
 	}
 
@@ -175,17 +195,17 @@ public class ReadonlyArray<E> implements ReadonlyList<E>, RandomAccess, Serializ
     }
 
 	@Override
-	public ListIterator<E> listIterator() {
-		return new ReadonlyArrayIterator<E>(a);
+	public ListIterator<T> listIterator() {
+		return new ReadonlyArrayIterator<T>(a);
 	}
 
 	@Override
-	public ListIterator<E> listIterator(int index) {
-		return new ReadonlyArrayIterator<E>(a, index, a.length);
+	public ListIterator<T> listIterator(int index) {
+		return new ReadonlyArrayIterator<T>(a, index, a.length);
 	}
 
 	@Override
-	public List<E> subList(int fromIndex, int toIndex) {
-		return new ReadonlySubArray<E>(a, fromIndex, toIndex);
+	public List<T> subList(int fromIndex, int toIndex) {
+		return new ReadonlySubArray<T>(a, fromIndex, toIndex);
 	}
 }

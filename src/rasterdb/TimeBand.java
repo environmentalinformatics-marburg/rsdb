@@ -35,4 +35,8 @@ public class TimeBand {
 		}
 		return timebands;
 	}
+	
+	public String toDescription() {
+		return band.title;
+	}
 }

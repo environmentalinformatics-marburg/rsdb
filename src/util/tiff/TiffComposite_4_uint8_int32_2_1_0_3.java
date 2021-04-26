@@ -3,10 +3,12 @@ package util.tiff;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import util.collections.ReadonlyList;
+
 public abstract class TiffComposite_4_uint8_int32_2_1_0_3 extends TiffComposite_4_uint8 {
 
-	public TiffComposite_4_uint8_int32_2_1_0_3(int width, int height) {
-		super(width, height);//short[] bitsPerSample
+	public TiffComposite_4_uint8_int32_2_1_0_3(int width, int height, ReadonlyList<String> bandDescriptions) {
+		super(width, height, bandDescriptions);//short[] bitsPerSample
 	}
 
 	protected abstract int[] getData();

@@ -206,7 +206,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 				ShortFrame frame = processor.getShortFrame(timeband);
 				short na = timeband.band.getInt16NA();
 				short[][] dstData = ScaleDownMax2.scaleDownMax2(frame.data, srcRange.getWidth(), srcRange.getHeight(), dstWidth, dstHeight, na);
-				tiffWriter.addTiffBand(TiffBand.ofInt16(dstData));
+				tiffWriter.addTiffBand(TiffBand.ofInt16(dstData, timeband.toDescription()));
 				if(noDataValue == null) {
 					noDataValue = timeband.band.getInt16NA();
 				}
@@ -215,7 +215,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			case FLOAT32: {
 				FloatFrame frame = processor.getFloatFrame(timeband);
 				float[][] dstData = ScaleDownMax2.scaleDownMax2(frame.data, srcRange.getWidth(), srcRange.getHeight(), dstWidth, dstHeight);
-				tiffWriter.addTiffBand(TiffBand.ofFloat32(dstData));
+				tiffWriter.addTiffBand(TiffBand.ofFloat32(dstData, timeband.toDescription()));
 				break;
 			}
 			default:
@@ -298,7 +298,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 					for(int y = 0; y < dstHeight; y++) {
 						gdalBand.ReadRaster(0, y, dstWidth, 1, gdalDataType, dstData[y]);
 					}
-					tiffWriter.addTiffBand(TiffBand.ofInt16(dstData));
+					tiffWriter.addTiffBand(TiffBand.ofInt16(dstData, timeband.toDescription()));
 					if(noDataValue == null) {
 						noDataValue = timeband.band.getInt16NA();
 					}
@@ -309,7 +309,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 					for(int y = 0; y < dstHeight; y++) {
 						gdalBand.ReadRaster(0, y, dstWidth, 1, gdalDataType, dstData[y]);
 					}
-					tiffWriter.addTiffBand(TiffBand.ofFloat32(dstData));
+					tiffWriter.addTiffBand(TiffBand.ofFloat32(dstData, timeband.toDescription()));
 					break;
 				}
 				case FLOAT64: {
@@ -317,7 +317,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 					for(int y = 0; y < dstHeight; y++) {
 						gdalBand.ReadRaster(0, y, dstWidth, 1, gdalDataType, dstData[y]);
 					}
-					tiffWriter.addTiffBand(TiffBand.ofFloat64(dstData));
+					tiffWriter.addTiffBand(TiffBand.ofFloat64(dstData, timeband.toDescription()));
 					break;
 				}
 				default:

@@ -101,8 +101,16 @@ public class ReadonlyVecView<T> implements ReadonlyList<T> {
 	}
 
 	@Override
-	public void forEach(Consumer<? super T> arg0) {
-		vec.forEach(arg0);
+	public void forEach(Consumer<? super T> consumer) {
+		vec.forEach(consumer);
+	}
+	
+	public void forEachIndexed(IndexedConsumer<? super T> consumer) {
+		vec.forEachIndexed(consumer);
+	}
+	
+	public <E extends Exception> void forEachIndexedThrowable(IndexedThrowableConsumer<? super T, E> consumer) throws E {
+		vec.forEachIndexedThrowable(consumer);
 	}
 
 	@Override

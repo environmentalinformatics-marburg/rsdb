@@ -52,6 +52,24 @@ public class ReadonlyVecSubView<T> extends AbstractList<T> implements ReadonlyLi
 			consumer.accept(data[i]);
 		}
 	}
+	
+	@Override
+	public void forEachIndexed(IndexedConsumer<? super T> consumer) {
+		int len = offset + size;
+		T[] data = vec.items;
+		for (int i = offset; i < len; i++) {
+			consumer.accept(data[i], i - offset);
+		}
+	}
+	
+	@Override
+	public <E extends Exception> void forEachIndexedThrowable(IndexedThrowableConsumer<? super T, E> consumer) throws E {
+		int len = offset + size;
+		T[] data = vec.items;
+		for (int i = offset; i < len; i++) {
+			consumer.accept(data[i], i - offset);
+		}
+	}
 
 	@Override
 	public Spliterator<T> spliterator() {

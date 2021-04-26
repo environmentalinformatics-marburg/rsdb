@@ -10,8 +10,8 @@ public abstract class TiffBandFloat64Slice extends TiffBandFloat64 {
 	public final int xoff;
 	public final int yoff;
 
-	public TiffBandFloat64Slice(int xoff, int yoff, int xlen, int ylen) {
-		super(xlen, ylen);
+	public TiffBandFloat64Slice(int xoff, int yoff, int xlen, int ylen, String description) {
+		super(xlen, ylen, description);
 		this.xoff = xoff;
 		this.yoff = yoff;
 	}	

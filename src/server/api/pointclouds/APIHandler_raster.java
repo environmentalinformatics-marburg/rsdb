@@ -237,10 +237,10 @@ public class APIHandler_raster {
 			short epsg = pointcloud.getEPSGcode();
 			TiffWriter tiffWriter = new TiffWriter(width, height, proc_xmin, proc_ymin, res, res, epsg);
 			if(int_grid != null) {
-				tiffWriter.addTiffBand(TiffBand.ofInt32(int_grid));
+				tiffWriter.addTiffBand(TiffBand.ofInt32(int_grid, type));
 			}
 			if(double_grid != null) {
-				tiffWriter.addTiffBand(TiffBand.ofFloat64(double_grid));
+				tiffWriter.addTiffBand(TiffBand.ofFloat64(double_grid, type));
 			}
 			receiver.setStatus(HttpServletResponse.SC_OK);
 			receiver.setContentType("image/tiff");

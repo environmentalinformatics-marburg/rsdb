@@ -2,11 +2,17 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Objects;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import rasterdb.Band;
+import util.CharArrayWriterUnsync;
 import util.Util;
 import util.collections.vec.Vec;
 
@@ -174,7 +180,6 @@ public class TiffWriter {
 			if(tileByteCountIndex != tileCount) {
 				throw new RuntimeException();
 			}
-
 		} else if (tiffComposite != null) {			
 			bitsPerSample = tiffComposite.getBitsPerSample();
 			samplesPerPixel = bitsPerSample.length;			
@@ -248,6 +253,60 @@ public class TiffWriter {
 			ifd.add_GDAL_NODATA_float_NaN();
 		}
 
+		if(true) {
+			try {
+				CharArrayWriterUnsync writer = new CharArrayWriterUnsync();
+				XMLOutputFactory factory = XMLOutputFactory.newInstance();
+				factory.setProperty("escapeCharacters", false);
+				XMLStreamWriter xmlWriter = factory.createXMLStreamWriter(writer);				
+				//xmlWriter.writeStartDocument(); // xml meta tag
+				xmlWriter.writeStartElement("GDALMetadata");
+				if(!tiffBands.isEmpty()) {
+					tiffBands.forEachIndexedThrowable((TiffBand band, int i) -> {
+						if(band.description != null && !band.description.isEmpty()) {
+							xmlWriter.writeStartElement("Item");
+							xmlWriter.writeAttribute("name", "DESCRIPTION");
+							xmlWriter.writeAttribute("sample", Integer.toString(i));
+							xmlWriter.writeAttribute("role", "description");
+							xmlWriter.writeCharacters(band.description);
+							xmlWriter.writeEndElement(); // Item
+						}
+					});
+				} else if (!tiffTiledBands.isEmpty()) {
+					tiffTiledBands.forEachIndexedThrowable((TiffBand band, int i) -> {
+						if(band.description != null && !band.description.isEmpty()) {
+							xmlWriter.writeStartElement("Item");
+							xmlWriter.writeAttribute("name", "DESCRIPTION");
+							xmlWriter.writeAttribute("sample", Integer.toString(i));
+							xmlWriter.writeAttribute("role", "description");
+							xmlWriter.writeCharacters(band.description);
+							xmlWriter.writeEndElement(); // Item
+						}
+					});
+				} else if (tiffComposite != null) {
+					tiffComposite.bandDescriptions.forEachIndexedThrowable((String description, int i) -> {
+						if(description != null && !description.isEmpty()) {
+							xmlWriter.writeStartElement("Item");
+							xmlWriter.writeAttribute("name", "DESCRIPTION");
+							xmlWriter.writeAttribute("sample", Integer.toString(i));
+							xmlWriter.writeAttribute("role", "description");
+							xmlWriter.writeCharacters(description);
+							xmlWriter.writeEndElement(); // Item
+						}
+					});
+				} else {
+					log.warn("IFD: no data in tiff");
+				}
+				xmlWriter.writeEndElement(); // GDALMetadata
+				xmlWriter.writeEndDocument();
+				xmlWriter.close();				
+				String text = writer.toString();				
+				ifd.add_GDAL_METADATA(text);
+			} catch (Exception e) {
+				log.warn(e);
+			}
+		}
+
 		ifd.add_Orientation_top_left();
 
 		return ifd;
@@ -318,8 +377,18 @@ public class TiffWriter {
 			long h1 = writeMetaTIFF(DataOutputNull.DEFAULT);
 			long h2 = writeMetaBigTIFF(DataOutputNull.DEFAULT);
 			long pos = h1 < h2 ? h2 : h1;
-			for(TiffBand tiffBand:tiffBands) {
-				pos += tiffBand.getDataSize();
+			if(!tiffBands.isEmpty()) {
+				for(TiffBand tiffBand:tiffBands) {
+					pos += tiffBand.getDataSize();
+				}
+			} else if (!tiffTiledBands.isEmpty()) {
+				for(TiffBand tiffBand:tiffTiledBands) {
+					pos += tiffBand.getDataSize();
+				}
+			} else if (tiffComposite != null) {	
+				pos += tiffComposite.getDataSize();
+			} else {
+				throw new RuntimeException("no data in tiff");
 			}
 			return pos;
 		} catch (IOException e) {
@@ -330,8 +399,18 @@ public class TiffWriter {
 	public long exactSizeOfWriteAuto() {
 		try {
 			long pos = isAutoBigTiff() ? writeMetaBigTIFF(DataOutputNull.DEFAULT) : writeMetaTIFF(DataOutputNull.DEFAULT);
-			for(TiffBand tiffBand:tiffBands) {
-				pos += tiffBand.getDataSize();
+			if(!tiffBands.isEmpty()) {
+				for(TiffBand tiffBand:tiffBands) {
+					pos += tiffBand.getDataSize();
+				}
+			} else if (!tiffTiledBands.isEmpty()) {
+				for(TiffBand tiffBand:tiffTiledBands) {
+					pos += tiffBand.getDataSize();
+				}
+			} else if (tiffComposite != null) {	
+				pos += tiffComposite.getDataSize();
+			} else {
+				throw new RuntimeException("no data in tiff");
 			}
 			return pos;
 		} catch (IOException e) {

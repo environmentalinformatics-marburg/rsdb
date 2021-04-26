@@ -10,8 +10,8 @@ import org.apache.logging.log4j.Logger;
 public abstract class TiffTiledBandFloat32 extends TiffTiledBand {	
 	private static final Logger log = LogManager.getLogger();
 
-	public TiffTiledBandFloat32(int width, int height, int tileWidth, int tileHeight) {
-		super(width, height, tileWidth, tileHeight);
+	public TiffTiledBandFloat32(int width, int height, int tileWidth, int tileHeight, String description) {
+		super(width, height, tileWidth, tileHeight, description);
 	}
 
 	protected abstract Iterator<float[][]> getTiles();

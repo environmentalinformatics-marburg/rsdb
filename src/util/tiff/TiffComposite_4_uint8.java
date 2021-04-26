@@ -1,9 +1,11 @@
 package util.tiff;
 
+import util.collections.ReadonlyList;
+
 public abstract class TiffComposite_4_uint8 extends TiffComposite {
 
-	public TiffComposite_4_uint8(int width, int height) {
-		super(width, height);//short[] bitsPerSample
+	public TiffComposite_4_uint8(int width, int height, ReadonlyList<String> bandDescriptions) {
+		super(width, height, bandDescriptions);
 	}
 	
 	@Override

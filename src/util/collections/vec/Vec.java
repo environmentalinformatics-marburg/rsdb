@@ -97,14 +97,28 @@ public class Vec<T> implements List<T> {
 		return new ReverseIterableVecView<T>(this);
 	}
 
-
-
 	@Override
 	public void forEach(Consumer<? super T> consumer) {
 		int len = size;
 		T[] data = items;
 		for (int i = 0; i < len; i++) {
 			consumer.accept(data[i]);
+		}
+	}
+	
+	public void forEachIndexed(IndexedConsumer<? super T> consumer) {
+		int len = size;
+		T[] data = items;
+		for (int i = 0; i < len; i++) {
+			consumer.accept(data[i], i);
+		}
+	}
+	
+	public <E extends Exception> void forEachIndexedThrowable(IndexedThrowableConsumer<? super T, E> consumer) throws E {
+		int len = size;
+		T[] data = items;
+		for (int i = 0; i < len; i++) {
+			consumer.accept(data[i], i);
 		}
 	}
 

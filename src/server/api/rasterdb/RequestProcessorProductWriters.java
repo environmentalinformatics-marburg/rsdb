@@ -68,7 +68,7 @@ public class RequestProcessorProductWriters {
 
 		//Short noDataValue = null;
 		for(DoubleFrame doubleFrame : doubleFrames) {
-			tiffWriter.addTiffBand(TiffBand.ofFloat64(dstWidth, dstHeight, doubleFrame.data));
+			tiffWriter.addTiffBand(TiffBand.ofFloat64(dstWidth, dstHeight, doubleFrame.data, productText));
 		}
 		//tiffWriter.setNoDataValue(noDataValue);
 		resceiver.setStatus(HttpServletResponse.SC_OK);

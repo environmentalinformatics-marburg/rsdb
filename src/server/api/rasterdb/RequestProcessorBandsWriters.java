@@ -159,16 +159,16 @@ public class RequestProcessorBandsWriters {
 		for(TimeBand timeband : processingBands) {				
 			switch(tiffdataType) { // all bands need same data type for tiff reader compatibility (e.g. GDAL)
 			case INT16:
-				tiffWriter.addTiffBand(TiffBand.ofInt16(dstWidth, dstHeight, ()->processor.getShortFrame(timeband).data));
+				tiffWriter.addTiffBand(TiffBand.ofInt16(dstWidth, dstHeight, ()->processor.getShortFrame(timeband).data, timeband.toDescription()));
 				if(noDataValue == null) {
 					noDataValue = timeband.band.getInt16NA();
 				}
 				break;
 			case FLOAT32:
-				tiffWriter.addTiffBand(TiffBand.ofFloat32(dstWidth, dstHeight, ()->processor.getFloatFrame(timeband).data));
+				tiffWriter.addTiffBand(TiffBand.ofFloat32(dstWidth, dstHeight, ()->processor.getFloatFrame(timeband).data, timeband.toDescription()));
 				break;
 			case FLOAT64:
-				tiffWriter.addTiffBand(TiffBand.ofFloat64(dstWidth, dstHeight, ()->processor.getDoubleFrame(timeband).data));
+				tiffWriter.addTiffBand(TiffBand.ofFloat64(dstWidth, dstHeight, ()->processor.getDoubleFrame(timeband).data, timeband.toDescription()));
 				break;
 			default:
 				throw new RuntimeException("unknown tiff data type");
@@ -219,7 +219,7 @@ public class RequestProcessorBandsWriters {
 					TiffTiledBandInt16 tiffTiledBand = TiffTiledBand.ofInt16Iterator(dstWidth, dstHeight, 256, 256, () -> {						
 						short[][] empty = new short[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
 						return new TileShortToShortIterator(tileIterator.get(), empty);
-					});
+					}, timeband.toDescription());
 					tiffWriter.addTiffTiledBand(tiffTiledBand);					
 					break;
 				}
@@ -229,7 +229,7 @@ public class RequestProcessorBandsWriters {
 						short na_target = 0;
 						short[][] empty = new short[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
 						return new TileFloatToShortIterator(tileIterator.get(), empty, na_target);
-					});
+					}, timeband.toDescription());
 					tiffWriter.addTiffTiledBand(tiffTiledBand);					
 					break;
 				}
@@ -246,7 +246,7 @@ public class RequestProcessorBandsWriters {
 					TiffTiledBandFloat32 tiffTiledBand = TiffTiledBand.ofFloat32Iterator(dstWidth, dstHeight, 256, 256, () -> {						
 						float[][] empty = new float[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
 						return new TileShortToFloatIterator(tileIterator.get(), empty, timeband.band.getInt16NA());
-					});
+					}, timeband.toDescription());
 					tiffWriter.addTiffTiledBand(tiffTiledBand);
 					break;
 				}
@@ -254,7 +254,7 @@ public class RequestProcessorBandsWriters {
 					TiffTiledBandFloat32 tiffTiledBand = TiffTiledBand.ofFloat32Iterator(dstWidth, dstHeight, 256, 256, () -> {						
 						float[][] empty = new float[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
 						return new TileFloatToFloatIterator(tileIterator.get(), empty);
-					});
+					}, timeband.toDescription());
 					tiffWriter.addTiffTiledBand(tiffTiledBand);
 					break;
 				}

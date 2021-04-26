@@ -9,9 +9,11 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import util.collections.array.ReadonlyArray;
+import util.collections.vec.IndexedConsumer;
+import util.collections.vec.IndexedThrowableConsumer;
 import util.collections.vec.Vec;
 
-public interface ReadonlyList<E> extends List<E> {
+public interface ReadonlyList<T> extends List<T> {
 	
 	@SuppressWarnings("rawtypes")
 	public static final ReadonlyArray EMPTY = new ReadonlyArray<>(new Object[0]);
@@ -24,12 +26,12 @@ public interface ReadonlyList<E> extends List<E> {
 	}
 	
 	@Override
-	public default boolean add(E e) {
+	public default boolean add(T e) {
 		throw new UnsupportedOperationException("readonly");
 	}
 	
 	@Override
-	public default boolean addAll(int index, Collection<? extends E> c) {
+	public default boolean addAll(int index, Collection<? extends T> c) {
 		throw new UnsupportedOperationException("readonly");
 	}
 
@@ -39,7 +41,7 @@ public interface ReadonlyList<E> extends List<E> {
 	}
 	
 	@Override
-	public default boolean addAll(Collection<? extends E> c) {
+	public default boolean addAll(Collection<? extends T> c) {
 		throw new UnsupportedOperationException("readonly");
 	}
 
@@ -59,69 +61,73 @@ public interface ReadonlyList<E> extends List<E> {
 	}
 	
 	@Override
-	public default E set(int index, E element) {
+	public default T set(int index, T element) {
 		throw new UnsupportedOperationException("readonly");
 	}
 
 	@Override
-	public default void add(int index, E element) {
+	public default void add(int index, T element) {
 		throw new UnsupportedOperationException("readonly");		
 	}
 
 	@Override
-	public default E remove(int index) {
+	public default T remove(int index) {
 		throw new UnsupportedOperationException("readonly");
 	}
 	
 	@Override
-	public default boolean removeIf(Predicate<? super E> filter) {
+	public default boolean removeIf(Predicate<? super T> filter) {
 		throw new UnsupportedOperationException("readonly");
 	}
 	
 	@Override
-	default void replaceAll(UnaryOperator<E> operator) {
+	default void replaceAll(UnaryOperator<T> operator) {
 		throw new UnsupportedOperationException("readonly");
 	}
 
 	@Override
-	default void sort(Comparator<? super E> c) {
+	default void sort(Comparator<? super T> c) {
 		throw new UnsupportedOperationException("readonly");
 	}
 	
-	public <T> T[] toArray(IntFunction<T[]> generator);
+	public <E> E[] toArray(IntFunction<E[]> generator);
 	
-	public default <T> T[] mapArray(Function<E, T> mapper) {
+	public default <E> E[] mapArray(Function<T, E> mapper) {
 		@SuppressWarnings("unchecked")
-		T[] a = (T[]) new Object[size()];
+		E[] a = (E[]) new Object[size()];
 		int i = 0;
-		for(E e : this) {
-			T v = mapper.apply(e);
+		for(T e : this) {
+			E v = mapper.apply(e);
 			a[i] = v;
 		}
 		return a;
 	}
 	
-	public default <T> T[] mapArray(IntFunction<T[]> generator, Function<E, T> mapper) {
-		T[] a = generator.apply(size());
+	public default <E> E[] mapArray(IntFunction<E[]> generator, Function<T, E> mapper) {
+		E[] a = generator.apply(size());
 		int i = 0;
-		for(E e : this) {
-			T v = mapper.apply(e);
+		for(T e : this) {
+			E v = mapper.apply(e);
 			a[i] = v;
 		}
 		return a;
 	}
 	
-	public default E first() {
+	public default T first() {
 		return this.get(0);
 	}
 	
-	public default E last() {
+	public default T last() {
 		return get(size() - 1);
 	}
 	
-	default public Vec<E> copyVec() {
+	default public Vec<T> copyVec() {
 		@SuppressWarnings("unchecked")
-		E[] elements = (E[]) toArray();
-		return new Vec<E>(elements);		
+		T[] elements = (T[]) toArray();
+		return new Vec<T>(elements);		
 	}
+	
+	public void forEachIndexed(IndexedConsumer<? super T> consumer);
+	
+	public <E extends Exception> void forEachIndexedThrowable(IndexedThrowableConsumer<? super T, E> consumer) throws E;
 }

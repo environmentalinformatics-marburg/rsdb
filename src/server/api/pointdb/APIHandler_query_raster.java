@@ -100,7 +100,7 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 			TiffWriter tiffWriter = new TiffWriter(width, height, geoXmin, geoYmin, xScale, yScale, (short)pointdb.config.getEPSG());
 			for(RasterSubGrid rasterSubGrid:rasterSubGrids) {
 				log.info(rasterSubGrid);
-				tiffWriter.addTiffBand(TiffBand.ofFloat64(rasterSubGrid.start_x, rasterSubGrid.start_y, rasterSubGrid.range_x, rasterSubGrid.range_y, rasterSubGrid.data));
+				tiffWriter.addTiffBand(TiffBand.ofFloat64(rasterSubGrid.start_x, rasterSubGrid.start_y, rasterSubGrid.range_x, rasterSubGrid.range_y, rasterSubGrid.data, processingType));
 			}
 			receiver.setStatus(HttpServletResponse.SC_OK);
 			receiver.setContentType("image/tiff");

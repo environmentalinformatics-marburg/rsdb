@@ -7,8 +7,8 @@ import util.Serialisation;
 
 public abstract class TiffBandInt16 extends TiffBand {
 
-	public TiffBandInt16(int width, int height) {
-		super(width, height);
+	public TiffBandInt16(int width, int height, String description) {
+		super(width, height, description);
 	}
 
 	protected abstract short[][] getData();

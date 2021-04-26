@@ -7,8 +7,8 @@ import util.Serialisation;
 
 public abstract class TiffBandFloat32 extends TiffBand {
 
-	public TiffBandFloat32(int width, int height) {
-		super(width, height);
+	public TiffBandFloat32(int width, int height, String description) {
+		super(width, height, description);
 	}
 	
 	protected abstract float[][] getData();

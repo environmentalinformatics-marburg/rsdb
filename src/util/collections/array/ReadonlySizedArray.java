@@ -17,14 +17,16 @@ import java.util.stream.Stream;
 
 import util.collections.ReadonlyList;
 import util.collections.array.iterator.ReadonlyArrayIterator;
+import util.collections.vec.IndexedConsumer;
+import util.collections.vec.IndexedThrowableConsumer;
 
-public class ReadonlySizedArray<E> implements ReadonlyList<E>, RandomAccess, Serializable, Cloneable {
+public class ReadonlySizedArray<T> implements ReadonlyList<T>, RandomAccess, Serializable, Cloneable {
 	private static final long serialVersionUID = -373989095388709654L;
 
-	private final E[] a;
+	private final T[] a;
 	private final int size;
 
-	public ReadonlySizedArray(E[] array, int size) {
+	public ReadonlySizedArray(T[] array, int size) {
 		a = Objects.requireNonNull(array);
 		if(size < 0 || size > a.length) {
 			throw new IndexOutOfBoundsException(""+size);
@@ -44,7 +46,7 @@ public class ReadonlySizedArray<E> implements ReadonlyList<E>, RandomAccess, Ser
 
 	@Override
 	public boolean contains(Object o) {
-		E[] a = this.a;
+		T[] a = this.a;
 		if (o == null) {
 			for (int i = 0; i < size; i++)
 				if (a[i] == null)
@@ -58,23 +60,23 @@ public class ReadonlySizedArray<E> implements ReadonlyList<E>, RandomAccess, Ser
 	}
 
 	@Override
-	public Iterator<E> iterator() {
-		return new ReadonlyArrayIterator<E>(a, 0, size);
+	public Iterator<T> iterator() {
+		return new ReadonlyArrayIterator<T>(a, 0, size);
 	}
 
 	@Override
 	public Object[] toArray() {
 		@SuppressWarnings("unchecked")
-		E[] r = (E[]) Array.newInstance(a.getClass().getComponentType(), size);
+		T[] r = (T[]) Array.newInstance(a.getClass().getComponentType(), size);
 		System.arraycopy(a, 0, r, 0, size);
 		return r;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(T[] target) {
+	public <E> E[] toArray(E[] target) {
 		if (target.length < size) {
-			T[] r = (T[]) Array.newInstance(target.getClass().getComponentType(), size);
+			E[] r = (E[]) Array.newInstance(target.getClass().getComponentType(), size);
 			System.arraycopy(a, 0, r, 0, size);
 			return r;
 		}
@@ -86,8 +88,8 @@ public class ReadonlySizedArray<E> implements ReadonlyList<E>, RandomAccess, Ser
 	}
 
 	@Override
-	public <T> T[] toArray(IntFunction<T[]> generator) {
-		T[] r = generator.apply(size);
+	public <E> E[] toArray(IntFunction<E[]> generator) {
+		E[] r = generator.apply(size);
 		System.arraycopy(a, 0, r, 0, size);
 		return r;
 	}
@@ -128,24 +130,42 @@ public class ReadonlySizedArray<E> implements ReadonlyList<E>, RandomAccess, Ser
 	}
 
 	@Override
-	public void forEach(Consumer<? super E> action) {		
+	public void forEach(Consumer<? super T> action) {		
 		for (int i = 0; i < size; i++) {
 			action.accept(a[i]);
 		}
 	}
+	
+	@Override
+	public void forEachIndexed(IndexedConsumer<? super T> consumer) {
+		int len = size;
+		T[] data = a;
+		for (int i = 0; i < len; i++) {
+			consumer.accept(data[i], i);
+		}
+	}
+	
+	@Override
+	public <E extends Exception> void forEachIndexedThrowable(IndexedThrowableConsumer<? super T, E> consumer) throws E {
+		int len = size;
+		T[] data = a;
+		for (int i = 0; i < len; i++) {
+			consumer.accept(data[i], i);
+		}
+	}
 
 	@Override
-	public Spliterator<E> spliterator() {
+	public Spliterator<T> spliterator() {
 		return Arrays.spliterator(a, 0, size);
 	}
 
 	@Override
-	public boolean removeIf(Predicate<? super E> filter) {
+	public boolean removeIf(Predicate<? super T> filter) {
 		throw new UnsupportedOperationException("readonly");
 	}
 
 	@Override
-	public Stream<E> stream() {
+	public Stream<T> stream() {
 		return Arrays.stream(a, 0, size);
 	}
 
@@ -170,16 +190,16 @@ public class ReadonlySizedArray<E> implements ReadonlyList<E>, RandomAccess, Ser
 
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		return new ReadonlySizedArray<E>(a.clone(),size);
+		return new ReadonlySizedArray<T>(a.clone(),size);
 	}
 
 	@Override
-	public boolean addAll(int index, Collection<? extends E> c) {
+	public boolean addAll(int index, Collection<? extends T> c) {
 		throw new UnsupportedOperationException("readonly");
 	}
 
 	@Override
-	public E get(int index) {
+	public T get(int index) {
 		if(index >= size) {
 			throw new IndexOutOfBoundsException(""+index);
 		}
@@ -218,20 +238,20 @@ public class ReadonlySizedArray<E> implements ReadonlyList<E>, RandomAccess, Ser
 	}
 
 	@Override
-	public ListIterator<E> listIterator() {
-		return new ReadonlyArrayIterator<E>(a, 0, size);
+	public ListIterator<T> listIterator() {
+		return new ReadonlyArrayIterator<T>(a, 0, size);
 	}
 
 	@Override
-	public ListIterator<E> listIterator(int index) {
-		return new ReadonlyArrayIterator<E>(a, index, size);
+	public ListIterator<T> listIterator(int index) {
+		return new ReadonlyArrayIterator<T>(a, index, size);
 	}
 
 	@Override
-	public List<E> subList(int fromIndex, int toIndex) {
+	public List<T> subList(int fromIndex, int toIndex) {
 		if(fromIndex < 0 || toIndex > this.size) {
 			throw new IndexOutOfBoundsException(""+fromIndex+" "+toIndex);
 		}
-		return new ReadonlySubArray<E>(a, fromIndex, toIndex);
+		return new ReadonlySubArray<T>(a, fromIndex, toIndex);
 	}
 }

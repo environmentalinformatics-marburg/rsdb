@@ -8,8 +8,8 @@ public abstract class TiffTiledBand extends TiffBand {
 	public final int tileWidth;
 	public final int tileHeight;
 
-	public TiffTiledBand(int width, int height, int tileWidth, int tileHeight) {
-		super(width, height);
+	public TiffTiledBand(int width, int height, int tileWidth, int tileHeight, String description) {
+		super(width, height, description);
 		if(width % tileWidth != 0) {
 			throw new RuntimeException("width is no multiple of tileWidth: " + width + "  " + tileWidth);
 		}
@@ -49,8 +49,8 @@ public abstract class TiffTiledBand extends TiffBand {
 		return tileSizes;
 	}
 	
-	public static TiffTiledBandInt16 ofInt16Iterator(int width, int height, int tileWidth, int tileHeight, Supplier<Iterator<short[][]>> supplier) {
-		return new TiffTiledBandInt16(width, height, tileWidth, tileHeight) {
+	public static TiffTiledBandInt16 ofInt16Iterator(int width, int height, int tileWidth, int tileHeight, Supplier<Iterator<short[][]>> supplier, String description) {
+		return new TiffTiledBandInt16(width, height, tileWidth, tileHeight, description) {
 			@Override
 			protected Iterator<short[][]> getTiles() {
 				return supplier.get();
@@ -58,8 +58,8 @@ public abstract class TiffTiledBand extends TiffBand {
 		};
 	}
 	
-	public static TiffTiledBandFloat32 ofFloat32Iterator(int width, int height, int tileWidth, int tileHeight, Supplier<Iterator<float[][]>> supplier) {
-		return new TiffTiledBandFloat32(width, height, tileWidth, tileHeight) {
+	public static TiffTiledBandFloat32 ofFloat32Iterator(int width, int height, int tileWidth, int tileHeight, Supplier<Iterator<float[][]>> supplier, String description) {
+		return new TiffTiledBandFloat32(width, height, tileWidth, tileHeight, description) {
 			@Override
 			protected Iterator<float[][]> getTiles() {
 				return supplier.get();
