@@ -93,11 +93,9 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 		YamlMap yamlMap = YamlUtil.readYamlMap(accountsPath);
 		List<YamlMap> accountList = yamlMap.optList("accounts").asMaps();
 
-		accountMap.put("u", new Account("u", "u", new String[] {"a", "b", "c"}, false));
 		for(YamlMap a:accountList) {
 			Account account = Account.ofYAML(a, true);
-			accountMap.put(account.user, account);
-		}
+			accountMap.put(account.user, account);		}
 		readRealmProperties(accountMap);
 		this.accountMap = accountMap;
 		return true;

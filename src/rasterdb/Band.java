@@ -204,5 +204,18 @@ public class Band {
 			return "unknown";
 		}
 	}
+	
+	public String getPixelGdalTypeName() {
+		switch (type) {
+		case TilePixel.TYPE_SHORT:
+			return "Int16";
+		case TilePixel.TYPE_FLOAT:
+			return "Float32";
+		case CellType.INT16:
+			return "Int16";
+		default:
+			return "Unknown";
+		}
+	}
 
 }

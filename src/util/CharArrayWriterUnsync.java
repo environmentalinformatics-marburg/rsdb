@@ -10,6 +10,7 @@ import java.util.Arrays;
  *
  */
 public class CharArrayWriterUnsync extends Writer {
+	//private static final Logger log = LogManager.getLogger();
 	private static final int DEFAULT_CAPACITY = 10;
 
 	protected char buf[];
@@ -58,7 +59,8 @@ public class CharArrayWriterUnsync extends Writer {
 		count = newcount;
 	}
 
-	public void writeTo(Writer out) throws IOException {
+	public void writeTo(Writer out) throws IOException {		
+		//log.info("write " + count + "   " + new String(buf, 0, count));
 		out.write(buf, 0, count);
 	}
 
