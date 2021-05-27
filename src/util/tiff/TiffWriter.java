@@ -2,7 +2,6 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.Objects;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -11,8 +10,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import rasterdb.Band;
 import util.CharArrayWriterUnsync;
+import util.IndentedXMLStreamWriter;
 import util.Util;
 import util.collections.vec.Vec;
 
@@ -258,7 +257,8 @@ public class TiffWriter {
 				CharArrayWriterUnsync writer = new CharArrayWriterUnsync();
 				XMLOutputFactory factory = XMLOutputFactory.newInstance();
 				factory.setProperty("escapeCharacters", false);
-				XMLStreamWriter xmlWriter = factory.createXMLStreamWriter(writer);				
+				XMLStreamWriter xmlWriterInner = factory.createXMLStreamWriter(writer);
+				final XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
 				//xmlWriter.writeStartDocument(); // xml meta tag
 				xmlWriter.writeStartElement("GDALMetadata");
 				if(!tiffBands.isEmpty()) {

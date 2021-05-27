@@ -29,6 +29,7 @@ import org.xml.sax.SAXException;
 
 import broker.Broker;
 import util.CharArrayReaderUnsync;
+import util.IndentedXMLStreamWriter;
 import util.Timer;
 import util.Web;
 import vectordb.VectorDB;
@@ -182,7 +183,8 @@ public class VectordbHandler_wfs extends VectordbHandler {
 	private void xmlGetFeatureStream(VectorDB vectordb, Writer out) throws XMLStreamException {
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
 		factory.setProperty("escapeCharacters", false);
-		XMLStreamWriter xmlWriter = factory.createXMLStreamWriter(out);
+		XMLStreamWriter xmlWriterInner = factory.createXMLStreamWriter(out);
+		XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
 		xmlWriter.writeStartDocument();
 		xmlWriter.writeStartElement("wfs:FeatureCollection");
 		xmlWriter.writeDefaultNamespace("http://www.geobasis.nrw.de");

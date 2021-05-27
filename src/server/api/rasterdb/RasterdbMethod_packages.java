@@ -44,6 +44,7 @@ import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
 import server.api.rasterdb.RequestProcessor.OutputProcessingType;
 import util.CharArrayWriterUnsync;
+import util.IndentedXMLStreamWriter;
 import util.JsonUtil;
 import util.Range2d;
 import util.StreamReceiver;
@@ -192,25 +193,41 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		boolean tiled = true;
 
 		Vec<VrtEntry> vrtCollector = new Vec<VrtEntry>();
-
+		
+		String dataPath = "data/";
 		if(tiled) {
 			int tileSize = 4096 * spec.div;
 			range2d.tiled(tileSize, tileSize, (int xtile, int ytile, Range2d tile_range2d) -> {
 				String tile_name = name + "__" + xtile + "_" + ytile;
 				TimeBandProcessor processor = new TimeBandProcessor(rasterdb, tile_range2d, spec.div);
 				try {
-					process(tile_name, spec, processor, zipOutputStream, vrtCollector);
+					process(tile_name, spec, processor, zipOutputStream, vrtCollector, dataPath);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 			});
 		} else {
 			TimeBandProcessor processor = new TimeBandProcessor(rasterdb, range2d, spec.div);
-			process(name, spec, processor, zipOutputStream, vrtCollector);
+			process(name, spec, processor, zipOutputStream, vrtCollector, dataPath);
 		}
+		
 		if(!vrtCollector.isEmpty()) {
 			writeVRT(vrtCollector, zipOutputStream, rasterdb.ref());
 		}
+		zipOutputStream.putNextEntry(new ZipEntry("readme.txt"));
+		Writer zipWriter = new OutputStreamWriter(zipOutputStream, StandardCharsets.UTF_8);
+		zipWriter.write("This ZIP-archive contains raster data exported from Remote Sensing Database (RSDB). https://environmentalinformatics-marburg.github.io/rsdb \n");
+		zipWriter.write(" \n");
+		zipWriter.write("Raster data is located at \"data\"-folder as GeoTIFF-files. (\"*.tiff\") https://www.ogc.org/standards/geotiff \n");
+		zipWriter.write("Metadata is stored at \"metadata.yaml\" in YAML-format ( https://yaml.org ) with tags according to Dublin Core Metadata Initiative. https://www.dublincore.org \n");
+		zipWriter.write("If raster data is tiled over multiple GeoTIFF-files, the whole tilesets can be accessed by included \"GDAL Virtual Format\" (VRT-files). (\"*.vrt\") https://gdal.org/drivers/raster/vrt.html \n");
+		zipWriter.write(" \n");
+		zipWriter.write("Reading the data with \"Geospatial Data Abstraction Library\" (GDAL) based applications ensures highest file format compatibility: \n");
+		zipWriter.write("GDAL, https://gdal.org (library including commandline tools and bindings to programming languages) \n");
+		zipWriter.write("QGIS, https://www.qgis.org (geographic information system (GIS)) \n");
+		zipWriter.write("rgdal, https://cran.r-project.org/package=rgdal (binding to R programming language) \n");
+		zipWriter.flush();
+		zipOutputStream.closeEntry();
 		zipOutputStream.finish();
 		zipOutputStream.flush();
 	}
@@ -249,7 +266,8 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 				memWriter.reset();
 				XMLOutputFactory factory = XMLOutputFactory.newInstance();
 				factory.setProperty("escapeCharacters", false);
-				XMLStreamWriter xmlWriter = factory.createXMLStreamWriter(memWriter);				
+				XMLStreamWriter xmlWriter = factory.createXMLStreamWriter(memWriter);
+				xmlWriter = new IndentedXMLStreamWriter(xmlWriter);
 				//xmlWriter.writeStartDocument(); // xml meta tag
 				xmlWriter.writeStartElement("VRTDataset");
 				xmlWriter.writeAttribute("rasterXSize", Integer.toString(xmax - xmin + 1));
@@ -360,27 +378,27 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 								xmlWriter.writeStartElement("SourceBand");
 								xmlWriter.writeCharacters(Integer.toString(sourceBandIndex));
 								xmlWriter.writeEndElement(); // SourceBand
-								xmlWriter.writeStartElement("SourceProperties");
+								xmlWriter.writeEmptyElement("SourceProperties");
 								xmlWriter.writeAttribute("RasterXSize", Integer.toString(vrtEntry.range.getWidth()));
 								xmlWriter.writeAttribute("RasterYSize", Integer.toString(vrtEntry.range.getHeight()));
 								xmlWriter.writeAttribute("DataType", gdalTypeName);
 								xmlWriter.writeAttribute("BlockXSize", Integer.toString(vrtEntry.range.getWidth()));
 								xmlWriter.writeAttribute("BlockYSize", Integer.toString(vrtEntry.range.getHeight()));
-								xmlWriter.writeEndElement(); // SourceProperties
-								xmlWriter.writeStartElement("SrcRect");
+								//xmlWriter.writeEndElement(); // SourceProperties
+								xmlWriter.writeEmptyElement("SrcRect");
 								xmlWriter.writeAttribute("xOff", "0");
 								xmlWriter.writeAttribute("yOff", "0");
 								xmlWriter.writeAttribute("xSize", Integer.toString(vrtEntry.range.getWidth()));
 								xmlWriter.writeAttribute("ySize", Integer.toString(vrtEntry.range.getHeight()));
-								xmlWriter.writeEndElement(); // SrcRect
-								xmlWriter.writeStartElement("DstRect");
+								//xmlWriter.writeEndElement(); // SrcRect
+								xmlWriter.writeEmptyElement("DstRect");
 								xmlWriter.writeAttribute("xOff", Integer.toString(vrtEntry.range.xmin - xmin));
 								//xmlWriter.writeAttribute("yOff", Integer.toString(vrtEntry.range.ymin - ymin));
 								//xmlWriter.writeAttribute("yOff", Integer.toString(0));
 								xmlWriter.writeAttribute("yOff", Integer.toString(ymax - vrtEntry.range.ymax));
 								xmlWriter.writeAttribute("xSize", Integer.toString(vrtEntry.range.getWidth()));
 								xmlWriter.writeAttribute("ySize", Integer.toString(vrtEntry.range.getHeight()));
-								xmlWriter.writeEndElement(); // DstRect
+								//xmlWriter.writeEndElement(); // DstRect
 								xmlWriter.writeEndElement(); // SimpleSource
 							}
 						}
@@ -418,14 +436,14 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 
 	}
 
-	private void process(String name, Spec spec, TimeBandProcessor processor, ZipOutputStream zipOutputStream, Vec<VrtEntry> vrtCollector) throws IOException {		
+	private void process(String name, Spec spec, TimeBandProcessor processor, ZipOutputStream zipOutputStream, Vec<VrtEntry> vrtCollector, String dataPath) throws IOException {		
 		OutputProcessingType outputProcessingType = OutputProcessingType.IDENTITY;
 		String format = "tiff";
 
 		switch (spec.arrangement) {
 		case "multiband": {
 			for(int timestamp:spec.time_slice_ids) {
-				String filename = name + "__" + timeSliceIdToText(spec.rasterdb, timestamp) + ".tiff";				
+				String filename = dataPath + name + "__" + timeSliceIdToText(spec.rasterdb, timestamp) + ".tiff";				
 				zipOutputStream.putNextEntry(new ZipEntry(filename));
 				List<TimeBand> timebands = TimeBand.of(timestamp, spec.bands);
 				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
@@ -440,7 +458,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		}
 		case "timeseries": {
 			for(Band band: spec.bands) {
-				String filename = name + "__band_" + band.index + ".tiff";
+				String filename = dataPath + name + "__band_" + band.index + ".tiff";
 				zipOutputStream.putNextEntry(new ZipEntry(filename));
 				List<TimeBand> timebands = spec.time_slice_ids.stream().map(timestamp -> new TimeBand(timestamp, band)).collect(Collectors.toList());
 				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
@@ -457,7 +475,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			for(int timestamp:spec.time_slice_ids) {
 				String tfile = name + "__" + timeSliceIdToText(spec.rasterdb, timestamp);
 				for(Band band: spec.bands) {
-					String filename = tfile + "__band_" + band.index + ".tiff";
+					String filename = dataPath + tfile + "__band_" + band.index + ".tiff";
 					zipOutputStream.putNextEntry(new ZipEntry(filename));
 					Set<TimeBand> timebands = java.util.Collections.singleton(new TimeBand(timestamp, band));
 					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
@@ -475,7 +493,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			for(Band band: spec.bands) {
 				String bfile = name + "__band_" + band.index;
 				for(int timestamp:spec.time_slice_ids) {
-					String filename = bfile + "__" + timeSliceIdToText(spec.rasterdb, timestamp) + ".tiff";
+					String filename = dataPath + bfile + "__" + timeSliceIdToText(spec.rasterdb, timestamp) + ".tiff";
 					zipOutputStream.putNextEntry(new ZipEntry(filename));
 					Set<TimeBand> timebands = java.util.Collections.singleton(new TimeBand(timestamp, band));
 					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
