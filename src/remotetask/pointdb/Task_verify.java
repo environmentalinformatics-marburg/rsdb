@@ -16,6 +16,7 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
+import remotetask.RemoteTask;
 
 @task_pointdb("verify")
 @Description("Check point data.")
@@ -28,6 +29,7 @@ public class Task_verify extends CancelableRemoteTask {
 	private final PointDB pointdb;
 
 	public Task_verify(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String name = task.getString("pointdb");

@@ -16,6 +16,7 @@ public class RefreshCatalogEntryRemoteTask extends RemoteTask {
 	private VectorDB vectordb;
 	
 	public RefreshCatalogEntryRemoteTask(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		String name = ctx.task.getString("vectordb");
 		this.vectordb =  broker.getVectorDB(name);

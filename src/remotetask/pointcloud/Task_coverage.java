@@ -41,6 +41,7 @@ public class Task_coverage extends RemoteTask {
 	private final PointCloud pointcloud;
 
 	public Task_coverage(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String name = task.getString("pointcloud");

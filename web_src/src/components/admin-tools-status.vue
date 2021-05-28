@@ -19,11 +19,12 @@
             <th>Status</th>
             <th>Message</th>
             <th>Runtime</th>
+            <th>Identity</th>
             <th>Cancel</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="remote_task in data" :key="remote_task.id">
+          <tr v-for="remote_task in data" :key="remote_task.id" @click="selected_remote_task_id = remote_task.id">
             <td>{{remote_task.id}}</td>
             <td>{{remote_task.name}}</td>
             <td>
@@ -35,12 +36,16 @@
             </td>
             <td>{{remote_task.message}}</td>
             <td>{{(remote_task.runtime / 1000).toFixed(3)}}s</td>
+            <td v-if="remote_task.identity">{{remote_task.identity}}</td><td v-else>---</td>
             <td v-if="(remote_task.status === 'READY' || remote_task.status === 'RUNNING') && !remote_task.canceled && remote_task.cancelable"><v-btn icon @click="cancel(remote_task.id)"><v-icon>cancel</v-icon></v-btn></td>
             <td v-if="!remote_task.canceled && !remote_task.cancelable">---</td>
             <td v-if="remote_task.canceled">cancel requested</td>
           </tr>
         </tbody>
       </table>
+      <div style="color: grey;"><v-icon>event_note</v-icon> Click on a task entry to view details.</div>
+
+    <admin-task-console :id="selected_remote_task_id" @close="selected_remote_task_id = undefined"/>
   
      <transition name="fade">
       <div v-if="mode === 'init' || mode === 'load'">
@@ -64,10 +69,13 @@
 import RingLoader from 'vue-spinner/src/RingLoader.vue'
 import axios from 'axios'
 
+import adminTaskConsole from './admin-task-console'
+
 export default {
   name: 'admin-tools-status',
   components: {
     RingLoader,
+    'admin-task-console': adminTaskConsole,
   },
   data() {
     return {
@@ -77,13 +85,14 @@ export default {
       messageActive: false,
       autoRefresh: false,
       autoRefreshTimer: undefined,
+      selected_remote_task_id: undefined,
     }
   },
   methods: {
     refresh() {
       var self = this;
         this.mode = 'load';
-        var url = this.$store.getters.apiUrl('api/remote_tasks');
+        var url = this.$store.getters.apiUrl('api/remote_tasks?identity');
         axios.get(url)
             .then(function(response) {
               self.data = response.data.remote_tasks;

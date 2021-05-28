@@ -18,6 +18,7 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
+import remotetask.RemoteTask;
 import util.Range2d;
 import util.frame.FloatFrame;
 import voxeldb.CellFactory;
@@ -27,13 +28,14 @@ import voxeldb.VoxelDB;
 @Description("Convert voxels to raster.")
 @Param(name="voxeldb", type="layer_id", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (target) (if layer exists, delete)", example="rasterdb1", required=false)
-public class Task_rasterize extends CancelableRemoteTask {
+public class Task_rasterize extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
 	private final JSONObject task;
 
 	public Task_rasterize(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 	}

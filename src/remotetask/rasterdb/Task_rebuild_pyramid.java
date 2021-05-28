@@ -22,6 +22,7 @@ public class Task_rebuild_pyramid extends RemoteTask {
 	private final RasterDB rasterdb;
 	
 	public Task_rebuild_pyramid(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");

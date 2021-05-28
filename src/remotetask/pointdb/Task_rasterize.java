@@ -28,6 +28,7 @@ public class Task_rasterize extends RemoteTask {
 	private final PointDB pointdb;
 
 	public Task_rasterize(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String name = task.getString("pointdb");

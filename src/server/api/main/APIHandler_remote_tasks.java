@@ -95,6 +95,8 @@ public class APIHandler_remote_tasks extends APIHandler {
 	}
 
 	protected void handleRootGET(Request request, Response response) throws IOException {
+		boolean identity = Web.getFlag(request, "identity");
+		
 		response.setContentType(MIME_JSON);		
 		JSONWriter res = new JSONWriter(response.getWriter());
 		res.object();
@@ -116,6 +118,10 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.value(remoteTask.isCancelable());
 			res.key("canceled");
 			res.value(remoteTask.isCanceled());
+			if(identity && remoteTask.ctx != null && remoteTask.ctx.userIdentity != null) {
+				res.key("identity");
+				res.value(remoteTask.ctx.userIdentity.getUserPrincipal().getName());
+			}
 			res.endObject();
 		}
 		res.endArray();
@@ -211,6 +217,9 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.endObject();
 			return;
 		}
+		
+		boolean task = Web.getFlag(request, "task");
+		boolean identity = Web.getFlag(request, "identity");
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
@@ -233,7 +242,15 @@ public class APIHandler_remote_tasks extends APIHandler {
 		res.key("canceled");
 		res.value(remoteTask.isCanceled());
 		res.key("log");
-		res.value(remoteTask.getLog());
+		res.value(remoteTask.getLog());		
+		if(task && remoteTask.ctx != null && remoteTask.ctx.task != null) {
+			res.key("task");
+			res.value(remoteTask.ctx.task);
+		}
+		if(identity && remoteTask.ctx != null && remoteTask.ctx.userIdentity != null) {
+			res.key("identity");
+			res.value(remoteTask.ctx.userIdentity.getUserPrincipal().getName());
+		}
 		res.endObject();
 		res.endObject();		
 	}

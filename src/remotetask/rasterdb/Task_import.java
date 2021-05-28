@@ -5,10 +5,8 @@ import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
 import org.json.JSONWriter;
 
-import broker.Broker;
 import broker.acl.EmptyACL;
 import rasterdb.RasterDB;
 import remotetask.Context;
@@ -31,31 +29,27 @@ import util.raster.GdalReader;
 public class Task_import extends RemoteProxyTask {
 	private static final Logger log = LogManager.getLogger();
 
-	private final Broker broker;
-	private final JSONObject task;
-	
 	public Task_import(Context ctx) {
-		this.broker = ctx.broker;
-		this.task = ctx.task;
+		super(ctx);
 		EmptyACL.ADMIN.check(ctx.userIdentity);
 	}
 
 	@Override
 	public void process() throws IOException {
-		String rasterdbID = task.getString("rasterdb");
+		String rasterdbID = ctx.task.getString("rasterdb");
 		
-		boolean update_pyramid = task.optBoolean("update_pyramid", true);
-		boolean update_catalog = task.optBoolean("update_catalog", true);
+		boolean update_pyramid = ctx.task.optBoolean("update_pyramid", true);
+		boolean update_catalog = ctx.task.optBoolean("update_catalog", true);
 		
 		RasterDB rasterdb = null;
 		Strategy strategy = Strategy.EXISTING_MERGE;
-		if(broker.hasRasterdb(rasterdbID)) {
-			rasterdb =  broker.getRasterdb(rasterdbID);	
+		if(ctx.broker.hasRasterdb(rasterdbID)) {
+			rasterdb =  ctx.broker.getRasterdb(rasterdbID);	
 		} else {
 			strategy = Strategy.CREATE;			
 		}
 
-		String filename = task.getString("file");		
+		String filename = ctx.task.getString("file");		
 		GdalReader gdalreader = new GdalReader(filename);
 		
 		CharArrayWriter writer = new CharArrayWriter();
@@ -64,13 +58,13 @@ public class Task_import extends RemoteProxyTask {
 		boolean guessTimestamp = false;
 		
 		int[] layerBandIndices = null;
-		if(task.has("bands")) {
-			layerBandIndices = JsonUtil.getIntArray(task, "bands");
+		if(ctx.task.has("bands")) {
+			layerBandIndices = JsonUtil.getIntArray(ctx.task, "bands");
 		}
 		
 		String[] timesliceNames = null;
-		if(task.has("timeslices")) {
-			timesliceNames = JsonUtil.getStringArray(task, "timeslices");
+		if(ctx.task.has("timeslices")) {
+			timesliceNames = JsonUtil.getStringArray(ctx.task, "timeslices");
 		}
 		
 		ImportSpec spec = APIHandler_inspect.createSpec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, layerBandIndices, timesliceNames);		
@@ -79,7 +73,7 @@ public class Task_import extends RemoteProxyTask {
 		log.info(spec);
 		
 		
-		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, gdalreader, rasterdbID, spec);
+		ImportProcessor importProcessor = ImportBySpec.importPerpare(ctx.broker, gdalreader, rasterdbID, spec);
 		setRemoteProxy(importProcessor);
 		importProcessor.process();
 	}

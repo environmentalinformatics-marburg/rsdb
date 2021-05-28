@@ -20,6 +20,7 @@ public class Task_remove_timestamps extends RemoteTask {
 	private int[] timestamps;
 
 	public Task_remove_timestamps(Context ctx) {
+		super(ctx);
 		//this.broker = broker;
 		//this.args = args;
 		String name = ctx.task.getString("rasterdb");

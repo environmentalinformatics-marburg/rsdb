@@ -22,6 +22,7 @@ import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
 import remotetask.CancelableRemoteTask;
 import remotetask.Context;
+import remotetask.RemoteTask;
 import util.BlokingTaskSubmitter;
 import util.Range2d;
 import util.Timer;
@@ -35,6 +36,7 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 	private final DataProvider2Factory dpFactory;
 
 	public Abstract_task_index_raster(Context ctx, DataProvider2Factory dpFactory) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		this.dpFactory = dpFactory;

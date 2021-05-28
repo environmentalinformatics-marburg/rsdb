@@ -19,6 +19,7 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
+import remotetask.RemoteTask;
 import voxeldb.CellFactory;
 import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
@@ -35,6 +36,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 	private final PointCloud pointcloud;
 
 	public Task_to_voxel(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String name = task.getString("pointcloud");

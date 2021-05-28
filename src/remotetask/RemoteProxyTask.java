@@ -9,8 +9,12 @@ public class RemoteProxyTask extends RemoteTask {
 
 	protected RemoteProxy remoteProxy = null;
 	
-	public static RemoteProxyTask of(RemoteProxy remoteProxy) {
-		RemoteProxyTask remoteProxyTask = new RemoteProxyTask();
+	public RemoteProxyTask(Context ctx) {
+		super(ctx);
+	}
+	
+	public static RemoteProxyTask of(RemoteProxy remoteProxy, Context ctx) {
+		RemoteProxyTask remoteProxyTask = new RemoteProxyTask(ctx);
 		remoteProxyTask.setRemoteProxy(remoteProxy);
 		return remoteProxyTask;
 	}

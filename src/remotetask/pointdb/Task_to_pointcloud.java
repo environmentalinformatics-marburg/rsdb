@@ -96,6 +96,7 @@ public class Task_to_pointcloud extends RemoteTask{
 	}
 
 	public Task_to_pointcloud(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		if(!task.has("pointdb")) {

@@ -17,6 +17,7 @@ import org.json.JSONWriter;
 import broker.Broker;
 import broker.acl.EmptyACL;
 import rasterdb.RasterDB;
+import remotetask.Context;
 import remotetask.RemoteProxyTask;
 import remotetask.RemoteTaskExecutor;
 import remotetask.rasterdb.ImportBySpec;
@@ -66,7 +67,8 @@ public class APIHandler_import extends APIHandler {
 		spec.parse(specification);
 		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, id, spec);
 		
-		RemoteProxyTask remoteProxyTask = RemoteTaskExecutor.insertToExecute(importProcessor);
+		Context ctx = new Context(broker, null, userIdentity);
+		RemoteProxyTask remoteProxyTask = RemoteTaskExecutor.insertToExecute(importProcessor, ctx);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);

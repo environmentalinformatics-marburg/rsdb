@@ -25,6 +25,18 @@
                 </v-card-actions>
                 <span style="color: grey;"><v-icon>event_note</v-icon> Click outside of this box to close it. 
                 <br>Task continues to run and can be viewed on status view.</span>
+                <div v-if="remote_task.task">
+                    <hr>
+                    <b>Task</b>
+                    <pre>
+{{JSON.stringify(remote_task.task, null, 2)}}
+                    </pre>
+                </div>
+                <div v-if="remote_task.identity">
+                    <hr>
+                    <b>Identity:</b>
+                    {{remote_task.identity}}
+                </div>                
                 <hr>
                 <b>Log Messages</b>
                 <div v-for="(line, i) in log" :key="i">{{line}}</div>
@@ -76,7 +88,7 @@ export default {
         query_remote_task() {
             this.queryLog(this.id);
             var self = this;
-            axios.get(this.urlPrefix + '../../api/remote_tasks/' + this.id)
+            axios.get(this.urlPrefix + '../../api/remote_tasks/' + this.id + '?task&identity')
             .then(function(response) {
                 console.log(response.data.remote_task);
                 self.remote_task = response.data.remote_task;
@@ -142,6 +154,8 @@ export default {
         dialog() {
             if(this.dialog) {
                 this.refresh();
+            } else {
+                this.$emit('close');
             }
         },
         id() {

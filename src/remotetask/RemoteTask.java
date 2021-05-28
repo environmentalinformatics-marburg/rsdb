@@ -32,6 +32,7 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 	private String message = "init";
 	private long lastMessageTime = -1;
 	private final long messageDuration = 1000;
+	public final Context ctx;
 
 	public static enum Status {
 		READY,
@@ -41,6 +42,14 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 	}
 
 	private volatile Status status = Status.READY;
+	
+	/**
+	 * 
+	 * @param ctx nullable if no context
+	 */
+	public RemoteTask(Context ctx) {
+		this.ctx = ctx;
+	}
 
 	@Override
 	public final void run() {

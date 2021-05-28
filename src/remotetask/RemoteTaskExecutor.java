@@ -92,8 +92,8 @@ public class RemoteTaskExecutor {
 		}
 	}
 
-	public static RemoteProxyTask insertToExecute(RemoteProxy remoteProxy) {
-		RemoteProxyTask remoteProxyTask = RemoteProxyTask.of(remoteProxy);
+	public static RemoteProxyTask insertToExecute(RemoteProxy remoteProxy, Context ctx) {
+		RemoteProxyTask remoteProxyTask = RemoteProxyTask.of(remoteProxy, ctx);
 		insertToExecute(remoteProxyTask);
 		return remoteProxyTask;
 	}

@@ -7,6 +7,10 @@ public abstract class CancelableRemoteTask extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 	
 	private volatile boolean canceled = false;
+	
+	public CancelableRemoteTask(Context ctx) {
+		super(ctx);
+	}
 
 	@Override
 	public boolean isCancelable() {

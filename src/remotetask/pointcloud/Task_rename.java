@@ -25,6 +25,7 @@ public class Task_rename extends RemoteProxyTask {
 	private final String dst;
 
 	public Task_rename(Context ctx) {
+		super(ctx);
 		EmptyACL.ADMIN.check(ctx.userIdentity);
 		this.broker = ctx.broker;
 		this.task = ctx.task;

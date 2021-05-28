@@ -24,6 +24,7 @@ public class Task_create_band extends RemoteTask {
 	private final RasterDB rasterdb;
 
 	public Task_create_band(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.args = ctx.task;
 		String name = args.getString("rasterdb");

@@ -9,14 +9,14 @@ import broker.acl.EmptyACL;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteProxyTask;
+import remotetask.RemoteTask;
 import voxeldb.VoxelDB;
 
 @task_voxeldb("rename")
 @Description("Renames an existing VoxelDB layer to a not yet existing VoxelDB layer ID")
 @Param(name="voxeldb", type="layer_id", desc="ID of VoxelDB layer to rename.", example="voxeldb1")
 @Param(name="new_name", type="layer_id", desc="ID of new VoxelDB layer.", example="voxeldbA")
-public class Task_rename extends RemoteProxyTask {
+public class Task_rename extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
@@ -25,6 +25,7 @@ public class Task_rename extends RemoteProxyTask {
 	private final String dst;
 
 	public Task_rename(Context ctx) {
+		super(ctx);
 		EmptyACL.ADMIN.check(ctx.userIdentity);
 		this.broker = ctx.broker;
 		this.task = ctx.task;

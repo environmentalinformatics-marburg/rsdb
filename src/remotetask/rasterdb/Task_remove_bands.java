@@ -20,6 +20,7 @@ public class Task_remove_bands extends RemoteTask {
 	private int[] bands;
 
 	public Task_remove_bands(Context ctx) {
+		super(ctx);
 		//this.broker = broker;
 		//this.args = args;
 		String name = ctx.task.getString("rasterdb");

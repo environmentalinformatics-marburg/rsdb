@@ -12,6 +12,7 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
+import remotetask.RemoteTask;
 import voxeldb.CellFactory;
 import voxeldb.VoxelDB;
 
@@ -19,13 +20,14 @@ import voxeldb.VoxelDB;
 @Description("Convert voxels to pointcloud.")
 @Param(name="voxeldb", type="layer_id", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer. (target) (if layer exists, delete)", example="pointcloud1")
-public class Task_voxel_to_pointcloud extends CancelableRemoteTask {
+public class Task_voxel_to_pointcloud extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
 	private final JSONObject task;
 
 	public Task_voxel_to_pointcloud(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 	}

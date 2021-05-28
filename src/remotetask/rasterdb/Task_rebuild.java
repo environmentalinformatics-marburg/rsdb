@@ -27,6 +27,7 @@ public class Task_rebuild extends RemoteProxyTask {
 	private final String pyramid_type; // nullable
 
 	public Task_rebuild(Context ctx) {
+		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");
