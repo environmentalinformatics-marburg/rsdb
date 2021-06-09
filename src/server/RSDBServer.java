@@ -426,7 +426,8 @@ public class RSDBServer {
 	}
 
 	private static Handler createShutdownHandler(String token) {
-		Handler handler = new ShutdownHandler(token, false, true);
+		//Handler handler = new ShutdownHandler(token, false, true);
+		Handler handler = new ShutdownHandler(token, false, false); // workaround (at new jetty version) for server freezing when trying to send shutdown request to (not existing) running rsdb instance at server start.
 		return handler;
 	}
 
