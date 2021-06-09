@@ -6,7 +6,7 @@ import java.nio.ByteOrder;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

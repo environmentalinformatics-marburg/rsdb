@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.buildship.core.launch.runconfiguration">
-    <listAttribute key="arguments"/>
+    <listAttribute key="arguments">
+        <listEntry value="--warning-mode"/>
+        <listEntry value="all"/>
+    </listAttribute>
     <booleanAttribute key="build_scans_enabled" value="false"/>
-    <stringAttribute key="gradle_distribution" value="GRADLE_DISTRIBUTION(VERSION(6.3))"/>
+    <stringAttribute key="gradle_distribution" value="GRADLE_DISTRIBUTION(WRAPPER)"/>
     <stringAttribute key="gradle_user_home" value=""/>
-    <stringAttribute key="java_home" value="C:\Program Files\Java\jdk1.8.0_172"/>
+    <stringAttribute key="java_home" value="C:\Program Files\AdoptOpenJDK\jdk-11.0.8.10-hotspot"/>
     <listAttribute key="jvm_arguments"/>
     <booleanAttribute key="offline_mode" value="false"/>
-    <booleanAttribute key="override_workspace_settings" value="true"/>
+    <booleanAttribute key="override_workspace_settings" value="false"/>
     <booleanAttribute key="show_console_view" value="true"/>
     <booleanAttribute key="show_execution_view" value="true"/>
     <listAttribute key="tasks">

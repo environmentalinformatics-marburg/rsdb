@@ -3,7 +3,7 @@ package server.api.rasterdb;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import rasterdb.BandProcessor;
 import rasterdb.GeoReference;

@@ -2,7 +2,7 @@ package server.api.pointclouds;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.Request;
 import org.json.JSONWriter;

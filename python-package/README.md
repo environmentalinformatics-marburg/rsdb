@@ -19,8 +19,14 @@ python -m pip install .
 
 ## Create distribution package
 
-(Currently not needed if GitHub or local folder installation methods are used.)
+*(Currently not needed if GitHub or local folder installation methods are used.)*
 
 ```bash
 python -m build
+```
+
+### dev windows
+
+```cmd
+
 ```

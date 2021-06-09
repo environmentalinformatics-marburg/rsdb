@@ -11,11 +11,9 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.function.Consumer;
 
 import javax.security.auth.Subject;
-import javax.servlet.ServletRequest;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +25,7 @@ import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.security.Credential;
 
+import jakarta.servlet.ServletRequest;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap;
 import util.yaml.YamlUtil;
@@ -125,18 +124,12 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 		return this;
 	}
 
-	//UserStore
-	@Override
-	public Map<String, UserIdentity> getKnownUserIdentities() {
-		throw new RuntimeException("not implemented");
-	}
-
-	//UserStore
+	/*//UserStore
 	@Override
 	public Account getUserIdentity(String userName) {
 		Account account = accountMap.get(userName);
 		return account;
-	}
+	}*/
 
 	//UserStore
 	@Override
@@ -283,5 +276,9 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 				roles.add(role);
 			}
 		}
+	}
+	
+	public Account getAccount(String user) {
+		return accountMap.get(user);
 	}
 }

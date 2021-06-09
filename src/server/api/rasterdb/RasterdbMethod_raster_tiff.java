@@ -3,7 +3,7 @@ package server.api.rasterdb;
 import java.io.IOException;
 import java.util.Enumeration;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

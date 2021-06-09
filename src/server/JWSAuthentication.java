@@ -16,10 +16,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.security.auth.Subject;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,6 +32,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+import broker.Account;
 import broker.Broker;
 import broker.JwsConfig;
 import io.jsonwebtoken.Claims;
@@ -280,11 +281,9 @@ public class JWSAuthentication extends AbstractHandler {
 			session.setAttribute("jws", compactJws);
 			Claims claims = jws.getBody();
 			String userName = claims.getSubject();
-			JwsConfig jwsConfig = broker.brokerConfig.jws().first();
-			Subject subject = new Subject();
-			Principal principal = new AbstractLoginService.UserPrincipal(userName, null);
-			UserIdentity userIdentity = new DefaultUserIdentity(subject, principal, jwsConfig.roles);
-			Authentication authentication = new UserAuthentication("jws", userIdentity);
+			JwsConfig jwsConfig = broker.brokerConfig.jws().first();			
+			Account account = new Account(userName, null, jwsConfig.roles, false);
+			Authentication authentication = new UserAuthentication("jws", account);
 			session.setAttribute("authentication", authentication);
 
 			response.setHeader(HttpHeader.LOCATION.asString(), redirect_target);
@@ -324,13 +323,9 @@ public class JWSAuthentication extends AbstractHandler {
 			Jws<Claims> jws = Jwts.parser().setSigningKeyResolver(signingKeyResolver).setAllowedClockSkewSeconds(clock_skew).parseClaimsJws(jwsParam);
 			Claims claims = jws.getBody();
 			String userName = claims.getSubject();
-
 			JwsConfig jwsConfig = broker.brokerConfig.jws().first();
-
-			Subject subject = new Subject();
-			Principal principal = new AbstractLoginService.UserPrincipal(userName, null);
-			UserIdentity userIdentity = new DefaultUserIdentity(subject, principal, jwsConfig.roles);
-			Authentication authentication = new UserAuthentication("jws", userIdentity);
+			Account account = new Account(userName, null, jwsConfig.roles, false);
+			Authentication authentication = new UserAuthentication("jws", account);
 			request.setAuthentication(authentication);
 		} catch (Exception e) {			
 			HashMap<String, Object> ctx = new HashMap<>();

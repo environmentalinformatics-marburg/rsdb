@@ -14,10 +14,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.security.auth.Subject;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -138,7 +138,7 @@ public class LoginHandler extends AbstractHandler {
 		}
 	}
 
-	private UserIdentity getUser(String user_hash, String server_nonce, String client_nonce, String client_hash) {
+	private Account getAccount(String user_hash, String server_nonce, String client_nonce, String client_hash) {
 		Account[] validAccount = new Account[1];
 		broker.accountManager().foreachAccount(account -> {
 			if(validAccount[0] == null) {
@@ -186,8 +186,8 @@ public class LoginHandler extends AbstractHandler {
 				throw new LoginException("missing hash");
 			}
 
-			UserIdentity identity = getUser(user_hash, server_nonce, client_nonce, client_hash);
-			if(identity == null) {
+			Account account = getAccount(user_hash, server_nonce, client_nonce, client_hash);
+			if(account == null) {
 				log.warn("missing identity");
 				baseRequest.setHandled(true);
 				try {
@@ -205,22 +205,13 @@ public class LoginHandler extends AbstractHandler {
 				return;
 			}
 
-			String[] roles = APIHandler_identity.getRoles(identity);
-
 			HttpSession session = request.getSession(false);
 			if(session != null) {
 				session.invalidate();
 			}
 			session = request.getSession(true);	
-
-			Subject subject = new Subject();
-			Principal principal = new AbstractLoginService.UserPrincipal(identity.getUserPrincipal().getName(), null);
-			UserIdentity userIdentity = new DefaultUserIdentity(subject, principal, roles);
-			Authentication authentication = new UserAuthentication("login", userIdentity);
+			Authentication authentication = new UserAuthentication("login", account);
 			session.setAttribute("authentication", authentication);
-
-
-
 			response.setHeader(HttpHeader.LOCATION.asString(), loc);
 			response.setStatus(HttpServletResponse.SC_FOUND);
 			response.setContentLength(0);

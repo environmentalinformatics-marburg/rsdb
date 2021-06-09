@@ -10,10 +10,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.ServletException;
-import javax.servlet.SessionCookieConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.SessionCookieConfig;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -159,7 +159,7 @@ public class RSDBServer {
 	}
 
 	private static ServerConnector createHttpsConnector(Server server, int https_port, String keystore_password, HttpConfiguration https_config) {
-		SslContextFactory sslContextFactory = new SslContextFactory.Server();
+		SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
 		sslContextFactory.setKeyStorePath(KEYSTORE_FILE.getAbsolutePath());
 		sslContextFactory.setKeyStorePassword(keystore_password);
 
@@ -181,7 +181,7 @@ public class RSDBServer {
 		ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
 		alpn.setDefaultProtocol("h2");
 
-		SslContextFactory sslContextFactory = new SslContextFactory.Server();
+		SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
 		sslContextFactory.setKeyStorePath(KEYSTORE_FILE.getAbsolutePath());
 		sslContextFactory.setKeyStorePassword(keystore_password);
 		sslContextFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
@@ -290,7 +290,7 @@ public class RSDBServer {
 				if(prefix != null) {
 					String path = request.getPathInfo();
 					String original_path = prefix + path; 
-					request.setPathInfo(original_path);
+					request.setContext(request.getContext(), original_path);
 					log.info(path + " -> " + original_path);
 				}				
 			}
@@ -473,7 +473,7 @@ public class RSDBServer {
 				if(ipMap.containsKey(ip)) {
 					log.warn("overwrite existing entry of "+ip+"  "+ipMap.get(ip)+" with "+user+"    in "+REALM_IP_CSV_FILE);
 				}
-				if(broker.accountManager().getUserIdentity(user) == null) {
+				if(broker.accountManager().getAccount(user) == null) {
 					log.warn("user does not exist entry of "+ip+" with "+user+"    in "+REALM_IP_CSV_FILE);
 				}
 				ipMap.put(ip, user);

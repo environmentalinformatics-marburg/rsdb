@@ -2,7 +2,7 @@ package server.api.main;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -105,7 +105,7 @@ public class APIHandler_accounts extends APIHandler {
 					String user = action.getString("user");
 					AccountManager accountManager = broker.accountManager();
 					synchronized (accountManager) {
-						Account account = accountManager.getUserIdentity(user);
+						Account account = accountManager.getAccount(user);
 						if(account == null) {
 							throw new RuntimeException("account not found");
 						}
