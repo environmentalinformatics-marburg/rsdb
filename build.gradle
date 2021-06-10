@@ -1,4 +1,4 @@
-// gradle version 7.0.2
+// gradle version 7.0.2, in eclipse gradle version 7.0.1 
 
 plugins {
   id 'org.kordamp.gradle.markdown' version '2.2.0' // https://github.com/aalmiray/markdown-gradle-plugin
@@ -113,7 +113,7 @@ jar {
 		for(java.io.File file : files(configurations.runtimeClasspath)) {
 			classPathFiles += "lib/"+file.getName()+" "; 
 		}
-		println("the class path: "+classPathFiles);	
+		//println("the class path: "+classPathFiles);	
 	
         attributes 	'Built-Date': new Date(),
 					'Built-JDK': System.getProperty('java.version'),
