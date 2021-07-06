@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import javax.security.auth.Subject;
 
 import org.eclipse.jetty.server.UserIdentity;
+import org.eclipse.jetty.util.security.Credential;
+import org.eclipse.jetty.util.security.Password;
 
 import util.yaml.YamlMap;
 
@@ -14,7 +16,9 @@ public class Account implements UserIdentity, Principal {
 	public final String user;
 	public final String password;
 	public final String[] roles;
-	public final boolean managed;
+	public final boolean managed;	
+
+	private final Credential credential;
 	
 	public static class Builder {
 		public String user;
@@ -39,6 +43,7 @@ public class Account implements UserIdentity, Principal {
 		this.password = password;
 		this.roles = roles;
 		this.managed = managed;
+		this.credential = new Password(password);
 	}
 
 	public static Account ofYAML(YamlMap yamlMap, boolean managed) {
@@ -86,5 +91,9 @@ public class Account implements UserIdentity, Principal {
 	
 	public Builder builder() {
 		return new Builder(this);
+	}
+	
+	public boolean checkCredentials(Object credentials) {
+		return this.credential.check(credentials);
 	}
 }

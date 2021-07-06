@@ -188,15 +188,18 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 
 	//LoginService
 	@Override
-	public UserIdentity login(String userName, Object password, ServletRequest request) {
+	public UserIdentity login(String userName, Object credentials, ServletRequest request) {
+		if(userName == null) {
+			return null;
+		}
 		Account account = accountMap.get(userName);
 		if(account == null) {
 			return null;
 		}
-		if(!account.password.equals(password)) {
-			return null;
+		if(account.checkCredentials(credentials)) {
+			return account;
 		}
-		return account;
+		return null;
 	}
 
 	//LoginService
