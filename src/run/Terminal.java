@@ -766,7 +766,8 @@ public class Terminal {
 					}
 				}
 				Path root = Paths.get(source);
-				Importer importer = new Importer(pointcloud, null);
+				AttributeSelector selector = new AttributeSelector().all();
+				Importer importer = new Importer(pointcloud, null, selector, Integer.MIN_VALUE);
 				Timer.start("total import");
 				importer.importDirectory(root);
 				pointcloud.getGriddb().storage().flush();

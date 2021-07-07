@@ -161,7 +161,7 @@ public class PointCloud implements AutoCloseable {
 		}
 	}
 
-	public Tile createTile(CellTable cellTable, int cx, int cy, int cz) throws IOException {
+	public Tile createTile(CellTable cellTable, int cx, int cy, int cz, int compression_level) throws IOException {
 		AttributeSelector selector = cellTable.toSelector();
 		creatMissingAttributes(selector);
 		int column_count = selector.count();
@@ -224,7 +224,8 @@ public class PointCloud implements AutoCloseable {
 			columns[column_index] = Encoding.createCharData(attr_blue.encoding, cellTable.blue, cellTable.rows);
 			attributes[column_index++] = attr_blue;
 		}
-		byte[] cellData = Cell.createData(attributes, columns, column_count);
+		byte[] cellData = compression_level == Integer.MIN_VALUE ? Cell.createData(attributes, columns, column_count) : Cell.createData(attributes, columns, column_count, compression_level);
+
 		Tile tile = griddb.createTile(cx, cy, cz, cellData);
 		//log.info("create cell cx: " + cx + " cy: " + cy + " columns: " + column_count + " rows: " + cellTable.rows + " compressed: " + cellData.length);
 		return tile;

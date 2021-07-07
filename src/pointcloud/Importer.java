@@ -24,13 +24,18 @@ public class Importer {
 
 	private final PointCloud pointcloud;
 	
-	private final DoubleRect filterRect;
+	private final DoubleRect filterRect; // nullable
+	private final AttributeSelector selector;
+	private final int compression_level; // default if == Integer.MIN_VALUE
 
 	private static final int READ_MAX_BYTES = 1_000_000_000;
 
-	public Importer(PointCloud pointcloud, DoubleRect filterRect) {
+	
+	public Importer(PointCloud pointcloud, DoubleRect filterRect, AttributeSelector selector, int compression_level) {
 		this.pointcloud = pointcloud;
 		this.filterRect = filterRect;
+		this.selector = selector;
+		this.compression_level = compression_level;
 	}
 
 	/**
@@ -67,8 +72,7 @@ public class Importer {
 				}
 
 			}
-		}
-	}
+		}	}
 
 	public static int dayCorrection(DayOfWeek dayOfWeek) {
 		switch(dayOfWeek) {
@@ -279,17 +283,17 @@ public class Importer {
 			//log.info(Timer.stop("cell count"));
 
 			CellTable[][] cells = new CellTable[ycellrange][xcellrange];
-			boolean useIntensity = intensity != null;
-			boolean useReturnNumber = returnNumber != null;
-			boolean useReturns = returns != null;
-			boolean useScanDirectionFlag = scanDirectionFlag != null;
-			boolean useEdgeOfFlightLine = edgeOfFlightLine != null;
-			boolean useClassification = classification != null;
-			boolean useScanAngleRank = scanAngleRank != null;
-			boolean useGpsTime = gpsTime != null;
-			boolean useRed = red != null;
-			boolean useGreen = green != null;
-			boolean useBlue = blue != null;
+			boolean useIntensity = intensity != null && selector.intensity;
+			boolean useReturnNumber = returnNumber != null && selector.returnNumber;
+			boolean useReturns = returns != null && selector.returns;
+			boolean useScanDirectionFlag = scanDirectionFlag != null && selector.scanDirectionFlag;
+			boolean useEdgeOfFlightLine = edgeOfFlightLine != null && selector.edgeOfFlightLine;
+			boolean useClassification = classification != null && selector.classification;
+			boolean useScanAngleRank = scanAngleRank != null && selector.scanAngleRank;
+			boolean useGpsTime = gpsTime != null && selector.gpsTime;
+			boolean useRed = red != null && selector.red;
+			boolean useGreen = green != null && selector.green;
+			boolean useBlue = blue != null && selector.blue;
 
 			Timer.start("cell init");
 			int cellTotalCount = 0;
@@ -430,7 +434,7 @@ public class Importer {
 							//log.info(Timer.stop("merge CellTable"));
 						}
 						//Timer.resume("create tile");
-						Tile tile = pointcloud.createTile(cellTable, tx, ty, tz);
+						Tile tile = pointcloud.createTile(cellTable, tx, ty, tz, compression_level);
 
 						/*pointcloud.getGriddb();
 						CellTable newCellTable = pointcloud.getCellTable(GridDB.tileToCell(tile), new AttributeSelector(true));

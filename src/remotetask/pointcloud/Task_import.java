@@ -11,9 +11,14 @@ import org.json.JSONObject;
 
 import broker.Broker;
 import broker.acl.EmptyACL;
+import pointcloud.AttributeSelector;
 import pointcloud.DoubleRect;
 import pointcloud.Importer;
 import pointcloud.PointCloud;
+import pointdb.process.Functions;
+import pointdb.process.ProcessingFun;
+import rasterdb.Band;
+import rasterdb.tile.TilePixel;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
@@ -33,6 +38,8 @@ import org.locationtech.proj4j.CoordinateReferenceSystem;
 @Param(name="cellscale", type="number", desc="Resolution of points. (default: 100 -> 1/100 = 0.01 meter precision)", example="1000", required=false)
 @Param(name="storage_type", desc="Storage type of new PointCloud. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) PointCloud operation mode. (RasterUnit only, default false)", example="false", required=false)
+@Param(name="omit_attributes", type="string_array", desc="List of attributes that should no be imported. Possible case sensitive values: x, y, z, intensity, returnNumber, returns, scanDirectionFlag, edgeOfFlightLine, classification, scanAngleRank, gpsTime, red, green, blue (default no attrubte, all attributes are imported)", example="red, green, blue", required=false)
+@Param(name="compression_level", type="integer", desc="Compression level, higher values are slower with better compression ratio, decompression speed is not impacted. Value of range -99 to 22 (default: 1)", example="22", required=false)
 public class Task_import extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
@@ -49,6 +56,16 @@ public class Task_import extends RemoteTask {
 
 	@Override
 	public void process() throws IOException {
+		
+		int compression_level = task.optInt("compression_level", Integer.MIN_VALUE);
+		
+		AttributeSelector selector = new AttributeSelector().all();
+		JSONArray omit_attributes = task.getJSONArray("omit_attributes");
+		int omit_attributes_len = omit_attributes.length();
+		for (int i = 0; i < omit_attributes_len; i++) {
+			String omit_attribute = omit_attributes.getString(i);			
+			selector.set(omit_attribute, false);
+		}
 		
 		DoubleRect filterRect = null;
 		JSONArray rect_Text = task.optJSONArray("rect");
@@ -96,19 +113,16 @@ public class Task_import extends RemoteTask {
 			// nothing
 		}
 
-
-
 		if(proj4 != null) {
 			pointcloud.setProj4(proj4);
 		}
-
-
-		Importer imprter = new Importer(pointcloud, filterRect);
+		
+		Importer importer = new Importer(pointcloud, filterRect, selector, compression_level);
 		String source = task.getString("source");
 		Path root = Paths.get(source);
 
 		setMessage("start import");
-		imprter.importDirectory(root);
+		importer.importDirectory(root);
 		pointcloud.getGriddb().storage().flush();
 		setMessage("finished import");
 	}

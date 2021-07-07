@@ -128,7 +128,7 @@ public class Task_voxel_to_pointcloud extends RemoteTask {
 			if(oldCellTable != null) {
 				cellTable = CellTable.merge(oldCellTable, cellTable);
 			}
-			Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy, cellTable.cz);
+			Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy, cellTable.cz, Integer.MIN_VALUE);
 			pointcloud.writeTile(tile);			
 
 			log.info(voxelCell + "  " + sum);	

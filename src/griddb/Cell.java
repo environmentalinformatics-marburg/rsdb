@@ -45,14 +45,20 @@ public class Cell {
 		}
 	}
 	
-	public static byte[] recompressData(byte[] data_compressed, int level) {
+	public static byte[] recompressData(byte[] data_compressed, int compression_level) {
 		long size = Zstd.decompressedSize(data_compressed);
 		byte[] result = Zstd.decompress(data_compressed, (int) size);
-		byte[] result_compressed = Zstd.compress(result, level);
+		byte[] result_compressed = Zstd.compress(result, compression_level);
 		return result_compressed;
 	}
 	
 	public static byte[] createData(Attribute[] attributes, byte[][] columns, int column_count) {
+		return createData(attributes, columns, column_count, 1); // default
+		//return createData(attributes, columns, column_count, 6); // best size / speed ratio
+		//return createData(attributes, columns, column_count, 22); // maximum
+	}
+	
+	public static byte[] createData(Attribute[] attributes, byte[][] columns, int column_count, int compression_level) {
 		int sum = 0;
 		for (int i = 0; i < column_count; i++) {
 			sum += columns[i].length;
@@ -73,9 +79,7 @@ public class Cell {
 			byteBuffer.put(columns[i]);
 		}
 		log.info("compress: " + result.length);
-		byte[] result_compressed = Zstd.compress(result, 1); // default
-		//byte[] result_compressed = Zstd.compress(result, 6); // best size / speed ratio
-		//byte[] result_compressed = Zstd.compress(result, 22); // maximum
+		byte[] result_compressed = Zstd.compress(result, compression_level);
 		//log.info("compressed "+result.length+" -> "+result_compressed.length);
 		return result_compressed;
 	}
