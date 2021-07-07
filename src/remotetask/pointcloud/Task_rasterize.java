@@ -1,5 +1,6 @@
 package remotetask.pointcloud;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -20,6 +21,7 @@ import remotetask.RemoteProxyTask;
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) RasterDB operation mode. (RasterUnit only, default false)", example="false", required=false)
 @Param(name="point_scale", type="number", desc="point coordinates to pixel scale factor (default: 4, results in 0.25 units pixel size)", example="4", required=false)
+@Param(name="processing_bands", type="string_array", desc="List of processing bands that should be processed. If needed point attributes are missing, a processing bands is omitted. Possible case sensitive values: red, green, blue, intensity, elevation (default all processings: red, green, blue, intensity, elevation)", example="intensity, elevation", required=false)
 public class Task_rasterize extends RemoteProxyTask {
 	//private static final Logger log = LogManager.getLogger();
 
@@ -38,7 +40,18 @@ public class Task_rasterize extends RemoteProxyTask {
 	}
 
 	@Override
-	public void process() throws Exception {		
+	public void process() throws Exception {
+
+		String[] processing_bands = null;
+		JSONArray processing_bands_json = task.optJSONArray("processing_bands");
+		if(processing_bands_json != null) {
+			int processing_bands_json_len = processing_bands_json.length();
+			processing_bands = new String[processing_bands_json_len];
+			for (int i = 0; i < processing_bands_json_len; i++) {
+				processing_bands[i] = processing_bands_json.getString(i);
+			}
+		}
+
 		String rasterdb_name = task.optString("rasterdb", pointcloud.getName() + "_rasterized");
 		boolean transactions = true;
 		if(task.has("transactions")) {
@@ -55,10 +68,10 @@ public class Task_rasterize extends RemoteProxyTask {
 		} else {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
 		}
-		
+
 		double point_scale = task.optDouble("point_scale", Rasterizer.DEFAULT_POINT_SCALE);
-		
-		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb, point_scale);
+
+		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb, point_scale, processing_bands);
 		setRemoteProxyAndRunAndClose(rasterizer);
 		setMessage("rebuild pyramid");
 		rasterdb.rebuildPyramid(true);		

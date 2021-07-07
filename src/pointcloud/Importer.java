@@ -14,10 +14,11 @@ import org.locationtech.proj4j.CoordinateReferenceSystem;
 import pointdb.las.Las;
 import pointdb.las.Laz;
 import rasterunit.Tile;
+import remotetask.CancelableRemoteProxy;
 import util.Timer;
 import util.Util;
 
-public class Importer {
+public class Importer extends CancelableRemoteProxy {
 	private static final Logger log = LogManager.getLogger();
 
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
@@ -29,6 +30,9 @@ public class Importer {
 	private final int compression_level; // default if == Integer.MIN_VALUE
 
 	private static final int READ_MAX_BYTES = 1_000_000_000;
+	
+	private int file_counter = 0;
+	private int file_error_counter = 0;
 
 	
 	public Importer(PointCloud pointcloud, DoubleRect filterRect, AttributeSelector selector, int compression_level) {
@@ -45,6 +49,9 @@ public class Importer {
 	 */
 	public void importDirectory(Path root) throws IOException {
 		Path[] paths = null;
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
+		}
 		if(root.toFile().isFile()) {
 			paths = new Path[]{root};
 		} else {
@@ -55,18 +62,30 @@ public class Importer {
 				}
 			}
 		}
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
+		}
 		for(Path path:paths) {
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
 			if(path.toFile().isFile()) {				
 				try {
 					String filename = path.getFileName().toString().toLowerCase();
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(ext.trim().toLowerCase().equals("las") || ext.trim().toLowerCase().equals("laz")) {
-						//log.info("import file "+path);					
+						//log.info("import file "+path);
+						setMessage("import file "+ path + "  imported files " + file_counter + ",   erroneous files " + file_error_counter);
+						if(isCanceled()) {
+							throw new RuntimeException("canceled");
+						}
 						importFile(path);
+						file_counter++;
 					} else {
 						//log.info("skip file "+path);	
 					}
 				} catch(Exception e) {
+					file_error_counter++;
 					e.printStackTrace();
 					log.error(e);
 				}
@@ -476,6 +495,11 @@ public class Importer {
 
 	public static double floorMod(double x, double y) {
 		return x - Math.floor(x / y) * y;
+	}
+
+	@Override
+	public void process() throws Exception {
+		throw new RuntimeException("'process' should not be called for this class.");		
 	}
 
 }

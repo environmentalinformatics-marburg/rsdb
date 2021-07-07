@@ -1,12 +1,8 @@
 package remotetask;
 
-public abstract class CancelableRemoteTask extends RemoteTask  {	
+public abstract class CancelableRemoteProxy extends RemoteProxy {
 	private volatile boolean canceled = false;
 	
-	public CancelableRemoteTask(Context ctx) {
-		super(ctx);
-	}
-
 	@Override
 	public boolean isCancelable() {
 		return true;

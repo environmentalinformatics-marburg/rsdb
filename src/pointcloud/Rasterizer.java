@@ -1,6 +1,7 @@
 package pointcloud;
 
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -36,9 +37,12 @@ public class Rasterizer extends RemoteProxy {
 
 	private AttributeSelector selectorIntensity;
 	private AttributeSelector selectorElevation;
+	
+	private final String[] processing_bands;
 
-	public Rasterizer(PointCloud pointcloud, RasterDB rasterdb, double point_scale) {
+	public Rasterizer(PointCloud pointcloud, RasterDB rasterdb, double point_scale, String[] processing_bands) {
 		this.point_scale = point_scale;
+		this.processing_bands = processing_bands;
 		this.raster_pixel_size = 1d / point_scale;
 		this.pointcloud = pointcloud;
 		this.rasterdb = rasterdb;
@@ -76,30 +80,63 @@ public class Rasterizer extends RemoteProxy {
 	@Override
 	public void process() throws Exception {
 		AttributeSelector selector = pointcloud.getSelector();
-		if(selector.red) {
-			Band bandRed = rasterdb.createBand(TilePixel.TYPE_FLOAT, "red", null);
-			setMessage("rasterize red");
-			run(bandRed, new AttributeSelector().setXY().setRed(), Rasterizer::processRed);
+		
+		LinkedHashSet<String> processing_bandSet = new LinkedHashSet<String>();
+		String[] bands = processing_bands != null ? processing_bands : new String[] {"red", "green", "blue", "intensity", "elevation"}; 
+		for(String processing_band : bands) {
+			switch(processing_band) {
+			case "red":
+			case "green":
+			case "blue":
+			case "intensity":
+			case "elevation":
+				processing_bandSet.add(processing_band);
+				break;
+				default:
+					throw new RuntimeException("unknown processing_band: " + processing_band);
+			}
 		}
-		if(selector.green) {
-			Band bandGreen = rasterdb.createBand(TilePixel.TYPE_FLOAT, "green", null);
-			setMessage("rasterize green");
-			run(bandGreen, new AttributeSelector().setXY().setGreen(), Rasterizer::processGreen);
-		}		
-		if(selector.blue) {
-			Band bandBlue = rasterdb.createBand(TilePixel.TYPE_FLOAT, "blue", null);
-			setMessage("rasterize blue");
-			run(bandBlue, new AttributeSelector().setXY().setBlue(), Rasterizer::processBlue);
-		}
-		if(selector.intensity) {
-			this.bandIntensity = rasterdb.createBand(TilePixel.TYPE_FLOAT, "intensity", null);
-			setMessage("rasterize intensity");
-			run(bandIntensity, selectorIntensity, Rasterizer::processIntensity);
-		}
-		if(selector.z) {
-			this.bandElevation = rasterdb.createBand(TilePixel.TYPE_FLOAT, "elevation", null);
-			setMessage("rasterize elevation");
-			run(bandElevation, selectorElevation, Rasterizer::processElevation);
+		
+		for(String processing_band : processing_bandSet) {
+			switch(processing_band) {
+			case "red":
+				if(selector.red) {
+					Band bandRed = rasterdb.createBand(TilePixel.TYPE_FLOAT, "red", null);
+					setMessage("rasterize red");
+					run(bandRed, new AttributeSelector().setXY().setRed(), Rasterizer::processRed);
+				}
+				break;
+			case "green":
+				if(selector.green) {
+					Band bandGreen = rasterdb.createBand(TilePixel.TYPE_FLOAT, "green", null);
+					setMessage("rasterize green");
+					run(bandGreen, new AttributeSelector().setXY().setGreen(), Rasterizer::processGreen);
+				}
+				break;
+			case "blue":
+				if(selector.blue) {
+					Band bandBlue = rasterdb.createBand(TilePixel.TYPE_FLOAT, "blue", null);
+					setMessage("rasterize blue");
+					run(bandBlue, new AttributeSelector().setXY().setBlue(), Rasterizer::processBlue);
+				}
+				break;
+			case "intensity":
+				if(selector.intensity) {
+					this.bandIntensity = rasterdb.createBand(TilePixel.TYPE_FLOAT, "intensity", null);
+					setMessage("rasterize intensity");
+					run(bandIntensity, selectorIntensity, Rasterizer::processIntensity);
+				}
+				break;
+			case "elevation":
+				if(selector.z) {
+					this.bandElevation = rasterdb.createBand(TilePixel.TYPE_FLOAT, "elevation", null);
+					setMessage("rasterize elevation");
+					run(bandElevation, selectorElevation, Rasterizer::processElevation);
+				}
+				break;
+				default:
+					throw new RuntimeException("unknown processing_band: " + processing_band);
+			}
 		}
 	}
 	
