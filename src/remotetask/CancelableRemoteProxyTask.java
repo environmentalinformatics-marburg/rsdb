@@ -45,5 +45,19 @@ public class CancelableRemoteProxyTask extends RemoteProxyTask {
 			throw new RuntimeException("remoteProxy needs to be of type CancelableRemoteProxy");
 		}
 		setRemoteProxy((CancelableRemoteProxy) remoteProxy);
-	}	
+	}
+	
+	public void setRemoteProxyAndRunAndClose(CancelableRemoteProxy remoteProxy) throws Exception {
+		super.setRemoteProxyAndRunAndClose(remoteProxy);
+	}
+	
+	@Override
+	public void setRemoteProxyAndRunAndClose(RemoteProxy remoteProxy) throws Exception {
+		if(!(remoteProxy instanceof CancelableRemoteProxy)) {
+			throw new RuntimeException("remoteProxy needs to be of type CancelableRemoteProxy");
+		}
+		setRemoteProxyAndRunAndClose((CancelableRemoteProxy) remoteProxy);		
+	}
+	
+	
 }

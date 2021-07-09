@@ -1,9 +1,9 @@
 package pointcloud;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Phaser;
 import java.util.function.Consumer;
@@ -14,10 +14,10 @@ import org.apache.logging.log4j.Logger;
 import griddb.Attribute;
 import griddb.Cell;
 import rasterunit.Tile;
+import remotetask.CancelableRemoteProxy;
 
-public class Rebuild {
+public class Rebuild extends CancelableRemoteProxy {
 	private static final Logger log = LogManager.getLogger();
-
 
 	private final PointCloud src;
 	private final Path rootPath;
@@ -97,7 +97,8 @@ public class Rebuild {
 		}
 	};
 
-	public void run() throws IOException {
+	@Override
+	public void process() throws Exception {
 		File metaFile_src = src.getMetaFile();
 		String name_src = src.getName();
 		String name_dst = name_src + "_rebuild";
@@ -134,9 +135,19 @@ public class Rebuild {
 			dst.commitMeta();
 
 			Collection<Tile> tiles = src.getGriddb().getTiles(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+			int tileSize = tiles.size();
 			TileProcessor tileProcessor = new TileProcessor(dst, recompress, compression_level);
-			tiles.stream().sequential().forEach(tileProcessor);
+			//tiles.stream().sequential().forEach(tileProcessor);
+			Spliterator<Tile> spliterator = tiles.stream().sequential().spliterator();
+			int tileCounter = 0;
+			while(!isCanceled() && spliterator.tryAdvance(tileProcessor)) {
+				tileCounter++;
+				setMessage(tileCounter + " of " + tileSize + " tiles processed  " + (( ((long)tileCounter) * 100) / tileSize) + "%");
+			}			
 			tileProcessor.flush();
-		}
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
+		}		
 	}
 }

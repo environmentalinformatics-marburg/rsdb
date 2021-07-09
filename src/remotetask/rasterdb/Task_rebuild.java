@@ -1,23 +1,21 @@
 package remotetask.rasterdb;
 
-import java.io.IOException;
-
 import org.json.JSONObject;
 
 import broker.Broker;
 import broker.acl.EmptyACL;
 import rasterdb.RasterDB;
+import remotetask.CancelableRemoteProxyTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteProxyTask;
 
 @task_rasterdb("rebuild")
 @Description("Create new RasterDB (possibly with other storage type) form source RasterDB and with name [source]_rebuild.")
 @Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer. (source)", example="rasterdb1")
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="pyramid_type", desc="Pyramid type of new RasterDB. (default: compact_div2)", format="files_div4 or compact_div2", example="files_div4", required=false)
-public class Task_rebuild extends RemoteProxyTask {
+public class Task_rebuild extends CancelableRemoteProxyTask {
 	//private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
@@ -42,12 +40,11 @@ public class Task_rebuild extends RemoteProxyTask {
 	}
 
 	@Override
-	public void process() throws IOException {
+	public void process() throws Exception {
 		setMessage("prepare");
 		Rebuild rebuild = new Rebuild(src, broker.getRasterDBRoot(), storage_type, pyramid_type);
 		setMessage("build");
-		setRemoteProxy(rebuild);
-		rebuild.process();
+		setRemoteProxyAndRunAndClose(rebuild);
 		broker.refreshRasterdbConfigs();
 		setMessage("done");
 	}

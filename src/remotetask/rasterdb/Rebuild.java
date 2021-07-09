@@ -13,9 +13,9 @@ import rasterdb.RasterdbConfig;
 import rasterunit.RasterUnitStorage;
 import rasterunit.Tile;
 import rasterunit.TileKey;
-import remotetask.RemoteProxy;
+import remotetask.CancelableRemoteProxy;
 
-public class Rebuild extends RemoteProxy {
+public class Rebuild extends CancelableRemoteProxy {
 	private static final Logger log = LogManager.getLogger();
 
 	private final RasterDB src;
@@ -55,7 +55,7 @@ public class Rebuild extends RemoteProxy {
 			int batchCnt = 0;
 			int batchMax = 256;
 			Tile[] batchCollector = new Tile[batchMax];
-			while(it.hasNext()) {
+			while(!isCanceled() && it.hasNext()) {
 				TileKey tileKey = it.next();
 				Tile tile = srcStorage.readTile(tileKey);
 				batchCollector[batchCnt++] = tile;
@@ -63,7 +63,7 @@ public class Rebuild extends RemoteProxy {
 					write(dstStorage, batchCollector, batchCnt);
 					totalWritten += batchCnt;
 					batchCnt = 0;
-					setMessage("tiles written: " + totalWritten + " of " + totalTiles);
+					setMessage("tiles written: " + totalWritten + " of " + totalTiles + "   " + (( totalWritten * 100) / totalTiles) + "%");
 				}
 			}
 			if(batchCnt > 0) {
@@ -76,6 +76,10 @@ public class Rebuild extends RemoteProxy {
 			}
 			dst.setTimeSlices(src.timeMapReadonly.values());
 			dst.setCustomWMS(src.customWmsMapReadonly);
+			
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
 
 			dst.rebuildPyramid(true);
 		}

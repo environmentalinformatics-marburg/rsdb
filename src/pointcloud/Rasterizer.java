@@ -14,10 +14,10 @@ import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
-import remotetask.RemoteProxy;
+import remotetask.CancelableRemoteProxy;
 import util.Range2d;
 
-public class Rasterizer extends RemoteProxy {
+public class Rasterizer extends CancelableRemoteProxy {
 	private static final Logger log = LogManager.getLogger();
 	
 	public static final double DEFAULT_POINT_SCALE = 4;
@@ -98,6 +98,9 @@ public class Rasterizer extends RemoteProxy {
 		}
 		
 		for(String processing_band : processing_bandSet) {
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
 			switch(processing_band) {
 			case "red":
 				if(selector.red) {
@@ -159,6 +162,9 @@ public class Rasterizer extends RemoteProxy {
 	private void runCellRange(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing, Range2d cellrange) throws IOException {
 		if(cellrange == null) {
 			return;
+		}
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
 		}
 		log.info("pre  " + cellrange);
 		cellrange = pointcloud.getCellRange2dOfSubset(cellrange);

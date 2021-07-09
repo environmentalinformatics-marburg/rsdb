@@ -8,10 +8,10 @@ import broker.acl.EmptyACL;
 import pointcloud.PointCloud;
 import pointcloud.Rasterizer;
 import rasterdb.RasterDB;
+import remotetask.CancelableRemoteProxyTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteProxyTask;
 
 @task_pointcloud("rasterize")
 @Description("Create visualisation raster of PointCloud layer.")
@@ -22,7 +22,7 @@ import remotetask.RemoteProxyTask;
 @Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) RasterDB operation mode. (RasterUnit only, default false)", example="false", required=false)
 @Param(name="point_scale", type="number", desc="point coordinates to pixel scale factor (default: 4, results in 0.25 units pixel size)", example="4", required=false)
 @Param(name="processing_bands", type="string_array", desc="List of processing bands that should be processed. If needed point attributes are missing, a processing bands is omitted. Possible case sensitive values: red, green, blue, intensity, elevation (default all processings: red, green, blue, intensity, elevation)", example="intensity, elevation", required=false)
-public class Task_rasterize extends RemoteProxyTask {
+public class Task_rasterize extends CancelableRemoteProxyTask {
 	//private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
@@ -73,6 +73,9 @@ public class Task_rasterize extends RemoteProxyTask {
 
 		pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointcloud, rasterdb, point_scale, processing_bands);
 		setRemoteProxyAndRunAndClose(rasterizer);
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
+		}
 		setMessage("rebuild pyramid");
 		rasterdb.rebuildPyramid(true);		
 		if(associate) {
