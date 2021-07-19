@@ -18,7 +18,6 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteTask;
 import util.Range2d;
 import util.frame.FloatFrame;
 import voxeldb.CellFactory;
@@ -26,9 +25,9 @@ import voxeldb.VoxelDB;
 
 @task_voxeldb("rasterize")
 @Description("Convert voxels to raster.")
-@Param(name="voxeldb", type="layer_id", desc="VoxelDB layer. (source)", example="voxeldb1")
+@Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (target) (if layer exists, delete)", example="rasterdb1", required=false)
-public class Task_rasterize extends RemoteTask {
+public class Task_rasterize extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
@@ -76,7 +75,13 @@ public class Task_rasterize extends RemoteTask {
 		double voxelSizeZ = voxeldb.geoRef().voxelSizeZ;
 
 		for(TimeSlice timeSlice:voxeldb.timeMapReadonly.values()) {
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
 			cf.getVoxelCells(timeSlice).sequential().forEach(voxelCell -> {
+				if(isCanceled()) {
+					throw new RuntimeException("canceled");
+				}
 				try {
 					rasterdb.setTimeSlice(timeSlice);
 					
@@ -160,6 +165,11 @@ public class Task_rasterize extends RemoteTask {
 					throw new RuntimeException(e);
 				}
 			});
+		}
+		if(isCanceled()) {
+			rasterdb.close();
+			voxeldb.close();
+			throw new RuntimeException("canceled");
 		}
 		rasterdb.rebuildPyramid(true);
 		rasterdb.close();

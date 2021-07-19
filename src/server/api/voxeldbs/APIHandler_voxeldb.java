@@ -310,7 +310,7 @@ public class APIHandler_voxeldb {
 				case "epsg": {
 					voxeldb.checkMod(userIdentity);
 					updateCatalog = true;
-					int epsg = Integer.parseInt(meta.getString("epsg").trim());
+					int epsg = Integer.parseInt(meta.get("epsg").toString().trim());
 					log.info("set epsg " + epsg);
 					voxeldb.setEpsg(epsg);
 					break;

@@ -3,7 +3,7 @@ package remotetask;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class RemoteProxy {
+public abstract class RemoteProxy implements AutoCloseable {
 	private static final Logger log = LogManager.getLogger();
 	
 	private MessageProxy messageProxy = MessageProxy.MESSAGE_PROXY_NULL;

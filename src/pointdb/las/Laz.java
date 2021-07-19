@@ -93,6 +93,7 @@ public class Laz {
 		int cnt = 0;
 		LASpoint mutablePoint = internalReader.point;
 		while(cnt < record_count) {
+			//log.info("read " + cnt);
 			if(!internalReader.read_point()) {
 				throw new RuntimeException("not all points read "+ cnt + "  " + record_count + "    "  + number_of_point_records + " file points");
 			}
@@ -210,6 +211,7 @@ public class Laz {
 		int cnt = 0;
 		LASpoint mutablePoint = internalReader.point;
 		while(cnt < record_count) {
+			//log.info("read point " + cnt);
 			if(!internalReader.read_point()) {
 				throw new RuntimeException("not all points read "+ cnt + "  " + record_count + "    "  + number_of_point_records + " file points");
 			}

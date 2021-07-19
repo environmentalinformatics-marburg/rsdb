@@ -15,10 +15,10 @@ import broker.Broker;
 import broker.TimeSlice;
 import broker.acl.EmptyACL;
 import pointcloud.DoubleRect;
+import remotetask.CancelableRemoteProxyTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteTask;
 import voxeldb.Importer;
 import voxeldb.VoxelDB;
 
@@ -29,11 +29,13 @@ import voxeldb.VoxelDB;
 @Param(name="epsg", desc="EPSG projection code. If epsg is left empty and proj4 parameter is set a automatic EPSG search will be tried, multiple EPSG codes may refer to one proj4.", format="number", example="25832", required=false)
 @Param(name="proj4", desc="PROJ4 projection. If proj4 is left empty and epsg parameter is set a automatic proj4 generation will be tried.", format="text", example="+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
 @Param(name="rect", type="number_rect", desc="Only points inside of rect are imported - prevents import of points with erroneous x,y coordinates.", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
+@Param(name="zmin", type="number", desc="Only points above are imported - prevents import of points with erroneous z coordinates.", example="0", required=false)
+@Param(name="zmax", type="number", desc="Only points below are imported - prevents import of points with erroneous z coordinates.", example="20", required=false)
 @Param(name="cell_size", type="number", desc="Size of cells. (default: 100 -> 100 voxels edge length)", example="10", required=false)
 @Param(name="voxel_size", type="number", desc="Resolution of voxels. (default: 1 -> voxels of 1 meter edge length)", example="0.2", required=false)
 @Param(name="time_slice", type="string", desc="Name of time slice. (default: untitled)", example="January", required=false)
 @Param(name="clear", type="boolean", desc="Delete existing VoxelDB of that ID. (default: false)", example="true", required=false)
-public class Task_import extends RemoteTask {
+public class Task_import extends CancelableRemoteProxyTask {
 	private static final Logger log = LogManager.getLogger();
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
@@ -59,6 +61,9 @@ public class Task_import extends RemoteTask {
 			double rect_ymax = rect_Text.getDouble(3);
 			filterRect = new DoubleRect(rect_xmin, rect_ymin, rect_xmax, rect_ymax);
 		}
+		
+		double filterZmin = task.optNumber("zmin", Double.NaN).doubleValue();
+		double filterZmax = task.optNumber("zmax", Double.NaN).doubleValue();
 		
 		String voxeldb_name = task.getString("voxeldb");
 		String storage_type = task.optString("storage_type", "TileStorage");
@@ -113,13 +118,15 @@ public class Task_import extends RemoteTask {
 		}
 		TimeSlice timeSlice = voxeldb.addTimeSlice(new TimeSlice.TimeSliceBuilder(time_slice));
 
-		Importer imprter = new Importer(voxeldb, filterRect, true, timeSlice, getMessageReceiver());
 		String source = task.getString("source");
 		Path root = Paths.get(source);
-
-		setMessage("start import");
-		imprter.importDirectory(root);
-		voxeldb.getGriddb().storage().flush();
-		setMessage("finished import");
+		
+		try(Importer importer = new Importer(voxeldb, filterRect, filterZmin, filterZmax, true, timeSlice)) {
+			this.setRemoteProxy(importer);
+			setMessage("start import");
+			importer.importDirectory(root);
+			voxeldb.getGriddb().storage().flush();
+			setMessage("finished import");
+		}		
 	}
 }

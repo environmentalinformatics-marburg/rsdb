@@ -14,7 +14,7 @@ import voxeldb.VoxelDB;
 
 @task_voxeldb("rename")
 @Description("Renames an existing VoxelDB layer to a not yet existing VoxelDB layer ID")
-@Param(name="voxeldb", type="layer_id", desc="ID of VoxelDB layer to rename.", example="voxeldb1")
+@Param(name="voxeldb", type="voxeldb", desc="ID of VoxelDB layer to rename.", example="voxeldb1")
 @Param(name="new_name", type="layer_id", desc="ID of new VoxelDB layer.", example="voxeldbA")
 public class Task_rename extends RemoteTask {
 	//private static final Logger log = LogManager.getLogger();

@@ -92,6 +92,16 @@
                 </template>
               </multiselect>
             </td>
+            <td v-else-if="param.type === 'voxeldb'">
+              <multiselect v-model="param.value" :options="voxeldbs" :searchable="true" :show-labels="false" placeholder="pick a voxeldb" :allowEmpty="false" style="min-width: 600px;">
+                <template slot="singleLabel" slot-scope="{option}">
+                  {{option}}
+                </template>
+                <template slot="option" slot-scope="{option}">
+                  {{option}}
+                </template>
+              </multiselect>
+            </td>            
             <td v-else-if="param.type === 'string'">
               <input v-model="param.value" placeholder="(empty)" :class="[param.required && (param.value === undefined || param.value === '') ? 'param-required-missing' : '']" />
             </td>
@@ -195,6 +205,7 @@ export default {
       this.$store.dispatch('pointdbs/init');      
       this.$store.dispatch('pointclouds/init'); 
       this.$store.dispatch('vectordbs/init');
+      this.$store.dispatch('voxeldbs/init');
       this.mode = 'load';
       var url = this.$store.getters.apiUrl('api/remote_task_entries');
       try {
@@ -326,6 +337,7 @@ export default {
       this.$store.dispatch('pointdbs/refresh');
       this.$store.dispatch('pointclouds/refresh');
       this.$store.dispatch('vectordbs/refresh');
+      this.$store.dispatch('voxeldbs/refresh');
       this.$store.dispatch('poi_groups/refresh');
       this.$store.dispatch('roi_groups/refresh');
       this.$store.dispatch('layer_tags/refresh');
@@ -422,6 +434,13 @@ export default {
       var r = this.$store.state.vectordbs.data.map(e => e.name);
       return r === undefined ? [] : r.slice().sort(function(a, b) { return a.localeCompare(b);});
     },
+    voxeldbs() {
+      if(this.$store.state.voxeldbs.data === undefined) {
+        return [];
+      }
+      var r = this.$store.state.voxeldbs.data.map(e => e.name);
+      return r === undefined ? [] : r.slice().sort(function(a, b) { return a.localeCompare(b);});
+    },    
   },
   watch: {
     data() {

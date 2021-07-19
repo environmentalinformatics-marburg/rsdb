@@ -14,11 +14,11 @@ import pointcloud.CellTable;
 import pointcloud.DoubleRect;
 import pointdb.las.Las;
 import pointdb.las.Laz;
-import remotetask.MessageReceiver;
+import remotetask.CancelableRemoteProxy;
 import util.Timer;
 import util.Util;
 
-public class Importer {
+public class Importer extends CancelableRemoteProxy {
 	private static final Logger log = LogManager.getLogger();
 
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
@@ -27,19 +27,20 @@ public class Importer {
 
 	private final VoxelDB voxeldb;
 	private final DoubleRect filterRect;
+	private final double filterZmin;
+	private final double filterZmax;
 	private final boolean trySetOriginToFileOrigin;
 	private final TimeSlice timeSlice;
-	private final MessageReceiver messageReceiver;
-
 	private final CellFactory cellFactory;
 
-	public Importer(VoxelDB voxeldb, DoubleRect filterRect, boolean trySetOriginToFileOrigin, TimeSlice timeSlice, MessageReceiver messageReceiver) {
+	public Importer(VoxelDB voxeldb, DoubleRect filterRect, double filterZmin, double filterZmax, boolean trySetOriginToFileOrigin, TimeSlice timeSlice) {
 		this.voxeldb = voxeldb;
 		this.filterRect = filterRect;
 		this.trySetOriginToFileOrigin = trySetOriginToFileOrigin;
 		this.timeSlice = timeSlice;
-		this.messageReceiver = messageReceiver;
 		this.cellFactory = CellFactory.ofAll(voxeldb);
+		this.filterZmin = filterZmin;
+		this.filterZmax = filterZmax;
 	}
 
 	/**
@@ -54,12 +55,18 @@ public class Importer {
 		} else {
 			paths = Util.getPaths(root);
 			for(Path path:paths) {
-				if(path.toFile().isDirectory()) {
+				if(isCanceled()) {
+					throw new RuntimeException("canceled");
+				}
+				if(path.toFile().isDirectory()) {					
 					importDirectory(path);
 				}
 			}
 		}
 		for(Path path:paths) {
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
 			if(path.toFile().isFile()) {				
 				try {
 					String filename = path.getFileName().toString().toLowerCase();
@@ -131,7 +138,7 @@ public class Importer {
 		double[] las_scale_factor = isLas ? las.scale_factor : laz.scale_factor;
 		double[] las_offset = isLas ? las.offset : laz.offset;
 		long las_number_of_point_records = isLas ? las.number_of_point_records : laz.number_of_point_records;
-		int record_count_max = READ_MAX_BYTES / (isLas ? las.point_Data_Record_Length : laz.point_Data_Record_Length);
+		final int record_count_max = READ_MAX_BYTES / (isLas ? las.point_Data_Record_Length : laz.point_Data_Record_Length);
 
 		int xVoxelCellsize = voxeldb.getCellsize();
 		int yVoxelCellsize = voxeldb.getCellsize();
@@ -166,6 +173,14 @@ public class Importer {
 				ylasmax = filterRect.ymax;
 			}
 		}
+		
+		if(Double.isFinite(filterZmin) && zlasmin < filterZmin) {
+			zlasmin = filterZmin;
+		}
+		
+		if(Double.isFinite(filterZmax) && zlasmax > filterZmax) {
+			zlasmax = filterZmax;
+		}
 
 		if(trySetOriginToFileOrigin) {
 			voxeldb.trySetOrigin(xlasmin, ylasmin, zlasmin);
@@ -191,11 +206,17 @@ public class Importer {
 			round++;
 			long current_long_len = subdividedLen > 0 ? subdividedLen : las_number_of_point_records - pos;
 			int len = current_long_len >= record_count_max ? record_count_max : (int) current_long_len;
-			messageReceiver.setMessage("read records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
+			setMessage("read records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
 			Timer.resume("get records");
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
 			CellTable recordTable = isLas ? las.getRecords(pos, len) : laz.getRecords(pos, len);
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
 			//log.info(Timer.stop("get records"));
-			messageReceiver.setMessage("process records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
+			setMessage("process records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
 
 			Timer.resume("convert records");
 
@@ -278,23 +299,28 @@ public class Importer {
 			long totalCellCount = ((long) xcellrange) * ((long) ycellrange) * ((long) zcellrange);
 			log.info("cell "+xcellmin+" "+ycellmin+" "+zcellmin+"   "+xcellmax+" "+ycellmax+" "+zcellmax+"     "+xcellrange+" "+ycellrange+" "+zcellrange + "   " + totalCellCount);
 			int maxCellCountPerBatch = 1024*1024;
+			//long maxVoxels = 10_000_000_000l;
+			//int maxCellCountPerBatch = (int) (((maxVoxels / xVoxelCellsize) / yVoxelCellsize) / zVoxelCellsize);
 			if(totalCellCount > maxCellCountPerBatch) {
-				subdividedLen = len / 2;
+			subdividedLen = len / 2;
 				if(subdividedLen < 1) {
 					subdividedLen = 1;
 				}
+				log.info("point range to large: " + totalCellCount + "  of max " + maxCellCountPerBatch + " -> subdivide, slows down processing.  " + subdividedLen);
 				continue; // process smaller set of point records	
 			}
 			subdividedLen = 0; // no subdivision
 			pos += len; // process len point records
 
+			log.info("VoxelCell[][][] cells...");
 			VoxelCell[][][] cells = new VoxelCell[ycellrange][xcellrange][zcellrange];
+			log.info("VoxelCell[][][] cells done.");
 
 			for (int i = 0; i < len; i++) {
 				double x = (xs[i] * xscale) + xoff;
 				double y = (ys[i] * yscale) + yoff;
 				double z = (zs[i] * zscale) + zoff;
-				if(xlasmin <= x && x <= xlasmax && ylasmin <= y && y <= ylasmax) { // extent check of las file and filter rect					
+				if(xlasmin <= x && x <= xlasmax && ylasmin <= y && y <= ylasmax && zlasmin <= z && z <= zlasmax) { // extent check of las file and filter rect					
 					int xcell = (int) Math.floor((x - xProjectedOrigin) / xProjectedCellsize) - xcellmin;
 					int ycell = (int) Math.floor((y - yProjectedOrigin) / yProjectedCellsize) - ycellmin;
 					int zcell = (int) Math.floor((z - zProjectedOrigin) / zProjectedCellsize) - zcellmin;
@@ -333,7 +359,7 @@ public class Importer {
 				}
 			}
 			
-			messageReceiver.setMessage("write records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
+			setMessage("write records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
 
 			for (int y = 0; y < ycellrange; y++) {
 				VoxelCell[][] cellsY = cells[y];
@@ -354,5 +380,11 @@ public class Importer {
 
 	public static double floorMod(double x, double y) {
 		return x - Math.floor(x / y) * y;
+	}
+
+	@Override
+	public void process() throws Exception {
+		throw new RuntimeException("not implemented: use importDirectory or importFile");
+		
 	}
 }
