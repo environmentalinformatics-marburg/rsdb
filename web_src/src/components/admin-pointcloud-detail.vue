@@ -165,6 +165,29 @@
                 </table>            
             </div>
 
+            <div v-if="meta !== undefined && meta.time_slices !== undefined && meta.time_slices.length !== 0">
+            <v-divider class="meta-divider"></v-divider> 
+            <h3 class="subheading mb-0"> 
+                Time slices ({{meta.time_slices.length}})
+            </h3>
+            <div class="meta-content">
+                <table class="table-details">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="time_slice in meta.time_slices" :key="time_slice.id">
+                            <td>{{time_slice.id}}</td>
+                            <td>{{time_slice.name}}</td>
+                        </tr>                    
+                    </tbody>
+                </table>
+            </div>
+            </div>
+
             <v-divider class="meta-divider"></v-divider>  
             <h3 class="subheading mb-0"> 
                 <admin-pointcloud-dialog-set-acl :meta="meta" @changed="refresh" v-if="isAdmin" />

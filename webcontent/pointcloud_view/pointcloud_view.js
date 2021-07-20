@@ -120,6 +120,11 @@ function init() {
 				} else {
 					var queryParameters = {};
 					queryParameters.ext = "" + (qx - radius) + " " + (qy - radius) + " " + (qx + radius) + " " + (qy + radius);
+					
+					if(this.urlParameters.time_slice_id !== undefined) {
+						queryParameters.time_slice_id = this.urlParameters.time_slice_id;
+					}
+					
 					switch(this.viewColor) {
 						case 'grey':
 							queryParameters.columns = "x y z";
@@ -394,7 +399,10 @@ function init() {
 					query.pointcloud = this.urlParameters.pointcloud;
 				}
 				query.x = this.urlParameters.x;
-				query.y = this.urlParameters.y;				
+				query.y = this.urlParameters.y;
+				if(this.urlParameters.time_slice_id !== undefined) {
+					query.time_slice_id = this.urlParameters.time_slice_id;
+				}				
 				this.$router.push({ path: '/', query: query });
 			},
 
@@ -407,6 +415,9 @@ function init() {
 				}
 				parameters.x = this.$route.query.x;
 				parameters.y = this.$route.query.y;
+				if(this.$route.query.time_slice_id !== undefined) {
+					parameters.time_slice_id = this.$route.query.time_slice_id;
+				}
 				if(this.urlParameters.db !== parameters.db || this.urlParameters.pointcloud !== parameters.pointcloud || this.urlParameters.x !== parameters.x || this.urlParameters.y !== parameters.y) {
 					this.urlParameters = parameters;
 				}

@@ -26,7 +26,7 @@ import voxeldb.VoxelDB;
 @task_voxeldb("rasterize")
 @Description("Convert voxels to raster.")
 @Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer. (source)", example="voxeldb1")
-@Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (target) (if layer exists, delete)", example="rasterdb1", required=false)
+@Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (if layer exists, delete) (target, default: [voxeldb]_rasterized)", example="rasterdb1", required=false)
 public class Task_rasterize extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
@@ -64,6 +64,10 @@ public class Task_rasterize extends CancelableRemoteTask {
 
 		voxeldb.setAssociatedRasterDB(rasterdb.config.getName());		
 		rasterdb.associated.setVoxelDB(voxeldb.getName());
+		
+		rasterdb.setACL(voxeldb.getACL());
+		rasterdb.setACL_mod(voxeldb.getACL_mod());
+		
 		rasterdb.writeMeta();
 
 		Band bandCount = rasterdb.createBand(TilePixel.TYPE_FLOAT, "count", null);

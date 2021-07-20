@@ -67,7 +67,7 @@ public class Task_rasterize extends CancelableRemoteProxyTask {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions, storage_type);
 		} else {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
-		}
+		}		
 
 		double point_scale = task.optDouble("point_scale", Rasterizer.DEFAULT_POINT_SCALE);
 
@@ -81,6 +81,8 @@ public class Task_rasterize extends CancelableRemoteProxyTask {
 		if(associate) {
 			pointcloud.setAssociatedRasterDB(rasterdb_name);
 		}
+		rasterdb.setACL(pointcloud.getACL());
+		rasterdb.setACL_mod(pointcloud.getACL_mod());
 		setMessage("done");
 	}
 }

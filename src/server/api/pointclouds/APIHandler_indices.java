@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import org.mapdb.Fun.Pair;
 
 import broker.Broker;
+import broker.TimeSlice;
 import pointcloud.PointCloud;
 import pointdb.base.Point2d;
 import pointdb.base.Rect;
@@ -93,7 +94,28 @@ public class APIHandler_indices {
 			String script = jsonFunctions.getString(i);
 			functions.add(script);
 		}
+		
+		TimeSlice timeSlice = null;
+		if(json.has("time_slice_id")) {
+			int time_slice_id = json.getInt("time_slice_id");
+			timeSlice = pointcloud.timeMapReadonly.get(time_slice_id);
+			if(timeSlice == null) {
+				throw new RuntimeException("uknown time_slice_id: " + time_slice_id);
+			}
+			if(Web.has(request, "time_slice_name") && !Web.getString(request, "time_slice_name").equals(timeSlice.name)) {
+				throw new RuntimeException("time_slice_name does not match to time slice of time_slice_id: '" + Web.getString(request, "time_slice_name") + "'  '" + timeSlice.name + "'");
+			}
+		} else if(json.has("time_slice_name")) {
+			String time_slice_name = json.getString("time_slice_name");
+			timeSlice = pointcloud.getTimeSliceByName(time_slice_name);
+			if(timeSlice == null) {
+				throw new RuntimeException("unknown time_slice_name: " + time_slice_name);
+			}
+		} else if(!pointcloud.timeMapReadonly.isEmpty()) {
+			timeSlice = pointcloud.timeMapReadonly.lastEntry().getValue();
+		}
+		int req_t = timeSlice == null ? 0 : timeSlice.id;
 
-		ProcessIndices.process(areas, functions, format, response, null, pointcloud, omit_empty_areas);
+		ProcessIndices.process(req_t, areas, functions, format, response, null, pointcloud, omit_empty_areas);
 	}
 }

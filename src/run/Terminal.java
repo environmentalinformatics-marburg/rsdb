@@ -650,7 +650,7 @@ public class Terminal {
 			System.out.println("command import_soda needs 2 parameters");
 		}
 	}
-	
+
 	public static void command_import_sequoia(String[] args) {
 		if(args.length == 4) {
 			String name = args[1];
@@ -668,7 +668,7 @@ public class Terminal {
 			System.out.println("command import_soda needs 2 parameters");
 		}
 	}
-	
+
 	public static void command_import_soda(String[] args) {
 		if(args.length == 4) {
 			String name = args[1];
@@ -788,17 +788,23 @@ public class Terminal {
 				PointCloud pointcloud = broker.getPointCloud("test");
 				Timer.start("full read");
 				AttributeSelector selector = new AttributeSelector(true);
-				Stream<CellTable> cellTables = pointcloud.getCellTables(-Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, selector);
-				cellTables.sequential().forEach(cellTable -> {
-					log.info(cellTable);
-					if(cellTable.rows >= 100000 && cellTable.gpsTime != null) {
-						for (int i = 0; i < 100000; i++) {
-							if(cellTable.edgeOfFlightLine != null && cellTable.edgeOfFlightLine.get(i)) {
-								log.info(i+"   "+cellTable.gpsTime[i]+"  "+cellTable.x[i]+"  "+(cellTable.scanDirectionFlag == null ? "-" : cellTable.scanDirectionFlag.get(i))+" "+ (cellTable.edgeOfFlightLine == null ? "-" : cellTable.edgeOfFlightLine.get(i)));
+				int[] ts = new int[]{0};
+				if(!pointcloud.timeMapReadonly.isEmpty()) {
+					ts = pointcloud.timeMapReadonly.keySet().stream().mapToInt(t->t).toArray();
+				}
+				for(int t : ts) {
+					Stream<CellTable> cellTables = pointcloud.getCellTables(t, -Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, selector);
+					cellTables.sequential().forEach(cellTable -> {
+						log.info(cellTable);
+						if(cellTable.rows >= 100000 && cellTable.gpsTime != null) {
+							for (int i = 0; i < 100000; i++) {
+								if(cellTable.edgeOfFlightLine != null && cellTable.edgeOfFlightLine.get(i)) {
+									log.info(i+"   "+cellTable.gpsTime[i]+"  "+cellTable.x[i]+"  "+(cellTable.scanDirectionFlag == null ? "-" : cellTable.scanDirectionFlag.get(i))+" "+ (cellTable.edgeOfFlightLine == null ? "-" : cellTable.edgeOfFlightLine.get(i)));
+								}
 							}
 						}
-					}
-				});
+					});
+				}
 				log.info(Timer.stop("full read"));
 			} catch (Exception e) {
 				e.printStackTrace();

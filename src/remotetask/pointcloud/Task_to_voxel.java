@@ -27,7 +27,7 @@ import voxeldb.VoxelDB;
 @task_pointcloud("to_voxel")
 @Description("Convert pointcloud to voxels.")
 @Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer.", example="pointcloud1")
-@Param(name="time_slice", type="string", desc="Name of time slice. (default: untitled)", example="January", required=false)
+@Param(name="time_slice", type="string", desc="Name of the new voxeldb time slice to create. Only used if pointcloud does not contain time slice entries. (default: untitled)", example="January", required=false)
 public class Task_to_voxel extends CancelableRemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
@@ -48,50 +48,66 @@ public class Task_to_voxel extends CancelableRemoteTask {
 	@Override
 	public void process() {
 		String voxeldb_name = task.optString("voxeldb", pointcloud.getName() + "_voxels");
-		
+
 		String storage_type = task.optString("storage_type", "TileStorage");
 		boolean transactions = task.optBoolean("transactions", false);
-		double voxel_size = task.optNumber("voxel_size", 1).doubleValue();
-		
-		String time_slice = task.optString("time_slice", "untitled");
-		if(time_slice.isEmpty()) {
-			time_slice = "";
-		}
-		
+		double voxel_size = task.optNumber("voxel_size", 1).doubleValue();		
+
 		broker.deleteVoxeldb(voxeldb_name);
 		VoxelDB voxeldb = broker.createNewVoxeldb(voxeldb_name, storage_type, transactions);
+		voxeldb.setACL(pointcloud.getACL());
+		voxeldb.setACL_mod(pointcloud.getACL_mod());
 		voxeldb.setProj4(pointcloud.getProj4());
 		voxeldb.setEpsg(pointcloud.getEPSGcode());
 		voxeldb.trySetVoxelsize(voxel_size);		
 		voxeldb.trySetCellsize(50);
-		TimeSlice timeSlice = voxeldb.addTimeSlice(new TimeSlice.TimeSliceBuilder(time_slice));
-
 		setMessage("query count of tiles");		
 		long total = pointcloud.getTileKeys().size();
 		setMessage("start processing " + total + " tiles");
-		Stream<PointTable> pointTables = pointcloud.getPointTables(-Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, new AttributeSelector().setXYZ());
-
-		StreamConsumer consumer = new StreamConsumer(total, voxeldb, timeSlice);
-		pointTables.sequential().forEachOrdered(consumer);
-
+		long counter = 0;		
+		
+		if(pointcloud.timeMapReadonly.isEmpty()) {
+			String time_slice = task.optString("time_slice", "untitled");
+			if(time_slice.isEmpty()) {
+				time_slice = "";
+			}
+			TimeSlice timeSlice = new TimeSlice(0, time_slice);
+			voxeldb.setTimeSlice(timeSlice);
+			counter += process(voxeldb, timeSlice, counter, total);
+		} else {
+			for(TimeSlice timeSlice : pointcloud.timeMapReadonly.values()) {
+				voxeldb.setTimeSlice(timeSlice);
+				counter += process(voxeldb, timeSlice, counter, total);
+			}
+		}
+		
 		voxeldb.close();
 
-		if(consumer.getCnt() == total) {
+		if(counter == total) {
 			setMessage("all " + total + " tiles processed");
 		} else {
-			throw new RuntimeException("stopped (" + consumer.cnt + " of " + total + " tiles processed)");
+			throw new RuntimeException("stopped (" + counter + " of " + total + " tiles processed)");
 		}
+	}
+
+	public long process(VoxelDB voxeldb, TimeSlice timeSlice, long counter, long total) {		
+		Stream<PointTable> pointTables = pointcloud.getPointTables(timeSlice.id, -Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, new AttributeSelector().setXYZ());
+		StreamConsumer consumer = new StreamConsumer(counter, total, voxeldb, timeSlice);
+		pointTables.sequential().forEachOrdered(consumer);
+		return consumer.getCnt();
 	}
 
 	private final class StreamConsumer implements Consumer<PointTable> {
 
+		private final long startCount;
 		private final long total;
 		private final VoxelDB voxeldb;
 		private final int t;
 
 		private LongAdder cnt = new LongAdder();
 
-		public StreamConsumer(long total, VoxelDB voxeldb, TimeSlice timeSlice) {
+		public StreamConsumer(long startCount, long total, VoxelDB voxeldb, TimeSlice timeSlice) {
+			this.startCount = startCount;
 			this.total = total;
 			this.voxeldb = voxeldb;
 			this.t = timeSlice.id;
@@ -106,7 +122,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 			}
 			cnt.increment();
 			if(isMessageTime()) {
-				setMessage(getCnt() + " of " + total + " tiles processed");
+				setMessage((startCount + getCnt()) + " of " + total + " tiles processed");
 				if(isCanceled()) {
 					throw new RuntimeException("canceled");
 				}
@@ -118,9 +134,9 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		}
 
 		private void process(PointTable pointTable) throws IOException {
-			
+
 			CellFactory cellFactory = CellFactory.ofCount(voxeldb);
-			
+
 			int cellsize = voxeldb.getCellsize();
 			double xorigin = voxeldb.geoRef().originX;
 			double yorigin = voxeldb.geoRef().originY;
@@ -128,7 +144,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 			double xvoxelsize = voxeldb.geoRef().voxelSizeX;
 			double yvoxelsize = voxeldb.geoRef().voxelSizeY;
 			double zvoxelsize = voxeldb.geoRef().voxelSizeZ;			
-			
+
 			int len = pointTable.rows;
 			double[] xs = pointTable.x;
 			double[] ys = pointTable.y;
@@ -228,7 +244,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 							log.info("cx " + cx + "  cy " + cy + "  cz " + cz);
 							VoxelCell oldVoxelCell = cellFactory.getVoxelCell(cx, cy, cz, t);							
 							int[][][] ccnt = oldVoxelCell == null ? new int[cellsize][cellsize][cellsize] : oldVoxelCell.cnt;
-							
+
 							/*{
 								int sxmin = Integer.MAX_VALUE;
 								int symin = Integer.MAX_VALUE;
@@ -267,7 +283,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 								}
 								log.info("vc " + sxmin + " " + symin + " " + szmin + "   " + sxmax + " "+ symax + " " + szmax + "     " + sum);
 							}*/
-							
+
 							int cvxmin = (cx * cellsize);
 							int cvymin = (cy * cellsize);
 							int cvzmin = (cz * cellsize);
@@ -288,7 +304,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 									}
 								}
 							}
-							
+
 							/*{
 								int sxmin = Integer.MAX_VALUE;
 								int symin = Integer.MAX_VALUE;
@@ -327,7 +343,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 								}
 								log.info("vc " + sxmin + " " + symin + " " + szmin + "   " + sxmax + " "+ symax + " " + szmax + "     " + sum);
 							}*/
-							
+
 							VoxelCell voxelCell = new VoxelCell(cx, cy, cz, ccnt);
 							cellFactory.writeVoxelCell(voxelCell, t);
 						}

@@ -20,6 +20,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import broker.Broker;
 import broker.Informal;
+import broker.TimeSlice;
 import broker.InformalProperties.Builder;
 import pointcloud.AttributeSelector;
 import pointcloud.CellTable;
@@ -31,6 +32,7 @@ import server.api.pointclouds.PointProcessor.PointTableTransformFunc;
 import util.Receiver;
 import util.ResponseReceiver;
 import util.StreamReceiver;
+import util.Web;
 
 public class APIHandler_points {
 	private static final Logger log = LogManager.getLogger();
@@ -97,6 +99,29 @@ public class APIHandler_points {
 			throw new RuntimeException("missing parameter 'ext' (or 'polygon')");
 		}
 		
+		TimeSlice timeSlice = null;
+		if(Web.has(request, "time_slice_id")) {
+			int time_slice_id = Web.getInt(request, "time_slice_id");
+			timeSlice = pointcloud.timeMapReadonly.get(time_slice_id);
+			if(timeSlice == null) {
+				throw new RuntimeException("uknown time_slice_id: " + time_slice_id);
+			}
+			if(Web.has(request, "time_slice_name") && !Web.getString(request, "time_slice_name").equals(timeSlice.name)) {
+				throw new RuntimeException("time_slice_name does not match to time slice of time_slice_id: '" + Web.getString(request, "time_slice_name") + "'  '" + timeSlice.name + "'");
+			}
+		} else if(Web.has(request, "time_slice_name")) {
+			String time_slice_name = Web.getString(request, "time_slice_name");
+			timeSlice = pointcloud.getTimeSliceByName(time_slice_name);
+			if(timeSlice == null) {
+				throw new RuntimeException("unknown time_slice_name: " + time_slice_name);
+			}
+		} else if(!pointcloud.timeMapReadonly.isEmpty()) {
+			timeSlice = pointcloud.timeMapReadonly.lastEntry().getValue();
+		}
+		int req_t = timeSlice == null ? 0 : timeSlice.id;
+		
+		
+		
 		PointTableTransformFunc transformFunc = null;
 		/*boolean normalise_ground = Web.getBoolean(request, "normalise_ground", false);
 		if(normalise_ground) {
@@ -127,7 +152,7 @@ public class APIHandler_points {
 					double tymin = tileRect.getUTMd_min_y();
 					double txmax = tileRect.getUTMd_max_x_inclusive();
 					double tymax = tileRect.getUTMd_max_y_inclusive();
-					PointProcessor.process(pointcloud, txmin, tymin, txmax, tymax, tf, filterFunc, tileRegion, tileFormat, receiver, request, selector);
+					PointProcessor.process(pointcloud, req_t, txmin, tymin, txmax, tymax, tf, filterFunc, tileRegion, tileFormat, receiver, request, selector);
 					zipOutputStream.closeEntry();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
@@ -137,7 +162,7 @@ public class APIHandler_points {
 			zipOutputStream.flush();
 		} else {
 			ResponseReceiver receiver = new ResponseReceiver(response);		
-			PointProcessor.process(pointcloud, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, format, receiver, request, selector);
+			PointProcessor.process(pointcloud, req_t, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, format, receiver, request, selector);
 		}
 	}
 	

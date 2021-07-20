@@ -14,7 +14,9 @@ import org.apache.logging.log4j.Logger;
 import griddb.Attribute;
 import griddb.Cell;
 import rasterunit.Tile;
+import rasterunit.TileKey;
 import remotetask.CancelableRemoteProxy;
+import util.collections.ReadonlyNavigableSetView;
 
 public class Rebuild extends CancelableRemoteProxy {
 	private static final Logger log = LogManager.getLogger();
@@ -134,7 +136,22 @@ public class Rebuild extends CancelableRemoteProxy {
 			dst.setInformal(src.informal());
 			dst.commitMeta();
 
-			Collection<Tile> tiles = src.getGriddb().getTiles(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+			ReadonlyNavigableSetView<TileKey> tileKeys = src.getTileKeys();
+			int tileSize = tileKeys.size();
+			TileProcessor tileProcessor = new TileProcessor(dst, recompress, compression_level);
+			int tileCounter = 0;
+			for(TileKey tileKey : tileKeys) {
+				if(isCanceled()) {
+					throw new RuntimeException("canceled");
+				}
+				Tile tile = src.getGriddb().storage().readTile(tileKey);
+				tileProcessor.accept(tile);
+				tileCounter++;
+				setMessage(tileCounter + " of " + tileSize + " tiles processed  " + (( ((long)tileCounter) * 100) / tileSize) + "%");
+			}
+			tileProcessor.flush();
+			
+			/*Collection<Tile> tiles = src.getGriddb().getTiles(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
 			int tileSize = tiles.size();
 			TileProcessor tileProcessor = new TileProcessor(dst, recompress, compression_level);
 			//tiles.stream().sequential().forEach(tileProcessor);
@@ -147,7 +164,7 @@ public class Rebuild extends CancelableRemoteProxy {
 			tileProcessor.flush();
 			if(isCanceled()) {
 				throw new RuntimeException("canceled");
-			}
+			}*/
 		}		
 	}
 }

@@ -29,7 +29,7 @@ public class PointProcessor {
 	public static interface PointTableTransformFunc extends Function<PointTable, PointTable>{
 	}
 
-	public static void process(PointCloud pointcloud, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String format, Receiver receiver, Request request, AttributeSelector selector) throws IOException {
+	public static void process(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String format, Receiver receiver, Request request, AttributeSelector selector) throws IOException {
 		boolean useRawPoints = false;
 
 		if(useRawPoints) { // processings: just polygon filter
@@ -37,7 +37,7 @@ public class PointProcessor {
 
 			AttributeSelector queryAttributeSelector = selector == null ? new AttributeSelector(true) : selector;
 			//log.info("queryAttributeSelector " + queryAttributeSelector); 
-			Stream<PointTable> pointTables = pointcloud.getPointTables(xmin, ymin, xmax, ymax, queryAttributeSelector, filterFunc);
+			Stream<PointTable> pointTables = pointcloud.getPointTables(t, xmin, ymin, xmax, ymax, queryAttributeSelector, filterFunc);
 
 			if(transformFunc != null) {
 				pointTables.map(transformFunc);
@@ -69,7 +69,7 @@ public class PointProcessor {
 				throw new RuntimeException("unknown format: "+format);
 			}
 		} else {			
-			DataProvider2 dp2 = new DataProvider2(pointcloud, region);
+			DataProvider2 dp2 = new DataProvider2(pointcloud, t, region);
 			Normalise normalise = Normalise.parse(request.getParameter("normalise"));
 			GeoPointFilter filter = null;
 			String filterText = request.getParameter("filter");

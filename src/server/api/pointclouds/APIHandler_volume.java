@@ -12,10 +12,12 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 
 import broker.Broker;
+import broker.TimeSlice;
 import pointcloud.AttributeSelector;
 import pointcloud.PointCloud;
 import pointcloud.PointTable;
 import pointcloud.Zvolume;
+import util.Web;
 import util.rdat.RdatBand;
 import util.rdat.RdatList;
 import util.rdat.RdatWriter;
@@ -48,6 +50,27 @@ public class APIHandler_volume {
 		double req_xmax = Double.parseDouble(ext[2]);
 		double req_ymax = Double.parseDouble(ext[3]);
 		log.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax);
+		
+		TimeSlice timeSlice = null;
+		if(Web.has(request, "time_slice_id")) {
+			int time_slice_id = Web.getInt(request, "time_slice_id");
+			timeSlice = pointcloud.timeMapReadonly.get(time_slice_id);
+			if(timeSlice == null) {
+				throw new RuntimeException("uknown time_slice_id: " + time_slice_id);
+			}
+			if(Web.has(request, "time_slice_name") && !Web.getString(request, "time_slice_name").equals(timeSlice.name)) {
+				throw new RuntimeException("time_slice_name does not match to time slice of time_slice_id: '" + Web.getString(request, "time_slice_name") + "'  '" + timeSlice.name + "'");
+			}
+		} else if(Web.has(request, "time_slice_name")) {
+			String time_slice_name = Web.getString(request, "time_slice_name");
+			timeSlice = pointcloud.getTimeSliceByName(time_slice_name);
+			if(timeSlice == null) {
+				throw new RuntimeException("unknown time_slice_name: " + time_slice_name);
+			}
+		} else if(!pointcloud.timeMapReadonly.isEmpty()) {
+			timeSlice = pointcloud.timeMapReadonly.lastEntry().getValue();
+		}
+		int req_t = timeSlice == null ? 0 : timeSlice.id;
 
 		String resText = request.getParameter("res");
 		double res = 1;
@@ -75,7 +98,7 @@ public class APIHandler_volume {
 		log.info("proc "+proc_xmin+" "+proc_ymin+" "+proc_xmax+" "+proc_ymax);
 
 		AttributeSelector selector = new AttributeSelector().setXYZ();
-		Stream<PointTable> pointTables = pointcloud.getPointTables(proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector);
+		Stream<PointTable> pointTables = pointcloud.getPointTables(req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector);
 		Zvolume zvolume = new Zvolume(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 		pointTables.sequential().forEach(zvolume::insert);
 		double[] range = zvolume.getZRange(100d);

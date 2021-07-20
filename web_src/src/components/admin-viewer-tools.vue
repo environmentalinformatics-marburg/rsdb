@@ -128,8 +128,14 @@ export default {
       var x = (ext[0] + ext[2]) / 2;
       var y = (ext[1] + ext[3]) / 2;
       var name = this.meta.associated.pointcloud;
-      var param = 'pointcloud=' + name + '&x=' + x +'&y=' + y;
-      var url = this.urlPrefix + '../../web/pointcloud_view/pointcloud_view.html#/?' + param;
+      //var param = 'pointcloud=' + name + '&x=' + x +'&y=' + y;
+      //var url = this.urlPrefix + '../../web/pointcloud_view/pointcloud_view.html#/?' + param;      
+      let params = {pointcloud: name, x: x, y: y};
+      if(this.currentTimestamp !== undefined) {
+        params.time_slice_id = this.currentTimestamp;
+      }
+      const urlParams = new URLSearchParams(params);
+      var url = this.urlPrefix + '../../web/pointcloud_view/pointcloud_view.html#/?' + urlParams;
       console.log(this.urlPrefix);
       console.log(url);
       window.open(url, '_blank');

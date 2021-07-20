@@ -453,7 +453,8 @@ public class Importer extends CancelableRemoteProxy {
 							//log.info(Timer.stop("merge CellTable"));
 						}
 						//Timer.resume("create tile");
-						Tile tile = pointcloud.createTile(cellTable, tx, ty, tz, compression_level);
+						int t = 0;
+						Tile tile = pointcloud.createTile(cellTable, tx, ty, tz, t, compression_level);
 
 						/*pointcloud.getGriddb();
 						CellTable newCellTable = pointcloud.getCellTable(GridDB.tileToCell(tile), new AttributeSelector(true));

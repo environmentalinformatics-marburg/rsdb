@@ -328,7 +328,6 @@ public class VoxelDB implements AutoCloseable {
 			timeMap.put(timeslice.id, timeslice);
 			griddb.writeMeta();
 		}
-
 	}
 
 	public TimeSlice addTimeSlice(TimeSliceBuilder timeSliceBuilder) {

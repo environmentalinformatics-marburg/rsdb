@@ -122,9 +122,9 @@ public class GridDB implements AutoCloseable {
 		}
 	}
 
-	public Tile createTile(int cx, int cy, int cz, byte[] cellData) {		
+	/*public Tile createTile(int cx, int cy, int cz, byte[] cellData) {		
 		return new Tile(0, cz, cy, cx, TILE_TYPE_CELL, cellData);		
-	}
+	}*/
 	
 	public Tile createTile(int cx, int cy, int cz, int t, byte[] cellData) {		
 		return new Tile(t, cz, cy, cx, TILE_TYPE_CELL, cellData);		
@@ -167,12 +167,12 @@ public class GridDB implements AutoCloseable {
 		return tile == null ? null : tileToCell(tile);
 	}
 
-	public TileCollection getTiles(int xcellmin, int ycellmin, int xcellmax, int ycellmax) {
-		return storage().readTiles(0, 0, ycellmin, ycellmax, xcellmin, xcellmax);
+	public TileCollection getTiles(int t, int b, int xcellmin, int ycellmin, int xcellmax, int ycellmax) {
+		return storage().readTiles(t, b, ycellmin, ycellmax, xcellmin, xcellmax);
 	}
 
-	public Stream<Cell> getCells(int xcellmin, int ycellmin, int xcellmax, int ycellmax) {
-		Collection<Tile> tiles = getTiles(xcellmin, ycellmin, xcellmax, ycellmax);
+	public Stream<Cell> getCells(int t, int b, int xcellmin, int ycellmin, int xcellmax, int ycellmax) {
+		Collection<Tile> tiles = getTiles(t, b, xcellmin, ycellmin, xcellmax, ycellmax);
 		/*Spliterator<Tile> spliterator = Spliterators.spliterator(tiles, 0);  // spliterator.trySplit() may allocate very big arrays TODO check
 		Stream<Cell> stream = StreamSupport.stream(spliterator, true).map(tile -> tileToCell(tile));*/
 		/*Spliterator<Tile> spliterator = new TileSpliterator<Tile>(tiles.iterator(), tiles.size(), 0);

@@ -17,7 +17,6 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteTask;
 
 @task_pointcloud("verify")
 @Description("Check point data.")
@@ -43,15 +42,24 @@ public class Task_verify extends CancelableRemoteTask {
 	public void process() {
 		setMessage("query count of tiles");		
 		long total = pointcloud.getTileKeys().size();
-		setMessage("start processing " + total + " tiles");
-		Stream<CellTable> cellTables = pointcloud.getCellTables(-Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, new AttributeSelector().all());
-
 		StreamConsumer consumer = new StreamConsumer(total);
-		cellTables.forEach(consumer);
+		
+		setMessage("start processing " + total + " tiles");
+		
+		int[] ts = new int[]{0};
+		if(!pointcloud.timeMapReadonly.isEmpty()) {
+			ts = pointcloud.timeMapReadonly.keySet().stream().mapToInt(t->t).toArray();
+		}
+		
+		for(int t : ts) {
+			Stream<CellTable> cellTables = pointcloud.getCellTables(t, -Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, new AttributeSelector().all());
+			cellTables.forEach(consumer);		
+		}		
+		
 		if(consumer.getCnt() == total) {
 			setMessage("all " + total + " tiles processed");
 		} else {
-			throw new RuntimeException("stopped (" + consumer.cnt + " of " + total + " tiles processed)");
+			setMessage("stopped (" + consumer.cnt + " of " + total + " tiles processed)");
 		}
 	}
 

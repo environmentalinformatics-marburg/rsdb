@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import broker.Broker;
 import broker.Informal.Builder;
+import broker.TimeSlice;
 import broker.acl.EmptyACL;
 import pointcloud.DoublePoint;
 import pointcloud.PointCloud;
@@ -100,19 +101,28 @@ public class Task_coverage extends RemoteTask {
 
 		Band band = rasterdb.createBand(TilePixel.TYPE_SHORT, "coverage", null);
 
-		runCoverage(rasterdb.rasterUnit(), rasterdb.ref(), band);		
+		if(pointcloud.timeMapReadonly.isEmpty()) {
+			int t = 0;
+			runCoverage(rasterdb.rasterUnit(), rasterdb.ref(), t, band);
+		} else {
+			for(TimeSlice timeSlice : pointcloud.timeMapReadonly.values()) {
+				rasterdb.setTimeSlice(timeSlice);
+				int t = timeSlice.id;
+				runCoverage(rasterdb.rasterUnit(), rasterdb.ref(), t, band);				
+			}
+		}
 	}
 
-	private void runCoverage(RasterUnitStorage rasterUnitStorage, GeoReference geoReference, Band band) throws IOException {
+	private void runCoverage(RasterUnitStorage rasterUnitStorage, GeoReference geoReference, int t, Band band) throws IOException {
 		Range2d cellrange = pointcloud.getCellRange();
 		if(cellrange == null) {
 			return;
 		}
 		log.info("cellRange: " + cellrange);
-		runCoverage(rasterUnitStorage, geoReference, band, cellrange);
+		runCoverage(rasterUnitStorage, geoReference, t, band, cellrange);
 	}
 
-	private void runCoverage(RasterUnitStorage rasterUnitStorage, GeoReference ref, Band band, Range2d cellrange) throws IOException {
+	private void runCoverage(RasterUnitStorage rasterUnitStorage, GeoReference ref, int t, Band band, Range2d cellrange) throws IOException {
 		if(cellrange == null) {
 			return;
 		}
@@ -126,8 +136,8 @@ public class Task_coverage extends RemoteTask {
 		if(cellrangeY > 4096) {
 			log.info("subdiv Y " + cellrangeY);
 			int middleY = (int) ((((long)cellrange.ymin) + ((long)cellrange.ymax)) / 2);
-			runCoverage(rasterUnitStorage, ref, band, new Range2d(cellrange.xmin, cellrange.ymin, cellrange.xmax, middleY));
-			runCoverage(rasterUnitStorage, ref, band, new Range2d(cellrange.xmin, middleY + 1, cellrange.xmax, cellrange.ymax));
+			runCoverage(rasterUnitStorage, ref, t, band, new Range2d(cellrange.xmin, cellrange.ymin, cellrange.xmax, middleY));
+			runCoverage(rasterUnitStorage, ref, t, band, new Range2d(cellrange.xmin, middleY + 1, cellrange.xmax, cellrange.ymax));
 			return;
 		}
 
@@ -135,8 +145,8 @@ public class Task_coverage extends RemoteTask {
 		if(cellrangeX > 4096) {
 			log.info("subdiv X " + cellrangeX);
 			int middleX = (int) ((((long)cellrange.xmin) + ((long)cellrange.xmax)) / 2);
-			runCoverage(rasterUnitStorage, ref, band, new Range2d(cellrange.xmin, cellrange.ymin, middleX, cellrange.ymax));
-			runCoverage(rasterUnitStorage, ref, band, new Range2d(middleX + 1, cellrange.ymin, cellrange.xmax, cellrange.ymax));
+			runCoverage(rasterUnitStorage, ref, t, band, new Range2d(cellrange.xmin, cellrange.ymin, middleX, cellrange.ymax));
+			runCoverage(rasterUnitStorage, ref, t, band, new Range2d(middleX + 1, cellrange.ymin, cellrange.xmax, cellrange.ymax));
 			return;
 		}		
 
@@ -155,16 +165,16 @@ public class Task_coverage extends RemoteTask {
 		log.info("raster_xmin " + raster_xmin + " raster_ymin " + raster_ymin+"   raster_xmax " + raster_xmax + " raster_ymax " + raster_ymax);
 
 
-		int cellCount = pointcloud.countCells(pointcloud_xmin, pointcloud_ymin, pointcloud_xmax, pointcloud_ymax);
+		int cellCount = pointcloud.countCells(t, pointcloud_xmin, pointcloud_ymin, pointcloud_xmax, pointcloud_ymax);
 		log.info("cell count "+cellCount);
 		if(cellCount > 0) {			
-			TileCollection tileCollection = pointcloud.getTiles(pointcloud_xmin, pointcloud_ymin, pointcloud_xmax, pointcloud_ymax);
+			TileCollection tileCollection = pointcloud.getTiles(t, pointcloud_xmin, pointcloud_ymin, pointcloud_xmax, pointcloud_ymax);
 			if(tileCollection != null) {
 				double xcelloffset = celloffset.x;
 				double ycelloffset = celloffset.y;
 				int xcellmin = (int) (Math.floor(pointcloud_xmin / cellsize) - xcelloffset);
 				int ycellmin = (int) (Math.floor(pointcloud_ymin / cellsize) - ycelloffset);
-				
+
 				short na = band.getInt16NA();
 				short[][] pixels = ProcessingShort.createEmpty(raster_xmax - raster_xmin + 1, raster_ymax - raster_ymin + 1, na);
 				Iterator<TileKey> it = tileCollection.keyIterator();
@@ -174,7 +184,7 @@ public class Task_coverage extends RemoteTask {
 					int y = key.y - ycellmin;
 					pixels[y][x] = 1;
 				}
-				ProcessingShort.writeMerge(rasterUnitStorage, 0, band, pixels, raster_ymin, raster_xmin);
+				ProcessingShort.writeMerge(rasterUnitStorage, t, band, pixels, raster_ymin, raster_xmin);
 				rasterUnitStorage.commit();
 				log.info("committed");
 			}			

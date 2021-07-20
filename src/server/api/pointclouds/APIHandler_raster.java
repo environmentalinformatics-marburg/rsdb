@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 
 import broker.Broker;
+import broker.TimeSlice;
 import pointcloud.AttributeSelector;
 import pointcloud.CellTable;
 import pointcloud.PointCloud;
@@ -27,6 +28,7 @@ import server.api.pointdb.JsWriter;
 import util.Receiver;
 import util.ResponseReceiver;
 import util.StreamReceiver;
+import util.Web;
 import util.rdat.RdatBand;
 import util.rdat.RdatList;
 import util.rdat.RdatWriter;
@@ -66,6 +68,28 @@ public class APIHandler_raster {
 		double req_xmax = Double.parseDouble(ext[2]);
 		double req_ymax = Double.parseDouble(ext[3]);
 		log.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax);
+		
+		
+		TimeSlice timeSlice = null;
+		if(Web.has(request, "time_slice_id")) {
+			int time_slice_id = Web.getInt(request, "time_slice_id");
+			timeSlice = pointcloud.timeMapReadonly.get(time_slice_id);
+			if(timeSlice == null) {
+				throw new RuntimeException("uknown time_slice_id: " + time_slice_id);
+			}
+			if(Web.has(request, "time_slice_name") && !Web.getString(request, "time_slice_name").equals(timeSlice.name)) {
+				throw new RuntimeException("time_slice_name does not match to time slice of time_slice_id: '" + Web.getString(request, "time_slice_name") + "'  '" + timeSlice.name + "'");
+			}
+		} else if(Web.has(request, "time_slice_name")) {
+			String time_slice_name = Web.getString(request, "time_slice_name");
+			timeSlice = pointcloud.getTimeSliceByName(time_slice_name);
+			if(timeSlice == null) {
+				throw new RuntimeException("unknown time_slice_name: " + time_slice_name);
+			}
+		} else if(!pointcloud.timeMapReadonly.isEmpty()) {
+			timeSlice = pointcloud.timeMapReadonly.lastEntry().getValue();
+		}
+		int req_t = timeSlice == null ? 0 : timeSlice.id;
 
 		String resText = request.getParameter("res");
 		double res0 = 1;
@@ -103,7 +127,7 @@ public class APIHandler_raster {
 				String tileFilename = "tile_" + xtile + "_" + ytile + ".tiff";
 				try {
 					zipOutputStream.putNextEntry(new ZipEntry(tileFilename));
-					processRaster(pointcloud, type, tile_rect.xmin, tile_rect.ymin, tile_rect.xmax, tile_rect.ymax, res, fill, tileFormat, receiver);
+					processRaster(pointcloud, type, req_t, tile_rect.xmin, tile_rect.ymin, tile_rect.xmax, tile_rect.ymax, res, fill, tileFormat, receiver);
 					zipOutputStream.closeEntry();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
@@ -113,11 +137,11 @@ public class APIHandler_raster {
 			zipOutputStream.flush();
 		} else {
 			Receiver receiver = new ResponseReceiver(response);
-			processRaster(pointcloud, type, req_xmin, req_ymin, req_xmax, req_ymax, res, fill, format, receiver);
+			processRaster(pointcloud, type, req_t, req_xmin, req_ymin, req_xmax, req_ymax, res, fill, format, receiver);
 		}
 	}
 
-	private void processRaster(PointCloud pointcloud, String type, double req_xmin, double req_ymin, double req_xmax, double req_ymax, double res, int fill, String format, Receiver receiver) throws IOException {
+	private void processRaster(PointCloud pointcloud, String type, int req_t, double req_xmin, double req_ymin, double req_xmax, double req_ymax, double res, int fill, String format, Receiver receiver) throws IOException {
 		double proc_xmin = req_xmin;
 		double proc_ymin = req_ymin;
 		double proc_xmax_excluding = req_xmin + Math.floor((req_xmax - req_xmin) / res) * res + res;
@@ -134,7 +158,7 @@ public class APIHandler_raster {
 		switch(type) {
 		case "point_count": {
 			AttributeSelector selector = new AttributeSelector().setXY();
-			Stream<PointTable> pointTables = pointcloud.getPointTables(proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector);
+			Stream<PointTable> pointTables = pointcloud.getPointTables(req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector);
 			PointCountRaster pointCountRaster = new PointCountRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 			pointTables.sequential().forEach(pointCountRaster::insert);
 			int_grid = pointCountRaster.grid;
@@ -144,7 +168,7 @@ public class APIHandler_raster {
 		}
 		case "pulse_count": {
 			AttributeSelector selector = new AttributeSelector().setXY().setReturnNumber();
-			Stream<PointTable> pointTables = pointcloud.getPointTables(proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterFirstReturn);
+			Stream<PointTable> pointTables = pointcloud.getPointTables(req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterFirstReturn);
 			PointCountRaster pointCountRaster = new PointCountRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 			pointTables.sequential().forEach(pointCountRaster::insert);
 			int_grid = pointCountRaster.grid;
@@ -154,7 +178,7 @@ public class APIHandler_raster {
 		}
 		case "dsm": {
 			AttributeSelector selector = new AttributeSelector().setXYZ().setClassification();
-			Stream<PointTable> pointTables = pointcloud.getPointTables(proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterEntity);
+			Stream<PointTable> pointTables = pointcloud.getPointTables(req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterEntity);
 			PointRaster pointRaster_dsm = new PointRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 			pointTables.sequential().forEach(pointRaster_dsm::insert);
 			double[][] grid_dsm = pointRaster_dsm.getTop();
@@ -169,14 +193,14 @@ public class APIHandler_raster {
 			break;
 		}
 		case "dtm": {			
-			double_grid = generateDTM(pointcloud, proc_xmin, proc_ymin, proc_xmax, proc_ymax, res, fill);
+			double_grid = generateDTM(pointcloud, req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, res, fill);
 			width = double_grid[0].length;
 			height = double_grid.length;
 			break;
 		}
 		case "chm": {
 			AttributeSelector selector = new AttributeSelector().setXYZ().setClassification();
-			Stream<PointTable> pointTables = pointcloud.getPointTables(proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterEntity);
+			Stream<PointTable> pointTables = pointcloud.getPointTables(req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterEntity);
 			PointRaster pointRaster_dsm = new PointRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 			PointRaster pointRaster_dtm = new PointRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 			pointTables.sequential().forEach(pointTable -> {
@@ -253,9 +277,9 @@ public class APIHandler_raster {
 		}		
 	}
 	
-	public static double[][] generateDTM(PointCloud pointcloud, double proc_xmin, double proc_ymin, double proc_xmax, double proc_ymax, double res, int fill) {
+	public static double[][] generateDTM(PointCloud pointcloud, int req_t, double proc_xmin, double proc_ymin, double proc_xmax, double proc_ymax, double res, int fill) {
 		AttributeSelector selector = new AttributeSelector().setXYZ().setClassification();
-		Stream<PointTable> pointTables = pointcloud.getPointTables(proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterGround);
+		Stream<PointTable> pointTables = pointcloud.getPointTables(req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterGround);
 		PointRaster pointRaster_dtm = new PointRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 		pointTables.sequential().forEach(pointRaster_dtm::insert);
 		double[][] grid_dtm = pointRaster_dtm.getMedian();

@@ -19,6 +19,7 @@ import org.locationtech.proj4j.units.Unit;
 
 import broker.Broker;
 import broker.InformalProperties;
+import broker.TimeSlice;
 import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
@@ -329,6 +330,8 @@ public class APIHandler_pointcloud {
 				json.endObject();		
 			}
 		}
+		json.key("time_slices");
+		TimeSlice.timeSlicesToJSON(pointcloud.timeMapReadonly.values(), json);		
 		json.endObject(); // pointcloud
 		json.endObject(); // JSON
 	}

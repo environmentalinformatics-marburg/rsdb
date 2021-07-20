@@ -1,12 +1,14 @@
 package pointcloud;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import broker.TimeSlice;
 import broker.Informal.Builder;
 import rasterdb.Band;
 import rasterdb.GeoReference;
@@ -19,16 +21,16 @@ import util.Range2d;
 
 public class Rasterizer extends CancelableRemoteProxy {
 	private static final Logger log = LogManager.getLogger();
-	
+
 	public static final double DEFAULT_POINT_SCALE = 4;
 
 	protected final PointCloud pointcloud;
 	protected final RasterDB rasterdb;
 	protected final RasterUnitStorage rasterUnit;
-	
+
 	private final double point_scale;
 	private final double raster_pixel_size;
-	
+
 	private Band bandIntensity;
 	private Band bandElevation;
 
@@ -37,7 +39,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 
 	private AttributeSelector selectorIntensity;
 	private AttributeSelector selectorElevation;
-	
+
 	private final String[] processing_bands;
 
 	public Rasterizer(PointCloud pointcloud, RasterDB rasterdb, double point_scale, String[] processing_bands) {
@@ -59,7 +61,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 		rasterdb.writeMeta();
 
 		pointcloud.setAssociatedRasterDB(rasterdb.config.getName());
-		
+
 		Range2d cellrange = pointcloud.getCellRange();
 		DoublePoint celloffset = pointcloud.getCelloffset();
 		double cellsize = pointcloud.getCellsize();
@@ -76,11 +78,11 @@ public class Rasterizer extends CancelableRemoteProxy {
 		selectorIntensity.setXY();
 		selectorIntensity.intensity = true;
 	}
-	
+
 	@Override
 	public void process() throws Exception {
 		AttributeSelector selector = pointcloud.getSelector();
-		
+
 		LinkedHashSet<String> processing_bandSet = new LinkedHashSet<String>();
 		String[] bands = processing_bands != null ? processing_bands : new String[] {"red", "green", "blue", "intensity", "elevation"}; 
 		for(String processing_band : bands) {
@@ -92,11 +94,32 @@ public class Rasterizer extends CancelableRemoteProxy {
 			case "elevation":
 				processing_bandSet.add(processing_band);
 				break;
-				default:
-					throw new RuntimeException("unknown processing_band: " + processing_band);
+			default:
+				throw new RuntimeException("unknown processing_band: " + processing_band);
 			}
+		}		
+
+		if(pointcloud.timeMapReadonly.isEmpty()) {
+			int t = 0;
+			process(t, processing_bandSet, selector);
+		} else {
+			for(TimeSlice timeSlice : pointcloud.timeMapReadonly.values()) {
+				rasterdb.setTimeSlice(timeSlice);
+				int t = timeSlice.id;
+				process(t, processing_bandSet, selector);			
+			}
+		}		
+	}
+
+	public Band getOrCreateBand(String title) {
+		Band band = rasterdb.getBandByTitle(title);
+		if(band == null) {
+			band = rasterdb.createBand(TilePixel.TYPE_FLOAT, title, null);
 		}
-		
+		return band;
+	}
+
+	public void process(int t, LinkedHashSet<String> processing_bandSet, AttributeSelector selector) throws Exception {
 		for(String processing_band : processing_bandSet) {
 			if(isCanceled()) {
 				throw new RuntimeException("canceled");
@@ -104,62 +127,63 @@ public class Rasterizer extends CancelableRemoteProxy {
 			switch(processing_band) {
 			case "red":
 				if(selector.red) {
-					Band bandRed = rasterdb.createBand(TilePixel.TYPE_FLOAT, "red", null);
-					setMessage("rasterize red");
-					run(bandRed, new AttributeSelector().setXY().setRed(), Rasterizer::processRed);
+					Band bandRed = getOrCreateBand("red");										
+					setMessage("rasterize red   t=" + t);
+					run(t, bandRed, new AttributeSelector().setXY().setRed(), Rasterizer::processRed);
 				}
 				break;
 			case "green":
 				if(selector.green) {
-					Band bandGreen = rasterdb.createBand(TilePixel.TYPE_FLOAT, "green", null);
-					setMessage("rasterize green");
-					run(bandGreen, new AttributeSelector().setXY().setGreen(), Rasterizer::processGreen);
+					Band bandGreen = getOrCreateBand("green");
+					setMessage("rasterize green   t=" + t);
+					run(t, bandGreen, new AttributeSelector().setXY().setGreen(), Rasterizer::processGreen);
 				}
 				break;
 			case "blue":
 				if(selector.blue) {
-					Band bandBlue = rasterdb.createBand(TilePixel.TYPE_FLOAT, "blue", null);
-					setMessage("rasterize blue");
-					run(bandBlue, new AttributeSelector().setXY().setBlue(), Rasterizer::processBlue);
+					Band bandBlue = getOrCreateBand("blue");
+					setMessage("rasterize blue   t=" + t);
+					run(t, bandBlue, new AttributeSelector().setXY().setBlue(), Rasterizer::processBlue);
 				}
 				break;
 			case "intensity":
 				if(selector.intensity) {
-					this.bandIntensity = rasterdb.createBand(TilePixel.TYPE_FLOAT, "intensity", null);
-					setMessage("rasterize intensity");
-					run(bandIntensity, selectorIntensity, Rasterizer::processIntensity);
+					this.bandIntensity = getOrCreateBand("intensity");
+					setMessage("rasterize intensity   t=" + t);
+					run(t, bandIntensity, selectorIntensity, Rasterizer::processIntensity);
 				}
 				break;
 			case "elevation":
 				if(selector.z) {
-					this.bandElevation = rasterdb.createBand(TilePixel.TYPE_FLOAT, "elevation", null);
-					setMessage("rasterize elevation");
-					run(bandElevation, selectorElevation, Rasterizer::processElevation);
+					this.bandElevation = getOrCreateBand("elevation");
+					setMessage("rasterize elevation   t=" + t);
+					run(t, bandElevation, selectorElevation, Rasterizer::processElevation);
 				}
 				break;
-				default:
-					throw new RuntimeException("unknown processing_band: " + processing_band);
+			default:
+				throw new RuntimeException("unknown processing_band: " + processing_band);
 			}
 		}
+
 	}
-	
+
 	@Override
 	public void close() {
 		bandIntensity = null;
 		bandElevation = null;
 	}
 
-	private void run(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing) throws IOException {
+	private void run(int t, Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing) throws IOException {
 		Range2d cellrange = pointcloud.getCellRange();
 		if(cellrange == null) {
 			return;
 		}
 		log.info("cellRange: " + cellrange);
-		runCellRange(selectedBand, selector, pointProcessing, cellrange);
+		runCellRange(selectedBand, selector, pointProcessing, t, cellrange);
 	}
 
 
-	private void runCellRange(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing, Range2d cellrange) throws IOException {
+	private void runCellRange(Band selectedBand, AttributeSelector selector, PointProcessing pointProcessing, int t, Range2d cellrange) throws IOException {
 		if(cellrange == null) {
 			return;
 		}
@@ -176,17 +200,17 @@ public class Rasterizer extends CancelableRemoteProxy {
 		if(cellrangeY > 32) {
 			log.info("subdiv Y " + cellrangeY);
 			int middleY = (int) ((((long)cellrange.ymin) + ((long)cellrange.ymax)) / 2);
-			runCellRange(selectedBand, selector, pointProcessing, new Range2d(cellrange.xmin, cellrange.ymin, cellrange.xmax, middleY));
-			runCellRange(selectedBand, selector, pointProcessing, new Range2d(cellrange.xmin, middleY + 1, cellrange.xmax, cellrange.ymax));
+			runCellRange(selectedBand, selector, pointProcessing, t, new Range2d(cellrange.xmin, cellrange.ymin, cellrange.xmax, middleY));
+			runCellRange(selectedBand, selector, pointProcessing, t, new Range2d(cellrange.xmin, middleY + 1, cellrange.xmax, cellrange.ymax));
 			return;
 		}
-		
+
 		int cellrangeX = cellrange.getWidth();
 		if(cellrangeX > 32) {
 			log.info("subdiv X " + cellrangeX);
 			int middleX = (int) ((((long)cellrange.xmin) + ((long)cellrange.xmax)) / 2);
-			runCellRange(selectedBand, selector, pointProcessing, new Range2d(cellrange.xmin, cellrange.ymin, middleX, cellrange.ymax));
-			runCellRange(selectedBand, selector, pointProcessing, new Range2d(middleX + 1, cellrange.ymin, cellrange.xmax, cellrange.ymax));
+			runCellRange(selectedBand, selector, pointProcessing, t, new Range2d(cellrange.xmin, cellrange.ymin, middleX, cellrange.ymax));
+			runCellRange(selectedBand, selector, pointProcessing, t, new Range2d(middleX + 1, cellrange.ymin, cellrange.xmax, cellrange.ymax));
 			return;
 		}		
 
@@ -224,15 +248,15 @@ public class Rasterizer extends CancelableRemoteProxy {
 				double qymax = ref.pixelYToGeo(bymax + 1) - cellscale1d;
 				//log.info("qxmin " + qxmin + " qymin " + qymin+"   qxmax " + qxmax + " qymax " + qymax);
 
-				int cellCount = pointcloud.countCells(qxmin, qymin, qxmax, qymax);
+				int cellCount = pointcloud.countCells(t, qxmin, qymin, qxmax, qymax);
 				log.info("cell count "+cellCount);
 				if(cellCount > 0) {
-					Stream<PointTable> pointTables = pointcloud.getPointTables(qxmin, qymin, qxmax, qymax, selector);
+					Stream<PointTable> pointTables = pointcloud.getPointTables(t, qxmin, qymin, qxmax, qymax, selector);
 					float[][] pixels = ProcessingFloat.createEmpty(bxmax - bxmin + 1, bymax - bymin + 1);
 					pointProcessing.process(pointTables, qxmin, qymin, pixels, point_scale);
 					pointdb.Rasterizer.fill(pixels);
 					pixels = removeBorder(pixels, border_pixels);
-					ProcessingFloat.writeMerge(rasterUnit, 0, selectedBand, pixels, ymin, xmin);
+					ProcessingFloat.writeMerge(rasterUnit, t, selectedBand, pixels, ymin, xmin);
 					rasterUnit.commit();
 					log.info("committed");
 				}

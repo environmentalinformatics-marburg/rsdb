@@ -23,7 +23,7 @@ import util.rdat.RdatDataFrame;
 public class ProcessIndices {
 	private static final Logger log = LogManager.getLogger();
 
-	public static void process(Vec<Pair<Region, String>> areas, Vec<String> functions, String format, Response response, PointDB db, PointCloud pointcloud, boolean omit_empty_areas) throws IOException {
+	public static void process(int t, Vec<Pair<Region, String>> areas, Vec<String> functions, String format, Response response, PointDB db, PointCloud pointcloud, boolean omit_empty_areas) throws IOException {
 		switch(format) {
 		case "json": {
 			response.setContentType(Web.MIME_JSON);
@@ -55,7 +55,7 @@ public class ProcessIndices {
 			json.object();
 			for(Pair<Region, String> s:areas) {
 				Region region = s.a;
-				DataProvider2 provider = new DataProvider2(pointcloud, db, region);
+				DataProvider2 provider = new DataProvider2(pointcloud, db, t, region);
 				if(!provider.get_regionPoints().isEmpty()) {
 					double[] row = new double[functions.size()];
 					for (int i = 0; i < functions.size(); i++) {
@@ -179,7 +179,7 @@ public class ProcessIndices {
 			for(Pair<Region, String> s:areas) {
 				try {
 					Region region = s.a;
-					DataProvider2 provider = new DataProvider2(pointcloud, db, region);
+					DataProvider2 provider = new DataProvider2(pointcloud, db, t, region);
 					if(!provider.get_regionPoints().isEmpty()) {
 						double[] row = new double[functions.size()];
 						for (int i = 0; i < functions.size(); i++) {

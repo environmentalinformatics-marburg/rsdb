@@ -32,6 +32,7 @@ public class DataProvider2 {
 	public final PointDB db;
 	public final boolean classified_ground; // some ground points of are classified as ground
 	public final boolean classified_vegetation; // ground_classified + all vegetation points are classified as vegetation
+	public final int t; // poincloud only
 	public final Region region; // region of query
 	public final Rect bbox_rect; // bbox of region
 	public final Rect bordered_bbox_rect; // bordered bbox of region
@@ -53,19 +54,20 @@ public class DataProvider2 {
 	private int regionPulseCount = Integer.MIN_VALUE;
 	private int bboxPulseCount = Integer.MIN_VALUE;
 
-	public DataProvider2(PointCloud pointcloud, Region region) {
-		this(pointcloud, null, region);
+	public DataProvider2(PointCloud pointcloud, int t, Region region) {
+		this(pointcloud, null, t, region);
 	}
 
 	public DataProvider2(PointDB db, Region region) {
-		this(null, db, region);
+		this(null, db, 0, region);
 	}
 
-	public DataProvider2(PointCloud pointcloud, PointDB db, Region region) {
+	public DataProvider2(PointCloud pointcloud, PointDB db, int t, Region region) {
 		this.pointcloud = pointcloud;
 		this.db = db;
 		this.classified_ground = pointcloud == null ? db.config.isClassified_ground() : pointcloud.isClassified_ground();
 		this.classified_vegetation = pointcloud == null ? db.config.isClassified_vegetation() : pointcloud.isClassified_vegetation();
+		this.t = t;
 		this.region = region;
 		this.bbox_rect = region.bbox;
 		this.bordered_bbox_rect = bbox_rect.withBorderUTM(BORDER_SIZE).outerMeterRect();
@@ -87,7 +89,7 @@ public class DataProvider2 {
 			double ymin = rect.getUTMd_min_y();
 			double xmax = rect.getUTMd_max_x_inclusive();
 			double ymax = rect.getUTMd_max_y_inclusive();
-			Stream<PointTable> pointTables = pointcloud.getPointTables(xmin, ymin, xmax, ymax, GeoPointTransformer.FULL_GEOPOINT_SELECTOR);
+			Stream<PointTable> pointTables = pointcloud.getPointTables(t, xmin, ymin, xmax, ymax, GeoPointTransformer.FULL_GEOPOINT_SELECTOR);
 			return GeoPointTransformer.transform(pointTables);
 		}
 	}

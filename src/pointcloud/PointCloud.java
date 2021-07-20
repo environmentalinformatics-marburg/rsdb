@@ -2,8 +2,12 @@ package pointcloud;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +18,8 @@ import com.googlecode.javaewah.datastructure.BitSet;
 
 import broker.Associated;
 import broker.Informal;
+import broker.TimeSlice;
+import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import griddb.Attribute;
@@ -70,6 +76,9 @@ public class PointCloud implements AutoCloseable {
 	private int version_patch = CURRENT_VERSION_PATCH;
 
 	public final PointCloudConfig config;
+	
+	private final ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
+	public final NavigableMap<Integer, TimeSlice> timeMapReadonly = Collections.unmodifiableNavigableMap(timeMap);
 
 	public PointCloud(PointCloudConfig config) {
 		this.config = config;
@@ -161,7 +170,7 @@ public class PointCloud implements AutoCloseable {
 		}
 	}
 
-	public Tile createTile(CellTable cellTable, int cx, int cy, int cz, int compression_level) throws IOException {
+	public Tile createTile(CellTable cellTable, int cx, int cy, int cz, int t, int compression_level) throws IOException {
 		AttributeSelector selector = cellTable.toSelector();
 		creatMissingAttributes(selector);
 		int column_count = selector.count();
@@ -226,7 +235,7 @@ public class PointCloud implements AutoCloseable {
 		}
 		byte[] cellData = compression_level == Integer.MIN_VALUE ? Cell.createData(attributes, columns, column_count) : Cell.createData(attributes, columns, column_count, compression_level);
 
-		Tile tile = griddb.createTile(cx, cy, cz, cellData);
+		Tile tile = griddb.createTile(cx, cy, cz, t, cellData);
 		//log.info("create cell cx: " + cx + " cy: " + cy + " columns: " + column_count + " rows: " + cellTable.rows + " compressed: " + cellData.length);
 		return tile;
 	}
@@ -269,6 +278,12 @@ public class PointCloud implements AutoCloseable {
 				if(yamlMap.contains("celloffset")) {
 					celloffset = DoublePoint.ofYaml(yamlMap.getMap("celloffset"));
 				}
+				
+				timeMap.clear();
+				if(yamlMap.contains("time_slices")) {
+					TimeSlice.yamlToTimeMap((Map<?, Object>) yamlMap.getObject("time_slices"), timeMap);					
+				}	
+				
 				code = yamlMap.optString("code", "");
 				proj4 = yamlMap.optString("proj4", "");
 				acl = ACL.of(yamlMap.optList("acl").asStrings());
@@ -291,6 +306,9 @@ public class PointCloud implements AutoCloseable {
 				map.put("cellsize", cellsize);
 				if(celloffset != null) {
 					map.put("celloffset", celloffset.toYaml());
+				}
+				if(!timeMap.isEmpty()) {
+					map.put("time_slices", TimeSlice.timeMapToYaml(timeMap));					
 				}
 				if(hasCode()) {
 					map.put("code", code);
@@ -370,7 +388,7 @@ public class PointCloud implements AutoCloseable {
 		}		
 	}
 
-	public Stream<Cell> getCells(double xmin, double ymin, double xmax, double ymax) {
+	public Stream<Cell> getCells(int t, double xmin, double ymin, double xmax, double ymax) {
 		if(celloffset == null) {
 			log.warn("no cell offset in PointCloud " + config.name);
 			return Stream.empty();
@@ -382,12 +400,13 @@ public class PointCloud implements AutoCloseable {
 			int ycellmin = (int) (Math.floor(ymin / cellsize) - ycelloffset);
 			int ycellmax = (int) (Math.floor(ymax / cellsize) - ycelloffset);
 			//log.info(xcellmin + " " + ycellmin + " " + xcellmax + " " + ycellmax);
-			Stream<Cell> cells = griddb.getCells(xcellmin, ycellmin, xcellmax, ycellmax);		
+			int z = 0;
+			Stream<Cell> cells = griddb.getCells(t, z, xcellmin, ycellmin, xcellmax, ycellmax);		
 			return cells;
 		}
 	}
 
-	public TileCollection getTiles(double xmin, double ymin, double xmax, double ymax) {
+	public TileCollection getTiles(int t, double xmin, double ymin, double xmax, double ymax) {
 		if(celloffset == null) {
 			log.warn("no cell offset in PointCloud " + config.name);
 			return null;
@@ -399,11 +418,12 @@ public class PointCloud implements AutoCloseable {
 			int ycellmin = (int) (Math.floor(ymin / cellsize) - ycelloffset);
 			int ycellmax = (int) (Math.floor(ymax / cellsize) - ycelloffset);
 			//log.info(xcellmin + " " + ycellmin + " " + xcellmax + " " + ycellmax);
-			return griddb.getTiles(xcellmin, ycellmin, xcellmax, ycellmax);		
+			int z = 0;
+			return griddb.getTiles(t, z, xcellmin, ycellmin, xcellmax, ycellmax);		
 		}
 	}
 
-	public int countCells(double xmin, double ymin, double xmax, double ymax) {
+	public int countCells(int t, double xmin, double ymin, double xmax, double ymax) {
 		if(celloffset == null) {
 			log.warn("no cell offset in PointCloud " + config.name);
 			return 0;
@@ -414,7 +434,8 @@ public class PointCloud implements AutoCloseable {
 			int xcellmax = (int) (Math.floor(xmax / cellsize) - xcelloffset);
 			int ycellmin = (int) (Math.floor(ymin / cellsize) - ycelloffset);
 			int ycellmax = (int) (Math.floor(ymax / cellsize) - ycelloffset);
-			int size = griddb.getTiles(xcellmin, ycellmin, xcellmax, ycellmax).size();
+			int z = 0;
+			int size = griddb.getTiles(t, z, xcellmin, ycellmin, xcellmax, ycellmax).size();
 			return size;
 		}
 	}
@@ -481,25 +502,25 @@ public class PointCloud implements AutoCloseable {
 		return cellTable;
 	}
 
-	public Stream<CellTable> getCellTables(double xmin, double ymin, double xmax, double ymax, AttributeSelector selector) {
-		Stream<Cell> cells = getCells(xmin, ymin, xmax, ymax);
+	public Stream<CellTable> getCellTables(int t, double xmin, double ymin, double xmax, double ymax, AttributeSelector selector) {
+		Stream<Cell> cells = getCells(t, xmin, ymin, xmax, ymax);
 		Stream<CellTable> cellTables = cells.map(cell -> getCellTable(cell, selector));
 		return cellTables;
 	}
 
-	public Stream<PointTable> getPointTables(double xmin, double ymin, double xmax, double ymax, AttributeSelector selector) {
-		return getPointTables(xmin, ymin, xmax, ymax, selector, (ChainedFilterFunc) null);
+	public Stream<PointTable> getPointTables(int t, double xmin, double ymin, double xmax, double ymax, AttributeSelector selector) {
+		return getPointTables(t, xmin, ymin, xmax, ymax, selector, (ChainedFilterFunc) null);
 	}
 
-	public Stream<PointTable> getPointTables(double xmin, double ymin, double xmax, double ymax, AttributeSelector selector, FilterFunc filterFunc) {
-		return getPointTables(xmin, ymin, xmax, ymax, selector, ChainedFilterFunc.and(filterFunc));
+	public Stream<PointTable> getPointTables(int t, double xmin, double ymin, double xmax, double ymax, AttributeSelector selector, FilterFunc filterFunc) {
+		return getPointTables(t, xmin, ymin, xmax, ymax, selector, ChainedFilterFunc.and(filterFunc));
 	}
 
-	public Stream<PointTable> getPointTables(double xmin, double ymin, double xmax, double ymax, AttributeSelector selector, ChainedFilterFunc filterFunc) {
+	public Stream<PointTable> getPointTables(int t, double xmin, double ymin, double xmax, double ymax, AttributeSelector selector, ChainedFilterFunc filterFunc) {
 		AttributeSelector loadSelector = selector.hasXY() ? selector : selector.copy().setXY();
 		//log.info("selector " + selector); 
 		//log.info("loadSelector " + loadSelector); 
-		Stream<CellTable> cellTables = getCellTables(xmin, ymin, xmax, ymax, loadSelector);
+		Stream<CellTable> cellTables = getCellTables(t, xmin, ymin, xmax, ymax, loadSelector);
 		Stream<PointTable> pointTables = cellTables.map(cellTable -> {
 
 			/*if(cellTable.returnNumber != null && cellTable.returnNumber.length > 0) {
@@ -631,6 +652,38 @@ public class PointCloud implements AutoCloseable {
 			pointTable.blue = ColumnsUtil.filter(cellTable.blue, len, mask, size);
 		}
 		return pointTable;
+	}
+	
+	public void setTimeSlice(TimeSlice timeslice) {
+		synchronized (griddb) {
+			timeMap.put(timeslice.id, timeslice);
+			griddb.writeMeta();
+		}
+	}
+
+	public TimeSlice addTimeSlice(TimeSliceBuilder timeSliceBuilder) {
+		synchronized (griddb) {
+			int id = 0;
+			while(timeMap.containsKey(id)) {
+				id++;
+			}
+			TimeSlice timeSlice = new TimeSlice(id, timeSliceBuilder);
+			timeMap.put(timeSlice.id, timeSlice);
+			griddb.writeMeta();
+			return timeSlice;
+		}
+	}
+
+	public TimeSlice getTimeSliceByName(String name) {
+		if(name == null || name.isEmpty()) {
+			return null;
+		}
+		for(TimeSlice timeSlice : timeMap.values()) {
+			if(timeSlice.hasName() && timeSlice.name.equals(name)) {
+				return timeSlice;
+			}
+		}
+		return null;
 	}
 
 	public DoubleRect getRange() {

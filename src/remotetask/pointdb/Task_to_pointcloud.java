@@ -234,7 +234,8 @@ public class Task_to_pointcloud extends RemoteTask{
 								cellTable = CellTable.merge(oldCellTable, cellTable);
 							}
 							Timer.start("to_pointdb create tile");
-							rasterunit.Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy, cellTable.cz, Integer.MIN_VALUE);
+							int t = 0;
+							rasterunit.Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy, cellTable.cz, t, Integer.MIN_VALUE);
 							log.info(Timer.stop("to_pointdb create tile"));
 							Timer.start("to_pointdb write");
 							pointcloud.writeTile(tile);

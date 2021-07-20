@@ -3,6 +3,7 @@ package remotetask.pointcloud;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import broker.TimeSlice;
 import broker.acl.EmptyACL;
 import pointcloud.PointCloud;
 import remotetask.Context;
@@ -18,6 +19,7 @@ import remotetask.pointdb.DataProvider2Factory;
 @Param(name="indices", type="string_array", desc="List of indices.", example="BE_H_MAX, LAI, point_density")
 @Param(name="rect", type="number_rect", desc="Extent to process.", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
 @Param(name="mask_band",  type="integer", desc="Band number of mask in RasterDB layer, no mask if left empty.", example="1", required=false)
+@Param(name="time_slice", type="string", desc="Name of the pointcloud time slice. (default: latest)", example="January", required=false)
 public class Task_index_raster extends Abstract_task_index_raster {
 	private static final Logger log = LogManager.getLogger();
 
@@ -30,6 +32,18 @@ public class Task_index_raster extends Abstract_task_index_raster {
 		PointCloud pointcloud = ctx.broker.getPointCloud(name);
 		pointcloud.check(ctx.userIdentity);
 		EmptyACL.ADMIN.check(ctx.userIdentity);
-		return new DataProvider2FactoryPointcloud(pointcloud);
+		int t = 0;
+		String time_slice = ctx.task.optString("time_slice", null);
+		if(time_slice != null) {
+			TimeSlice timeSlice = pointcloud.getTimeSliceByName(time_slice);
+			if(timeSlice == null) {
+				throw new RuntimeException("time slice not found");
+			} else {
+				t = timeSlice.id;	
+			}			
+		} else if(!pointcloud.timeMapReadonly.isEmpty()) {
+			t = pointcloud.timeMapReadonly.lastKey();
+		}
+		return new DataProvider2FactoryPointcloud(t, pointcloud);
 	}	
 }
