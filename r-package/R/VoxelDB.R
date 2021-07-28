@@ -183,7 +183,7 @@ active = list(
     return(private$meta_$extent$ymin)
   },
   ymax = function() {
-    return(private$meta_$extent$xmax)
+    return(private$meta_$extent$ymax)
   },
   zmin = function() {
     return(private$meta_$extent$zmin)
@@ -196,11 +196,11 @@ active = list(
     vs <- c(x = voxel_size$x, y = voxel_size$y, z = voxel_size$z)
     return(vs)
   },
-  proj4 = function() {
+  PROJ4 = function() {
     ref <- private$meta_$ref
     return(ref$proj4)
   },
-  epsg = function() {
+  EPSG = function() {
     ref <- private$meta_$ref
     return(ref$epsg)
   }
