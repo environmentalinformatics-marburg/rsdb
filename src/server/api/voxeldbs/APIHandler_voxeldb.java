@@ -94,6 +94,7 @@ public class APIHandler_voxeldb {
 
 	private void handleGET(VoxelDB voxeldb, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {		
 		boolean storage_measures = request.getParameter("storage_measures") != null;
+		boolean extent = request.getParameter("extent") != null;
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
@@ -182,6 +183,17 @@ public class APIHandler_voxeldb {
 		json.endObject();
 
 		json.endObject();
+		
+		if(extent) {
+			Range3d local_range = voxeldb.getLocalRange(false);
+			if(local_range != null) {
+				json.key("local_range");
+				local_range.toJSON(json);
+				Extent3d extent3d = ref.toGeoExtent(local_range);
+				json.key("extent");
+				extent3d.toJSON(json);
+			}
+		}
 
 		if(storage_measures) {
 			json.key("storage_measures");

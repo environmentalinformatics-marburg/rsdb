@@ -92,15 +92,15 @@ public class VoxelGeoRef {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
 	}
 
-	public VoxelGeoRef withVoxelSize(double voxelsize) {
-		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelsize, voxelsize, voxelsize);
+	public VoxelGeoRef withVoxelSize(double voxelSize) {
+		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSize, voxelSize, voxelSize);
 	}
 
 	public VoxelGeoRef withOrigin(double originX, double originY, double originZ) {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
 	}
 	
-	public VoxelGeoRef with(double originX, double originY, double originZ, double voxelsizeX, double voxelsizeY, double voxelsizeZ) {
+	public VoxelGeoRef with(double originX, double originY, double originZ, double voxelSizeX, double voxelSizeY, double voxelSizeZ) {
 		return new VoxelGeoRef(proj4, epsg, originX, originY, originZ, voxelSizeX, voxelSizeY, voxelSizeZ);
 	}
 
@@ -140,5 +140,12 @@ public class VoxelGeoRef {
 		int ymax = geoYtoVoxel(geoYmax);
 		int zmax = geoZtoVoxel(geoZmax);
 		return new Range3d(xmin, ymin, zmin, xmax, ymax, zmax);
+	}
+
+	@Override
+	public String toString() {
+		return "VoxelGeoRef [proj4=" + proj4 + ", epsg=" + epsg + ", originX=" + originX + ", originY=" + originY
+				+ ", originZ=" + originZ + ", voxelSizeX=" + voxelSizeX + ", voxelSizeY=" + voxelSizeY + ", voxelSizeZ="
+				+ voxelSizeZ + "]";
 	}
 }

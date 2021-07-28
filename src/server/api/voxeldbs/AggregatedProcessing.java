@@ -2,6 +2,8 @@ package server.api.voxeldbs;
 
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Response;
 
 import broker.TimeSlice;
@@ -13,16 +15,28 @@ import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 
 public abstract class AggregatedProcessing {
+	private static final Logger log = LogManager.getLogger();
+	
+	protected CellFactory cellFactory;
+	protected Range3d range;
+	protected int aggregation_factor_x;
+	protected int aggregation_factor_y;
+	protected int aggregation_factor_z;
+	protected VoxelGeoRef aggRef;	
+	protected int xAggLen;
+	protected int yAggLen;
+	protected int zAggLen;
 
-	public static void process(VoxelDB voxeldb, Range3d range, TimeSlice timeSlice, int aggregation_factor, boolean crop, Response response, String format) throws IOException {
+	public static void process(VoxelDB voxeldb, Range3d range, TimeSlice timeSlice, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, boolean crop, Response response, String format) throws IOException {
 		VoxelGeoRef ref = voxeldb.geoRef();
 		double aggOriginX = ref.voxelXtoGeo(range.xmin);
 		double aggOriginY = ref.voxelYtoGeo(range.ymin);
 		double aggOriginZ = ref.voxelZtoGeo(range.zmin);
-		double aggVoxelSizeX = ref.voxelSizeX * aggregation_factor;
-		double aggVoxelSizeY = ref.voxelSizeY * aggregation_factor;
-		double aggVoxelSizeZ = ref.voxelSizeZ * aggregation_factor;
+		double aggVoxelSizeX = ref.voxelSizeX * aggregation_factor_x;
+		double aggVoxelSizeY = ref.voxelSizeY * aggregation_factor_y;
+		double aggVoxelSizeZ = ref.voxelSizeZ * aggregation_factor_z;
 		VoxelGeoRef aggRef = ref.with(aggOriginX, aggOriginY, aggOriginZ, aggVoxelSizeX, aggVoxelSizeY, aggVoxelSizeZ);
+		log.info(aggRef);
 
 		String attribute = "count";
 		String data_type = "int32";
@@ -51,7 +65,7 @@ public abstract class AggregatedProcessing {
 			default:
 				throw new RuntimeException("unknown aggregate: " + aggregate);
 			}
-			aggregatedProcessing = new AggregatedProcessingInt32Int32MappedAggregator(cellFactory, range, aggregation_factor, aggRef, mapper, aggregator);
+			aggregatedProcessing = new AggregatedProcessingInt32Int32MappedAggregator(cellFactory, range, aggregation_factor_x, aggregation_factor_y, aggregation_factor_z, aggRef, mapper, aggregator);
 			break;			
 		}
 		case "bool8": {
@@ -64,7 +78,7 @@ public abstract class AggregatedProcessing {
 			default:
 				throw new RuntimeException("unknown aggregate: " + aggregate);
 			}
-			aggregatedProcessing = new AggregatedProcessingInt32Bool8MappedAggregator(cellFactory, range, aggregation_factor, aggRef, mapper, aggregator);
+			aggregatedProcessing = new AggregatedProcessingInt32Bool8MappedAggregator(cellFactory, range, aggregation_factor_x, aggregation_factor_y, aggregation_factor_z, aggRef, mapper, aggregator);
 			break;			
 		}
 		default:
@@ -74,24 +88,18 @@ public abstract class AggregatedProcessing {
 		aggregatedProcessing.write(response, format, crop);		
 	}
 
-	protected CellFactory cellFactory;
-	protected Range3d range;
-	protected int aggregation_factor;
-	protected VoxelGeoRef aggRef;	
-	protected int xAggLen;
-	protected int yAggLen;
-	protected int zAggLen;
-
-	public AggregatedProcessing(CellFactory cellFactory, Range3d range, int aggregation_factor, VoxelGeoRef aggRef) {
+	public AggregatedProcessing(CellFactory cellFactory, Range3d range, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, VoxelGeoRef aggRef) {
 		this.cellFactory = cellFactory;
 		this.cellFactory.setCount();
-		this.aggregation_factor = aggregation_factor;
+		this.aggregation_factor_x = aggregation_factor_x;
+		this.aggregation_factor_y = aggregation_factor_y;
+		this.aggregation_factor_z = aggregation_factor_z;
 		this.aggRef = aggRef;
 		this.range = range;
 
-		this.xAggLen = (range.xmax - range.xmin) / aggregation_factor + 1;
-		this.yAggLen = (range.ymax - range.ymin) / aggregation_factor + 1;
-		this.zAggLen = (range.zmax - range.zmin) / aggregation_factor + 1;
+		this.xAggLen = (range.xmax - range.xmin) / aggregation_factor_x + 1;
+		this.yAggLen = (range.ymax - range.ymin) / aggregation_factor_y + 1;
+		this.zAggLen = (range.zmax - range.zmin) / aggregation_factor_z + 1;
 	}
 
 	public void apply(VoxelCell voxelCell) {

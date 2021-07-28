@@ -9,7 +9,7 @@ public class Extent3d {
 	public final double xmax;
 	public final double ymax;
 	public final double zmax;
-	
+
 	public Extent3d(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax) {
 		this.xmin = xmin;
 		this.ymin = ymin;
@@ -18,23 +18,21 @@ public class Extent3d {
 		this.ymax = ymax;
 		this.zmax = zmax;
 	}
-	
+
 	public void toJSON(JSONWriter json) {
 		json.object();
 		json.key("xmin");
-		json.value(xmin);	
-		json.key("xmax");
-		json.value(xmax);	
+		json.value(xmin);
 		json.key("ymin");
-		json.value(ymin);	
-		json.key("ymax");
-		json.value(ymax);
+		json.value(ymin);
 		json.key("zmin");
 		json.value(zmin);	
+		json.key("xmax");
+		json.value(xmax);			
+		json.key("ymax");
+		json.value(ymax);		
 		json.key("zmax");
 		json.value(zmax);
 		json.endObject();	
 	}
-
-
 }

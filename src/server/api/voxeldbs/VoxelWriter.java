@@ -3,6 +3,8 @@ package server.api.voxeldbs;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import javax.sound.midi.MetaEventListener;
+
 import org.eclipse.jetty.server.Response;
 
 import util.Extent3d;
@@ -43,11 +45,13 @@ public class VoxelWriter {
 			}
 			metaList.addFloat64("xmin", geoExtent.xmin);
 			metaList.addFloat64("ymin", geoExtent.ymin);
-			metaList.addFloat64("zmin", geoExtent.zmin);
-			
+			metaList.addFloat64("zmin", geoExtent.zmin);			
 			metaList.addFloat64("xmax", geoExtent.xmax);
 			metaList.addFloat64("ymax", geoExtent.ymax);
-			metaList.addFloat64("zmax", geoExtent.zmax);
+			metaList.addFloat64("zmax", geoExtent.zmax);			
+			metaList.addFloat64("xres", ref.voxelSizeX);
+			metaList.addFloat64("yres", ref.voxelSizeY);
+			metaList.addFloat64("zres", ref.voxelSizeZ);
 			metaList.write(out);		
 
 			Rdat.write_RDAT_VDIM_bool8(out, data, voxelRange.xlen(), voxelRange.ylen(), voxelRange.zlen());
@@ -88,11 +92,13 @@ public class VoxelWriter {
 			}
 			metaList.addFloat64("xmin", geoExtent.xmin);
 			metaList.addFloat64("ymin", geoExtent.ymin);
-			metaList.addFloat64("zmin", geoExtent.zmin);
-			
+			metaList.addFloat64("zmin", geoExtent.zmin);			
 			metaList.addFloat64("xmax", geoExtent.xmax);
 			metaList.addFloat64("ymax", geoExtent.ymax);
-			metaList.addFloat64("zmax", geoExtent.zmax);
+			metaList.addFloat64("zmax", geoExtent.zmax);			
+			metaList.addFloat64("xres", ref.voxelSizeX);
+			metaList.addFloat64("yres", ref.voxelSizeY);
+			metaList.addFloat64("zres", ref.voxelSizeZ);
 			metaList.write(out);		
 
 			Rdat.write_RDAT_VDIM_uint8(out, data, voxelRange.xlen(), voxelRange.ylen(), voxelRange.zlen());
@@ -133,11 +139,13 @@ public class VoxelWriter {
 			}
 			metaList.addFloat64("xmin", geoExtent.xmin);
 			metaList.addFloat64("ymin", geoExtent.ymin);
-			metaList.addFloat64("zmin", geoExtent.zmin);
-			
+			metaList.addFloat64("zmin", geoExtent.zmin);			
 			metaList.addFloat64("xmax", geoExtent.xmax);
 			metaList.addFloat64("ymax", geoExtent.ymax);
-			metaList.addFloat64("zmax", geoExtent.zmax);
+			metaList.addFloat64("zmax", geoExtent.zmax);			
+			metaList.addFloat64("xres", ref.voxelSizeX);
+			metaList.addFloat64("yres", ref.voxelSizeY);
+			metaList.addFloat64("zres", ref.voxelSizeZ);
 			metaList.write(out);		
 
 			Rdat.write_RDAT_VDIM_uint16(out, data, voxelRange.xlen(), voxelRange.ylen(), voxelRange.zlen());
@@ -177,11 +185,13 @@ public class VoxelWriter {
 			}
 			metaList.addFloat64("xmin", geoExtent.xmin);
 			metaList.addFloat64("ymin", geoExtent.ymin);
-			metaList.addFloat64("zmin", geoExtent.zmin);
-			
+			metaList.addFloat64("zmin", geoExtent.zmin);			
 			metaList.addFloat64("xmax", geoExtent.xmax);
 			metaList.addFloat64("ymax", geoExtent.ymax);
-			metaList.addFloat64("zmax", geoExtent.zmax);
+			metaList.addFloat64("zmax", geoExtent.zmax);			
+			metaList.addFloat64("xres", ref.voxelSizeX);
+			metaList.addFloat64("yres", ref.voxelSizeY);
+			metaList.addFloat64("zres", ref.voxelSizeZ);
 			metaList.write(out);		
 
 			Rdat.write_RDAT_VDIM_int32(out, data, voxelRange.xlen(), voxelRange.ylen(), voxelRange.zlen());

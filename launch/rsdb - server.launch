@@ -13,5 +13,5 @@
     <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="rsdb"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="server"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="rsdb"/>
-    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx6G"/>
+    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx4G"/>
 </launchConfiguration>

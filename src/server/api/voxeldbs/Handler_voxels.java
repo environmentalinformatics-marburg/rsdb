@@ -27,32 +27,51 @@ public class Handler_voxels {
 		
 		VoxelGeoRef ref = voxeldb.geoRef();
 		
-		int vrxmin;
-		int vrymin;
-		int vrzmin;
-		int vrxmax;
-		int vrymax;
-		int vrzmax;
+		int vrxmin = Integer.MIN_VALUE;
+		int vrymin = Integer.MIN_VALUE;
+		int vrzmin = Integer.MIN_VALUE;
+		int vrxmax = Integer.MIN_VALUE;
+		int vrymax = Integer.MIN_VALUE;
+		int vrzmax = Integer.MIN_VALUE;
 		
 		String extText = request.getParameter("ext");
 		if(extText != null) {
 			String[] ext = extText.split(" ");
-			if(ext.length != 6) {
-				throw new RuntimeException("parameter error in 'ext': "+extText);
+			if(ext.length == 6) {
+				double geoXmin = Double.parseDouble(ext[0]);
+				double geoYmin = Double.parseDouble(ext[1]);
+				double geoZmin = Double.parseDouble(ext[2]);
+				double geoXmax = Double.parseDouble(ext[3]);
+				double geoYmax = Double.parseDouble(ext[4]);
+				double geoZmax = Double.parseDouble(ext[5]);
+				
+				vrxmin = ref.geoXtoVoxel(geoXmin);
+				vrymin = ref.geoYtoVoxel(geoYmin);
+				vrzmin = ref.geoZtoVoxel(geoZmin);
+				vrxmax = ref.geoXtoVoxel(geoXmax);
+				vrymax = ref.geoYtoVoxel(geoYmax);
+				vrzmax = ref.geoZtoVoxel(geoZmax);
+			} else if(ext.length == 4) {
+				if(!Web.has(request, "zmin") || !Web.has(request, "zmax")) {
+					throw new RuntimeException("parameter error in 'ext' for extent with (xmin, ymin, xmax, ymax) the addinaonal paramtets zmin, zmax are missing");
+				}
+				double geoXmin = Double.parseDouble(ext[0]);
+				double geoYmin = Double.parseDouble(ext[1]);
+				double geoZmin = Web.getDouble(request, "zmin");
+				double geoXmax = Double.parseDouble(ext[2]);
+				double geoYmax = Double.parseDouble(ext[3]);
+				double geoZmax = Web.getDouble(request, "zmax");
+				
+				vrxmin = ref.geoXtoVoxel(geoXmin);
+				vrymin = ref.geoYtoVoxel(geoYmin);
+				vrzmin = ref.geoZtoVoxel(geoZmin);
+				vrxmax = ref.geoXtoVoxel(geoXmax);
+				vrymax = ref.geoYtoVoxel(geoYmax);
+				vrzmax = ref.geoZtoVoxel(geoZmax);				
+			} else {
+				throw new RuntimeException("parameter error in 'ext' need to be 4 or 6 numbers (xmin, ymin, xmax, ymax) or (xmin, ymin, xmax, ymax, zmin, zmax): "+extText);
 			}
-			double geoXmin = Double.parseDouble(ext[0]);
-			double geoYmin = Double.parseDouble(ext[1]);
-			double geoZmin = Double.parseDouble(ext[2]);
-			double geoXmax = Double.parseDouble(ext[3]);
-			double geoYmax = Double.parseDouble(ext[4]);
-			double geoZmax = Double.parseDouble(ext[5]);
 			
-			vrxmin = ref.geoXtoVoxel(geoXmin);
-			vrymin = ref.geoYtoVoxel(geoYmin);
-			vrzmin = ref.geoZtoVoxel(geoZmin);
-			vrxmax = ref.geoXtoVoxel(geoXmax);
-			vrymax = ref.geoYtoVoxel(geoYmax);
-			vrzmax = ref.geoZtoVoxel(geoZmax);
 		} else if(Web.has(request, "x") && Web.has(request, "y") && Web.has(request, "z")) {
 			double geoX = Web.getDouble(request, "x");
 			double geoY = Web.getDouble(request, "y");
@@ -70,9 +89,53 @@ public class Handler_voxels {
 			vrxmax = vrxmin + rsize - 1;
 			vrymax = vrymin + rsize - 1;
 			vrzmax = vrzmin + rsize - 1;
-		} else {
-			throw new RuntimeException("missing extent: parameter 'ext' or parameters 'x' 'y' 'z'");
-		}		
+		}
+		
+		if(Web.has(request, "xmin")) {
+			double geoXmin = Web.getDouble(request, "xmin");
+			vrxmin = ref.geoXtoVoxel(geoXmin);
+		}
+		if(Web.has(request, "xmax")) {
+			double geoXmax = Web.getDouble(request, "xmax");
+			vrxmax = ref.geoXtoVoxel(geoXmax);
+		}
+		
+		if(Web.has(request, "ymin")) {
+			double geoYmin = Web.getDouble(request, "ymin");
+			vrymin = ref.geoYtoVoxel(geoYmin);
+		}
+		if(Web.has(request, "ymax")) {
+			double geoYmax = Web.getDouble(request, "ymax");
+			vrymax = ref.geoYtoVoxel(geoYmax);
+		}
+		
+		if(Web.has(request, "zmin")) {
+			double geoZmin = Web.getDouble(request, "zmin");
+			vrzmin = ref.geoZtoVoxel(geoZmin);
+		}
+		if(Web.has(request, "zmax")) {
+			double geoZmax = Web.getDouble(request, "zmax");
+			vrzmax = ref.geoZtoVoxel(geoZmax);
+		}
+		
+		if(vrxmin == Integer.MIN_VALUE) {
+			throw new RuntimeException("missing xmin: needed parameter xmin or ext");
+		}
+		if(vrxmax == Integer.MIN_VALUE) {
+			throw new RuntimeException("missing xmax: needed parameter xmax or ext");
+		}
+		if(vrymin == Integer.MIN_VALUE) {
+			throw new RuntimeException("missing ymin: needed parameter ymin or ext");
+		}
+		if(vrymax == Integer.MIN_VALUE) {
+			throw new RuntimeException("missing ymax: needed parameter ymax or ext");
+		}
+		if(vrzmin == Integer.MIN_VALUE) {
+			throw new RuntimeException("missing zmin: needed parameter zmin or ext with 6 numbers");
+		}
+		if(vrzmax == Integer.MIN_VALUE) {
+			throw new RuntimeException("missing zmax: needed parameter zmax or ext with 6 numbers");
+		}
 		
 		String product = Web.getString(request, "product");
 
@@ -99,6 +162,16 @@ public class Handler_voxels {
 				throw new RuntimeException("no data");
 			}
 			timeSlice = voxeldb.timeMapReadonly.lastEntry().getValue();
+		}
+		
+		long cell_count_max = 100_000_000;
+		long cell_count_x = (((long)vrxmax) - ((long)vrxmin) + 1);
+		long cell_count_y = (((long)vrymax) - ((long)vrymin) + 1);
+		long cell_count_z = (((long)vrzmax) - ((long)vrzmin) + 1);
+		long cell_count =  cell_count_x * cell_count_y * cell_count_z;		
+		log.info("cell_count: " + cell_count);
+		if(cell_count_max < cell_count) {
+			throw new RuntimeException("to large voxel subset requested, count of voxels: " + cell_count_x + "x" +  + cell_count_y + "x"  + cell_count_z + " = " + cell_count + "   max allowed: " + cell_count_max);
 		}
 
 		

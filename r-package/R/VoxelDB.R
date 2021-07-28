@@ -11,46 +11,66 @@ VoxelDB <- R6::R6Class("VoxelDB",
 public = list(
 
   initialize = function(rsdbConnector, name) {
+    #print("---START---")
     private$rsdbConnector <- rsdbConnector
     private$name_ <- name
-    response <- private$rsdbConnector$GET(paste0("/voxeldbs/", private$name_))
+    url_path <- paste0("/voxeldbs/", private$name_)
+    args <- list(extent=TRUE)
+    response <- private$rsdbConnector$GET(url_path, args)
     private$meta_ <- response$voxeldb
   },
 
-  voxels = function(ext = NULL, x = NULL, y = NULL, z = NULL, product, time_slice_id = NULL, time_slice_name = NULL) {
+  voxels = function(ext = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, zmin = NULL, zmax = NULL, product = "count", time_slice_id = NULL, time_slice_name = NULL) {
     args <- list(format = 'rdat', product = product)
 
-    # spMask <- NULL
-    # if(is(ext, 'sfc_MULTIPOLYGON')) {
-    #   ext <- sf:::as_Spatial(ext)
-    # }
-    # if(is(ext, 'SpatialPolygons')) {
-    #   warning('convert SpatialPolygons to raster::extent by ignoring crs')
-    #   spMask <- ext
-    #   ext <- raster::extent(ext)
-    # }
-    # if(is(ext, "bbox")) {
-    #   warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
-    #   ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
-    # }
-    # if(!is.null(ext)) {
-    #   extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
-    #   args$ext <- extText
-    # } else {
-    #   args$x <- x
-    #   args$y <- y
-    #   args$z <- z
-    # }
-
-    if(!is.null(x) && !is.null(y) && !is.null(z)) {
-      args$x <- x
-      args$y <- y
-      args$z <- z
-    }
+    #if(!is.null(x) && !is.null(y) && !is.null(z)) {
+    #  args$x <- x
+    #  args$y <- y
+    #  args$z <- z
+    #}
 
     if(!is.null(ext)) {
-      extText <- paste0(ext, collapse = ' ')
+
+      if(is(ext, 'sfc_MULTIPOLYGON')) {
+        ext <- sf:::as_Spatial(ext)
+      }
+      if(is(ext, 'sfc_POLYGON')) {
+        ext <- sf:::as_Spatial(ext)
+      }
+      if(is(ext, 'SpatialPolygons')) {
+        warning('convert SpatialPolygons to raster::extent by ignoring crs')
+        spMask <- ext
+        ext <- raster::extent(ext)
+      }
+      if(is(ext, "bbox")) {
+        warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+        ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
+      }
+      if(is(ext, "Extent")) {
+        extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
+      } else {
+        extText <- paste0(ext, collapse = ' ')
+      }
       args$ext = extText
+    }
+
+    if(!is.null(xmin)) {
+      args$xmin <- xmin
+    }
+    if(!is.null(xmax)) {
+      args$xmax <- xmax
+    }
+    if(!is.null(ymin)) {
+      args$ymin <- ymin
+    }
+    if(!is.null(ymax)) {
+      args$ymax <- ymax
+    }
+    if(!is.null(zmin)) {
+      args$zmin <- zmin
+    }
+    if(!is.null(zmax)) {
+      args$zmax <- zmax
     }
 
     if(!is.null(time_slice_id)) {
@@ -63,12 +83,64 @@ public = list(
     return(response)
   },
 
-  aggregated_voxels = function(ext, time_slice_id = NULL, time_slice_name = NULL, aggregation_factor, crop = FALSE) {
-    args <- list(format = 'rdat', aggregation_factor = aggregation_factor)
+  aggregated_voxels = function(ext = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, zmin = NULL, zmax = NULL, time_slice_id = NULL, time_slice_name = NULL, aggregation_factor = NULL, aggregation_factor_x = NULL, aggregation_factor_y = NULL, aggregation_factor_z = NULL, crop = FALSE) {
+    args <- list(format = 'rdat')
 
     if(!is.null(ext)) {
-      extText <- paste0(ext, collapse = ' ')
+
+      if(is(ext, 'sfc_MULTIPOLYGON')) {
+        ext <- sf:::as_Spatial(ext)
+      }
+      if(is(ext, 'sfc_POLYGON')) {
+        ext <- sf:::as_Spatial(ext)
+      }
+      if(is(ext, 'SpatialPolygons')) {
+        warning('convert SpatialPolygons to raster::extent by ignoring crs')
+        spMask <- ext
+        ext <- raster::extent(ext)
+      }
+      if(is(ext, "bbox")) {
+        warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+        ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
+      }
+      if(is(ext, "Extent")) {
+        extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
+      } else {
+        extText <- paste0(ext, collapse = ' ')
+      }
       args$ext = extText
+    }
+
+    if(!is.null(xmin)) {
+      args$xmin <- xmin
+    }
+    if(!is.null(xmax)) {
+      args$xmax <- xmax
+    }
+    if(!is.null(ymin)) {
+      args$ymin <- ymin
+    }
+    if(!is.null(ymax)) {
+      args$ymax <- ymax
+    }
+    if(!is.null(zmin)) {
+      args$zmin <- zmin
+    }
+    if(!is.null(zmax)) {
+      args$zmax <- zmax
+    }
+
+    if(!is.null(aggregation_factor)) {
+      args$aggregation_factor <- aggregation_factor
+    }
+    if(!is.null(aggregation_factor_x)) {
+      args$aggregation_factor_x <- aggregation_factor_x
+    }
+    if(!is.null(aggregation_factor_y)) {
+      args$aggregation_factor_y <- aggregation_factor_y
+    }
+    if(!is.null(aggregation_factor_z)) {
+      args$aggregation_factor_z <- aggregation_factor_z
     }
 
     if(!is.null(time_slice_id)) {
@@ -95,8 +167,43 @@ active = list(
   },
   time_slices = function() {
     return(private$meta_$time_slices)
+  },
+  extent = function() {
+    ext3d <- private$meta_$extent
+    ext <- raster::extent(ext3d$xmin, ext3d$xmax, ext3d$ymin, ext3d$ymax)
+    return(ext)
+  },
+  xmin = function() {
+    return(private$meta_$extent$xmin)
+  },
+  xmax = function() {
+    return(private$meta_$extent$xmax)
+  },
+  ymin = function() {
+    return(private$meta_$extent$ymin)
+  },
+  ymax = function() {
+    return(private$meta_$extent$xmax)
+  },
+  zmin = function() {
+    return(private$meta_$extent$zmin)
+  },
+  zmax = function() {
+    return(private$meta_$extent$zmax)
+  },
+  res = function() {
+    voxel_size <- private$meta_$ref$voxel_size
+    vs <- c(x = voxel_size$x, y = voxel_size$y, z = voxel_size$z)
+    return(vs)
+  },
+  proj4 = function() {
+    ref <- private$meta_$ref
+    return(ref$proj4)
+  },
+  epsg = function() {
+    ref <- private$meta_$ref
+    return(ref$epsg)
   }
-
 ),
 private = list(
 

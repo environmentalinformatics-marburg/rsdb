@@ -12,8 +12,8 @@ public abstract class AggregatedProcessingBool8 extends AggregatedProcessing {
 
 	protected boolean[][][] dst;
 
-	public AggregatedProcessingBool8(CellFactory cellFactory, Range3d range, int aggregation_factor, VoxelGeoRef aggRef) {
-		super(cellFactory, range, aggregation_factor, aggRef);
+	public AggregatedProcessingBool8(CellFactory cellFactory, Range3d range, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, VoxelGeoRef aggRef) {
+		super(cellFactory, range, aggregation_factor_x, aggregation_factor_y, aggregation_factor_z, aggRef);
 		this.cellFactory.setCount();
 		dst = new boolean[zAggLen][yAggLen][xAggLen];	
 	}
@@ -25,7 +25,7 @@ public abstract class AggregatedProcessingBool8 extends AggregatedProcessing {
 			aggRange = VoxelProcessing.getRange(dst, xAggLen, yAggLen, zAggLen);
 			data = VoxelProcessing.toBytes(dst, aggRange);
 		} else {
-			aggRange = new Range3d(0, 0, 0, (range.xmax - range.xmin) / aggregation_factor, (range.ymax - range.ymin) / aggregation_factor, (range.zmax - range.zmin) / aggregation_factor);
+			aggRange = new Range3d(0, 0, 0, (range.xmax - range.xmin) / aggregation_factor_x, (range.ymax - range.ymin) / aggregation_factor_y, (range.zmax - range.zmin) / aggregation_factor_z);
 			data = VoxelProcessing.toBytes(dst, xAggLen, yAggLen, zAggLen);			
 		}		
 		VoxelWriter.writeBool8(data, cellFactory.getvoxeldb().getName(), aggRef, aggRange, response, format);		
