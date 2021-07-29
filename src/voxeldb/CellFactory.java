@@ -14,6 +14,7 @@ import rasterunit.Tile;
 import rasterunit.TileKey;
 import util.Range3d;
 import util.collections.vec.Vec;
+import voxeldb.voxelmapper.VoxelMapperInt32;
 
 public class CellFactory {
 
@@ -286,20 +287,39 @@ public class CellFactory {
 		return voxeldb;
 	}
 	
-	@FunctionalInterface
-	public interface VoxelMapperInt32 {
-		int[][][] map(VoxelCell voxelCell);
-	}
-	
 	public VoxelMapperInt32 registerMapper_count() {
 		setCount();
 		return VoxelCell::count; 
+	}
+	
+	public VoxelMapperInt32 registerMapper_red() {
+		setRed();
+		return VoxelCell::red; 
+	}
+	
+	public VoxelMapperInt32 registerMapper_green() {
+		setGreen();
+		return VoxelCell::green; 
+	}
+	
+	public VoxelMapperInt32 registerMapper_blue() {
+		setBlue();
+		return VoxelCell::blue; 
 	}
 	
 	public VoxelMapperInt32 registerMapper(String attribute) {
 		switch(attribute) {
 		case "count": {
 			return registerMapper_count();
+		}
+		case "red": {
+			return registerMapper_red();
+		}
+		case "green": {
+			return registerMapper_green();
+		}
+		case "blue": {
+			return registerMapper_blue();
 		}
 		default:
 			throw new RuntimeException("unknown attribute: " + attribute);

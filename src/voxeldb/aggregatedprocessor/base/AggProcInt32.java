@@ -1,4 +1,4 @@
-package server.api.voxeldbs;
+package voxeldb.aggregatedprocessor.base;
 
 import java.io.IOException;
 
@@ -7,12 +7,14 @@ import org.eclipse.jetty.server.Response;
 import util.Range3d;
 import voxeldb.CellFactory;
 import voxeldb.VoxelGeoRef;
+import server.api.voxeldbs.VoxelProcessing;
+import server.api.voxeldbs.VoxelWriter;
 
-public abstract class AggregatedProcessingInt32 extends AggregatedProcessing {
+public abstract class AggProcInt32 extends AggProc {
 
 	protected int[][][] dst;
 
-	public AggregatedProcessingInt32(CellFactory cellFactory, Range3d range, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, VoxelGeoRef aggRef) {
+	public AggProcInt32(CellFactory cellFactory, Range3d range, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, VoxelGeoRef aggRef) {
 		super(cellFactory, range, aggregation_factor_x, aggregation_factor_y, aggregation_factor_z, aggRef);
 		this.cellFactory.setCount();
 		dst = new int[zAggLen][yAggLen][xAggLen];	

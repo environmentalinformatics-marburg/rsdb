@@ -1,17 +1,19 @@
-package server.api.voxeldbs;
+package voxeldb.aggregatedprocessor;
 
 import util.Range3d;
 import voxeldb.CellFactory;
-import voxeldb.CellFactory.VoxelMapperInt32;
 import voxeldb.VoxelCell;
 import voxeldb.VoxelGeoRef;
+import voxeldb.aggregatedprocessor.base.AggProcInt32;
+import voxeldb.aggregator.base.AggInt32ofInt32;
+import voxeldb.voxelmapper.VoxelMapperInt32;
 
-public class AggregatedProcessingInt32Bool8MappedAggregator extends AggregatedProcessingBool8 {
+public class AggProcInt32ofInt32 extends AggProcInt32 {
 
 	private VoxelMapperInt32 mapper;
-	private AggregatorInt32Bool8Exist aggregator;
+	private AggInt32ofInt32 aggregator;
 
-	public AggregatedProcessingInt32Bool8MappedAggregator(CellFactory cellFactory, Range3d range, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, VoxelGeoRef aggRef, VoxelMapperInt32 mapper, AggregatorInt32Bool8Exist aggregator) {
+	public AggProcInt32ofInt32(CellFactory cellFactory, Range3d range, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, VoxelGeoRef aggRef, VoxelMapperInt32 mapper, AggInt32ofInt32 aggregator) {
 		super(cellFactory, range, aggregation_factor_x, aggregation_factor_y, aggregation_factor_z, aggRef);
 		this.mapper = mapper;
 		this.aggregator = aggregator;

@@ -1,6 +1,8 @@
-package server.api.voxeldbs;
+package voxeldb.aggregator;
 
-public class AggregatorInt32Int32Sum extends AggregatorInt32Int32 {	
+import voxeldb.aggregator.base.AggInt32ofInt32;
+
+public class AggInt32ofInt32Count extends AggInt32ofInt32 {	
 	public void process(int[][][] src, int xSrcStart, int ySrcStart, int zSrcStart, int xSrcEnd, int ySrcEnd, int zSrcEnd, int[][][] dst, int xSrcDstOffeset, int ySrcDstOffeset, int zSrcDstOffeset, int factor_x, int factor_y, int factor_z) {
 		for(int z = zSrcStart; z <= zSrcEnd; z++) {
 			int[][] srcZ = src[z];
@@ -9,7 +11,9 @@ public class AggregatorInt32Int32Sum extends AggregatorInt32Int32 {
 				int[] srcZY = srcZ[y];
 				int[] dstZY = dstZ[(y + ySrcDstOffeset) / factor_y];
 				for(int x = xSrcStart; x <= xSrcEnd; x++) {
-					dstZY[(x + xSrcDstOffeset) / factor_x] += srcZY[x];
+					if(srcZY[x] != 0) {
+						dstZY[(x + xSrcDstOffeset) / factor_x]++;
+					}
 				}
 			}
 		}		

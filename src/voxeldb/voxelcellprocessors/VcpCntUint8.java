@@ -1,4 +1,4 @@
-package server.api.voxeldbs.voxelcellprocessors;
+package voxeldb.voxelcellprocessors;
 
 import voxeldb.VoxelCell;
 

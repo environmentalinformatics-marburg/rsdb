@@ -7,12 +7,12 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Response;
 
 import broker.TimeSlice;
-import server.api.voxeldbs.voxelcellprocessors.VcpCntUint16;
-import server.api.voxeldbs.voxelcellprocessors.VcpCntUint8;
-import server.api.voxeldbs.voxelcellprocessors.VcpInt32;
 import util.Range3d;
 import voxeldb.CellFactory;
 import voxeldb.VoxelDB;
+import voxeldb.voxelcellprocessors.VcpCntUint16;
+import voxeldb.voxelcellprocessors.VcpCntUint8;
+import voxeldb.voxelcellprocessors.VcpInt32;
 
 public class VoxelProcessor {
 	static final Logger log = LogManager.getLogger();

@@ -83,7 +83,7 @@ public = list(
     return(response)
   },
 
-  aggregated_voxels = function(ext = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, zmin = NULL, zmax = NULL, time_slice_id = NULL, time_slice_name = NULL, aggregation_factor = NULL, aggregation_factor_x = NULL, aggregation_factor_y = NULL, aggregation_factor_z = NULL, crop = FALSE) {
+  aggregated_voxels = function(ext = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, zmin = NULL, zmax = NULL, time_slice_id = NULL, time_slice_name = NULL, aggregation_factor = NULL, aggregation_factor_x = NULL, aggregation_factor_y = NULL, aggregation_factor_z = NULL, crop = FALSE, product = "sum") {
     args <- list(format = 'rdat')
 
     if(!is.null(ext)) {
@@ -151,6 +151,9 @@ public = list(
     }
     if(!is.null(crop)) {
       args$crop <- crop
+    }
+    if(!is.null(product)) {
+      args$product <- product
     }
     response <- private$rsdbConnector$GET(paste0("/voxeldbs/", private$name_, "/aggregated_voxels"), args)
     return(response)

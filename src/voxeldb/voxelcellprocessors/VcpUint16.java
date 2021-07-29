@@ -1,4 +1,4 @@
-package server.api.voxeldbs.voxelcellprocessors;
+package voxeldb.voxelcellprocessors;
 
 public abstract class VcpUint16 extends Vcp {
 	protected char[][][] r;

@@ -160,7 +160,7 @@ public class Handler_aggregated_voxels {
 		long cell_count =  cell_count_x * cell_count_y * cell_count_z;		
 		log.info("aggregated cell_count: " + cell_count);
 		if(cell_count_max < cell_count) {
-			throw new RuntimeException("to large voxel subset requested, count of aggregated voxels: " + cell_count_x + "x" +  + cell_count_y + "x"  + cell_count_z + " = " + cell_count + "   max allowed: " + cell_count_max);
+			throw new RuntimeException("too large voxel subset requested, count of aggregated voxels: " + cell_count_x + "x" +  + cell_count_y + "x"  + cell_count_z + " = " + cell_count + "   max allowed: " + cell_count_max);
 		}
 
 		TimeSlice timeSlice;
@@ -187,7 +187,8 @@ public class Handler_aggregated_voxels {
 		}
 		
 		boolean crop = Web.getFlagBoolean(request, "crop");
-
-		AggregatedProcessing.process(voxeldb, range, timeSlice, aggregation_factor_x, aggregation_factor_y, aggregation_factor_z, crop, response, format);		
+		
+		String product = Web.getString(request, "product", "sum");
+		AggregatedProcessing.process(voxeldb, range, timeSlice, aggregation_factor_x, aggregation_factor_y, aggregation_factor_z, product, crop, response, format);		
 	}
 }

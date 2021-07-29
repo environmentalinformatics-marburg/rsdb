@@ -9,15 +9,16 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 
 import broker.TimeSlice;
-import server.api.voxeldbs.voxelcellprocessors.VcpCntUint16;
-import server.api.voxeldbs.voxelcellprocessors.VcpCntUint8;
-import server.api.voxeldbs.voxelcellprocessors.VcpInt32;
-import server.api.voxeldbs.voxelcellprocessors.VcpInt32DivCount;
+import util.Range3d;
 import util.Web;
 import voxeldb.CellFactory;
 import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
+import voxeldb.voxelcellprocessors.VcpCntUint16;
+import voxeldb.voxelcellprocessors.VcpCntUint8;
+import voxeldb.voxelcellprocessors.VcpInt32;
+import voxeldb.voxelcellprocessors.VcpInt32DivCount;
 
 public class Handler_voxels {
 	private static final Logger log = LogManager.getLogger();
@@ -137,6 +138,8 @@ public class Handler_voxels {
 			throw new RuntimeException("missing zmax: needed parameter zmax or ext with 6 numbers");
 		}
 		
+		Range3d range = new Range3d(vrxmin, vrymin, vrzmin, vrxmax, vrymax, vrzmax);
+		
 		String product = Web.getString(request, "product");
 
 		//boolean clipped = Web.getFlag(request, "clipped");
@@ -171,13 +174,15 @@ public class Handler_voxels {
 		long cell_count =  cell_count_x * cell_count_y * cell_count_z;		
 		log.info("cell_count: " + cell_count);
 		if(cell_count_max < cell_count) {
-			throw new RuntimeException("to large voxel subset requested, count of voxels: " + cell_count_x + "x" +  + cell_count_y + "x"  + cell_count_z + " = " + cell_count + "   max allowed: " + cell_count_max);
+			throw new RuntimeException("too large voxel subset requested, count of voxels: " + cell_count_x + "x" +  + cell_count_y + "x"  + cell_count_z + " = " + cell_count + "   max allowed: " + cell_count_max);
 		}
-
 		
+		boolean crop = Web.getFlagBoolean(request, "crop");		
 		
-		int cellsize = voxeldb.getCellsize();
-
+		AggregatedProcessing.process(voxeldb, range, timeSlice, product, crop, response, format);		
+		
+		/*
+          int cellsize = voxeldb.getCellsize();
 		//String product = "cnt:uint8";
 
 		switch(product) {
@@ -244,8 +249,6 @@ public class Handler_voxels {
 		}
 		default:
 			throw new RuntimeException("unknown product");
-		}
-
-		
+		}*/		
 	}
 }

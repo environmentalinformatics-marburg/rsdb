@@ -201,4 +201,50 @@ public class VoxelWriter {
 			throw new RuntimeException("unknown format: " + format);
 		}				
 	}
+	
+	public static void writeFloat32(byte[] data, String name, VoxelGeoRef ref, Range3d voxelRange, Response response, String format) throws IOException {
+		Extent3d geoExtent = ref.toGeoExtent(voxelRange);
+
+		switch(format) {
+		case "js": {
+			response.setContentType("application/octet-stream");
+			DataOutputStream out = new DataOutputStream(response.getOutputStream());
+			out.writeInt(voxelRange.xlen());
+			out.writeInt(voxelRange.ylen());
+			out.writeInt(voxelRange.zlen());	
+			out.write(data);
+			break;
+		}
+		case "rdat": {
+			response.setContentType("application/octet-stream");
+			DataOutputStream out = new DataOutputStream(response.getOutputStream());
+			out.write(Rdat.SIGNATURE_RDAT);
+			out.write(Rdat.RDAT_TYPE_DIM_VECTOR);
+
+			RdatList metaList = new RdatList();
+			metaList.addString("name", name);
+			if(ref.hasProj4()) {
+				metaList.addString("PROJ4", ref.proj4);
+			}
+			if(ref.hasEpsg()) {
+				metaList.addInt32("EPSG", ref.epsg);
+			}
+			metaList.addFloat64("xmin", geoExtent.xmin);
+			metaList.addFloat64("ymin", geoExtent.ymin);
+			metaList.addFloat64("zmin", geoExtent.zmin);			
+			metaList.addFloat64("xmax", geoExtent.xmax);
+			metaList.addFloat64("ymax", geoExtent.ymax);
+			metaList.addFloat64("zmax", geoExtent.zmax);			
+			metaList.addFloat64("xres", ref.voxelSizeX);
+			metaList.addFloat64("yres", ref.voxelSizeY);
+			metaList.addFloat64("zres", ref.voxelSizeZ);
+			metaList.write(out);		
+
+			Rdat.write_RDAT_VDIM_float32(out, data, voxelRange.xlen(), voxelRange.ylen(), voxelRange.zlen());
+			break;
+		}
+		default:
+			throw new RuntimeException("unknown format: " + format);
+		}				
+	}
 }

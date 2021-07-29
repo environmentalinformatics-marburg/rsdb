@@ -175,6 +175,49 @@ public class VoxelProcessing {
 			return new Range3d(0, 0, 0, 0, 0, 0);
 		}
 	}
+	
+	public static Range3d getRange(float[][][] data, int vrxlen, int vrylen, int vrzlen) {
+		int clxmin = Integer.MAX_VALUE;
+		int clymin = Integer.MAX_VALUE;
+		int clzmin = Integer.MAX_VALUE;
+		int clxmax = Integer.MIN_VALUE;
+		int clymax = Integer.MIN_VALUE;
+		int clzmax = Integer.MIN_VALUE;	
+		for (int z = 0; z < vrzlen; z++) {
+			float[][] rZ = data[z];
+			for (int y = 0; y < vrylen; y++) {
+				float[] rZY = rZ[y];
+				for (int x = 0; x < vrxlen; x++) {
+					float v = rZY[x];
+					if(Float.isFinite(v)) {
+						if(x < clxmin) {
+							clxmin = x;
+						}
+						if(clxmax < x) {
+							clxmax = x;
+						}
+						if(y < clymin) {
+							clymin = y;
+						}
+						if(clymax < y) {
+							clymax = y;
+						}
+						if(z < clzmin) {
+							clzmin = z;
+						}
+						if(clzmax < z) {
+							clzmax = z;
+						}						
+					}
+				}
+			}
+		}
+		if(clxmin < Integer.MAX_VALUE) {
+			return new Range3d(clxmin, clymin, clzmin, clxmax, clymax, clzmax);
+		} else {			
+			return new Range3d(0, 0, 0, 0, 0, 0);
+		}
+	}	
 
 	public static byte[] toBytes(byte[][][] r, Range3d localRange) {
 		byte[] data = new byte[localRange.xyzlen()];
@@ -233,6 +276,27 @@ public class VoxelProcessing {
 		return data;
 	}
 	
+	public static byte[] toBytes(float[][][] r, int xlen, int ylen, int zlen) {
+		byte[] data = new byte[xlen * ylen * zlen * 4];
+
+		int pos = 0;
+		for (int z = 0; z < zlen; z++) {
+			float[][] rZ = r[z];
+			for (int y = 0; y < ylen; y++) {
+				float[] rZY = rZ[y];
+				for (int x = 0; x < xlen; x++) {
+					int v = Float.floatToRawIntBits(rZY[x]);				
+					data[pos++] = (byte)(v >>> 24);
+					data[pos++] = (byte)(v >>> 16);
+					data[pos++] = (byte)(v >>>  8);
+					data[pos++] = (byte)(v >>>  0);
+				}
+			}
+		}
+
+		return data;
+	}
+	
 	public static byte[] toBytes(boolean[][][] r, int xlen, int ylen, int zlen) {
 		byte[] data = new byte[xlen * ylen * zlen];
 
@@ -261,6 +325,27 @@ public class VoxelProcessing {
 				int[] rZY = rZ[y];
 				for (int x = localRange.xmin; x <= localRange.xmax; x++) {
 					int v = rZY[x];					
+					data[pos++] = (byte)(v >>> 24);
+					data[pos++] = (byte)(v >>> 16);
+					data[pos++] = (byte)(v >>>  8);
+					data[pos++] = (byte)(v >>>  0);
+				}
+			}
+		}
+
+		return data;
+	}
+	
+	public static byte[] toBytes(float[][][] r, Range3d localRange) {
+		byte[] data = new byte[localRange.xyzlen() * 4];
+
+		int pos = 0;
+		for (int z = localRange.zmin; z <= localRange.zmax; z++) {
+			float[][] rZ = r[z];
+			for (int y = localRange.ymin; y <= localRange.ymax; y++) {
+				float[] rZY = rZ[y];
+				for (int x = localRange.xmin; x <= localRange.xmax; x++) {
+					int v = Float.floatToRawIntBits(rZY[x]);					
 					data[pos++] = (byte)(v >>> 24);
 					data[pos++] = (byte)(v >>> 16);
 					data[pos++] = (byte)(v >>>  8);

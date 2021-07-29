@@ -1,6 +1,8 @@
-package server.api.voxeldbs;
+package voxeldb.aggregator;
 
-public class AggregatorInt32Bool8Exist {	
+import voxeldb.aggregator.base.AggBool8ofInt32;
+
+public class AggBool8ofInt32Exist extends AggBool8ofInt32 {	
 	public void process(int[][][] src, int xSrcStart, int ySrcStart, int zSrcStart, int xSrcEnd, int ySrcEnd, int zSrcEnd, boolean[][][] dst, int xSrcDstOffeset, int ySrcDstOffeset, int zSrcDstOffeset, int factor_x, int factor_y, int factor_z) {
 		for(int z = zSrcStart; z <= zSrcEnd; z++) {
 			int[][] srcZ = src[z];
