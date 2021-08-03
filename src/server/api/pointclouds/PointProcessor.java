@@ -29,7 +29,7 @@ public class PointProcessor {
 	public static interface PointTableTransformFunc extends Function<PointTable, PointTable>{
 	}
 
-	public static void process(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String format, Receiver receiver, Request request, AttributeSelector selector) throws IOException {
+	public static void process(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String format, Receiver receiver, Request request, AttributeSelector selector, String[] columns) throws IOException {
 		boolean useRawPoints = false;
 
 		if(useRawPoints) { // processings: just polygon filter
@@ -88,12 +88,6 @@ public class PointProcessor {
 				break;
 			default:
 				log.warn("unknown sort parameter "+Web.getString(request, "sort", "no"));
-			}
-			String[] columns = null;
-			String columnsText = request.getParameter("columns");
-			if(columnsText!=null) {
-				columns = Util.columnTextToColumns(columnsText, true);
-				log.info("columns: "+ Arrays.toString(columns));
 			}
 			double xnorm = 0;
 			double ynorm = 0;

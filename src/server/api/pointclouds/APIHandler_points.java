@@ -98,13 +98,17 @@ public class APIHandler_points {
 		} else {
 			throw new RuntimeException("missing parameter 'ext' (or 'polygon')");
 		}
-		
+
 		TimeSlice timeSlice = null;
 		if(Web.has(request, "time_slice_id")) {
 			int time_slice_id = Web.getInt(request, "time_slice_id");
 			timeSlice = pointcloud.timeMapReadonly.get(time_slice_id);
 			if(timeSlice == null) {
-				throw new RuntimeException("uknown time_slice_id: " + time_slice_id);
+				if(time_slice_id == 0) {
+					timeSlice = new TimeSlice(0, "default");
+				} else {
+					throw new RuntimeException("uknown time_slice_id: " + time_slice_id);
+				}
 			}
 			if(Web.has(request, "time_slice_name") && !Web.getString(request, "time_slice_name").equals(timeSlice.name)) {
 				throw new RuntimeException("time_slice_name does not match to time slice of time_slice_id: '" + Web.getString(request, "time_slice_name") + "'  '" + timeSlice.name + "'");
@@ -119,9 +123,9 @@ public class APIHandler_points {
 			timeSlice = pointcloud.timeMapReadonly.lastEntry().getValue();
 		}
 		int req_t = timeSlice == null ? 0 : timeSlice.id;
-		
-		
-		
+
+
+
 		PointTableTransformFunc transformFunc = null;
 		/*boolean normalise_ground = Web.getBoolean(request, "normalise_ground", false);
 		if(normalise_ground) {
@@ -131,7 +135,8 @@ public class APIHandler_points {
 
 
 		String columnsText = request.getParameter("columns");
-		AttributeSelector selector = columnsText == null ? null : AttributeSelector.of(columnsText.split("\\s+"));
+		String[] columns = columnsText == null ? null : columnsText.split("(\\s|,)+"); // split by spaces and/or comma
+		AttributeSelector selector = columns == null ? null : AttributeSelector.of(columns);
 		ChainedFilterFunc filterFunc = CellTable.parseFilter(request.getParameter("filter"));
 
 		if(format.equals("zip")) {
@@ -152,7 +157,7 @@ public class APIHandler_points {
 					double tymin = tileRect.getUTMd_min_y();
 					double txmax = tileRect.getUTMd_max_x_inclusive();
 					double tymax = tileRect.getUTMd_max_y_inclusive();
-					PointProcessor.process(pointcloud, req_t, txmin, tymin, txmax, tymax, tf, filterFunc, tileRegion, tileFormat, receiver, request, selector);
+					PointProcessor.process(pointcloud, req_t, txmin, tymin, txmax, tymax, tf, filterFunc, tileRegion, tileFormat, receiver, request, selector, columns);
 					zipOutputStream.closeEntry();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
@@ -162,10 +167,10 @@ public class APIHandler_points {
 			zipOutputStream.flush();
 		} else {
 			ResponseReceiver receiver = new ResponseReceiver(response);		
-			PointProcessor.process(pointcloud, req_t, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, format, receiver, request, selector);
+			PointProcessor.process(pointcloud, req_t, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, format, receiver, request, selector, columns);
 		}
 	}
-	
+
 	private void write_dublin_core(PointCloud pointcloud, Rect ext, ZipOutputStream zipOutputStream) throws IOException {
 		zipOutputStream.putNextEntry(new ZipEntry("metadata.yaml"));
 		try {
@@ -202,7 +207,7 @@ public class APIHandler_points {
 
 		if(ext != null) {
 			String coverage = "extent (" + ext.getUTMd_min_x() + ", " + ext.getUTMd_min_y() + " to " + ext.getUTMd_max_x() + ", " + ext.getUTMd_max_y() + ")";
-			
+
 			if(pointcloud.hasCode()|| pointcloud.hasProj4()) {
 				coverage += "   in ";
 				if(pointcloud.hasCode()) {

@@ -100,7 +100,11 @@ public class APIHandler_indices {
 			int time_slice_id = json.getInt("time_slice_id");
 			timeSlice = pointcloud.timeMapReadonly.get(time_slice_id);
 			if(timeSlice == null) {
-				throw new RuntimeException("uknown time_slice_id: " + time_slice_id);
+				if(time_slice_id == 0) {
+					timeSlice = new TimeSlice(0, "default");
+				} else {
+					throw new RuntimeException("uknown time_slice_id: " + time_slice_id);
+				}
 			}
 			if(Web.has(request, "time_slice_name") && !Web.getString(request, "time_slice_name").equals(timeSlice.name)) {
 				throw new RuntimeException("time_slice_name does not match to time slice of time_slice_id: '" + Web.getString(request, "time_slice_name") + "'  '" + timeSlice.name + "'");

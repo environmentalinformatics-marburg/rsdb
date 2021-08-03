@@ -308,11 +308,17 @@ public class Point implements Comparable<Point>{
 	}
 	
 	public boolean isVegetaion() {
-		return classification == 3 || classification == 4 || classification == 5 || classification == 13;
+		return classification == 3 // low vegetation
+				|| classification == 4  // medium vegetation
+				|| classification == 5  // high vegetation 
+				|| classification == 13  // wire - guard
+				//|| classification == 1 // unassigned
+				|| classification == 20; // (non standard) vegetation
 	}
 	
 	public boolean isGround() {
-		return classification == 2 || classification == 8;
+		return classification == 2 // ground
+				|| classification == 8; // model key/reserved
 	}
 	
 	/**
@@ -320,7 +326,10 @@ public class Point implements Comparable<Point>{
 	 * @return
 	 */
 	public boolean isEntity() {
-		return isGround() || isVegetaion() || classification == 6 || classification == 9;
+		return isGround() 
+				|| isVegetaion() 
+				|| classification == 6 // building
+				|| classification == 9; // water
 	}	
 	
 	public boolean isLastReturn() {
