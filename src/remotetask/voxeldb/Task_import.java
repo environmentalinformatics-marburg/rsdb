@@ -13,12 +13,14 @@ import org.locationtech.proj4j.CoordinateReferenceSystem;
 
 import broker.Broker;
 import broker.TimeSlice;
+import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import pointcloud.DoubleRect;
 import remotetask.CancelableRemoteProxyTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
+import util.JsonUtil;
 import voxeldb.Importer;
 import voxeldb.VoxelDB;
 
@@ -35,6 +37,8 @@ import voxeldb.VoxelDB;
 @Param(name="voxel_size", type="number", desc="Resolution of voxels. (default: 1 -> voxels of 1 meter edge length)", example="0.2", required=false)
 @Param(name="time_slice", type="string", desc="Name of time slice. (default: untitled)", example="January", required=false)
 @Param(name="clear", type="boolean", desc="Delete existing VoxelDB of that ID. (default: false)", example="true", required=false)
+@Param(name="access_roles", type="string_array", desc="List of access control read roles", example="role1, role2, role3", required=false)
+@Param(name="modify_roles", type="string_array", desc="List of access control write roles", example="role1, role2, role3", required=false)
 public class Task_import extends CancelableRemoteProxyTask {
 	private static final Logger log = LogManager.getLogger();
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
@@ -73,6 +77,9 @@ public class Task_import extends CancelableRemoteProxyTask {
 		
 		boolean clearVoxelDB = task.optBoolean("clear", false);
 		
+		String[] access_roles = JsonUtil.optStringTrimmedArray(task, "access_roles");
+		String[] modify_roles = JsonUtil.optStringTrimmedArray(task, "modify_roles");
+		
 		VoxelDB voxeldb;
 		if(clearVoxelDB) {
 			broker.deleteVoxeldb(voxeldb_name);
@@ -81,6 +88,13 @@ public class Task_import extends CancelableRemoteProxyTask {
 			voxeldb = broker.getOrCreateVoxeldb(voxeldb_name, storage_type, transactions);
 		}
 		
+		if(access_roles.length > 0) {
+			voxeldb.setACL(ACL.of(access_roles));
+		}
+		
+		if(modify_roles.length > 0) {
+			voxeldb.setACL(ACL.of(modify_roles));
+		}		
 
 		voxeldb.trySetVoxelsize(voxel_size);
 		voxeldb.trySetCellsize(cell_size);

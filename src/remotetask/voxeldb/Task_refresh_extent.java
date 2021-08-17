@@ -1,41 +1,41 @@
-package remotetask.rasterdb;
+package remotetask.voxeldb;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
-import rasterdb.RasterDB;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
 import remotetask.RemoteTask;
-import util.Range2d;
+import util.Range3d;
+import voxeldb.VoxelDB;
 
-@task_rasterdb("refresh_extent")
-@Description("Recalculate extent of RasterDB layer. This may be needed if cached extent info is out of date.")
-@Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="rasterdb1")
+@task_voxeldb("refresh_extent")
+@Description("Recalculate extent of VoxelDB layer. This may be needed if cached extent info is out of date.")
+@Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer.", example="voxeldb1")
 public class Task_refresh_extent extends RemoteTask {
 	private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
 	private final JSONObject task;
-	private final RasterDB rasterdb;
+	private final VoxelDB voxeldb;
 
 	public Task_refresh_extent(Context ctx) {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
-		String name = task.getString("rasterdb");
-		this.rasterdb =  broker.getRasterdb(name);
-		rasterdb.check(ctx.userIdentity);
+		String name = task.getString("voxeldb");
+		this.voxeldb =  broker.getVoxeldb(name);
+		voxeldb.check(ctx.userIdentity);
 	}
 
 	@Override
 	public void process() {
 		try {
-			Range2d range = rasterdb.getLocalRange(true);
-			log.info("local range " + range);
+			Range3d range = voxeldb.getLocalRange(true);
+				setMessage("local range " + range);
 		} catch(Exception e) {
 			log.error(e);
 		}

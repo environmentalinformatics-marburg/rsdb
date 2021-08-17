@@ -62,8 +62,7 @@ public class VoxelWriter {
 		}				
 	}
 	
-	public static void writeUint8(byte[] data, VoxelDB voxeldb, Range3d voxelRange, Response response, String format) throws IOException {
-		VoxelGeoRef ref = voxeldb.geoRef();
+	public static void writeUint8(byte[] data, String name, VoxelGeoRef ref, Range3d voxelRange, Response response, String format) throws IOException {
 		Extent3d geoExtent = ref.toGeoExtent(voxelRange);
 
 		switch(format) {
@@ -83,7 +82,7 @@ public class VoxelWriter {
 			out.write(Rdat.RDAT_TYPE_DIM_VECTOR);
 
 			RdatList metaList = new RdatList();
-			metaList.addString("name", voxeldb.getName());
+			metaList.addString("name", name);
 			if(ref.hasProj4()) {
 				metaList.addString("PROJ4", ref.proj4);
 			}

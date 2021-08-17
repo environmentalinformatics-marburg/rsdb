@@ -58,7 +58,7 @@ public class PointProcessor {
 				break;
 			}
 			case "js": {
-				PointTableWriter.writeJS(pointTables.toArray(PointTable[]::new), request, receiver);
+				PointTableWriter.writeJs(pointTables.toArray(PointTable[]::new), request, receiver);
 				break;
 			}
 			case "rdat": {

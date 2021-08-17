@@ -42,7 +42,7 @@ public class VoxelProcessor {
 
 		Range3d voxelRange = localRange.add(vrxmin, vrymin, vrzmin);
 
-		VoxelWriter.writeUint8(data, voxeldb, voxelRange, response, format);		
+		VoxelWriter.writeUint8(data, voxeldb.getName(), voxeldb.geoRef(), voxelRange, response, format);		
 	}
 	
 	public void ProcessUint16(int vrxmin, int vrymin, int vrzmin, int vrxmax, int vrymax, int vrzmax, TimeSlice timeSlice, Response response, String format, VcpCntUint16 vcp) throws IOException {

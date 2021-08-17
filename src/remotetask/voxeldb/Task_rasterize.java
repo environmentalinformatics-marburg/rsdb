@@ -2,8 +2,6 @@ package remotetask.voxeldb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -28,7 +26,7 @@ import voxeldb.VoxelDB;
 @Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (if layer exists, delete) (target, default: [voxeldb]_rasterized)", example="rasterdb1", required=false)
 public class Task_rasterize extends CancelableRemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	//private static final Logger log = LogManager.getLogger();
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -43,6 +41,8 @@ public class Task_rasterize extends CancelableRemoteTask {
 	public void process() throws IOException {
 		String voxeldb_name = task.getString("voxeldb");
 		VoxelDB voxeldb = broker.getVoxeldb(voxeldb_name);
+		
+		voxeldb.getLocalRange(true); // refresh local range
 		
 		CellFactory cf = CellFactory.ofCount(voxeldb);
 

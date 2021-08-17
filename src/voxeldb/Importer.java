@@ -89,6 +89,8 @@ public class Importer extends CancelableRemoteProxy {
 	private void importFile(Path filename) throws IOException {
 		log.info("import " + filename);
 		Timer.start("import");
+		
+		voxeldb.invalidateLocalRange(false);
 
 		Las las = null;
 		Laz laz = null;
@@ -375,6 +377,7 @@ public class Importer extends CancelableRemoteProxy {
 			}
 			voxeldb.commit();
 		}
+		voxeldb.invalidateLocalRange(true);
 		log.info(Timer.stop("import"));	
 	}
 

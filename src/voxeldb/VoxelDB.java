@@ -66,7 +66,7 @@ public class VoxelDB implements AutoCloseable {
 
 	private VoxelGeoRef geoRef = VoxelGeoRef.DEFAULT;
 
-	private Range3d local_range = null;
+	private volatile Range3d local_range = null;
 
 	public VoxelDB(VoxeldbConfig config) {
 		this.config = config;
@@ -356,16 +356,31 @@ public class VoxelDB implements AutoCloseable {
 	}
 
 	public Range3d getLocalRange(boolean update) {
-		synchronized (griddb) {
+		synchronized(griddb) {
 			if(local_range == null || update) {
 				LocalRangeCalculator localRangeCalculator = new LocalRangeCalculator(this);
 				try {
 					local_range = localRangeCalculator.calc();
+					griddb.writeMeta();
 				} catch (IOException e) {
 					log.error(e);
 				}
 			}
 			return local_range;	
+		}
+	}
+
+	public void invalidateLocalRange(boolean writeMetaIfNeeded) {
+		if(local_range != null) {
+			synchronized(griddb) {
+				if(local_range != null) {
+					local_range = null;
+					griddb.setUnsavedMetaChanges();
+				}
+			}
+		}
+		if(writeMetaIfNeeded) {
+			griddb.writeMetaIfNeeded();
 		}
 	}
 }
