@@ -157,6 +157,64 @@ public = list(
     }
     response <- private$rsdbConnector$GET(paste0("/voxeldbs/", private$name_, "/aggregated_voxels"), args)
     return(response)
+  },
+
+  raster = function(ext, zmin = NULL, zmax = NULL, time_slice_id = NULL, time_slice_name = NULL, aggregation_factor = NULL, aggregation_factor_x = NULL, aggregation_factor_y = NULL, product = "sum") {
+    args <- list(format = 'rdat')
+
+    if(!is.null(ext)) {
+
+      if(is(ext, 'sfc_MULTIPOLYGON')) {
+        ext <- sf:::as_Spatial(ext)
+      }
+      if(is(ext, 'sfc_POLYGON')) {
+        ext <- sf:::as_Spatial(ext)
+      }
+      if(is(ext, 'SpatialPolygons')) {
+        warning('convert SpatialPolygons to raster::extent by ignoring crs')
+        spMask <- ext
+        ext <- raster::extent(ext)
+      }
+      if(is(ext, "bbox")) {
+        warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
+        ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
+      }
+      if(is(ext, "Extent")) {
+        extText <- paste(ext@xmin, ext@ymin, ext@xmax, ext@ymax, sep=" ")
+      } else {
+        extText <- paste0(ext, collapse = ' ')
+      }
+      args$ext = extText
+    }
+
+    if(!is.null(zmin)) {
+      args$zmin <- zmin
+    }
+    if(!is.null(zmax)) {
+      args$zmax <- zmax
+    }
+
+    if(!is.null(aggregation_factor)) {
+      args$aggregation_factor <- aggregation_factor
+    }
+    if(!is.null(aggregation_factor_x)) {
+      args$aggregation_factor_x <- aggregation_factor_x
+    }
+    if(!is.null(aggregation_factor_y)) {
+      args$aggregation_factor_y <- aggregation_factor_y
+    }
+
+    if(!is.null(time_slice_id)) {
+      args$time_slice_id <- time_slice_id
+    }
+    if(!is.null(time_slice_name)) {
+      args$time_slice_name <- time_slice_name
+    }
+    if(!is.null(product)) {
+      args$product <- product
+    }
+    response <- private$rsdbConnector$GET(paste0("/voxeldbs/", private$name_, "/raster"), args)
+    return(response)
   }
 
 ),

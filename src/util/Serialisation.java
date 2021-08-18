@@ -48,7 +48,7 @@ public final class Serialisation {
 	public static short encodeZigZag(short v) {
 		return (short) ((v << 1) ^ (v >> 31));
 	}
-	
+
 	public static short decodeZigZag(short v) {
 		int i = v & 0xFFFF;
 		return (short) ((i >>> 1) ^ ((i << 31) >> 31));
@@ -188,7 +188,7 @@ public final class Serialisation {
 			prev = curr;
 		}
 	}
-	
+
 	public static void decodeDelta(int[] data) {
 		int curr = 0;
 		final int SIZE = data.length;
@@ -197,7 +197,7 @@ public final class Serialisation {
 			data[i] = curr;
 		}
 	}
-	
+
 	public static void decodeDelta(short[] data) {
 		short curr = 0;
 		final int SIZE = data.length;
@@ -215,7 +215,7 @@ public final class Serialisation {
 			data[i] = curr;
 		}
 	}
-	
+
 	public static void decodeDeltaZigZag(short[] data) {
 		short curr = 0;
 		final int SIZE = data.length;
@@ -278,7 +278,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-	
+
 	public static byte[] intToByteArray(int[] data, int len) {
 		byte[] result = new byte[len << 2];
 		int pos=0;
@@ -338,7 +338,7 @@ public final class Serialisation {
 			pos += 8;
 		}
 	}
-	
+
 	public static int[] castShortToInt(short[] data) {
 		int len = data.length;
 		int[] result = new int[len];
@@ -347,7 +347,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-	
+
 	public static short[] castIntToShort(int[] data) {
 		int len = data.length;
 		short[] result = new short[len];
@@ -474,7 +474,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-	
+
 	public static int[][] byteToIntArrayArray(byte[] data, int width, int height) {
 		int[][] result = new int[height][width];
 		int pos=0;
@@ -487,7 +487,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-	
+
 	public static int[][] byteToIntArrayArrayFlipY(byte[] data, int width, int height) {
 		int[][] result = new int[height][width];
 		int pos=0;
@@ -500,7 +500,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-	
+
 	public static float[][] byteToFloatArrayArray(byte[] data, int width, int height) {
 		float[][] result = new float[height][width];
 		int pos=0;
@@ -513,7 +513,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-	
+
 	public static float[][] byteToFloatArrayArrayFlipY(byte[] data, int width, int height) {
 		float[][] result = new float[height][width];
 		int pos=0;
@@ -556,7 +556,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-	
+
 	public static int[] byteToIntArrayBigEndian(byte[] data) {
 		int SIZE_INTS = data.length/4;
 		int[] result = new int[SIZE_INTS];
@@ -576,7 +576,7 @@ public final class Serialisation {
 		int SIZE_SHORTS = data.length;
 		int SIZE_BYTES = SIZE_SHORTS*2;
 		if(target==null||target.length!=SIZE_BYTES) {
-			target = new byte[SIZE_SHORTS*2];
+			target = new byte[SIZE_BYTES];
 		}
 		int pos=0;
 		for(int i=0; i<SIZE_SHORTS; i++) {
@@ -584,6 +584,18 @@ public final class Serialisation {
 			target[pos+1] = (byte)  v;
 			target[pos] = (byte)   (v >> 8);
 			pos+=2;
+		}
+		return target;
+	}
+
+	public static byte[] booleanToByteArray(boolean[] data, byte[] target) {
+		int SIZE_BOOLS = data.length;
+		int SIZE_BYTES = SIZE_BOOLS;
+		if(target == null || target.length != SIZE_BYTES) {
+			target = new byte[SIZE_BYTES];
+		}
+		for(int i=0; i < SIZE_BOOLS; i++) {
+			target[i] = data[i] ? (byte)1 : (byte)0;			
 		}
 		return target;
 	}
@@ -600,7 +612,7 @@ public final class Serialisation {
 		}
 		return result;
 	}
-	
+
 	public static byte[] shortToByteArray(short[] data) {
 		int SIZE_SHORTS = data.length;
 		byte[] result = new byte[SIZE_SHORTS*2];
@@ -655,7 +667,7 @@ public final class Serialisation {
 		}
 		return target;
 	}
-	
+
 	public static byte[] doubleToByteArrayBigEndian(double[] data, int off, int len, byte[] target) {
 		int size_bytes = len * 8;
 		if(target == null || target.length != size_bytes) {
@@ -779,7 +791,7 @@ public final class Serialisation {
 		out.write(buffer);
 		return buffer;
 	}
-	
+
 	public static byte[] writeArrayBE(DataOutput out, int[] data, byte[] buffer) throws IOException {//Bigendian
 		int len = data.length;
 		int byteLen = len * 4;
@@ -797,8 +809,8 @@ public final class Serialisation {
 		out.write(buffer);
 		return buffer;
 	}
-	
-	
+
+
 
 	public static void writeSubArrayArrayBE(DataOutput out, double[][] data, int start_y, int border_y, int start_x, int border_x) throws IOException {//Bigendian
 		byte[] buffer = null;
@@ -901,8 +913,8 @@ public final class Serialisation {
 		}
 		return data;
 	}
-	
-	
+
+
 	public static void writeInts(int[] compressed, ByteBuffer byteBuffer) {
 		byteBuffer.putInt(compressed.length);
 		for(int c:compressed) {

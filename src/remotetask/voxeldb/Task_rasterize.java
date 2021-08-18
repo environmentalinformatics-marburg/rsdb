@@ -82,6 +82,7 @@ public class Task_rasterize extends CancelableRemoteTask {
 			if(isCanceled()) {
 				throw new RuntimeException("canceled");
 			}
+			setMessage("process time slice: " + timeSlice.id +" : " + timeSlice.name);
 			cf.getVoxelCells(timeSlice).sequential().forEach(voxelCell -> {
 				if(isCanceled()) {
 					throw new RuntimeException("canceled");
@@ -106,7 +107,8 @@ public class Task_rasterize extends CancelableRemoteTask {
 								for(int x = 0; x < cellsize; x++) {
 									int v = cnt[z][y][x];
 									if(v != 0) {
-										pixels[y][x] = Float.isFinite(pixels[y][x]) ? pixels[y][x] + v : v;
+										pixels[y][x] = Float.isFinite(pixels[y][x]) ? pixels[y][x] + v : v; // point sum
+										//pixels[y][x] = Float.isFinite(pixels[y][x]) ? pixels[y][x] + 1 : 1; // voxel count
 									}
 								}
 							}

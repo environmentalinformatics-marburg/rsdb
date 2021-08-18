@@ -17,6 +17,10 @@ public class Range3d {
 	public final int ymax;
 	public final int zmax;
 	
+	public static Range3d of(Range2d range2d, int zmin, int zmax) {
+		return new Range3d(range2d.xmin, range2d.ymin, zmin, range2d.xmax, range2d.ymax, zmax);
+	}
+	
 	public Range3d(int xmin, int ymin, int zmin, int xmax, int ymax, int zmax) {
 		this.xmin = xmin;
 		this.ymin = ymin;
@@ -114,5 +118,13 @@ public class Range3d {
 		json.key("zmax");
 		json.value(zmax);
 		json.endObject();	
+	}
+
+	public Range3d withZmin(int zmin) {
+		return new Range3d(this.xmin, this.ymin, zmin, this.xmax, this.ymax, this.zmax);
+	}
+	
+	public Range3d withZmax(int zmax) {
+		return new Range3d(this.xmin, this.ymin, this.zmin, this.xmax, this.ymax, zmax);
 	}
 }

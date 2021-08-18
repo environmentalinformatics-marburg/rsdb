@@ -54,6 +54,15 @@ public abstract class RdatBand {
 		};
 	}
 	
+	public static RdatBandBool8 ofBool8(int width, int height, RdatList meta, boolean[][] data) {
+		return new RdatBandBool8(width, height, meta) {			
+			@Override
+			protected boolean[][] getData() {
+				return data;
+			}
+		};
+	}
+	
 	public static RdatBandFloat32 ofFloat32(int width, int height, RdatList meta, float[][] data) {
 		return new RdatBandFloat32(width, height, meta) {			
 			@Override

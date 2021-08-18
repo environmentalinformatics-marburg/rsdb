@@ -1,36 +1,25 @@
-package voxeldb.cellproc;
+package voxeldb;
 
 import java.io.IOException;
 import java.util.function.Consumer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Response;
 
 import util.Range3d;
-import voxeldb.CellFactory;
-import voxeldb.VoxelCell;
 
-public abstract class CellProc implements Consumer<VoxelCell>{
-	private static final Logger log = LogManager.getLogger();
+public abstract class VoxelCellProc implements Consumer<VoxelCell> {
 	
-	protected CellFactory cellFactory;
-	protected Range3d range;	
-	protected int xLen;
-	protected int yLen;
-	protected int zLen;
+	protected final CellFactory cellFactory;
+	protected final Range3d range;
 
-	public CellProc(CellFactory cellFactory, Range3d range) {
+	public VoxelCellProc(CellFactory cellFactory, Range3d range) {
 		this.cellFactory = cellFactory;
 		this.cellFactory.setCount();
 		this.range = range;
-		this.xLen = range.xlen();
-		this.yLen = range.ylen();
-		this.zLen = range.zlen();
 	}
 
 	@Override
-	public void accept(VoxelCell voxelCell) {
+	public final void accept(VoxelCell voxelCell) {
 		Range3d srcRange = cellFactory.toRange(voxelCell);
 		Range3d srcCpy = srcRange.overlapping(range);		
 		int xSrcStart = srcCpy.xmin - srcRange.xmin;
@@ -48,6 +37,6 @@ public abstract class CellProc implements Consumer<VoxelCell>{
 	public void finish() {		
 	}
 
-	public abstract void process(VoxelCell voxelCell, int xSrcStart, int ySrcStart, int zSrcStart, int xSrcEnd, int ySrcEnd, int zSrcEnd, int xSrcDstOffeset, int ySrcDstOffeset, int zSrcDstOffeset);
+	public abstract void process(VoxelCell voxelCell, int xSrcStart, int ySrcStart, int zSrcStart, int xSrcEnd, int ySrcEnd, int zSrcEnd, int xSrcDstOffset, int ySrcDstOffset, int zSrcDstOffset);
 	public abstract void write(Response response, String format, boolean crop) throws IOException;	
 }

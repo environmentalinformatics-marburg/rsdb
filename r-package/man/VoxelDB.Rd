@@ -15,6 +15,7 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 \item \href{#method-new}{\code{VoxelDB$new()}}
 \item \href{#method-voxels}{\code{VoxelDB$voxels()}}
 \item \href{#method-aggregated_voxels}{\code{VoxelDB$aggregated_voxels()}}
+\item \href{#method-raster}{\code{VoxelDB$raster()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -33,10 +34,13 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$voxels(
   ext = NULL,
-  x = NULL,
-  y = NULL,
-  z = NULL,
-  product,
+  xmin = NULL,
+  xmax = NULL,
+  ymin = NULL,
+  ymax = NULL,
+  zmin = NULL,
+  zmax = NULL,
+  product = "count",
   time_slice_id = NULL,
   time_slice_name = NULL
 )}\if{html}{\out{</div>}}
@@ -49,11 +53,40 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 \subsection{Method \code{aggregated_voxels()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$aggregated_voxels(
-  ext,
+  ext = NULL,
+  xmin = NULL,
+  xmax = NULL,
+  ymin = NULL,
+  ymax = NULL,
+  zmin = NULL,
+  zmax = NULL,
   time_slice_id = NULL,
   time_slice_name = NULL,
-  aggregation_factor,
-  crop = FALSE
+  aggregation_factor = NULL,
+  aggregation_factor_x = NULL,
+  aggregation_factor_y = NULL,
+  aggregation_factor_z = NULL,
+  crop = FALSE,
+  product = "sum"
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-raster"></a>}}
+\if{latex}{\out{\hypertarget{method-raster}{}}}
+\subsection{Method \code{raster()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{VoxelDB$raster(
+  ext,
+  zmin = NULL,
+  zmax = NULL,
+  time_slice_id = NULL,
+  time_slice_name = NULL,
+  aggregation_factor = NULL,
+  aggregation_factor_x = NULL,
+  aggregation_factor_y = NULL,
+  product = "sum"
 )}\if{html}{\out{</div>}}
 }
 

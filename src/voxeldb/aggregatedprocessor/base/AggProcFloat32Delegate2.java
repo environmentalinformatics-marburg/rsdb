@@ -18,8 +18,8 @@ public class AggProcFloat32Delegate2 extends AggProcFloat32 {
 
 	@Override
 	public void process(VoxelCell voxelCell, int xSrcStart, int ySrcStart, int zSrcStart, int xSrcEnd, int ySrcEnd,
-			int zSrcEnd, int xSrcDstOffeset, int ySrcDstOffeset, int zSrcDstOffeset) {
-		aggProcA.process(voxelCell, xSrcStart, ySrcStart, zSrcStart, xSrcEnd, ySrcEnd, zSrcEnd, xSrcDstOffeset, ySrcDstOffeset, zSrcDstOffeset);
-		aggProcB.process(voxelCell, xSrcStart, ySrcStart, zSrcStart, xSrcEnd, ySrcEnd, zSrcEnd, xSrcDstOffeset, ySrcDstOffeset, zSrcDstOffeset);
+			int zSrcEnd, int xSrcDstOffset, int ySrcDstOffset, int zSrcDstOffset) {
+		aggProcA.process(voxelCell, xSrcStart, ySrcStart, zSrcStart, xSrcEnd, ySrcEnd, zSrcEnd, xSrcDstOffset, ySrcDstOffset, zSrcDstOffset);
+		aggProcB.process(voxelCell, xSrcStart, ySrcStart, zSrcStart, xSrcEnd, ySrcEnd, zSrcEnd, xSrcDstOffset, ySrcDstOffset, zSrcDstOffset);
 	}
 }

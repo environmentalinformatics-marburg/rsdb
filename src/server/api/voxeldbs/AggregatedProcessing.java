@@ -1,7 +1,6 @@
 package server.api.voxeldbs;
 
 import java.io.IOException;
-import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,7 +9,6 @@ import org.eclipse.jetty.server.Response;
 import broker.TimeSlice;
 import util.Range3d;
 import voxeldb.CellFactory;
-import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 import voxeldb.aggregatedprocessor.AggProcBool8ofInt32;
@@ -18,13 +16,11 @@ import voxeldb.aggregatedprocessor.AggProcFloat32ofInt32;
 import voxeldb.aggregatedprocessor.AggProcInt32ofInt32;
 import voxeldb.aggregatedprocessor.AggProcUint8ofInt32;
 import voxeldb.aggregatedprocessor.base.AggProc;
-import voxeldb.aggregatedprocessor.base.AggProcBool8;
 import voxeldb.aggregatedprocessor.base.AggProcFloat32;
 import voxeldb.aggregatedprocessor.base.AggProcFloat32Delegate2Div;
 import voxeldb.aggregator.AggBool8ofInt32Exist;
 import voxeldb.aggregator.AggFloat32ofInt32Sum;
 import voxeldb.aggregator.AggInt32ofInt32Count;
-import voxeldb.aggregator.AggInt32ofInt32Exist;
 import voxeldb.aggregator.AggInt32ofInt32Sum;
 import voxeldb.aggregator.AggUint8ofInt32Sum;
 import voxeldb.aggregator.base.AggBool8ofInt32;
@@ -33,7 +29,7 @@ import voxeldb.aggregator.base.AggInt32ofInt32;
 import voxeldb.aggregator.base.AggUint8ofInt32;
 import voxeldb.voxelmapper.VoxelMapperInt32;
 
-public abstract class AggregatedProcessing implements Consumer<VoxelCell>{
+public class AggregatedProcessing {
 	private static final Logger log = LogManager.getLogger();
 
 	public static void process(VoxelDB voxeldb, Range3d range, TimeSlice timeSlice, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, String product, boolean crop, Response response, String format) throws IOException {

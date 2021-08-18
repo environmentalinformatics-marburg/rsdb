@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import util.Extent3d;
+import util.Range2d;
 import util.Range3d;
 import util.yaml.YamlMap;
 
@@ -140,6 +141,14 @@ public class VoxelGeoRef {
 		int ymax = geoYtoVoxel(geoYmax);
 		int zmax = geoZtoVoxel(geoZmax);
 		return new Range3d(xmin, ymin, zmin, xmax, ymax, zmax);
+	}
+	
+	public Range2d geoToRange(double geoXmin, double geoYmin, double geoXmax, double geoYmax) {
+		int xmin = geoXtoVoxel(geoXmin);
+		int ymin = geoYtoVoxel(geoYmin);
+		int xmax = geoXtoVoxel(geoXmax);
+		int ymax = geoYtoVoxel(geoYmax);
+		return new Range2d(xmin, ymin, xmax, ymax);
 	}
 
 	@Override

@@ -40,6 +40,7 @@ public class APIHandler_voxeldb {
 
 	private final Handler_voxels handler_voxels = new Handler_voxels();
 	private final Handler_aggregated_voxels handler_aggregated_voxels = new Handler_aggregated_voxels();
+	private final Handler_raster handler_raster = new Handler_raster();
 
 	public APIHandler_voxeldb(Broker broker) {
 		this.broker = broker;
@@ -82,7 +83,10 @@ public class APIHandler_voxeldb {
 					break;
 				case "aggregated_voxels":
 					handler_aggregated_voxels.handle(voxeldb, request, response, userIdentity);
-					break;					
+					break;	
+				case "raster":
+					handler_raster.handle(voxeldb, request, response, userIdentity);
+					break;						
 				default:
 					throw new RuntimeException("unknown resource: " + resource);
 				}

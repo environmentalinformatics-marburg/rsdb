@@ -10,11 +10,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.SessionCookieConfig;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -26,7 +21,6 @@ import org.eclipse.jetty.http2.HTTP2Cipher;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.LoginService;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.security.authentication.DigestAuthenticator;
@@ -55,6 +49,10 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.gdal.gdal.gdal;
 
 import broker.Broker;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.SessionCookieConfig;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import server.api.main.MainAPICollectionHandler;
 import server.api.poi_groups.APIHandler_poi_groups;
 import server.api.pointclouds.APIHandler_pointclouds;
@@ -333,6 +331,7 @@ public class RSDBServer {
 	public static void printServerEntrypoint(Server server, Broker broker) {
 
 		try {
+			System.out.println("Java " + Runtime.version());
 			Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 			System.out.println(gdal.VersionInfo("version"));
 			try {
