@@ -12,6 +12,7 @@ public abstract class RasterProc extends VoxelCellProc {
 	protected final VoxelGeoRef aggRef;
 	protected final int xAggLen;
 	protected final int yAggLen;
+	protected final Range3d aggRange;
 
 	public RasterProc(CellFactory cellFactory, Range3d range, int aggregation_factor_x, int aggregation_factor_y, VoxelGeoRef aggRef) {
 		super(cellFactory, range);
@@ -20,7 +21,6 @@ public abstract class RasterProc extends VoxelCellProc {
 		this.aggRef = aggRef;
 		this.xAggLen = (range.xmax - range.xmin) / aggregation_factor_x + 1;
 		this.yAggLen = (range.ymax - range.ymin) / aggregation_factor_y + 1;
-		//this.geoXmin = aggRef.voxelXtoGeo(aggregation_factor_x);
-		
+		this.aggRange = new Range3d(0, 0, 0, xAggLen - 1, yAggLen - 1, 0);		
 	}
 }

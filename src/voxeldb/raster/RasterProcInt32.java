@@ -29,8 +29,8 @@ public abstract class RasterProcInt32 extends RasterProc {
 		case "rdat": {
 			RdatList meta = new RdatList();
 			RdatList bandMeta = new RdatList();
-			Extent3d geoExtent = aggRef.toGeoExtent(range);
-			RdatWriter rdatWriter = new RdatWriter(xAggLen, yAggLen, geoExtent.xmin, geoExtent.ymin, geoExtent.xmax, geoExtent.ymax, meta);
+			Extent3d aggGeoExtent = aggRef.toGeoExtent(aggRange);
+			RdatWriter rdatWriter = new RdatWriter(xAggLen, yAggLen, aggGeoExtent.xmin, aggGeoExtent.ymin, aggGeoExtent.xmax, aggGeoExtent.ymax, meta);
 			if(aggRef.hasProj4()) {
 				rdatWriter.setProj4(aggRef.proj4);
 			}

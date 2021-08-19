@@ -41,9 +41,9 @@ public class Task_rasterize extends CancelableRemoteTask {
 	public void process() throws IOException {
 		String voxeldb_name = task.getString("voxeldb");
 		VoxelDB voxeldb = broker.getVoxeldb(voxeldb_name);
-		
+
 		voxeldb.getLocalRange(true); // refresh local range
-		
+
 		CellFactory cf = CellFactory.ofCount(voxeldb);
 
 		String rasterdb_name = task.optString("rasterdb", voxeldb.getName() + "_rasterized");
@@ -64,15 +64,17 @@ public class Task_rasterize extends CancelableRemoteTask {
 
 		voxeldb.setAssociatedRasterDB(rasterdb.config.getName());		
 		rasterdb.associated.setVoxelDB(voxeldb.getName());
-		
+
 		rasterdb.setACL(voxeldb.getACL());
 		rasterdb.setACL_mod(voxeldb.getACL_mod());
-		
+
 		rasterdb.writeMeta();
 
+		Band bandSum = rasterdb.createBand(TilePixel.TYPE_FLOAT, "sum", null);
 		Band bandCount = rasterdb.createBand(TilePixel.TYPE_FLOAT, "count", null);
-		Band bandElevation = rasterdb.createBand(TilePixel.TYPE_FLOAT, "elevation", null);
+		Band bandElevation = rasterdb.createBand(TilePixel.TYPE_FLOAT, "z_sum", null);
 		//Band bandMaxCount = rasterdb.createBand(TilePixel.TYPE_FLOAT, "maxCount", null);
+		Band bandDensity = rasterdb.createBand(TilePixel.TYPE_FLOAT, "density_mean", null);
 
 		int cellsize = voxeldb.getCellsize();
 		double originZ = voxeldb.geoRef().originZ;
@@ -89,7 +91,7 @@ public class Task_rasterize extends CancelableRemoteTask {
 				}
 				try {
 					rasterdb.setTimeSlice(timeSlice);
-					
+
 					RasterUnitStorage storage = rasterdb.rasterUnit();
 					int rx = voxelCell.x * cellsize;
 					int ry = voxelCell.y * cellsize;
@@ -99,16 +101,38 @@ public class Task_rasterize extends CancelableRemoteTask {
 					int[][][] cnt = voxelCell.cnt;
 
 					{
+						FloatFrame frame = bandProcessor.getFloatFrame(bandSum);
+						float[][]  pixels = frame.data;
+
+						for(int z = 0; z < cellsize; z++) {
+							int[][] cntz = cnt[z];
+							for(int y = 0; y < cellsize; y++) {
+								int[] cntzy = cntz[y];
+								float[] pixelsy = pixels[y];
+								for(int x = 0; x < cellsize; x++) {
+									int v = cntzy[x];
+									if(v != 0) {
+										pixelsy[x] = Float.isFinite(pixelsy[x]) ? pixelsy[x] + v : v; // point sum
+									}
+								}
+							}
+						}
+						ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandSum, pixels, range2d.ymin, range2d.xmin);
+					}
+
+					{
 						FloatFrame frame = bandProcessor.getFloatFrame(bandCount);
 						float[][]  pixels = frame.data;
 
 						for(int z = 0; z < cellsize; z++) {
+							int[][] cntz = cnt[z];
 							for(int y = 0; y < cellsize; y++) {
+								int[] cntzy = cntz[y];
+								float[] pixelsy = pixels[y];
 								for(int x = 0; x < cellsize; x++) {
-									int v = cnt[z][y][x];
+									int v = cntzy[x];
 									if(v != 0) {
-										pixels[y][x] = Float.isFinite(pixels[y][x]) ? pixels[y][x] + v : v; // point sum
-										//pixels[y][x] = Float.isFinite(pixels[y][x]) ? pixels[y][x] + 1 : 1; // voxel count
+										pixelsy[x] = Float.isFinite(pixelsy[x]) ? pixelsy[x] + 1 : 1; // voxel count
 									}
 								}
 							}
@@ -116,7 +140,7 @@ public class Task_rasterize extends CancelableRemoteTask {
 						ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandCount, pixels, range2d.ymin, range2d.xmin);
 					}
 
-					{
+					/*{
 						FloatFrame frame = bandProcessor.getFloatFrame(bandElevation);
 						float[][]  pixels = frame.data;
 
@@ -135,7 +159,89 @@ public class Task_rasterize extends CancelableRemoteTask {
 							}
 						}
 						ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandElevation, pixels, range2d.ymin, range2d.xmin);
+					}*/
+
+					{
+						FloatFrame frame = bandProcessor.getFloatFrame(bandElevation);
+						float[][]  pixels = frame.data;
+
+						for(int z = 0; z < cellsize; z++) {
+							int[][] cntz = cnt[z];
+							float zr = (float) (originZ + voxelSizeZ * (voxelCell.z * cellsize + z));
+							for(int y = 0; y < cellsize; y++) {
+								int[] cntzy = cntz[y];
+								float[] pixelsy = pixels[y];
+								for(int x = 0; x < cellsize; x++) {
+									int v = cntzy[x];
+									if(v != 0) {
+										pixelsy[x] = Float.isFinite(pixelsy[x]) ? pixelsy[x] + zr : zr;
+									}
+								}
+							}
+						}
+						ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandElevation, pixels, range2d.ymin, range2d.xmin);
 					}
+					
+					{
+						FloatFrame frame = bandProcessor.getFloatFrame(bandDensity);
+						float[][]  pixels = frame.data;
+						int[][] counts = new int[pixels.length][pixels[0].length];
+
+						for(int z = 0; z < cellsize; z++) {
+							int[][] cntz = cnt[z];
+							for(int y = 0; y < cellsize; y++) {
+								int[] cntzy = cntz[y];
+								float[] pixelsy = pixels[y];
+								int[] countsy = counts[y];
+								for(int x = 0; x < cellsize; x++) {									
+									int v = cntzy[x];
+									if(v != 0) {
+										pixelsy[x] = Float.isFinite(pixelsy[x]) ? pixelsy[x] + v : v; // point sum
+										countsy[x]++;
+									}
+								}
+							}
+						}
+						for(int y = 0; y < cellsize; y++) {
+							float[] pixelsy = pixels[y];
+							int[] countsy = counts[y];
+							for(int x = 0; x < cellsize; x++) {
+								pixelsy[x] /= countsy[x];
+							}
+						}
+						ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandDensity, pixels, range2d.ymin, range2d.xmin);
+					}
+					
+					/*{
+						FloatFrame frame = bandProcessor.getFloatFrame(bandElevation);
+						float[][]  pixels = frame.data;
+						int[][] counts = new int[pixels.length][pixels[0].length];
+
+						for(int z = 0; z < cellsize; z++) {
+							int[][] cntz = cnt[z];
+							float zr = (float) (originZ + voxelSizeZ * (voxelCell.z * cellsize + z));
+							for(int y = 0; y < cellsize; y++) {
+								int[] cntzy = cntz[y];
+								float[] pixelsy = pixels[y];
+								int[] countsy = counts[y];
+								for(int x = 0; x < cellsize; x++) {
+									int v = cntzy[x];
+									if(v != 0) {
+										pixelsy[x] = Float.isFinite(pixelsy[x]) ? pixelsy[x] + zr : zr;
+										countsy[x]++;
+									}
+								}
+							}
+						}
+						for(int y = 0; y < cellsize; y++) {
+							float[] pixelsy = pixels[y];
+							int[] countsy = counts[y];
+							for(int x = 0; x < cellsize; x++) {
+								pixelsy[x] /= countsy[x];
+							}
+						}
+						ProcessingFloat.writeMerge(storage, bandProcessor.timestamp, bandElevation, pixels, range2d.ymin, range2d.xmin);
+					}*/
 
 					/*{
 					FloatFrame frame = bandProcessor.getFloatFrame(bandMaxCount);

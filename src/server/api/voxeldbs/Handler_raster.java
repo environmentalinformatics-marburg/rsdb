@@ -105,6 +105,7 @@ public class Handler_raster {
 		double aggOriginZ = ref.voxelZtoGeo(range.zmin);
 		double aggVoxelSizeX = ref.voxelSizeX * aggregation_factor_x;
 		double aggVoxelSizeY = ref.voxelSizeY * aggregation_factor_y;
+		log.info("res " + aggVoxelSizeX + " " + aggVoxelSizeY);
 		VoxelGeoRef aggRef = ref.with(aggOriginX, aggOriginY, aggOriginZ, aggVoxelSizeX, aggVoxelSizeY, 0);
 		
 		CellFactory cellFactory = new CellFactory(voxeldb);

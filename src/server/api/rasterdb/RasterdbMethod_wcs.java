@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,6 +35,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import broker.Broker;
+import broker.TimeSlice;
 import rasterdb.BandProcessor;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
@@ -42,6 +44,7 @@ import server.api.rasterdb.RequestProcessor.TiffDataType;
 import util.Extent2d;
 import util.Range2d;
 import util.ResponseReceiver;
+import util.TimeUtil;
 import util.Timer;
 import util.Web;
 import util.frame.DoubleFrame;
@@ -155,8 +158,28 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		//log.info(extent2d);
 		//log.info(range2d);
 
-
-		int timestamp = rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
+		int timestamp = 0;
+		if(Web.has(request, "TIME")) {
+			String timeText = Web.getString(request, "TIME");
+			TimeSlice timeSlice = rasterdb.getTimeSliceByName(timeText);
+			if(timeSlice == null) {
+				int[] timestampRange = null;
+				try{
+					timestampRange = TimeUtil.getTimestampRangeOrNull(timeText);
+					if(timestampRange != null) {
+						timeSlice = new TimeSlice(timestampRange[0], timeText);
+					}
+				}catch(Exception e) {
+					//log.warn("could not parse timestamp: " + timeText);
+					throw new RuntimeException("tim slice not found");
+				}
+			}
+			if(timeSlice != null) {
+				timestamp = timeSlice.id;
+			}
+		} else if(!rasterdb.rasterUnit().timeKeysReadonly().isEmpty()){			
+			timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
+		}
 
 		BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, dstWidth, dstHeight);
 
@@ -187,7 +210,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		}
 		//log.info(Timer.stop("raster convert"));
 		log.info(Timer.stop("WCS processing"));
-		
+
 		Timer.start("WCS transfer");
 		resceiver.setStatus(HttpServletResponse.SC_OK);
 		resceiver.setContentType("image/tiff");
@@ -519,6 +542,19 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		addElement(e_gml_origin, "gml:pos", ref.pixelXToGeo(localRange.xmin) + " " + ref.pixelYToGeo(localRange.ymax + 1));
 		addElement(e_gml_RectifiedGrid, "gml:offsetVector", ref.pixel_size_x + " " +  "0.0");
 		addElement(e_gml_RectifiedGrid, "gml:offsetVector", "0.0" + " " + (-ref.pixel_size_y));
+		TreeSet<Integer> timestamps = new TreeSet<Integer>();
+		timestamps.addAll(rasterdb.rasterUnit().timeKeysReadonly());
+		timestamps.addAll(rasterdb.timeMapReadonly.keySet());
+		if(!timestamps.isEmpty()) {
+			Element e_temporalDomain = addElement(e_domainSet, "temporalDomain");
+			for(Integer timestamp:timestamps) {
+				TimeSlice timeSlice = rasterdb.timeMapReadonly.get(timestamp);
+				if(timeSlice == null) {
+					timeSlice = new TimeSlice(timestamp, TimeUtil.toText(timestamp));
+				}
+				addElement(e_temporalDomain, "gml:timePosition", timeSlice.name);
+			}
+		}
 
 		Element e_rangeSet = addElement(eCoverageOffering, "rangeSet");
 		Element e_RangeSet = addElement(e_rangeSet, "RangeSet");
