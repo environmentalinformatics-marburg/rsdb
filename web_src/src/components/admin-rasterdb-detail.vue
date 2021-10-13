@@ -81,6 +81,9 @@
                                 <v-btn v-if="type === 'pointcloud'" icon class="indigo--text" :href="'#/layers/pointclouds/' + name" title="go to pointcloud layer info">
                                     <v-icon>open_in_new</v-icon>
                                 </v-btn>
+                                <v-btn v-if="type === 'voxeldb'" icon class="indigo--text" :href="'#/layers/voxeldbs/' + name" title="go to voxeldb">
+                                    <v-icon>open_in_new</v-icon>
+                                </v-btn>                                
                                 <v-btn v-if="type === 'poi_groups'" icon class="indigo--text" :href="'#/layers/poi_groups/' + name" title="go to POI group layer info">
                                     <v-icon>open_in_new</v-icon>
                                 </v-btn>
