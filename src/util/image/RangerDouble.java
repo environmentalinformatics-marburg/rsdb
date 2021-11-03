@@ -17,7 +17,7 @@ public class RangerDouble {
 		int yEnd = height - 1;
 		return range(data, yStart, yEnd);
 	}
-	
+
 	public static double[] rangeSync(double[][][] data) {
 		int bands = data.length;
 		int lines = data[0].length;
@@ -48,8 +48,8 @@ public class RangerDouble {
 		int lower = (int) ((pro * 5) / 1000);
 		int upper = (int) ((pro * 995) / 1000);
 		int cntd2 = cnt >>> 1;
-		double median = (cnt % 2 == 0) ? ((stat[cntd2 - 1] + stat[cntd2]) / 2) : stat[cntd2];
-		return new double[] {stat[lower], stat[upper], median};		
+			double median = (cnt % 2 == 0) ? ((stat[cntd2 - 1] + stat[cntd2]) / 2) : stat[cntd2];
+			return new double[] {stat[lower], stat[upper], median};		
 	}
 
 	public static double[] range_full(double[][] data, int yStart, int yEnd) {		
@@ -91,7 +91,7 @@ public class RangerDouble {
 		max = desc.getPercentile(99.5);
 		return min == Double.POSITIVE_INFINITY ? null : new double[] {min, max};
 	}
-	
+
 	public static double[] range(double[][] data, int yStart, int yEnd) {
 		if(data.length == 0 || data[0].length == 0) {
 			return null;
@@ -151,7 +151,7 @@ public class RangerDouble {
 		}
 		return new double[] {min, max, med};
 	}
-	
+
 	public static double[] getRangeSync(double[][][] data, double[] setRange) {
 		double min = Double.NEGATIVE_INFINITY;
 		double max = Double.NEGATIVE_INFINITY;
@@ -181,26 +181,28 @@ public class RangerDouble {
 		}
 		return new double[] {min, max, med};
 	}
-	
+
 	public static double getGamma(double[] range, double gamma) {
 		if(Double.isFinite(gamma)) {
 			return gamma;
 		}
 		if(range.length < 3) {
-			log.warn("no median");
+			log.warn("no median, using gamma 2");
 			return 2.0;
 		}
 		double median = range[2];
-		if(range[0] == median) {
+		if(range[0] == median || range[1] == median) {
 			median = (range[0] + range[1]) / 2;
-			log.warn("median error");
+			log.info("median not suitable, using gamma 2");
 			return 2.0;
 		}
-		double f = (median - range[0]) / (range[1] - range[0]);
+		double f = (median - range[0]) / (range[1] - range[0]);		
+		//log.info("f " + f);
 		double g = Math.log(f) / Math.log(0.5);
+		//log.info("gamma " + g);
 		return g;
 	}
-	
+
 	public static double getGamma(int[] range, double gamma) {
 		double[] r = new double[range.length];
 		for (int i = 0; i < r.length; i++) {

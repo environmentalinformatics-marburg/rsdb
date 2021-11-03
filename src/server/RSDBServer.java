@@ -53,6 +53,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.SessionCookieConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import server.api.main.APIHandler_public_wms;
 import server.api.main.MainAPICollectionHandler;
 import server.api.poi_groups.APIHandler_poi_groups;
 import server.api.pointclouds.APIHandler_pointclouds;
@@ -275,8 +276,10 @@ public class RSDBServer {
 		SessionCookieConfig sessionCokkieConfig = sessionHandler.getSessionCookieConfig();
 		sessionCokkieConfig.setPath("/");
 
+
+
 		ContextHandlerCollection contextCollection = new ContextHandlerCollection();
-		contextCollection.setHandlers(createContextHanlders(broker));
+		contextCollection.setHandlers(createContextHandlers(broker));
 
 
 		HandlerList handlerList = new HandlerList();
@@ -297,6 +300,12 @@ public class RSDBServer {
 		handlerList.addHandler(sessionHandler);
 		handlerList.addHandler(new InjectHandler());
 
+		if(false) {
+			ContextHandlerCollection publicCollection = new ContextHandlerCollection();
+			publicCollection.setHandlers(createPublicHandlers(broker));
+			handlerList.addHandler(publicCollection);
+		}
+
 		if(broker.brokerConfig.server().login) {
 			createAuthentication(handlerList, contextCollection, broker);
 		} else {
@@ -306,7 +315,7 @@ public class RSDBServer {
 		server.setHandler(handlerList);
 		return server;
 	}
-	
+
 	private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
 	private static final boolean OS_WINDOWS = OS_NAME.contains("win");
 
@@ -380,7 +389,16 @@ public class RSDBServer {
 		System.out.println("-------------------------------------------------------------------");
 	}
 
-	private static ContextHandler[] createContextHanlders(Broker broker) {
+	private static ContextHandler[] createPublicHandlers(Broker broker) {
+		String prefixPath = broker.brokerConfig.server().url_prefix + "/public";
+		ContextHandler[] contexts = new ContextHandler[] {
+				createContext(prefixPath + "/wms", true, new APIHandler_public_wms(broker)),
+				createContext(prefixPath, new InvalidUrlHandler("unknown public request")),
+		};
+		return contexts;
+	}
+
+	private static ContextHandler[] createContextHandlers(Broker broker) {
 		String prefixPath = broker.brokerConfig.server().url_prefix;
 		ContextHandler[] contexts = new ContextHandler[] {
 				createContext(prefixPath + POINTDB_API_URL, new APICollectionHandler(broker)),

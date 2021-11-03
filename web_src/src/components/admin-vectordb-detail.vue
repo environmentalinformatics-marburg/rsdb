@@ -68,7 +68,7 @@
             <table>
                 <tr><td><b>EPSG:</b></td><td>{{meta.details.epsg}}</td></tr>                
                 <tr><td><b>Proj4:</b></td><td>{{meta.details.proj4}}</td></tr>
-                <tr><td><b>attributes:</b></td><td><span v-for="name in meta.details.attributes" :key="name"><span :class="name === meta.name_attribute ? 'name-attribute' : 'attributes'">{{name}}</span>&nbsp;&nbsp;&nbsp;</span></td></tr>
+                <tr><td><b>attributes:</b></td><td style="display: flex; flex-wrap: wrap;"><span v-for="name in meta.details.attributes" :key="name"><span :class="name === meta.name_attribute ? 'name-attribute' : 'attributes'" style="margin-right: 10px;">{{name}}</span></span></td></tr>
                 <tr><td><b>structured access:</b></td><td v-if="!meta.structured_access.poi && !meta.structured_access.roi">none</td><td v-if="meta.structured_access.poi">POI-group</td><td v-if="meta.structured_access.roi">ROI-group</td></tr>
             </table>
             <admin-vectordb-dialog-data-table :meta="meta" @changed="refresh" />
@@ -253,6 +253,7 @@ export default {
 
 .main {
     position: relative;
+    word-wrap: break-word;
 }
 
 .div-busy {

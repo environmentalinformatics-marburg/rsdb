@@ -2,8 +2,6 @@ package server.api.rasterdb;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilder;
