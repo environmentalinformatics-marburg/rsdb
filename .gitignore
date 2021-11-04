@@ -25,6 +25,7 @@
 /accounts.yaml
 /config.yaml
 /keystore
+/public_access.yaml
 /realm.properties
 /realm_ip.csv
 /data.png

@@ -53,7 +53,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.SessionCookieConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import server.api.main.APIHandler_public_wms;
+import server.api.main.APIHandler_public;
 import server.api.main.MainAPICollectionHandler;
 import server.api.poi_groups.APIHandler_poi_groups;
 import server.api.pointclouds.APIHandler_pointclouds;
@@ -276,11 +276,8 @@ public class RSDBServer {
 		SessionCookieConfig sessionCokkieConfig = sessionHandler.getSessionCookieConfig();
 		sessionCokkieConfig.setPath("/");
 
-
-
 		ContextHandlerCollection contextCollection = new ContextHandlerCollection();
 		contextCollection.setHandlers(createContextHandlers(broker));
-
 
 		HandlerList handlerList = new HandlerList();
 		handlerList.addHandler(new AbstractHandler() {			
@@ -300,7 +297,7 @@ public class RSDBServer {
 		handlerList.addHandler(sessionHandler);
 		handlerList.addHandler(new InjectHandler());
 
-		if(false) {
+		if(true) {
 			ContextHandlerCollection publicCollection = new ContextHandlerCollection();
 			publicCollection.setHandlers(createPublicHandlers(broker));
 			handlerList.addHandler(publicCollection);
@@ -392,8 +389,8 @@ public class RSDBServer {
 	private static ContextHandler[] createPublicHandlers(Broker broker) {
 		String prefixPath = broker.brokerConfig.server().url_prefix + "/public";
 		ContextHandler[] contexts = new ContextHandler[] {
-				createContext(prefixPath + "/wms", true, new APIHandler_public_wms(broker)),
-				createContext(prefixPath, new InvalidUrlHandler("unknown public request")),
+				createContext(prefixPath, true, new APIHandler_public(broker)),
+				//createContext(prefixPath, new InvalidUrlHandler("unknown public request")),
 		};
 		return contexts;
 	}

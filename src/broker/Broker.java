@@ -80,6 +80,10 @@ public class Broker implements AutoCloseable {
 	private AccountManager accountManager;
 	private volatile AccountManager accountManagerVolatile;
 	private Object accountManagerLoadLock = new Object();
+	
+	private PublicAccessManager publicAccessManager;
+	private volatile PublicAccessManager publicAccessManagerVolatile;
+	private Object publicAccessManagerLoadLock = new Object();
 
 	public Broker() {		
 		if(new File("config.yaml").exists()) {
@@ -987,6 +991,27 @@ public class Broker implements AutoCloseable {
 			a = new AccountManager(Paths.get("accounts.yaml"), Paths.get("realm.properties"));
 			accountManagerVolatile = a;
 			accountManager = a;
+			return a;
+		}
+	}
+	
+	public PublicAccessManager publicAccessManager() {		
+		return publicAccessManager != null ? publicAccessManager: loadPublicAccessManager();
+	}
+
+	private PublicAccessManager loadPublicAccessManager() {
+		PublicAccessManager  a = publicAccessManagerVolatile;
+		if(a != null) {
+			return a;
+		}
+		synchronized (publicAccessManagerLoadLock) {
+			a = publicAccessManagerVolatile;
+			if(a != null) {
+				return a;
+			}
+			a = new PublicAccessManager(Paths.get("public_access.yaml"));
+			publicAccessManagerVolatile = a;
+			publicAccessManager = a;
 			return a;
 		}
 	}
