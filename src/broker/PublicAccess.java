@@ -28,6 +28,7 @@ public abstract class PublicAccess {
 		@Override
 		public LinkedHashMap<String, Object> toMap() {
 			LinkedHashMap<String, Object> map = super.toMap();
+			map.put("rasterdb", rasterdb);
 			return map;
 		}
 	}

@@ -60,10 +60,12 @@ public class APIHandler_public extends AbstractHandler {
 	
 	public APIHandler_public(Broker broker) {
 		this.broker = broker;
+		broker.publicAccessManager().changeListenerAdd(this::refresh);
 		refresh();
 	}
 	
 	public void refresh() {
+		log.info("refresh");
 		HashMap<String, PublicAccessHandler> idMap = new HashMap<String, PublicAccessHandler>();
 		broker.publicAccessManager().forEach((id, publicAccess) -> {
 			PublicAccessHandler idHandler = toIdHandler(id, publicAccess);
@@ -103,8 +105,8 @@ public class APIHandler_public extends AbstractHandler {
 					throw new RuntimeException("no name: "+target);
 				}			
 				String name = i < 0 ? target.substring(1) : target.substring(1, i);
-				String next = i < 0 ? "/" : target.substring(i);
-				handleId(name, next, baseRequest, response);
+				String sub = i < 0 ? "" : (i + 1 >= target.length() ? "" : target.substring(i + 1));
+				handleId(name, sub, baseRequest, response);
 			}
 		} catch(Exception e) {
 			e.printStackTrace();

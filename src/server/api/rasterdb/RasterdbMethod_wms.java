@@ -152,6 +152,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			for(String sParam : sParams) {
 				String[] args = sParam.split(" ");
 				switch(args[0]) {
+				
 				default:
 					log.warn("unknown style type: " + args[0]);
 				}

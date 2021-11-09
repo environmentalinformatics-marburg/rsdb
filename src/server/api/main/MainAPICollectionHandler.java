@@ -16,6 +16,7 @@ public class MainAPICollectionHandler extends APICollectionHandler {
 		addMethod(new APIHandler_roles(broker));
 		addMethod(new APIHandler_layer_tags(broker));
 		addMethod(new APIHandler_accounts(broker));
+		addMethod(new APIHandler_public_access(broker));
 		APIHandler_upload upload = new APIHandler_upload(broker);
 		addMethod(upload);
 		addMethod(new APIHandler_inspect(broker, upload.chunkedUploader));

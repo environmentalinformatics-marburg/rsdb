@@ -21,6 +21,7 @@ import adminTools from './components/admin-tools.vue'
 import adminToolsInfo from './components/admin-tools-info.vue'
 import adminToolsStatus from './components/admin-tools-status.vue'
 import adminToolsTask from './components/admin-tools-task.vue'
+import adminPublic from './components/admin-public.vue'
 
 import adminFiles from './components/admin-files.vue'
 import adminVectorviewer from './components/admin-vectorviewer.vue'
@@ -54,6 +55,7 @@ export default new Router({
         {path: 'task', component: adminToolsTask},
         {path: 'accounts', component: adminAccounts},
         {path: 'vectorviewer/:vectordb?', component: adminVectorviewer, props: true},
+        {path: 'public', component: adminPublic},
         {path: '*', redirect: 'info' },
         {path: '', redirect: 'info' },
       ],    

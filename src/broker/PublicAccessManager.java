@@ -16,17 +16,19 @@ public class PublicAccessManager {
 
 	private final Path publicAccessPath;
 	private HashMap<String, PublicAccess> publicAccessMap;
+	private Runnable[] changedListeners;
 
 	public PublicAccessManager(Path publicAccessPath) {
 		this.publicAccessPath = publicAccessPath;	
 		read();
+		changed();
 	}
 
 	public synchronized boolean read() {
 		YamlMap yamlMap = YamlUtil.readYamlMap(publicAccessPath);
 		YamlMap publicMap = yamlMap.optMap("public");
 		HashMap<String, PublicAccess> publicAccessMap = new HashMap<String, PublicAccess>();
-		
+
 		publicMap.forEachKey((entryMap, id) -> {
 			YamlMap map = entryMap.getMap(id);
 			PublicAccess publicAccess = PublicAccess.ofYAML(id, map);
@@ -51,5 +53,66 @@ public class PublicAccessManager {
 
 	public void forEach(BiConsumer<String, PublicAccess> action) {
 		publicAccessMap.forEach(action);		
+	}
+
+	public synchronized void set(PublicAccess publicAccess) {
+		HashMap<String, PublicAccess> publicAccessMap = new HashMap<String, PublicAccess>();
+		publicAccessMap.putAll(this.publicAccessMap);
+		publicAccessMap.put(publicAccess.id, publicAccess);
+		this.publicAccessMap = publicAccessMap;
+		write();
+		changed();
+	}
+
+	public synchronized void remove(String id) {
+		HashMap<String, PublicAccess> publicAccessMap = new HashMap<String, PublicAccess>();
+		publicAccessMap.putAll(this.publicAccessMap);
+		publicAccessMap.remove(id);
+		this.publicAccessMap = publicAccessMap;
+		write();
+		changed();
+	}
+
+	public synchronized void changeListenerAdd(Runnable listener) {		
+		if(changedListeners == null) {
+			changedListeners = new Runnable[] {listener};
+		} else {
+			int len = changedListeners.length;
+			Runnable[] cs = new Runnable[len + 1];
+			for (int i = 0; i < len; i++) {
+				if(changedListeners[i] == listener) {
+					return;
+				}
+				cs[i] = changedListeners[i];
+			}
+			cs[len] = listener;
+			changedListeners = cs;
+		}
+	}
+
+	public synchronized void changeListenerRemove(Runnable listener) {
+		if(changedListeners != null) {
+			int len = changedListeners.length;
+			Runnable[] cs = new Runnable[len - 1];
+			int pos = 0;
+			for (int i = 0; i < len; i++) {
+				if(changedListeners[i] != listener) {
+					if(pos == len) {
+						return;
+					}
+					cs[i] = changedListeners[pos++];
+				}				
+			}
+			changedListeners = cs;
+		}
+	}
+
+	private void changed() {
+		Runnable[] cs = changedListeners;
+		if(cs != null) {
+			for(Runnable c : cs) {
+				c.run();
+			}
+		}
 	}
 }
