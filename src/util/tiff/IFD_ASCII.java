@@ -2,9 +2,12 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import util.tiff.TiffReader.IfdEntry;
 
 public class IFD_ASCII extends IFD_Entry { // 32 bit unsigned integer
 	private static final Logger log = LogManager.getLogger();
@@ -153,5 +156,18 @@ public class IFD_ASCII extends IFD_Entry { // 32 bit unsigned integer
 			}
 			out.writeByte(0x00); // nul byte
 		}
+	}
+	
+	@Override
+	public String toString() {
+		String s = text.toString();
+		boolean multiline = s.indexOf('\n') > 0;
+		s = s.replace((char)0, '~');
+		if(multiline) {
+			return IfdEntry.tagToText(id) + " ascii [\n" + s + "\n]";
+		} else {
+			return IfdEntry.tagToText(id) + " ascii [" + s + "]";
+		}
+			
 	}
 }

@@ -2,6 +2,9 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
+
+import util.tiff.TiffReader.IfdEntry;
 
 public class IFD_rational extends IFD_Entry { // 2 * 32 bit unsigned integer
 	
@@ -50,5 +53,10 @@ public class IFD_rational extends IFD_Entry { // 2 * 32 bit unsigned integer
 	@Override
 	public void write_dataBigTIFF(DataOutput out) throws IOException {
 		// nothing
+	}
+	
+	@Override
+	public String toString() {
+			return IfdEntry.tagToText(id) + " rational64 " + a + "/" + b + "=" + (a / (double) b);
 	}
 }

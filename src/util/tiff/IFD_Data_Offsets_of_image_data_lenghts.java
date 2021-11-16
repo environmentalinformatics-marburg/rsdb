@@ -3,7 +3,7 @@ package util.tiff;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class IFD_Data_Offsets extends IFD_Entry {
+public class IFD_Data_Offsets_of_image_data_lenghts extends IFD_Entry {
 
 	int[] image_data_lenghtsTIFF;
 	long[] image_data_lenghtsBigTIFF;
@@ -11,12 +11,12 @@ public class IFD_Data_Offsets extends IFD_Entry {
 	int image_data_posTIFF;
 	long image_data_posBigTIFF;
 
-	public IFD_Data_Offsets(short id, int... image_data_lenghtsTIFF) {
+	public IFD_Data_Offsets_of_image_data_lenghts(short id, int... image_data_lenghtsTIFF) {
 		super(id);
 		this.image_data_lenghtsTIFF = image_data_lenghtsTIFF;
 	}
 	
-	public IFD_Data_Offsets(short id, long... image_data_lenghtsBigTIFF) {
+	public IFD_Data_Offsets_of_image_data_lenghts(short id, long... image_data_lenghtsBigTIFF) {
 		super(id);
 		this.image_data_lenghtsBigTIFF = image_data_lenghtsBigTIFF;
 	}

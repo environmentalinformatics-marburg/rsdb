@@ -222,7 +222,7 @@ public class TiffWriter {
 		if(isTiled) {
 			ifd.add_TileWidth(tileWidth);
 			ifd.add_TileLength(tileHeight);
-			ifd.add_TileOffsets(tileByteCounts);
+			ifd.add_TileOffsets_of_tileByteCounts(tileByteCounts);
 			ifd.add_TileByteCounts(tileByteCounts);
 		}
 
@@ -243,7 +243,9 @@ public class TiffWriter {
 		}
 
 		GeoKeyDirectory geoKeyDirectory = new GeoKeyDirectory();
-		geoKeyDirectory.add_ProjectedCSType(epsgCode);
+		if(epsgCode > 0) {
+			geoKeyDirectory.add_ProjectedCSType(epsgCode);
+		}
 		ifd.add_GeoKeyDirectory(geoKeyDirectory);
 
 		if(noDataValue != null) {

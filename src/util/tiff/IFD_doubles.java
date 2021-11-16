@@ -2,6 +2,9 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
+
+import util.tiff.TiffReader.IfdEntry;
 
 public class IFD_doubles extends IFD_Entry { // 64 bit float
 	double[] values;
@@ -67,5 +70,10 @@ public class IFD_doubles extends IFD_Entry { // 64 bit float
 				out.writeDouble(v);
 			}		
 		}
+	}
+	
+	@Override
+	public String toString() {
+			return IfdEntry.tagToText(id) + " float32 " + Arrays.toString(values);
 	}
 }

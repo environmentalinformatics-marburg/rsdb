@@ -174,4 +174,26 @@ public class Range2d {
 	public boolean isEmptyMarker() {
 		return xmin == Integer.MAX_VALUE && ymin == Integer.MAX_VALUE && xmax == Integer.MIN_VALUE && ymax == Integer.MIN_VALUE;
 	}
+	
+	public Range2d allignMaxToTiles(int tileWidth, int tileHeight) {
+		int txlen = (xmax - xmin) / tileWidth + 1;
+		int tylen = (ymax - ymin) / tileHeight + 1;
+		int xlen = txlen * tileWidth;
+		int ylen = tylen * tileHeight;
+		int axmax = xmin + xlen - 1;
+		int aymax = ymin + ylen - 1;
+		return new Range2d(xmin, ymin, axmax, aymax);
+	}
+	
+	public Range2d allignToTiles(int tileWidth, int tileHeight) {		
+		int axmin = Math.floorDiv(xmin, tileWidth) * tileWidth;
+		int aymin = Math.floorDiv(ymin, tileHeight) * tileHeight;		
+		int txlen = (xmax - axmin) / tileWidth + 1;
+		int tylen = (ymax - aymin) / tileHeight + 1;
+		int xlen = txlen * tileWidth;
+		int ylen = tylen * tileHeight;
+		int axmax = xmin + xlen - 1;
+		int aymax = ymin + ylen - 1;
+		return new Range2d(xmin, ymin, axmax, aymax);
+	}
 }

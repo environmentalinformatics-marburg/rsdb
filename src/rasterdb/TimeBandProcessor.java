@@ -108,7 +108,7 @@ public class TimeBandProcessor {
 	}
 
 	private void setScale(int scale) {
-		log.info("scale " + scale);
+		//log.info("scale " + scale);
 		switch(scale) {
 		case 1:
 			pyramid_rasterUnit = rasterdb.rasterUnit();

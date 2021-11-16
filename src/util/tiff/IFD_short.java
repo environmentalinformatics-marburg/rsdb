@@ -26,4 +26,9 @@ public class IFD_short extends IFD_Entry { // 16 bit unsigned integer
 		out.writeShort(0x00_00);//--- (not data offset): fill bytes
 		out.writeInt(0x00_00_00_00);//--- (not data offset): fill bytes	
 	}
+	
+	@Override
+	public String toString() {
+		return TiffReader.IfdEntry.tagToText(id) + " " + value;
+	}
 }

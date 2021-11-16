@@ -270,12 +270,16 @@ public class IFD {
 		add(new IFD_short((short) 0x0143, height));
 	}
 	
-	public void add_TileOffsets(int... tileByteCounts) {
-		add(new IFD_Data_Offsets((short) 0x0144, tileByteCounts));
+	public void add_TileOffsets_of_tileByteCounts(int... tileByteCounts) {
+		add(new IFD_Data_Offsets_of_image_data_lenghts((short) 0x0144, tileByteCounts));
 	}
 	
-	public void add_TileOffsets(long... tileByteCounts) {
-		add(new IFD_Data_Offsets((short) 0x0144, tileByteCounts));
+	public void add_TileOffsets_of_tileByteCounts(long... tileByteCounts) {
+		add(new IFD_Data_Offsets_of_image_data_lenghts((short) 0x0144, tileByteCounts));
+	}
+	
+	public void add_TileOffsets_direct(long... offsets) {
+		add(new IFD_longs((short) 0x0144, offsets));
 	}
 	
 	public void add_TileByteCounts(long... stripByteCounts) {

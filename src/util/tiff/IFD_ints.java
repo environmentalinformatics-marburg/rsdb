@@ -2,11 +2,13 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import util.Util;
+import util.tiff.TiffReader.IfdEntry;
 
 public class IFD_ints extends IFD_Entry { // 32 bit unsigned integer
 	private static final Logger log = LogManager.getLogger();
@@ -86,5 +88,10 @@ public class IFD_ints extends IFD_Entry { // 32 bit unsigned integer
 				log.info("bigTIFF ints int " + v + " ->  " + Util.hex(v));
 			}		
 		}
+	}
+	
+	@Override
+	public String toString() {
+			return IfdEntry.tagToText(id) + " uint32 " + Arrays.toString(values);
 	}
 }

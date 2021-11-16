@@ -2,6 +2,7 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.zip.Deflater;
 
 import util.Serialisation;
 

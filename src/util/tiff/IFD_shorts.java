@@ -2,7 +2,10 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
+
+import util.tiff.TiffReader.IfdEntry;
 
 public class IFD_shorts extends IFD_Entry {
 	
@@ -91,5 +94,10 @@ public class IFD_shorts extends IFD_Entry {
 				out.writeShort(v);
 			}
 		}
+	}
+	
+	@Override
+	public String toString() {
+			return IfdEntry.tagToText(id) + " uint16 " + Arrays.toString(values);
 	}
 }
