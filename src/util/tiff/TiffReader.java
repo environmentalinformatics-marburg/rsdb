@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,7 +25,9 @@ public class TiffReader {
 	public final String filename;
 
 	public static void main(String[] args) throws FileNotFoundException, IOException {		
-		TiffReader tiffReader = new TiffReader("temp/testingTiff.tiff");
+		//TiffReader tiffReader = new TiffReader("temp/testingTiff.tif");
+		TiffReader tiffReader = new TiffReader("temp/out_testingTiff.tif");
+		//TiffReader tiffReader = new TiffReader("temp/outzstd_testingTiff.tif");
 		//TiffReader tiffReader = new TiffReader("temp/be_alb_rapideye_atm_rebuild__2015_03_19T00_00.tiff");
 		tiffReader.read();
 	}
@@ -45,7 +48,7 @@ public class TiffReader {
 			this.offset = offset;
 		}
 
-		public static IFD_Entry of(short tag, int type, int count, int offset, DataInput dataInput, Seek seek) throws IOException {
+		public static IFD_Entry of(short tag, int type, int count, int offset, DataInput dataInput, Seek seek, boolean littleEndian) throws IOException {
 			switch(type) {
 			case 2: {
 				if(count == 1) {
@@ -75,7 +78,7 @@ public class TiffReader {
 			}
 			case 3:
 				if(count == 1) {
-					short data = (short) (offset >> 16);
+					short data = littleEndian ? (short) (offset) : (short) (offset >> 16);
 					return ofShort(tag, data); 
 				} else if(count == 2) {
 					short data1 = (short) (offset >> 16);
@@ -170,7 +173,7 @@ public class TiffReader {
 				return new IFD_ASCII(tag, text);
 			}
 		}
-		
+
 		private static IFD_doubles ofDoubles(short tag, double[] values) {
 			switch(tag) {
 			default:
@@ -200,6 +203,8 @@ public class TiffReader {
 
 		public static String tagToText(short id) {
 			switch(id) {
+			case 254:
+				return "NewSubfileType";			
 			case 256:
 				return "ImageWidth";
 			case 257:
@@ -228,6 +233,8 @@ public class TiffReader {
 				return "Software";
 			case 306:
 				return "DateTime";
+			case 317:
+				return "Predictor";
 			case 322:
 				return "TileWidth";
 			case 323:
@@ -236,6 +243,8 @@ public class TiffReader {
 				return "TileOffsets";
 			case 325:
 				return "TileByteCounts";
+			case 338:
+				return "ExtraSamples";
 			case 339:
 				return "SampleFormat";
 			case (short) 33550: // GeoTIFF
@@ -268,11 +277,15 @@ public class TiffReader {
 		}
 	}
 
-	public Vec<IFD_Entry> readIFDs(RandomAccessFile raf) throws IOException {
-		Vec<IFD_Entry> vec = new Vec<IFD_Entry>();
-		short ifdLen = raf.readShort();
+	public int readIFDs(Vec<IFD_Entry> collector, RandomAccessFile raf, DataInput dataInput, boolean littleEndian) throws IOException {
+		long idfPos = raf.getFilePointer();
+		//log.info("idfPos " + idfPos);
+		short ifdLen = dataInput.readShort();
 		log.info("IFD entries " + ifdLen);
 		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(ifdLen * 12);
+		if(littleEndian) {
+			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+		}
 		raf.getChannel().read(byteBuffer);
 		byteBuffer.flip();
 		for (int i = 0; i < ifdLen; i++) {
@@ -280,26 +293,52 @@ public class TiffReader {
 			short type = byteBuffer.getShort();
 			int count = byteBuffer.getInt();
 			int offset = byteBuffer.getInt();
-			IFD_Entry ifdEntry = IfdEntry.of(tag, type, count, offset, raf, raf::seek);
-			vec.add(ifdEntry);
+			//log.info("tag" + tag);
+			IFD_Entry ifdEntry = IfdEntry.of(tag, type, count, offset, dataInput, raf::seek, littleEndian);
+			collector.add(ifdEntry);
 		}
-		return vec;
+		raf.seek(idfPos + 2 + ifdLen * 12);
+		//log.info("pos " + raf.getFilePointer());
+		int subtiffIFOOffset = dataInput.readInt();
+		return subtiffIFOOffset;
 	}
 
 	public void read() throws FileNotFoundException, IOException {
 		try(RandomAccessFile raf = new RandomAccessFile(filename, "r")) {
 			int tiffSignature = raf.readInt();
-			if(tiffSignature != TiffFile.TIFFsignature) {
+			if(tiffSignature == TiffFile.TIFFsignatureBE) {
+				int tiffIFOOffset = raf.readInt();
+				log.info("IFD offset " + tiffIFOOffset);				
+				Vec<IFD_Entry> ifdEntries = new Vec<IFD_Entry>();
+				int nextIfdPos = tiffIFOOffset;
+				int IFDcount = 0;
+				while(nextIfdPos != 0) {
+					raf.seek(nextIfdPos);
+					nextIfdPos = readIFDs(ifdEntries, raf, raf, false);
+					IFDcount++;
+				}
+				for(IFD_Entry ifdEntry : ifdEntries) {
+					log.info(ifdEntry);
+				}
+				log.info("IFDcount " + IFDcount);
+			} else if(tiffSignature == TiffFile.TIFFsignatureLEinBE) {
+				LittleEndianRafDataInput dataInput = new LittleEndianRafDataInput(raf);
+				int tiffIFOOffset = dataInput.readInt();
+				//log.info("IFD offset " + tiffIFOOffset);
+				Vec<IFD_Entry> ifdEntries = new Vec<IFD_Entry>();
+				int nextIfdPos = tiffIFOOffset;
+				int IFDcount = 0;
+				while(nextIfdPos != 0) {
+					raf.seek(nextIfdPos);
+					nextIfdPos = readIFDs(ifdEntries, raf, dataInput, true);
+					IFDcount++;
+				}
+				for(IFD_Entry ifdEntry : ifdEntries) {
+					log.info(ifdEntry);
+				}
+				log.info("IFDcount " + IFDcount);
+			} else {
 				throw new RuntimeException("invalid TIFF signature");
-			}
-			int tiffIFOOffset = raf.readInt();
-			if(tiffIFOOffset != TiffFile.TiffIFDOffset) {
-				throw new RuntimeException("invalid IFO Offset");
-			}
-			Vec<IFD_Entry> ifdEntries = readIFDs(raf);
-			//log.info(ifdEntries.size());
-			for(IFD_Entry ifdEntry : ifdEntries) {
-				log.info(ifdEntry);
 			}
 		}
 	}

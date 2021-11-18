@@ -3,7 +3,6 @@ package util.tiff.file;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
@@ -14,25 +13,26 @@ import org.apache.logging.log4j.Logger;
 import rasterdb.GeoReference;
 import util.CharArrayWriterUnsync;
 import util.IndentedXMLStreamWriter;
+import util.Range2d;
 import util.Util;
+import util.collections.array.iterator.ReadonlyArrayIterator;
+import util.collections.vec.Vec;
 import util.tiff.GeoKeyDirectory;
 import util.tiff.IFD;
-import util.tiff.TiffBand;
+import util.tiff.file.TiffFile.TiffTile;
 
 public class TiffFile {
 	private static final Logger log = LogManager.getLogger();
 
-	public static final int TIFFsignature = 0x4d_4d_00_2a; //TIFF header signature big endian
-	public static final int TiffIFDOffset = 0x00_00_00_08; // TIFF Offset to first IFD
+	public static final int TIFFsignatureBE = 0x4d_4d_00_2a; // TIFF header signature big endian
+	public static final int TiffIFDOffsetBE = 0x00_00_00_08; // TIFF Offset to first IFD
+	public static final int TIFFsignatureLEinBE = 0x49_49_2a_00; // TIFF header signature little endian
 	public static final long BigTIFFsignature = 0x4d_4d_00_2b__00_08_00_00l;  // BigTIFF header signature big endian	
 	public static final long BigTiffIFDOffset = 0x00_00_00_00__00_00_00_10l;  // BigTIFF Offset to first IFD
 
 	public final GeoReference ref;
 
-	public final int xmin; 
-	public final int ymin; 
-	public final int xmax; 
-	public final int ymax;
+	public final Range2d range;
 	public final int width;
 	public final int height;
 	public final int tileWidth;
@@ -40,14 +40,19 @@ public class TiffFile {
 	public final int bandCount;
 
 	private short[] bitsPerSample;
-	private short compressionType = 1; //no compression
+	//private short compressionType = 1; // no compression
+	//private short compressionType = (short) 32946; // Deflate compression
+	private short compressionType = (short) 50000; // ZSTD compression
+	//private short predictor = 1; // No prediction
+	private short predictor = 2; // Horizontal differencing
 	private short photometricInterpretationType = 1; //BlackIsZero
 	private short sampleFormat = 2; // Int16
 
 	public final TiffTile[][] tiles;
+	public final Vec<TiffTile[][]> overviewtilesVec;
 	public final int xtileLen;
 	public final int ytileLen;
-	public final int tileLen;
+	public final int tileLen;		
 
 	public static class TiffTile {
 		public final int tileXmin;
@@ -71,14 +76,11 @@ public class TiffFile {
 		}
 	}	
 
-	public TiffFile(GeoReference ref, int xmin, int ymin, int xmax, int ymax, int tileWidth, int tileHeight, int bandCount) {
+	public TiffFile(GeoReference ref, Range2d range, int tileWidth, int tileHeight, int bandCount) {
 		this.ref = ref;
-		this.xmin = xmin; 
-		this.ymin = ymin; 
-		this.xmax = xmax; 
-		this.ymax = ymax;
-		int w = xmax - xmin + 1;
-		int h = ymax - ymin + 1;
+		this.range = range; 
+		int w = range.getWidth();
+		int h = range.getHeight();
 		if(w < 1 || w > Short.MAX_VALUE || h < 1 || h > Short.MAX_VALUE) {
 			throw new RuntimeException("raster too large");
 		}
@@ -99,16 +101,15 @@ public class TiffFile {
 		long maxTileOffset = Long.MAX_VALUE;				
 		long maxTileByteCount = Long.MAX_VALUE;
 
-		log.info("xtileLen " + xtileLen);
-		log.info("ytileLen " + ytileLen);
+		log.info("tileLen " + xtileLen + " x " + ytileLen + " = "+ tileLen);
 
 		this.tiles = new TiffTile[bandCount][tileLen];
 		for (int b = 0; b < bandCount; b++) {
 			TiffTile[] btiles = tiles[b];
 			bitsPerSample[b] = 16; // int16 TODO
 			int i = 0;
-			for(int y = ymax; y > ymin; y -= tileHeight) {
-				for(int x = xmin; x < xmax; x += tileWidth) {
+			for(int y = range.ymax; y > range.ymin; y -= tileHeight) {
+				for(int x = range.xmin; x < range.xmax; x += tileWidth) {
 					TiffTile tile = new TiffTile(x, y - tileHeight + 1, x + tileWidth - 1, y);
 					tile.pos = maxTileOffset;
 					tile.len = maxTileByteCount;
@@ -116,13 +117,59 @@ public class TiffFile {
 				}
 			}
 		}
+
+		this.overviewtilesVec = new Vec<TiffTile[][]>();
+		if(xtileLen > 4 || ytileLen > 4) {
+			int scale = 1;
+			int prevTileLen = tileLen;
+			while(true) {
+				scale *= 2;
+				int overviewTileWidth = tileWidth * scale;
+				int overviewTileHeight = tileHeight * scale;
+				Range2d overviewRange = range.allignMaxToTiles(overviewTileWidth, overviewTileHeight);
+				int overviewWidth = overviewRange.getWidth();
+				int overviewHeight = overviewRange.getHeight();
+				int overviewXtileLen = (overviewWidth + overviewTileWidth - 1) / overviewTileWidth;
+				int overviewYtileLen = (overviewHeight + overviewTileHeight - 1) / overviewTileHeight;
+				int overviewTileLen = overviewXtileLen * overviewYtileLen;
+				if(overviewTileLen == prevTileLen) {
+					break;
+				}
+				log.info("overviewTileLen " + overviewXtileLen + " x " + overviewYtileLen + " = "+ overviewTileLen);
+
+				TiffTile[][] overviewTiles = new TiffTile[bandCount][overviewTileLen];
+				for (int b = 0; b < bandCount; b++) {
+					TiffTile[] btiles = overviewTiles[b];
+					int i = 0;
+					for(int y = overviewRange.ymax; y > overviewRange.ymin; y -= overviewTileHeight) {
+						for(int x = overviewRange.xmin; x < overviewRange.xmax; x += overviewTileWidth) {
+							TiffTile tile = new TiffTile(x, y - overviewTileHeight + 1, x + overviewTileWidth - 1, y);
+							tile.pos = maxTileOffset;
+							tile.len = maxTileByteCount;
+							btiles[i++] = tile;					
+						}
+					}
+					log.info("counter " + i + " of " + overviewTileLen);
+				}
+				this.overviewtilesVec.add(overviewTiles);
+
+				if(overviewXtileLen <= 4 && overviewYtileLen <= 4) {
+					break;
+				}
+				if(scale >= 256) {
+					break;
+				}
+				prevTileLen = overviewTileLen;
+			}
+			log.info("overviews: " + this.overviewtilesVec.size());
+		}
 	}
 
 	public long writeHeader(RandomAccessFile raf) throws IOException {
 
 		raf.seek(0);
-		raf.writeInt(TIFFsignature); 
-		raf.writeInt(TiffIFDOffset);
+		raf.writeInt(TIFFsignatureBE); 
+		raf.writeInt(((int)raf.getFilePointer()) + 4); 
 		/*
 		raf.seek(0);
 		raf.writeLong(BigTIFFsignature); 
@@ -134,6 +181,7 @@ public class TiffFile {
 		ifd.add_ImageLength((short) height);
 		ifd.add_BitsPerSample(bitsPerSample);
 		ifd.add_Compression(compressionType);
+		ifd.add_Predictor(predictor);
 		ifd.add_PhotometricInterpretation(photometricInterpretationType);	
 
 		short[] sampleFormats = new short[bandCount];
@@ -156,8 +204,8 @@ public class TiffFile {
 		ifd.add_Software("Remote Sensing Database (RSDB)");
 		ifd.add_DateTime_now();
 
-		double geoXmin = ref.pixelXToGeo(xmin);
-		double geoYmin = ref.pixelYToGeo(ymin);
+		double geoXmin = ref.pixelXToGeo(range.xmin);
+		double geoYmin = ref.pixelYToGeo(range.ymin);
 		ifd.add_geotiff_ModelTiepointTag(0, height, geoXmin, geoYmin);
 		double xScale = ref.pixel_size_x;
 		double yScale = ref.pixel_size_y;
@@ -178,7 +226,7 @@ public class TiffFile {
 			geoKeyDirectory.add_ProjectedCSType(epsgCode);
 		}
 		ifd.add_GeoKeyDirectory(geoKeyDirectory);
-		
+
 		short noDataValue = 0;
 		ifd.add_GDAL_NODATA(noDataValue);
 
@@ -206,11 +254,38 @@ public class TiffFile {
 		} catch (Exception e) {
 			log.warn(e);
 		}
-		
+
 		ifd.add_Orientation_top_left();
 
-		//ifd.writeBigTIFF(raf);
-		long imageDataPos = ifd.writeTIFF(raf);
+		ReadonlyArrayIterator<TiffTile[][]> it = overviewtilesVec.iterator();
+		Vec<IFD> overviewIfds = new Vec<IFD>();
+		while(it.hasNext()) {			
+			int scale = it.nextIndex() + 2;
+			TiffTile[][] tiles = it.next();
+			IFD overviewIfd = new IFD();
+			overviewIfd.add_NewSubfileType_reduced_resolution();
+			overviewIfd.add_ImageWidth((short) (width / scale)); // TODO
+			overviewIfd.add_ImageLength((short) (height / scale));// TODO
+			overviewIfd.add_BitsPerSample(bitsPerSample);
+			overviewIfd.add_Compression(compressionType);
+			overviewIfd.add_Predictor(predictor);
+			overviewIfd.add_PhotometricInterpretation(photometricInterpretationType);
+			overviewIfd.add_SamplesPerPixel((short) bandCount);
+			overviewIfd.add_SampleFormat(sampleFormats);
+			overviewIfd.add_PlanarConfiguration_Planar();
+			overviewIfd.add_TileWidth((short) tileWidth);
+			overviewIfd.add_TileLength((short) tileHeight);
+			long[] overviewTileOffsets = Arrays.stream(tiles).flatMapToLong(bandTiles -> Arrays.stream(bandTiles).mapToLong(tile -> tile.pos)).toArray();
+			long[] overviewTileByteCounts = Arrays.stream(tiles).flatMapToLong(bandTiles -> Arrays.stream(bandTiles).mapToLong(tile -> tile.len)).toArray();
+			overviewIfd.add_TileOffsets_direct(overviewTileOffsets);
+			overviewIfd.add_TileByteCounts(overviewTileByteCounts);
+			overviewIfds.add(overviewIfd);			
+		}
+
+		IFD[] ifds = new IFD[overviewtilesVec.size() + 1];
+		ifds[0] = ifd;
+		overviewIfds.forEachIndexed((e, i) -> ifds[i + 1] = e);
+		long imageDataPos = IFD.writeTIFF((int) raf.getFilePointer(), raf, raf, ifds);
 		log.info("raf.getFilePointer " + raf.getFilePointer() + "   " + imageDataPos);
 		return imageDataPos;
 	}

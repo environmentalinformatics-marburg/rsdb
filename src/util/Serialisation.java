@@ -587,6 +587,25 @@ public final class Serialisation {
 		}
 		return target;
 	}
+	
+	public static byte[] shortToDiffByteArrayBigEndian(short[] data, byte[] target) {
+		int SIZE_SHORTS = data.length;
+		int SIZE_BYTES = SIZE_SHORTS*2;
+		if(target==null||target.length!=SIZE_BYTES) {
+			target = new byte[SIZE_BYTES];
+		}
+		int pos = 0;
+		int prev = 0;
+		for(int i = 0; i < SIZE_SHORTS; i++) {
+			int curr = data[i];
+			int v = curr - prev;
+			prev = curr;
+			target[pos+1] = (byte)  v;
+			target[pos] = (byte)   (v >> 8);
+			pos+=2;
+		}
+		return target;
+	}
 
 	public static byte[] booleanToByteArray(boolean[] data, byte[] target) {
 		int SIZE_BOOLS = data.length;

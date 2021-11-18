@@ -29,6 +29,6 @@ public class IFD_short extends IFD_Entry { // 16 bit unsigned integer
 	
 	@Override
 	public String toString() {
-		return TiffReader.IfdEntry.tagToText(id) + " " + value;
+		return TiffReader.IfdEntry.tagToText(id) + " " + Short.toUnsignedInt(value);
 	}
 }

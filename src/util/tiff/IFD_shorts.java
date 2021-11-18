@@ -98,6 +98,23 @@ public class IFD_shorts extends IFD_Entry {
 	
 	@Override
 	public String toString() {
-			return IfdEntry.tagToText(id) + " uint16 " + Arrays.toString(values);
+			return IfdEntry.tagToText(id) + " uint16 " + uint16stoString(values);
 	}
+	
+	public static String uint16stoString(short[] a) {
+        if (a == null)
+            return "null";
+        int iMax = a.length - 1;
+        if (iMax == -1)
+            return "[]";
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(Short.toUnsignedInt(a[i]));
+            if (i == iMax)
+                return b.append(']').toString();
+            b.append(", ");
+        }
+    }
 }
