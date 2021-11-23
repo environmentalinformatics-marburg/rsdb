@@ -22,6 +22,7 @@ public class IFD {
 	public static final short DATA_TYPE_UINT64 = 16; 
 
 	private static final int IFD_TIFF_ENTRY_SIZE = 12;
+	private static final int IFD_BIGTIFF_ENTRY_SIZE = 20;
 
 	private ArrayList<IFD_Entry> list = new ArrayList<IFD_Entry>(20);
 
@@ -82,6 +83,67 @@ public class IFD {
 
 		if(dataBytePos != imageDataBytePos) {
 			throw new RuntimeException("error");
+		}
+		return imageDataBytePos;			
+	}
+	
+	public static long writeBigTIFF(long ifdBytePos, DataOutput out, RandomAccessFile raf, IFD... ifds) throws IOException {
+		if(ifdBytePos % 2 == 1) {
+			throw new RuntimeException("position error not aligned: " + ifdBytePos);
+		}
+		long dataBytePos = ifdBytePos;
+		log.info("dataBytePos " + dataBytePos);
+		long imageDataBytePos = ifdBytePos;
+
+		for (int i = 0; i < ifds.length; i++) {
+			IFD ifd = ifds[i];
+			ifd.list.sort(null);
+			long ifdTableLen = ifd.list.size();
+			long ifdTableByteSize = 8 + ifdTableLen * IFD_BIGTIFF_ENTRY_SIZE + 8;
+			imageDataBytePos += ifdTableByteSize;
+			for(IFD_Entry e: ifd.list) {
+				imageDataBytePos += e.data_sizeBigTIFF();
+				if(imageDataBytePos % 2 == 1) {
+					imageDataBytePos++;
+				}
+			}
+		}		
+
+		for (int i = 0; i < ifds.length; i++) {
+			boolean hasNextIfd = i < ifds.length - 1;
+			IFD ifd = ifds[i];			
+			long ifdTableLen = ifd.list.size();
+			log.info("ifdTableLen " + ifdTableLen);
+			out.writeLong(ifdTableLen);
+			long ifdTableByteSize = 8 + ifdTableLen * IFD_BIGTIFF_ENTRY_SIZE + 8;
+			dataBytePos += ifdTableByteSize;
+			for(IFD_Entry e : ifd.list) {
+				log.info("dataBytePos " + dataBytePos);
+				e.writeIFD_entryBigTIFF(out, dataBytePos, imageDataBytePos);
+				dataBytePos += e.data_sizeBigTIFF();
+				if(dataBytePos % 2 == 1) {
+					dataBytePos++;
+				}
+			}
+			if(hasNextIfd) {
+				out.writeLong(dataBytePos); // start of next IFD
+			} else {
+				out.writeLong(0x00_00_00_00__00_00_00_00); // end of IFDs marker
+			}
+			ifdBytePos += ifdTableByteSize;
+			for(IFD_Entry e : ifd.list) {
+				log.info("filepos " + raf.getFilePointer() + "  " + ifdBytePos);
+				e.write_dataBigTIFF(out);
+				ifdBytePos += e.data_sizeBigTIFF();
+				if(ifdBytePos % 2 == 1) {
+					out.writeByte(0);
+					ifdBytePos++;
+				}
+			}			
+		}
+
+		if(dataBytePos != imageDataBytePos) {
+			throw new RuntimeException("error  dataBytePos != imageDataBytePos     " + dataBytePos + "    " + imageDataBytePos);
 		}
 		return imageDataBytePos;			
 	}
@@ -189,13 +251,29 @@ public class IFD {
 	public void add_NewSubfileType_reduced_resolution() {
 		add_NewSubfileType(1);
 	}
-
-	public void add_ImageWidth(short width) {
-		add(new IFD_short((short) 0x0100, width));
+	
+	public void add_ImageWidth(int width) {
+		add(IFD_int.ofAuto((short) 0x0100, width));
 	}
 
-	public void add_ImageLength(short height) {
+	public void add_ImageWidth_uint16(short width) {
+		add(new IFD_short((short) 0x0100, width));
+	}
+	
+	public void add_ImageWidth_uint32(int width) {
+		add(new IFD_int((short) 0x0100, width));
+	}
+	
+	public void add_ImageLength(int height) {
+		add(IFD_int.ofAuto((short) 0x0101, height));
+	}
+
+	public void add_ImageLength_uint16(short height) {
 		add(new IFD_short((short) 0x0101, height));
+	}
+	
+	public void add_ImageLength_uint32(int height) {
+		add(new IFD_int((short) 0x0101, height));
 	}
 
 	public void add_BitsPerSample(short samples, short bits) {
@@ -230,8 +308,8 @@ public class IFD {
 		add(new IFD_short((short) 0x0115, samplesPerPixel));
 	}
 
-	public void add_RowsPerStrip(short rowsPerStrip) {
-		add(new IFD_short((short) 0x0116, rowsPerStrip));
+	public void add_RowsPerStrip(int rowsPerStrip) {
+		add(IFD_int.ofAuto((short) 0x0116, rowsPerStrip));
 	}
 
 	public void add_StripByteCounts(int... stripByteCounts) {

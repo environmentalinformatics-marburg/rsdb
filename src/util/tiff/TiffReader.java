@@ -48,7 +48,7 @@ public class TiffReader {
 			this.offset = offset;
 		}
 
-		public static IFD_Entry of(short tag, int type, int count, int offset, DataInput dataInput, Seek seek, boolean littleEndian) throws IOException {
+		public static IFD_Entry ofTIFF(short tag, int type, int count, int offset, DataInput dataInput, Seek seek, boolean littleEndian) throws IOException {
 			switch(type) {
 			case 2: {
 				if(count == 1) {
@@ -294,7 +294,7 @@ public class TiffReader {
 			int count = byteBuffer.getInt();
 			int offset = byteBuffer.getInt();
 			//log.info("tag" + tag);
-			IFD_Entry ifdEntry = IfdEntry.of(tag, type, count, offset, dataInput, raf::seek, littleEndian);
+			IFD_Entry ifdEntry = IfdEntry.ofTIFF(tag, type, count, offset, dataInput, raf::seek, littleEndian);
 			collector.add(ifdEntry);
 		}
 		raf.seek(idfPos + 2 + ifdLen * 12);

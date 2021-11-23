@@ -196,8 +196,8 @@ public class TiffWriter {
 		}
 
 		IFD ifd = new IFD();
-		ifd.add_ImageWidth((short) width);
-		ifd.add_ImageLength((short) height);
+		ifd.add_ImageWidth(width);
+		ifd.add_ImageLength(height);
 		ifd.add_BitsPerSample(bitsPerSample);
 		ifd.add_Compression(compressionType);
 		ifd.add_PhotometricInterpretation(photometricInterpretationType);
@@ -209,7 +209,7 @@ public class TiffWriter {
 			ifd.add_ExtraSamples(extraSamples);
 		}
 		if(!isTiled) {
-			ifd.add_RowsPerStrip((short) height);
+			ifd.add_RowsPerStrip(height);
 			ifd.add_StripByteCounts(stripByteCounts);
 		}
 		ifd.add_SampleFormat(sampleFormats);

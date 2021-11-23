@@ -4,7 +4,18 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class IFD_int extends IFD_Entry { // 32 bit unsigned integer
-	public final int value;		
+	public final int value;
+	
+	public static int UINT16_MAX_VALUE = (int) Math.pow(2, 16);
+	
+	
+	public static IFD_Entry ofAuto(short id, int value) {
+		if(value <= UINT16_MAX_VALUE) {
+			return new IFD_short(id, (short) value);
+		}
+		return new IFD_int(id, value);
+	}
+	
 	public IFD_int(short id, int value) {
 		super(id);
 		this.value = value;

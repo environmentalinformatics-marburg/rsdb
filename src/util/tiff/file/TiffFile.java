@@ -19,7 +19,6 @@ import util.collections.array.iterator.ReadonlyArrayIterator;
 import util.collections.vec.Vec;
 import util.tiff.GeoKeyDirectory;
 import util.tiff.IFD;
-import util.tiff.file.TiffFile.TiffTile;
 
 public class TiffFile {
 	private static final Logger log = LogManager.getLogger();
@@ -29,6 +28,8 @@ public class TiffFile {
 	public static final int TIFFsignatureLEinBE = 0x49_49_2a_00; // TIFF header signature little endian
 	public static final long BigTIFFsignature = 0x4d_4d_00_2b__00_08_00_00l;  // BigTIFF header signature big endian	
 	public static final long BigTiffIFDOffset = 0x00_00_00_00__00_00_00_10l;  // BigTIFF Offset to first IFD
+	
+	public static int UINT16_MAX_VALUE = (int) Math.pow(2, 16);
 
 	public final GeoReference ref;
 
@@ -74,15 +75,25 @@ public class TiffFile {
 			return "TiffTile [tileXmin=" + tileXmin + ", tileYmin=" + tileYmin + ", tileXmax=" + tileXmax
 					+ ", tileYmax=" + tileYmax + ", pos=" + pos + ", len=" + len + "]";
 		}
-	}	
+	}
+
+	public static class TiffImageEntry {
+		public final TiffTile[][] tiles;
+		public final int scale;
+
+		public TiffImageEntry(TiffTile[][] tiles, int scale) {
+			this.tiles = tiles;
+			this.scale = scale;
+		}
+	}
 
 	public TiffFile(GeoReference ref, Range2d range, int tileWidth, int tileHeight, int bandCount) {
 		this.ref = ref;
 		this.range = range; 
 		int w = range.getWidth();
 		int h = range.getHeight();
-		if(w < 1 || w > Short.MAX_VALUE || h < 1 || h > Short.MAX_VALUE) {
-			throw new RuntimeException("raster too large");
+		if(w < 1 || w > UINT16_MAX_VALUE || h < 1 || h > UINT16_MAX_VALUE) {
+			throw new RuntimeException("raster too large: " + w + " x " + h);
 		}
 		if(tileWidth % 16 != 0 || tileHeight % 16 != 0) {
 			throw new RuntimeException("tileWidth and tileHeight need to be multiples of 16");
@@ -119,14 +130,16 @@ public class TiffFile {
 		}
 
 		this.overviewtilesVec = new Vec<TiffTile[][]>();
-		if(xtileLen > 4 || ytileLen > 4) {
+		if(xtileLen > 3 || ytileLen > 3) {
 			int scale = 1;
 			int prevTileLen = tileLen;
 			while(true) {
 				scale *= 2;
 				int overviewTileWidth = tileWidth * scale;
 				int overviewTileHeight = tileHeight * scale;
-				Range2d overviewRange = range.allignMaxToTiles(overviewTileWidth, overviewTileHeight);
+				log.info("overviewTileWidth " + overviewTileWidth);
+				//Range2d overviewRange = range.allignMaxToTiles(overviewTileWidth, overviewTileHeight);
+				Range2d overviewRange = range; // TODO check
 				int overviewWidth = overviewRange.getWidth();
 				int overviewHeight = overviewRange.getHeight();
 				int overviewXtileLen = (overviewWidth + overviewTileWidth - 1) / overviewTileWidth;
@@ -143,7 +156,7 @@ public class TiffFile {
 					int i = 0;
 					for(int y = overviewRange.ymax; y > overviewRange.ymin; y -= overviewTileHeight) {
 						for(int x = overviewRange.xmin; x < overviewRange.xmax; x += overviewTileWidth) {
-							TiffTile tile = new TiffTile(x, y - overviewTileHeight + 1, x + overviewTileWidth - 1, y);
+							TiffTile tile = new TiffTile(x, y - overviewTileHeight + scale, x + overviewTileWidth - scale, y);
 							tile.pos = maxTileOffset;
 							tile.len = maxTileByteCount;
 							btiles[i++] = tile;					
@@ -153,7 +166,7 @@ public class TiffFile {
 				}
 				this.overviewtilesVec.add(overviewTiles);
 
-				if(overviewXtileLen <= 4 && overviewYtileLen <= 4) {
+				if(overviewXtileLen <= 3 && overviewYtileLen <= 3) {
 					break;
 				}
 				if(scale >= 256) {
@@ -165,20 +178,22 @@ public class TiffFile {
 		}
 	}
 
-	public long writeHeader(RandomAccessFile raf) throws IOException {
+	public long writeHeader(RandomAccessFile raf, boolean bigTiff) throws IOException {
 
-		raf.seek(0);
-		raf.writeInt(TIFFsignatureBE); 
-		raf.writeInt(((int)raf.getFilePointer()) + 4); 
-		/*
-		raf.seek(0);
-		raf.writeLong(BigTIFFsignature); 
-		raf.writeLong(BigTiffIFDOffset);*/
+		if(!bigTiff) {
+			raf.seek(0);
+			raf.writeInt(TIFFsignatureBE); 
+			raf.writeInt(((int)raf.getFilePointer()) + 4);
+		} else {		
+			raf.seek(0);
+			raf.writeLong(BigTIFFsignature); 
+			raf.writeLong((raf.getFilePointer()) + 8);
+		}
 
 		IFD ifd = new IFD();
 
-		ifd.add_ImageWidth((short) width);
-		ifd.add_ImageLength((short) height);
+		ifd.add_ImageWidth(width);
+		ifd.add_ImageLength(height);
 		ifd.add_BitsPerSample(bitsPerSample);
 		ifd.add_Compression(compressionType);
 		ifd.add_Predictor(predictor);
@@ -259,8 +274,11 @@ public class TiffFile {
 
 		ReadonlyArrayIterator<TiffTile[][]> it = overviewtilesVec.iterator();
 		Vec<IFD> overviewIfds = new Vec<IFD>();
-		while(it.hasNext()) {			
-			int scale = it.nextIndex() + 2;
+		int scale = 1;
+		while(it.hasNext()) {
+			scale *= 2;
+			int i = it.nextIndex();
+			log.info("overview i " + i + "  scale " + scale);
 			TiffTile[][] tiles = it.next();
 			IFD overviewIfd = new IFD();
 			overviewIfd.add_NewSubfileType_reduced_resolution();
@@ -285,7 +303,8 @@ public class TiffFile {
 		IFD[] ifds = new IFD[overviewtilesVec.size() + 1];
 		ifds[0] = ifd;
 		overviewIfds.forEachIndexed((e, i) -> ifds[i + 1] = e);
-		long imageDataPos = IFD.writeTIFF((int) raf.getFilePointer(), raf, raf, ifds);
+		
+		long imageDataPos = bigTiff ? IFD.writeBigTIFF(raf.getFilePointer(), raf, raf, ifds) : IFD.writeTIFF((int) raf.getFilePointer(), raf, raf, ifds);
 		log.info("raf.getFilePointer " + raf.getFilePointer() + "   " + imageDataPos);
 		return imageDataPos;
 	}

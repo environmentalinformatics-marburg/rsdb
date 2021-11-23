@@ -88,8 +88,9 @@ public abstract class TiffBandInt16 extends TiffBand {
 
 	public static void writeDataZSTD(DataOutput out, short[][] data, int width, int height) throws IOException {
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-		//try(ZstdOutputStream zstdOut = new ZstdOutputStream(byteOut)) {
-		try(ZstdOutputStream zstdOut = new ZstdOutputStream(byteOut, 100)) {
+		//try(ZstdOutputStream zstdOut = new ZstdOutputStream(byteOut, 1)) {
+		try(ZstdOutputStream zstdOut = new ZstdOutputStream(byteOut)) {
+		//try(ZstdOutputStream zstdOut = new ZstdOutputStream(byteOut, 100)) {
 			if(data.length != height) {
 				throw new RuntimeException("data.length = " + data.length + " expected height = " + height);
 			}

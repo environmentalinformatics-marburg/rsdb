@@ -36,8 +36,8 @@ public class Tiff {
 
 	public void writeInterleaved(ShortFrame... frames) throws IOException {
 
-		short width = (short) frames[0].width;
-		short height = (short) frames[0].height;
+		int width = frames[0].width;
+		int height = frames[0].height;
 		short samplesPerPixel = (short) frames.length;
 		short bitsPerSample = 16;
 		short compressionType = 1; //no compression

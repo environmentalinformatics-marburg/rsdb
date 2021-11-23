@@ -39,6 +39,7 @@ public class RemoteTasks {
 		put(remotetask.rasterdb.Task_count_pixels.class);
 		put(remotetask.rasterdb.Task_refresh_extent.class);
 		put(remotetask.rasterdb.Task_rename.class);
+		put(remotetask.rasterdb.Task_export.class);
 
 		//task_pointcloud
 		put(remotetask.pointcloud.Task_import.class);
