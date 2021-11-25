@@ -708,7 +708,7 @@ public final class Serialisation {
 		}
 		return target;
 	}
-
+	
 	public static byte[] floatToByteArrayBigEndian(float[] data, byte[] target) {
 		int SIZE_DATA = data.length;
 		int SIZE_BYTES = SIZE_DATA * 4;
@@ -718,6 +718,27 @@ public final class Serialisation {
 		int pos=0;
 		for(int i = 0; i < SIZE_DATA; i++) {
 			int v = Float.floatToRawIntBits(data[i]);			
+			target[pos + 0] = (byte)(v >>> 24);
+			target[pos + 1] = (byte)(v >>> 16);
+			target[pos + 2] = (byte)(v >>>  8);
+			target[pos + 3] = (byte)(v >>>  0);			
+			pos += 4;
+		}
+		return target;
+	}
+
+	public static byte[] floatToDiffByteArrayBigEndian(float[] data, byte[] target) {
+		int SIZE_DATA = data.length;
+		int SIZE_BYTES = SIZE_DATA * 4;
+		if(target == null || target.length != SIZE_BYTES) {
+			target = new byte[SIZE_DATA * 4];
+		}
+		int pos=0;
+		float prev = 0;
+		for(int i = 0; i < SIZE_DATA; i++) {
+			float curr = data[i];
+			int v = Float.floatToRawIntBits(curr - prev);
+			prev = curr;
 			target[pos + 0] = (byte)(v >>> 24);
 			target[pos + 1] = (byte)(v >>> 16);
 			target[pos + 2] = (byte)(v >>>  8);
@@ -782,7 +803,7 @@ public final class Serialisation {
 
 	};
 
-	public static void writeArrayArrayBE(DataOutput out, double[][] data) throws IOException {//Bigendian
+	public static void writeArrayArrayBE(DataOutput out, double[][] data) throws IOException {//Big endian
 		byte[] buffer = null;
 		for(double[] row:data) {
 			buffer = writeArrayBE(out, row, buffer);

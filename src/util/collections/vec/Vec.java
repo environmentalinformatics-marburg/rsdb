@@ -23,14 +23,11 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import java.util.stream.Collector.Characteristics;
 
-import util.collections.ReadonlyList;
 import util.collections.array.ReadonlyArray;
 import util.collections.array.ReadonlySizedArray;
 import util.collections.array.iterator.ReadonlyArrayIterator;
 import util.collections.array.iterator.ReadonlyArrayReverseIterator;
-import util.collections.vec.Vec.VecCollector;
 import util.collections.vec.iterator.VecListIterator;
 
 public class Vec<T> implements List<T> {

@@ -11,7 +11,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
-import util.collections.ReadonlyList;
 import util.collections.array.ReadonlyArray;
 import util.collections.vec.Vec;
 
@@ -23,6 +22,10 @@ public class InformalProperties {
 		builder.map.forEach((tag, contents) -> {
 			map.put(tag, contents.copyReadonly());
 		});
+	}
+	
+	public ReadonlyArray<String> get(String tag) {
+		return map.get(tag);
 	}
 
 	public void writeJson(JSONWriter json) {
@@ -167,6 +170,6 @@ public class InformalProperties {
 				contents.addAll(prev);
 				map.put(tag, contents);	
 			}
-		}		
+		}
 	}
 }

@@ -12,6 +12,8 @@ import remotetask.Description;
 import remotetask.Param;
 import util.Range2d;
 import util.tiff.file.TiledWriter;
+import util.tiff.file.TiffFile.TiffCompression;
+import util.tiff.file.TiledWriter.BandType;
 
 @task_rasterdb("export")
 @Description("Export raster pixel data to GeoTIFF file.")
@@ -41,8 +43,9 @@ public class Task_export extends CancelableRemoteProxyTask {
 		Range2d range = rasterdb.getLocalRange(false);
 		String filename = "temp/testingTiff.tif";
 		//int timestamp = 60598080;
-		int timestamp = 0;
-		TiledWriter tiledWriter = new TiledWriter(rasterdb, range, timestamp, filename);
+		//int timestamp = 0;
+		int timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
+		TiledWriter tiledWriter = new TiledWriter(rasterdb, BandType.FLOAT32, TiffCompression.NO, range, timestamp, filename);
 		setMessage("export");
 		setRemoteProxyAndRunAndClose(tiledWriter);
 		setMessage("done");

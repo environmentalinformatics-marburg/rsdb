@@ -28,7 +28,7 @@ public class TiffFile {
 	public static final int TIFFsignatureLEinBE = 0x49_49_2a_00; // TIFF header signature little endian
 	public static final long BigTIFFsignature = 0x4d_4d_00_2b__00_08_00_00l;  // BigTIFF header signature big endian	
 	public static final long BigTiffIFDOffset = 0x00_00_00_00__00_00_00_10l;  // BigTIFF Offset to first IFD
-	
+
 	public static int UINT16_MAX_VALUE = (int) Math.pow(2, 16);
 
 	public final GeoReference ref;
@@ -40,20 +40,30 @@ public class TiffFile {
 	public final int tileHeight;
 	public final int bandCount;
 
-	private short[] bitsPerSample;
+	private short bitsPerSamplePerBand = 16;
 	//private short compressionType = 1; // no compression
-	//private short compressionType = (short) 32946; // Deflate compression
-	private short compressionType = (short) 50000; // ZSTD compression
-	//private short predictor = 1; // No prediction
-	private short predictor = 2; // Horizontal differencing
+	private TiffCompression tiffCompression = TiffCompression.ZSTD;
 	private short photometricInterpretationType = 1; //BlackIsZero
-	private short sampleFormat = 2; // Int16
+	private short sampleFormat = 2; // signed integer
+	private boolean deltaCoding = false;
 
 	public final TiffTile[][] tiles;
 	public final Vec<TiffTile[][]> overviewtilesVec;
 	public final int xtileLen;
 	public final int ytileLen;
-	public final int tileLen;		
+	public final int tileLen;
+	
+	public static enum TiffCompression {
+		NO(1),
+		DEFLATE(32946),
+		ZSTD(50000);
+		
+		public final short value;
+
+		private TiffCompression(int value) {
+			this.value = (short) value;
+		}
+	}
 
 	public static class TiffTile {
 		public final int tileXmin;
@@ -107,7 +117,7 @@ public class TiffFile {
 		this.tileHeight = tileHeight;
 		this.bandCount = bandCount;
 
-		this.bitsPerSample = new short[bandCount];
+
 
 		long maxTileOffset = Long.MAX_VALUE;				
 		long maxTileByteCount = Long.MAX_VALUE;
@@ -117,7 +127,6 @@ public class TiffFile {
 		this.tiles = new TiffTile[bandCount][tileLen];
 		for (int b = 0; b < bandCount; b++) {
 			TiffTile[] btiles = tiles[b];
-			bitsPerSample[b] = 16; // int16 TODO
 			int i = 0;
 			for(int y = range.ymax; y > range.ymin; y -= tileHeight) {
 				for(int x = range.xmin; x < range.xmax; x += tileWidth) {
@@ -193,10 +202,20 @@ public class TiffFile {
 		IFD ifd = new IFD();
 
 		ifd.add_ImageWidth(width);
-		ifd.add_ImageLength(height);
+		ifd.add_ImageLength(height);		
+
+		short[] bitsPerSample = new short[bandCount];
+		Arrays.fill(bitsPerSample, bitsPerSamplePerBand);
 		ifd.add_BitsPerSample(bitsPerSample);
-		ifd.add_Compression(compressionType);
-		ifd.add_Predictor(predictor);
+
+		ifd.add_Compression(tiffCompression.value);
+
+		if(deltaCoding) {
+			ifd.add_Predictor((short) 2); // Horizontal differencing
+		} else {
+			ifd.add_Predictor((short) 1); // No prediction
+		}
+
 		ifd.add_PhotometricInterpretation(photometricInterpretationType);	
 
 		short[] sampleFormats = new short[bandCount];
@@ -215,7 +234,7 @@ public class TiffFile {
 		ifd.add_TileOffsets_direct(tileOffsets);
 		ifd.add_TileByteCounts(tileByteCounts);
 
-		ifd.add_ImageDescription("created by Remote Sensing Database (RSDB)");
+		ifd.add_ImageDescription("GeoTIFF created by Remote Sensing Database (RSDB) raster layer export.");
 		ifd.add_Software("Remote Sensing Database (RSDB)");
 		ifd.add_DateTime_now();
 
@@ -285,8 +304,12 @@ public class TiffFile {
 			overviewIfd.add_ImageWidth((short) (width / scale)); // TODO
 			overviewIfd.add_ImageLength((short) (height / scale));// TODO
 			overviewIfd.add_BitsPerSample(bitsPerSample);
-			overviewIfd.add_Compression(compressionType);
-			overviewIfd.add_Predictor(predictor);
+			overviewIfd.add_Compression(tiffCompression.value);
+			if(deltaCoding) {
+				overviewIfd.add_Predictor((short) 2); // Horizontal differencing
+			} else {
+				overviewIfd.add_Predictor((short) 1); // No prediction
+			}
 			overviewIfd.add_PhotometricInterpretation(photometricInterpretationType);
 			overviewIfd.add_SamplesPerPixel((short) bandCount);
 			overviewIfd.add_SampleFormat(sampleFormats);
@@ -303,9 +326,54 @@ public class TiffFile {
 		IFD[] ifds = new IFD[overviewtilesVec.size() + 1];
 		ifds[0] = ifd;
 		overviewIfds.forEachIndexed((e, i) -> ifds[i + 1] = e);
-		
+
 		long imageDataPos = bigTiff ? IFD.writeBigTIFF(raf.getFilePointer(), raf, raf, ifds) : IFD.writeTIFF((int) raf.getFilePointer(), raf, raf, ifds);
 		log.info("raf.getFilePointer " + raf.getFilePointer() + "   " + imageDataPos);
 		return imageDataPos;
+	}
+
+	public void set_sampleFormat(short sampleFormat) {
+		this.sampleFormat = sampleFormat;
+	}
+
+	public void set_sampleFormat_unsigned_integer() {
+		set_sampleFormat((short) 1);
+	}
+
+	public void set_sampleFormat_signed_integer() {
+		set_sampleFormat((short) 2);
+	}
+
+	public void set_sampleFormat_floating_point() {
+		set_sampleFormat((short) 3);
+	}
+
+	public void set_sampleFormat_undefined_data() {
+		set_sampleFormat((short) 3);
+	}
+
+	public void set_bitsPerSamplePerBand(short bitsPerSamplePerBand) {
+		this.bitsPerSamplePerBand = bitsPerSamplePerBand;
+	}
+
+	public void setBandDataType_int16() {
+		set_sampleFormat_signed_integer();
+		set_bitsPerSamplePerBand((short) 16);
+	}
+	
+	public void setDeltaCoding(boolean deltaCoding) {
+		this.deltaCoding = deltaCoding;
+	}
+
+	public boolean getDeltaCoding() {
+		return deltaCoding;
+	}
+
+	public TiffCompression getTiffCompression() {
+		return tiffCompression;
+	}
+
+	public void setTiffCompression(TiffCompression tiffCompression) {
+		this.tiffCompression = tiffCompression;
 	}
 }

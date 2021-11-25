@@ -193,8 +193,6 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			throw new RuntimeException("requested raster too large: " + srcRange.getWidth() + " x " + srcRange.getHeight());
 		}
 
-
-
 		TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands); // all bands need same data type for tiff reader compatibility (e.g. GDAL)
 		TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, extent2d.xmin, extent2d.ymin, geoXres, geoYres, (short)ref.getEPSG(0));
 

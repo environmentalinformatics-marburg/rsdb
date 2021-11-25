@@ -25,17 +25,20 @@ public class PublicAccessManager {
 	}
 
 	public synchronized boolean read() {
-		YamlMap yamlMap = YamlUtil.readYamlMap(publicAccessPath);
-		YamlMap publicMap = yamlMap.optMap("public");
 		HashMap<String, PublicAccess> publicAccessMap = new HashMap<String, PublicAccess>();
+		if(publicAccessPath.toFile().exists()) {
+			YamlMap yamlMap = YamlUtil.readYamlMap(publicAccessPath);
+			YamlMap publicMap = yamlMap.optMap("public");
 
-		publicMap.forEachKey((entryMap, id) -> {
-			YamlMap map = entryMap.getMap(id);
-			PublicAccess publicAccess = PublicAccess.ofYAML(id, map);
-			if(publicAccess != null) {
-				publicAccessMap.put(id, publicAccess);
-			}
-		});
+
+			publicMap.forEachKey((entryMap, id) -> {
+				YamlMap map = entryMap.getMap(id);
+				PublicAccess publicAccess = PublicAccess.ofYAML(id, map);
+				if(publicAccess != null) {
+					publicAccessMap.put(id, publicAccess);
+				}
+			});
+		}
 		this.publicAccessMap = publicAccessMap;
 		return true;
 	}
