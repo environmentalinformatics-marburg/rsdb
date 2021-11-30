@@ -480,6 +480,14 @@ public class RasterDB implements AutoCloseable {
 	public Band getBandByNumber(int band_number) {
 		return bandMap.get(band_number);
 	}
+	
+	public Band getBandByNumberThrow(int band_number) {
+		Band band = bandMap.get(band_number);
+		if(band == null) {
+			throw new RuntimeException("band number not fount: " + band_number);
+		}
+		return band;
+	}
 
 	public Informal informal() {
 		return informal;

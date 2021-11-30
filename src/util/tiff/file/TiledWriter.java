@@ -11,6 +11,8 @@ import rasterdb.Band;
 import rasterdb.BandProcessor;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
+import rasterdb.cell.CellType;
+import rasterdb.tile.TilePixel;
 import remotetask.CancelableRemoteProxy;
 import util.Range2d;
 import util.collections.vec.Vec;
@@ -29,6 +31,7 @@ public class TiledWriter extends CancelableRemoteProxy {
 	private final BandType bandType;
 	private final TiffCompression tiffCompression;
 	private Range2d range;
+	private Band[] bands;
 	private final int timestamp;
 	private final String filename;
 
@@ -43,6 +46,24 @@ public class TiledWriter extends CancelableRemoteProxy {
 			this.tiff_sampleFormat = (short) tiff_sampleFormat;
 			this.tiff_bitsPerSamplePerBand = (short) tiff_bitsPerSamplePerBand;
 		}
+
+		public static BandType parse(String dataTypeText, BandType defaultDataType) {
+			if(dataTypeText == null) {
+				return defaultDataType;
+			}
+			dataTypeText = dataTypeText.trim().toUpperCase();
+			if(dataTypeText.isEmpty()) {
+				return defaultDataType;
+			}
+			switch(dataTypeText) {
+			case "INT16":
+				return INT16;
+			case "FLOAT32":
+				return FLOAT32;
+			default:
+				throw new RuntimeException("unknown data type");
+			}
+		}
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -50,19 +71,59 @@ public class TiledWriter extends CancelableRemoteProxy {
 			RasterDB rasterdb = broker.getRasterdb("be_alb_rapideye_atm_rebuild");
 			GeoReference ref = rasterdb.ref();
 			Range2d range = ref.bboxToRange2d(new double[] {512920, 5353805, 544770, 5376220});
+			Band[] bands = rasterdb.bandMapReadonly.values().toArray(Band[]::new);
 			String filename = "temp/testingTiff.tif";
 			int timestamp = 60598080;
-			try(TiledWriter tiledWriter = new TiledWriter(rasterdb, BandType.INT16, TiffCompression.NO, range, timestamp, filename)) {
+			try(TiledWriter tiledWriter = new TiledWriter(rasterdb, BandType.INT16, TiffCompression.NO, range, bands, timestamp, filename)) {
 				tiledWriter.process();
 			}		
 		}
 	}
 
-	public TiledWriter(RasterDB rasterdb, BandType bandType, TiffCompression tiffCompression, Range2d range, int timestamp, String filename) {
+	public TiledWriter(RasterDB rasterdb, BandType bandType, TiffCompression tiffCompression, Range2d range, Band[] bands, int timestamp, String filename) {
 		this.rasterdb = rasterdb;
+		if(bandType == null) {
+			for(Band band : bands) {
+				switch(band.type) {
+				case TilePixel.TYPE_SHORT:
+				case CellType.INT16:
+					if(bandType == null) {
+						bandType = BandType.INT16;
+					} else {
+						switch(bandType) {
+						case INT16:
+							break;
+						case FLOAT32:
+							break;
+						default:
+							throw new RuntimeException("unknown band type");
+						}
+					}
+					break;
+				case TilePixel.TYPE_FLOAT:
+					if(bandType == null) {
+						bandType = BandType.FLOAT32;
+					} else {
+						switch(bandType) {
+						case INT16:
+							bandType = BandType.FLOAT32;
+							break;
+						case FLOAT32:
+							break;
+						default:
+							throw new RuntimeException("unknown band type");
+						}
+					}
+					break;
+				default:
+					throw new RuntimeException("unknown band type");
+				}
+			}
+		}
 		this.bandType = bandType;
 		this.tiffCompression = tiffCompression;
 		this.range = range;
+		this.bands = bands;
 		this.timestamp = timestamp;
 		this.filename = filename;
 	}
@@ -76,8 +137,7 @@ public class TiledWriter extends CancelableRemoteProxy {
 		//range = range.allignMaxToTiles(tileWidth, tileHeight);
 		range = range.allignToTiles(tileWidth, tileHeight);
 		log.info(range);
-		int bandCount = rasterdb.bandMapReadonly.size();
-		Band[] bands = rasterdb.bandMapReadonly.values().toArray(Band[]::new);
+		int bandCount = bands.length;		
 		GeoReference ref = rasterdb.ref();
 		TiffFile tiffFile = new TiffFile(ref, range, tileWidth, tileHeight, bandCount);
 		tiffFile.set_sampleFormat(bandType.tiff_sampleFormat);
@@ -93,6 +153,9 @@ public class TiledWriter extends CancelableRemoteProxy {
 			tiffFile.setDeltaCoding(false);
 		}
 
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
+		}
 		try(RandomAccessFile raf = new RandomAccessFile(filename, "rw")) {				
 			raf.setLength(0);
 			long imageDataPos = tiffFile.writeHeader(raf, bigTiff);
@@ -117,6 +180,9 @@ public class TiledWriter extends CancelableRemoteProxy {
 			for(TiffImageEntry tiffImageEntry : imageList.asReverseIterable()) {
 				log.info("process scale " + tiffImageEntry.scale);
 				for(int b = 0; b < bandCount; b++) {
+					if(isCanceled()) {
+						throw new RuntimeException("canceled");
+					}
 					TiffTile[] btiles = tiffImageEntry.tiles[b];
 					Band band = bands[b];
 					for (int i = 0; i < btiles.length; i++) {
@@ -134,13 +200,13 @@ public class TiledWriter extends CancelableRemoteProxy {
 							ShortFrame shortFrame = bandProcessor.getShortFrame(band);	
 							switch(tiffFile.getTiffCompression()) {
 							case NO:
-								TiffBandInt16.writeData(raf, shortFrame.data, tileWidth, tileHeight, tiffFile.getDeltaCoding());
+								TiffBandInt16.writeData(raf, shortFrame.data, tileWidth, tileHeight); // no delta coding
 								break;
 							case DEFLATE:
-								TiffBandInt16.writeDataDeflate(raf, shortFrame.data, tileWidth, tileHeight, tiffFile.getDeltaCoding());
+								TiffBandInt16.writeDataDeflate(raf, shortFrame.data, tileWidth, tileHeight, tiffFile.isApplicableDeltaCoding());
 								break;
 							case ZSTD:
-								TiffBandInt16.writeDataZSTD(raf, shortFrame.data, tileWidth, tileHeight, tiffFile.getDeltaCoding());
+								TiffBandInt16.writeDataZSTD(raf, shortFrame.data, tileWidth, tileHeight, tiffFile.isApplicableDeltaCoding());
 								break;
 							default:
 								throw new RuntimeException("unknown compression type");
@@ -151,13 +217,13 @@ public class TiledWriter extends CancelableRemoteProxy {
 							FloatFrame floatFrame = bandProcessor.getFloatFrame(band);							
 							switch(tiffFile.getTiffCompression()) {
 							case NO:
-								TiffBandFloat32.writeData(raf, floatFrame.data, tileWidth, tileHeight, tiffFile.getDeltaCoding());	
+								TiffBandFloat32.writeData(raf, floatFrame.data, tileWidth, tileHeight); // no delta coding	
 								break;
 							case DEFLATE:
-								TiffBandFloat32.writeDataDeflate(raf, floatFrame.data, tileWidth, tileHeight, tiffFile.getDeltaCoding());	
+								TiffBandFloat32.writeDataDeflate(raf, floatFrame.data, tileWidth, tileHeight, tiffFile.isApplicableDeltaCoding());	
 								break;
 							case ZSTD:
-								TiffBandFloat32.writeDataZSTD(raf, floatFrame.data, tileWidth, tileHeight, tiffFile.getDeltaCoding());	
+								TiffBandFloat32.writeDataZSTD(raf, floatFrame.data, tileWidth, tileHeight, tiffFile.isApplicableDeltaCoding());	
 								break;
 							default:
 								throw new RuntimeException("unknown compression type");
@@ -174,8 +240,10 @@ public class TiledWriter extends CancelableRemoteProxy {
 				}
 			}				
 
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
 			tiffFile.writeHeader(raf, bigTiff);
 		}
 	}
-
 }

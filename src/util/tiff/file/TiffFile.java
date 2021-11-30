@@ -19,6 +19,7 @@ import util.collections.array.iterator.ReadonlyArrayIterator;
 import util.collections.vec.Vec;
 import util.tiff.GeoKeyDirectory;
 import util.tiff.IFD;
+import util.tiff.TiffBandInt16;
 
 public class TiffFile {
 	private static final Logger log = LogManager.getLogger();
@@ -52,16 +53,36 @@ public class TiffFile {
 	public final int xtileLen;
 	public final int ytileLen;
 	public final int tileLen;
-	
+
 	public static enum TiffCompression {
 		NO(1),
 		DEFLATE(32946),
 		ZSTD(50000);
-		
+
 		public final short value;
 
 		private TiffCompression(int value) {
 			this.value = (short) value;
+		}
+
+		public static TiffCompression parse(String compressionText, TiffCompression defaultCompression) {
+			if(compressionText == null) {
+				return defaultCompression;
+			}
+			compressionText = compressionText.trim().toUpperCase();
+			if(compressionText.isEmpty()) {
+				return defaultCompression;
+			}
+			switch(compressionText) {
+			case "NO":
+				return NO;
+			case "DEFLATE":
+				return DEFLATE;
+			case "ZSTD":
+				return ZSTD;
+			default:
+				throw new RuntimeException("unknown compression type");
+			}
 		}
 	}
 
@@ -210,7 +231,7 @@ public class TiffFile {
 
 		ifd.add_Compression(tiffCompression.value);
 
-		if(deltaCoding) {
+		if(isApplicableDeltaCoding()) {
 			ifd.add_Predictor((short) 2); // Horizontal differencing
 		} else {
 			ifd.add_Predictor((short) 1); // No prediction
@@ -305,7 +326,7 @@ public class TiffFile {
 			overviewIfd.add_ImageLength((short) (height / scale));// TODO
 			overviewIfd.add_BitsPerSample(bitsPerSample);
 			overviewIfd.add_Compression(tiffCompression.value);
-			if(deltaCoding) {
+			if(isApplicableDeltaCoding()) {
 				overviewIfd.add_Predictor((short) 2); // Horizontal differencing
 			} else {
 				overviewIfd.add_Predictor((short) 1); // No prediction
@@ -360,13 +381,26 @@ public class TiffFile {
 		set_sampleFormat_signed_integer();
 		set_bitsPerSamplePerBand((short) 16);
 	}
-	
+
 	public void setDeltaCoding(boolean deltaCoding) {
 		this.deltaCoding = deltaCoding;
 	}
 
 	public boolean getDeltaCoding() {
 		return deltaCoding;
+	}
+	
+	public boolean isApplicableDeltaCoding() {
+		switch(tiffCompression) {
+		case NO:
+			return false;
+		case DEFLATE:
+			return deltaCoding;
+		case ZSTD:
+			return deltaCoding;
+		default:
+			throw new RuntimeException("unknown compression type");
+		}
 	}
 
 	public TiffCompression getTiffCompression() {

@@ -167,8 +167,6 @@
     </v-snackbar>
 </div>
 
-
-
 </template>
 
 <script>
@@ -491,10 +489,19 @@ hr {
   margin: 10px;
 }
 
+table {
+  border-collapse: collapse;
+}
+
+th, td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.055);
+}
+
 .param-desc {
   font-style: italic;
   padding-left: 10px;
   padding-right: 10px;
+  white-space: pre-wrap;
 }
 
 .param-format {
