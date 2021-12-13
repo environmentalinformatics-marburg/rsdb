@@ -78,7 +78,6 @@ public class Task_create extends RemoteTask {
 			}
 		}
 
-		
 		JSONArray offset_array = task.optJSONArray("offset");
 		if(offset_array != null) {
 			if(offset_array.length() == 2) {

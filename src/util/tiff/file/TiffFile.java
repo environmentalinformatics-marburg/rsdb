@@ -19,7 +19,6 @@ import util.collections.array.iterator.ReadonlyArrayIterator;
 import util.collections.vec.Vec;
 import util.tiff.GeoKeyDirectory;
 import util.tiff.IFD;
-import util.tiff.TiffBandInt16;
 
 public class TiffFile {
 	private static final Logger log = LogManager.getLogger();
@@ -123,8 +122,11 @@ public class TiffFile {
 		this.range = range; 
 		int w = range.getWidth();
 		int h = range.getHeight();
-		if(w < 1 || w > UINT16_MAX_VALUE || h < 1 || h > UINT16_MAX_VALUE) {
+		/*if(w < 1 || w > UINT16_MAX_VALUE || h < 1 || h > UINT16_MAX_VALUE) {
 			throw new RuntimeException("raster too large: " + w + " x " + h);
+		}*/
+		if(w < 1 || h < 1) {
+			throw new RuntimeException("raster size not valid: " + w + " x " + h);
 		}
 		if(tileWidth % 16 != 0 || tileHeight % 16 != 0) {
 			throw new RuntimeException("tileWidth and tileHeight need to be multiples of 16");
