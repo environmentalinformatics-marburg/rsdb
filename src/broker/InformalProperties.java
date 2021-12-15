@@ -23,7 +23,7 @@ public class InformalProperties {
 			map.put(tag, contents.copyReadonly());
 		});
 	}
-	
+
 	public ReadonlyArray<String> get(String tag) {
 		return map.get(tag);
 	}
@@ -103,14 +103,19 @@ public class InformalProperties {
 			Iterator<String> it = jsonProperties.keys();
 			while(it.hasNext()) {
 				String key = it.next();
-				JSONArray jsonArray = jsonProperties.getJSONArray(key);
-				int len = jsonArray.length();
-				Vec<String> vec = new Vec<String>(len);
-				for (int i = 0; i < len; i++) {
-					String value = jsonArray.getString(i);
-					vec.add(value);					
+				JSONArray jsonArray = jsonProperties.optJSONArray(key);
+				if(jsonArray != null) {
+					int len = jsonArray.length();
+					Vec<String> vec = new Vec<String>(len);
+					for (int i = 0; i < len; i++) {
+						String value = jsonArray.getString(i);
+						vec.add(value);					
+					}
+					builder.map.put(key, vec);
+				} else {
+					String value = jsonProperties.get(key).toString();
+					builder.map.put(key, Vec.ofOne(value));					
 				}
-				builder.map.put(key, vec);
 			}
 			return builder;
 		}

@@ -22,7 +22,6 @@ import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
 import remotetask.CancelableRemoteTask;
 import remotetask.Context;
-import remotetask.RemoteTask;
 import util.BlokingTaskSubmitter;
 import util.Range2d;
 import util.Timer;
