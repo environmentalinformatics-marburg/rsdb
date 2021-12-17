@@ -2,14 +2,14 @@ package rasterdb.tile;
 
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterunit.Tile;
 import util.frame.ShortFrame;
 
 public class TileFloatToShortIterator implements Iterator<short[][]> {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	private final Iterator<Tile> it;
 	private final short[][] empty;

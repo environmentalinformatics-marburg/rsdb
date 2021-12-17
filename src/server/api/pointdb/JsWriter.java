@@ -3,8 +3,8 @@ package server.api.pointdb;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.GeoPoint;
 import pointdb.processing.geopoint.RasterSubGrid;
@@ -13,7 +13,7 @@ import util.Receiver;
 import util.collections.vec.Vec;
 
 public class JsWriter {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static void writePoints(Receiver receiver, Vec<GeoPoint> result, String[] columns) throws IOException {
 
@@ -57,7 +57,7 @@ public class JsWriter {
 		int xLen = data[0].length;
 		int yLen = data.length;
 		ByteArrayOut out = ByteArrayOut.of(xLen*yLen*4+2*4);
-		log.info("writeFloat2d" + xLen +"  "  + yLen  +"  " + (xLen*yLen*4+2*4) + "  " + out.buf.length);
+		Logger.info("writeFloat2d" + xLen +"  "  + yLen  +"  " + (xLen*yLen*4+2*4) + "  " + out.buf.length);
 		out.putIntRaw(xLen);
 		out.putIntRaw(yLen);
 		out.putFloats2d(data);
@@ -70,7 +70,7 @@ public class JsWriter {
 		int xLen = data[0].length;
 		int yLen = data.length;
 		ByteArrayOut out = ByteArrayOut.of(xLen*yLen*4+2*4);
-		log.info("writeFloat2d" + xLen +"  "  + yLen  +"  " + (xLen*yLen*4+2*4) + "  " + out.buf.length);
+		Logger.info("writeFloat2d" + xLen +"  "  + yLen  +"  " + (xLen*yLen*4+2*4) + "  " + out.buf.length);
 		out.putIntRaw(xLen);
 		out.putIntRaw(yLen);
 		out.putFloats2d(data);

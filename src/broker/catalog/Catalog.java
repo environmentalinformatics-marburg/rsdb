@@ -19,8 +19,8 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
@@ -53,7 +53,7 @@ import vectordb.VectorDB;
 import voxeldb.VoxelDB;
 
 public class Catalog {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final Path CATALOG_FILENAME = Paths.get("catalog/catalog.json");
 	private static final String CATALOG_TEMP_PREFIX = "catalog/catalog_temp";
@@ -91,7 +91,7 @@ public class Catalog {
 				if(ref.has_proj4()) {
 					src.ImportFromProj4(ref.proj4);
 				} else {
-					log.warn("no poj4: "+rasterdb.config.getName());
+					Logger.warn("no poj4: "+rasterdb.config.getName());
 					return generateCatalogEntry(rasterdb.config.getName(), CatalogKey.TYPE_RASTERDB, null, rasterdb.associated, rasterdb.getACL(), rasterdb.getACL_mod(), rasterdb.informal(), null);
 				}
 
@@ -195,7 +195,7 @@ public class Catalog {
 					break;
 				}
 				default:
-					log.warn("unknown hullType");
+					Logger.warn("unknown hullType");
 					return null;
 				}
 				ct.TransformPoints(points);
@@ -203,7 +203,7 @@ public class Catalog {
 			return generateCatalogEntry(rasterdb.config.getName(), CatalogKey.TYPE_RASTERDB, points, rasterdb.associated, rasterdb.getACL(), rasterdb.getACL_mod(), rasterdb.informal(), null);			
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			return generateCatalogEntry(rasterdb.config.getName(), CatalogKey.TYPE_RASTERDB, null, rasterdb.associated, rasterdb.getACL(), rasterdb.getACL_mod(), rasterdb.informal(), null);
 		}
 	}
@@ -225,25 +225,25 @@ public class Catalog {
 				SpatialReference src = new SpatialReference("");
 				String proj4 = pointdb.config.getProj4();
 				if(proj4.isEmpty()) {
-					log.warn("no poj4: "+pointdb.config.name);
+					Logger.warn("no poj4: "+pointdb.config.name);
 					return generateCatalogEntry(pointdb.config.name, CatalogKey.TYPE_POINTDB, null, associated, pointdb.config.getAcl(), EmptyACL.ADMIN, pointdb.informal(), null);
 				} else {
 					src.ImportFromProj4(proj4);				
 				}
 				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);
 
-				log.info("generateCatalogEntryPointDB ...");
+				Logger.info("generateCatalogEntryPointDB ...");
 				Timer.start("generateCatalogEntryPointDB");
-				log.info("generateCatalogEntryPointDB pointdb.tileMetaMap.keySet() ...");
+				Logger.info("generateCatalogEntryPointDB pointdb.tileMetaMap.keySet() ...");
 				Timer.start("pointdb.tileMetaMap.keySet()");
 				NavigableSet<pointdb.base.TileKey> keys = pointdb.tileMetaMap.keySet();
-				log.info(Timer.stop("pointdb.tileMetaMap.keySet()"));
-				log.info("generateCatalogEntryPointDB keys.size() ...");
+				Logger.info(Timer.stop("pointdb.tileMetaMap.keySet()"));
+				Logger.info("generateCatalogEntryPointDB keys.size() ...");
 				Timer.start("keys.size()");
 				int keyCount = keys.size();
 				Coordinate[] coordinates = new Coordinate[keyCount * 4];
-				log.info(Timer.stop("keys.size()")+"  "+keyCount+" keys");
-				log.info("generateCatalogEntryPointDB loop ...");
+				Logger.info(Timer.stop("keys.size()")+"  "+keyCount+" keys");
+				Logger.info("generateCatalogEntryPointDB loop ...");
 				Timer.start("loop");
 				int i = 0;				
 				for(pointdb.base.TileKey key: keys) {
@@ -256,21 +256,21 @@ public class Catalog {
 					coordinates[i++] = new Coordinate(xmin, ymax);
 					coordinates[i++] = new Coordinate(xmax, ymax);
 				}
-				log.info(Timer.stop("loop"));
-				log.info("generateCatalogEntryPointDB generateConvexHullPoints ...");
+				Logger.info(Timer.stop("loop"));
+				Logger.info("generateCatalogEntryPointDB generateConvexHullPoints ...");
 				Timer.start("generateConvexHullPoints");
 				points = generateConvexHullPoints(coordinates);
-				log.info(Timer.stop("generateConvexHullPoints"));
-				log.info("generateCatalogEntryPointDB ct.TransformPoints ...");
+				Logger.info(Timer.stop("generateConvexHullPoints"));
+				Logger.info("generateCatalogEntryPointDB ct.TransformPoints ...");
 				Timer.start("ct.TransformPoints");
 				ct.TransformPoints(points);
-				log.info(Timer.stop("ct.TransformPoints"));
-				log.info(Timer.stop("generateCatalogEntryPointDB"));
+				Logger.info(Timer.stop("ct.TransformPoints"));
+				Logger.info(Timer.stop("generateCatalogEntryPointDB"));
 			}
 			return generateCatalogEntry(pointdb.config.name, CatalogKey.TYPE_POINTDB, points, associated, pointdb.config.getAcl(), EmptyACL.ADMIN, pointdb.informal(), null);			
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			return generateCatalogEntry(pointdb.config.name, CatalogKey.TYPE_POINTDB, null, associated, pointdb.config.getAcl(), EmptyACL.ADMIN, pointdb.informal(), null);	
 		}
 	}
@@ -288,7 +288,7 @@ public class Catalog {
 				SpatialReference src = new SpatialReference("");
 				String proj4 = pointcloud.getProj4();
 				if(proj4.isEmpty()) {
-					log.warn("no poj4: " + pointcloud.getName());
+					Logger.warn("no poj4: " + pointcloud.getName());
 					return generateCatalogEntry(pointcloud.getName(), CatalogKey.TYPE_POINTCLOUD, null, pointcloud.getAssociated(), pointcloud.getACL(), pointcloud.getACL_mod(), pointcloud.informal(), null);
 				} else {
 					src.ImportFromProj4(proj4);				
@@ -317,7 +317,7 @@ public class Catalog {
 			return generateCatalogEntry(pointcloud.getName(), CatalogKey.TYPE_POINTCLOUD, points, pointcloud.getAssociated(), pointcloud.getACL(), pointcloud.getACL_mod(), pointcloud.informal(), null);
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			return generateCatalogEntry(pointcloud.getName(), CatalogKey.TYPE_POINTCLOUD, null, pointcloud.getAssociated(), pointcloud.getACL(), pointcloud.getACL_mod(), pointcloud.informal(), null);	
 		}
 	}
@@ -346,7 +346,7 @@ public class Catalog {
 			return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, points, null, vectordb.getACL(), vectordb.getACL_mod(), vectordb.informal(), vectordb.getStructuredAccess());
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, null, null, vectordb.getACL(), vectordb.getACL_mod(), vectordb.informal(), vectordb.getStructuredAccess());
 		}
 	}
@@ -363,7 +363,7 @@ public class Catalog {
 			for(double[] p:points) {
 				for(double c:p) {
 					if(!Double.isFinite(c)) {
-						log.warn("not finite pos in " + name);
+						Logger.warn("not finite pos in " + name);
 						usePoints = false;
 					}
 				}
@@ -414,7 +414,7 @@ public class Catalog {
 					map.put(catalogEntry.toKey(), catalogEntry);
 				}
 			} catch(Exception e) {
-				log.error(e);
+				Logger.error(e);
 			}
 		}
 
@@ -426,7 +426,7 @@ public class Catalog {
 					map.put(catalogEntry.toKey(), catalogEntry);
 				}
 			} catch(Exception e) {				
-				log.error(e);
+				Logger.error(e);
 			}
 		}
 
@@ -438,7 +438,7 @@ public class Catalog {
 					map.put(catalogEntry.toKey(), catalogEntry);
 				}
 			} catch(Exception e) {				
-				log.error(e);
+				Logger.error(e);
 			}
 		}
 
@@ -450,7 +450,7 @@ public class Catalog {
 					map.put(catalogEntry.toKey(), catalogEntry);
 				}
 			} catch(Exception e) {				
-				log.error(e);
+				Logger.error(e);
 			}
 		}
 
@@ -463,7 +463,7 @@ public class Catalog {
 	 */
 	public synchronized void updateCatalog() {
 		Map<CatalogKey, CatalogEntry> map = new LinkedHashMap<>(this.map);
-		//log.info("map "+map.keySet());
+		//Logger.info("map "+map.keySet());
 		boolean changed = false;
 		Iterator<CatalogEntry> it = map.values().iterator();
 		while(it.hasNext()) {
@@ -471,7 +471,7 @@ public class Catalog {
 			switch(catalogEntry.type) {
 			case CatalogKey.TYPE_RASTERDB: {
 				if(!broker.getRasterdbNames().contains(catalogEntry.name)) {
-					log.warn("remove missing RasterDB: "+catalogEntry);
+					Logger.warn("remove missing RasterDB: "+catalogEntry);
 					it.remove();
 					changed = true;
 				}
@@ -479,7 +479,7 @@ public class Catalog {
 			}
 			case CatalogKey.TYPE_POINTDB: {
 				if(!broker.brokerConfig.pointdbMap().containsKey(catalogEntry.name)) {
-					log.warn("remove missing PointDB: "+catalogEntry);
+					Logger.warn("remove missing PointDB: "+catalogEntry);
 					it.remove();
 					changed = true;
 				}
@@ -487,7 +487,7 @@ public class Catalog {
 			}
 			case CatalogKey.TYPE_POINTCLOUD: {
 				if(!broker.getPointCloudNames().contains(catalogEntry.name)) {
-					log.warn("remove missing pointcloud: "+catalogEntry);
+					Logger.warn("remove missing pointcloud: "+catalogEntry);
 					it.remove();
 					changed = true;
 				}
@@ -495,14 +495,14 @@ public class Catalog {
 			}
 			case CatalogKey.TYPE_VECTORDB: {
 				if(!broker.getVectordbNames().contains(catalogEntry.name)) {
-					log.warn("remove missing VectorDB: "+catalogEntry);
+					Logger.warn("remove missing VectorDB: "+catalogEntry);
 					it.remove();
 					changed = true;
 				}
 				break;
 			}
 			default: {
-				log.warn("remove unknown type: "+catalogEntry);
+				Logger.warn("remove unknown type: "+catalogEntry);
 				it.remove();
 				changed = true;
 			}
@@ -519,7 +519,7 @@ public class Catalog {
 						changed = true;
 					}
 				} catch(Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 			}			
 		}
@@ -534,7 +534,7 @@ public class Catalog {
 						changed = true;
 					}
 				} catch(Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 		}
@@ -549,7 +549,7 @@ public class Catalog {
 						changed = true;
 					}
 				} catch(Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 		}
@@ -564,7 +564,7 @@ public class Catalog {
 						changed = true;
 					}
 				} catch(Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 		}
@@ -572,7 +572,7 @@ public class Catalog {
 		if(changed) {
 			this.map = map;
 			writeToFile();
-			log.info("catalog updated");
+			Logger.info("catalog updated");
 		}
 	}
 
@@ -607,7 +607,7 @@ public class Catalog {
 			Files.move(fileWrite.toPath(), CATALOG_FILENAME, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 		}
 	}
 
@@ -625,7 +625,7 @@ public class Catalog {
 			this.map = map;
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 		}
 	}
 	
@@ -704,7 +704,7 @@ public class Catalog {
 	}
 
 	public void update(VectorDB vectordb, boolean updateHull) {
-		log.info("update catalog entry vecotrdb " + vectordb.informal());
+		Logger.info("update catalog entry vecotrdb " + vectordb.informal());
 		CatalogKey catalogKey = new CatalogKey(vectordb.getName(), CatalogKey.TYPE_VECTORDB);
 		CatalogEntry oldCatalogEntry = map.get(catalogKey);
 		CatalogEntry genCatalogEntry;
@@ -715,7 +715,7 @@ public class Catalog {
 			genCatalogEntry = CatalogEntry.of(genCatalogEntry, oldCatalogEntry.points);
 		}
 		if(!genCatalogEntry.equals(oldCatalogEntry)) {
-			log.info("update");
+			Logger.info("update");
 			update(genCatalogEntry);
 		}
 	}
@@ -725,7 +725,7 @@ public class Catalog {
 		map.put(catalogEntry.toKey(), catalogEntry);
 		this.map = map;
 		writeToFile();
-		log.info("catalog updated");
+		Logger.info("catalog updated");
 	}
 
 	private static Comparator<CatalogEntry> CATALOG_ENTRY_COMPARATOR = new Comparator<CatalogEntry>() {

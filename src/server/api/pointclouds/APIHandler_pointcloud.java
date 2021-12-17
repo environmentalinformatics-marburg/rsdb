@@ -5,8 +5,8 @@ import java.util.Iterator;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -33,7 +33,7 @@ import util.Range2d;
 import util.Web;
 
 public class APIHandler_pointcloud {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected static final String MIME_JSON = "application/json";
 
@@ -54,12 +54,12 @@ public class APIHandler_pointcloud {
 	}
 
 	public void handle(String name, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.info("get: " + name);
+		Logger.info("get: " + name);
 		PointCloud pointcloud = broker.getPointCloud(name);
-		log.info("get: " + pointcloud);
+		Logger.info("get: " + pointcloud);
 		if(pointcloud == null) {
 			throw new RuntimeException("PointCloud not found: " + name);
-			/*log.error("PointCloud not found: " + name);
+			/*Logger.error("PointCloud not found: " + name);
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.setContentType("text/plain;charset=utf-8");
 			response.getWriter().println("PointCloud not found: " + name);*/
@@ -85,8 +85,8 @@ public class APIHandler_pointcloud {
 			int formatIndex = resource.lastIndexOf('.');
 			String resourceName = formatIndex < 0 ? resource : resource.substring(0, formatIndex);
 			String resourceFormat = formatIndex < 0 ? "" : resource.substring(formatIndex + 1);
-			log.info("resourceName: "+resourceName);
-			log.info("resourceFormat: "+resourceFormat);
+			Logger.info("resourceName: "+resourceName);
+			Logger.info("resourceFormat: "+resourceFormat);
 			String next = i < 0 ? "/" : target.substring(i);
 			if(next.equals("/")) {
 				switch(resourceName) {
@@ -159,7 +159,7 @@ public class APIHandler_pointcloud {
 					}
 				}
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 		if(unit == null && pointcloud.hasCode()) {
@@ -172,7 +172,7 @@ public class APIHandler_pointcloud {
 					}
 				}
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 		if(unit != null) {
@@ -270,7 +270,7 @@ public class APIHandler_pointcloud {
 					json.value(poiGroup.informal.title);
 					json.endObject();
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			}
 			json.endArray();
@@ -288,7 +288,7 @@ public class APIHandler_pointcloud {
 					json.value(roiGroup.informal.title);
 					json.endObject();
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			}
 			json.endArray();
@@ -299,7 +299,7 @@ public class APIHandler_pointcloud {
 				json.key("storage_size");
 				json.value(storage_size);
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 		if(requestInternalStorageInternalFreeSize) {
@@ -308,7 +308,7 @@ public class APIHandler_pointcloud {
 				json.key("storage_internal_free_size");
 				json.value(internal_free_size);
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 		if(requestCellCount) {
@@ -350,7 +350,7 @@ public class APIHandler_pointcloud {
 					pointcloud.checkMod(userIdentity);
 					updateCatalog = true;
 					String title = meta.getString("title");
-					log.info("set title " + title);
+					Logger.info("set title " + title);
 					Builder informal = pointcloud.informal().toBuilder();
 					informal.title = title.trim();
 					pointcloud.setInformal(informal.build());
@@ -360,7 +360,7 @@ public class APIHandler_pointcloud {
 					pointcloud.checkMod(userIdentity);
 					updateCatalog = true;
 					String description = meta.getString("description");
-					log.info("set description " + description);
+					Logger.info("set description " + description);
 					Builder informal = pointcloud.informal().toBuilder();
 					informal.description = description.trim();
 					pointcloud.setInformal(informal.build());
@@ -370,7 +370,7 @@ public class APIHandler_pointcloud {
 					pointcloud.checkMod(userIdentity);
 					updateCatalog = true;
 					String corresponding_contact = meta.getString("corresponding_contact");
-					log.info("set corresponding_contact " + corresponding_contact);
+					Logger.info("set corresponding_contact " + corresponding_contact);
 					Builder informal = pointcloud.informal().toBuilder();
 					informal.corresponding_contact = corresponding_contact.trim();
 					pointcloud.setInformal(informal.build());
@@ -380,7 +380,7 @@ public class APIHandler_pointcloud {
 					pointcloud.checkMod(userIdentity);
 					updateCatalog = true;
 					String acquisition_date = meta.getString("acquisition_date");
-					log.info("set acquisition_date " + acquisition_date);
+					Logger.info("set acquisition_date " + acquisition_date);
 					Builder informal = pointcloud.informal().toBuilder();
 					informal.acquisition_date = acquisition_date.trim();
 					pointcloud.setInformal(informal.build());
@@ -390,7 +390,7 @@ public class APIHandler_pointcloud {
 					pointcloud.checkMod(userIdentity);
 					updateCatalog = true;
 					String code = meta.getString("code").trim();
-					log.info("set code "+code);
+					Logger.info("set code "+code);
 					pointcloud.setCode(code);
 					break;
 				}
@@ -399,7 +399,7 @@ public class APIHandler_pointcloud {
 					updateCatalog = true;
 					updateCatalogPoints = true;
 					String proj4 = meta.getString("proj4").trim();
-					log.info("set proj4 "+proj4);
+					Logger.info("set proj4 "+proj4);
 					pointcloud.setProj4(proj4);
 					break;
 				}
@@ -441,7 +441,7 @@ public class APIHandler_pointcloud {
 					if(!pointcloud_name.equals(pointcloud.getName())) {
 						throw new RuntimeException("wrong parameters for delete pointcloud: " + pointcloud_name);
 					}
-					log.info("delete pointcloud " + pointcloud_name);
+					Logger.info("delete pointcloud " + pointcloud_name);
 					broker.deletePointCloud(pointcloud.getName());
 					pointcloud = null;
 					break;
@@ -468,7 +468,7 @@ public class APIHandler_pointcloud {
 			jsonResponse.endObject();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);			
+			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().append(e.toString());
 		} finally {

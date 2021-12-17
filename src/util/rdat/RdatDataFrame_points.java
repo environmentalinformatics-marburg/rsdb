@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.GeoPoint;
 import util.Receiver;
@@ -18,7 +18,7 @@ import util.rdat.RdatDataFrame.UInt16Column;
 import util.rdat.RdatDataFrame.UInt8Column;
 
 public class RdatDataFrame_points {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final Vec<Column<GeoPoint>> columnsList = new Vec<Column<GeoPoint>>(){{
 		add(new DoubleColumn<GeoPoint>("x", GeoPoint::getX));
@@ -56,7 +56,7 @@ public class RdatDataFrame_points {
 		if(columns==null||columns.length==0) {
 			df.addAll(columnsList);
 		} else {
-			log.info("col "+Arrays.toString(columns));
+			Logger.info("col "+Arrays.toString(columns));
 			for(String c:columns) {
 				String key = c.trim();
 				if(key.isEmpty()) {

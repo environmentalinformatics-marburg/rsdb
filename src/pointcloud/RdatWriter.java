@@ -6,8 +6,8 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.function.Function;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Receiver;
 import util.rdat.Rdat;
@@ -15,7 +15,7 @@ import util.rdat.RdatDataFrame;
 import util.rdat.RdatDataFrame.Column;
 
 public class RdatWriter {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static class DoublesColumn extends Column<PointTable> {
 		private final Function<PointTable, double[]> mapper;
@@ -123,7 +123,7 @@ public class RdatWriter {
 				if(v != null) {
 					for (int i = 0; i < len; i++) {
 						out.writeLong(v[i]);
-						log.info("gps " + v[i]);
+						Logger.info("gps " + v[i]);
 					}
 				} else {
 					for (int i = 0; i < len; i++) {

@@ -16,7 +16,7 @@ import util.Web;
 import util.rdat.RdatDataFrame;
 
 public class APIHandler_process_functions extends PointdbAPIHandler {
-	//private static final Logger log = LogManager.getLogger();	
+	//	
 
 	public APIHandler_process_functions(Broker broker) {
 		super(broker, "process_functions");		

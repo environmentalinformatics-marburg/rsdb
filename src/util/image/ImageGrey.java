@@ -10,12 +10,12 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class ImageGrey implements PureImage {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	protected final int width;
 	protected final int height;

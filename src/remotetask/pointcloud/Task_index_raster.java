@@ -1,7 +1,7 @@
 package remotetask.pointcloud;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.TimeSlice;
 import broker.acl.EmptyACL;
@@ -21,7 +21,7 @@ import remotetask.pointdb.DataProvider2Factory;
 @Param(name="mask_band",  type="integer", desc="Band number of mask in RasterDB layer, no mask if left empty.", example="1", required=false)
 @Param(name="time_slice", type="string", desc="Name of the pointcloud time slice. (default: latest)", example="January", required=false)
 public class Task_index_raster extends Abstract_task_index_raster {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public Task_index_raster(Context ctx) {
 		super(ctx, getDpFactory(ctx));

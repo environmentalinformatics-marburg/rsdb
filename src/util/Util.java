@@ -16,15 +16,15 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.StreamSupport;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import util.collections.array.ReadonlyArray;
 import util.collections.vec.Vec;
 
 public class Util {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static String msToText(long start, long end) {
 		long diff = end-start;
@@ -61,7 +61,7 @@ public class Util {
 			parentFile.mkdirs();
 			return true;
 		} catch(Exception e) {
-			log.error("path not created: "+filename+"    "+e);
+			Logger.error("path not created: "+filename+"    "+e);
 			return false;
 		}		
 	}
@@ -91,7 +91,7 @@ public class Util {
 	 */
 	public static void checkFileNotLocked(File file) {
 		if(!file.exists()) {
-			//log.info("file does not exist "+file);
+			//Logger.info("file does not exist "+file);
 			return;
 		}
 		try {
@@ -412,10 +412,10 @@ public class Util {
 		if(rel.getNameCount() == 0 || (rel.getNameCount() == 1 && rel.endsWith(""))) {
 			throw new RuntimeException("is no sub");
 		}
-		//log.info(root + "   " + path + "   " + rel);
-		//log.info(root.normalize() + "   " + path.normalize() + "   " + rel.normalize());
-		//log.info(rel.getNameCount() + "|"+rel.toString()+"|");
-		//log.info(rel.getNameCount() == 1 && rel.endsWith(""));
+		//Logger.info(root + "   " + path + "   " + rel);
+		//Logger.info(root.normalize() + "   " + path.normalize() + "   " + rel.normalize());
+		//Logger.info(rel.getNameCount() + "|"+rel.toString()+"|");
+		//Logger.info(rel.getNameCount() == 1 && rel.endsWith(""));
 
 	}
 

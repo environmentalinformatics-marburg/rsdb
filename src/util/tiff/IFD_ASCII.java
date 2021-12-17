@@ -4,13 +4,13 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.tiff.TiffReader.IfdEntry;
 
 public class IFD_ASCII extends IFD_Entry { // 32 bit unsigned integer
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	CharSequence text;
 
@@ -120,7 +120,7 @@ public class IFD_ASCII extends IFD_Entry { // 32 bit unsigned integer
 			out.writeByte(0x00); // nul byte
 		} else {
 			out.writeLong(data_pos); //--- data offset
-			//log.info("bigTIFF " + Util.hex(id) + " ascii " + Util.hex(data_pos));
+			//Logger.info("bigTIFF " + Util.hex(id) + " ascii " + Util.hex(data_pos));
 		}
 	}
 

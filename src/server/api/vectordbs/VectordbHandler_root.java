@@ -8,8 +8,8 @@ import java.util.Set;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -28,7 +28,7 @@ import vectordb.VectorDB;
 import vectordb.style.Style;
 
 public class VectordbHandler_root extends VectordbHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public VectordbHandler_root(Broker broker) {
 		super(broker, "");
@@ -119,7 +119,7 @@ public class VectordbHandler_root extends VectordbHandler {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}	
@@ -127,7 +127,7 @@ public class VectordbHandler_root extends VectordbHandler {
 
 	@Override
 	public void handleDELETE(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {	
-		log.info("delete");
+		Logger.info("delete");
 		vectordb.checkMod(userIdentity);
 		if(broker.deleteVectordb(vectordb.getName())) {
 			response.setContentType("text/plain;charset=utf-8");
@@ -155,7 +155,7 @@ public class VectordbHandler_root extends VectordbHandler {
 			updateVectordbProps(vectordb, json, userIdentity, false);
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}

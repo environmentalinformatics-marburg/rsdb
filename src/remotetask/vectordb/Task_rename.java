@@ -17,7 +17,7 @@ import vectordb.VectorDB;
 @Param(name="vectordb", type="layer_id", desc="ID of VectorDB layer to rename.", example="vectordb1")
 @Param(name="new_name", type="layer_id", desc="ID of new VectorDB layer.", example="vectordbA")
 public class Task_rename extends RemoteProxyTask {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private final Broker broker;
 	private final JSONObject task;

@@ -1,13 +1,13 @@
 package rasterdb.node;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.BandProcessor;
 import util.frame.DoubleFrame;
 
 public class ProcessorNode_gap_filling extends ProcessorNode {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private final ProcessorNode node;
 	private final int maxRadius;
@@ -54,7 +54,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 		int radius = 1;
 		while(radius <= maxRadius && !fillG(src, dst, width, height, x, y, radius)) {
 			radius++;
-			//log.info("check " + radius);
+			//Logger.info("check " + radius);
 		}
 	}
 
@@ -114,7 +114,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 		}
 		
 		if(cnt > 0) {
-			//log.info("fill "+fx+" "+fy+" "+cnt);
+			//Logger.info("fill "+fx+" "+fy+" "+cnt);
 			dst[fy][fx] = sum / cnt;
 			return true;
 		}

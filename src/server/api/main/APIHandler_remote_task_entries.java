@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
@@ -18,7 +18,7 @@ import remotetask.RemoteTasks;
 import server.api.APIHandler;
 
 public class APIHandler_remote_task_entries extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_remote_task_entries(Broker broker) {
 		super(broker, "remote_task_entries");

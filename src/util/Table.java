@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import com.opencsv.CSVReader;
 
@@ -22,7 +22,7 @@ import com.opencsv.CSVReader;
  *
  */
 public class Table {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final Charset UTF8 = Charset.forName("UTF-8");
 	private static final String UTF8_BOM = "\uFEFF";
@@ -74,7 +74,7 @@ public class Table {
 				String textValue = row[rowIndex];
 				if(textValue.isEmpty()) {
 					if(warnIfEmpty) {
-						log.warn("empty");
+						Logger.warn("empty");
 					}
 					return Float.NaN;
 				}
@@ -83,7 +83,7 @@ public class Table {
 				if(row[rowIndex].toLowerCase().equals("na")||row[rowIndex].toLowerCase().equals("null")||row[rowIndex].toLowerCase().equals("nan")) {
 					return Float.NaN;
 				} else {
-					log.warn(row[rowIndex]+" not parsed");
+					Logger.warn(row[rowIndex]+" not parsed");
 					e.printStackTrace();
 					return Float.NaN;
 				}
@@ -127,7 +127,7 @@ public class Table {
 				if(row[rowIndex].toLowerCase().equals("na")||row[rowIndex].toLowerCase().equals("null")) {
 					return Double.NaN;
 				} else {
-					log.warn(row[rowIndex]+" not parsed");
+					Logger.warn(row[rowIndex]+" not parsed");
 					e.printStackTrace();
 					return Double.NaN;
 				}
@@ -190,7 +190,7 @@ public class Table {
 			if(text.length()!=1) {
 				text = text.trim();
 				if(text.length()!=1) {
-					log.warn("boolean not parsed "+text);
+					Logger.warn("boolean not parsed "+text);
 					return missing;
 				}
 			}
@@ -201,7 +201,7 @@ public class Table {
 			if(c=='N') {
 				return false;
 			}
-			log.warn("boolean not parsed "+text);
+			Logger.warn("boolean not parsed "+text);
 			return missing;
 		}		
 	}
@@ -260,7 +260,7 @@ public class Table {
 			}			
 			table.updateNames(columnsNames);			
 
-			//log.info("names: "+Arrays.toString(table.names)+"   in "+filename);
+			//Logger.info("names: "+Arrays.toString(table.names)+"   in "+filename);
 
 			table.rows = new String[list.size()-1][];
 
@@ -270,7 +270,7 @@ public class Table {
 
 			return table;
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 			return null;
 		}
 	}
@@ -286,7 +286,7 @@ public class Table {
 					nameNumber++;
 					name2 = columnNames[i]+nameNumber;
 				}
-				log.warn("dublicate name: "+columnNames[i]+ " replaced with "+name2);
+				Logger.warn("dublicate name: "+columnNames[i]+ " replaced with "+name2);
 				columnNames[i] = name2;
 				map.put(columnNames[i], i);
 			} else {
@@ -316,7 +316,7 @@ public class Table {
 
 			return table;
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 			return null;
 		}
 	}
@@ -339,7 +339,7 @@ public class Table {
 		Integer index = nameMap.get(name);
 		if(index==null) {			
 			if(warn) {
-				log.error("name not found in table: "+name);
+				Logger.error("name not found in table: "+name);
 			}
 			return -1;
 		}

@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 
 import broker.Associated;
@@ -42,7 +42,7 @@ voxelcell.x -> cell.y
 voxelcell.y -> cell.b
  **/
 public class VoxelDB implements AutoCloseable {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final int CURRENT_VERSION_MAJOR = 1;
 	private static final int CURRENT_VERSION_MINOR = 0;
@@ -363,7 +363,7 @@ public class VoxelDB implements AutoCloseable {
 					local_range = localRangeCalculator.calc();
 					griddb.writeMeta();
 				} catch (IOException e) {
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 			return local_range;	

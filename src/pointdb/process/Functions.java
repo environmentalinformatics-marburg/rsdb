@@ -5,8 +5,8 @@ import java.lang.reflect.Modifier;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import pointdb.process.Fun_BE.Fun_BE_PR_INTERVAL;
 import pointdb.process.Fun_BE.Fun_BE_PR_H;
 import pointdb.process.Fun_BE.Fun_BE_PR_Q;
@@ -15,7 +15,7 @@ import pointdb.process.Fun_BE.Fun_BE_RD_H;
 import pointdb.process.Fun_BE.Fun_BE_RD_Q;
 
 public class Functions {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private static final TreeMap<String, ProcessingFun> funMap = new TreeMap<>();
 	private static final TreeSet<String> funTags = new TreeSet<>();
@@ -86,7 +86,7 @@ public class Functions {
 
 	public static void add(ProcessingFun fun) {
 		if(funMap.containsKey(fun.name)) {
-			log.warn("overwriting existing function "+fun.name);
+			Logger.warn("overwriting existing function "+fun.name);
 		}
 		funMap.put(fun.name, fun);
 	}
@@ -96,7 +96,7 @@ public class Functions {
 			if(ProcessingFun.class.isAssignableFrom(clazz)) {
 				add((Class<? extends ProcessingFun>) clazz);
 			} else {
-				log.warn("class not compatible to ProcessingFun: "+clazz);
+				Logger.warn("class not compatible to ProcessingFun: "+clazz);
 			}
 		}
 
@@ -119,16 +119,16 @@ public class Functions {
 				try {
 					add(clazz.newInstance());
 				} catch (Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 			} else {
-				log.error("class does not have empty constructor: "+clazz);
+				Logger.error("class does not have empty constructor: "+clazz);
 			}
 			} else {
-				log.error("inner class is not static: "+clazz);
+				Logger.error("inner class is not static: "+clazz);
 			}
 		} else {
-			log.info("class excluded by marker: "+clazz);
+			Logger.info("class excluded by marker: "+clazz);
 		}
 	}
 

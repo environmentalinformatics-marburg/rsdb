@@ -9,15 +9,15 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import com.opencsv.CSVReader;
 
 import util.Util;
 
 public class Poi {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final Charset UTF8 = Charset.forName("UTF-8");
 
@@ -48,7 +48,7 @@ public class Poi {
 				if(Util.isValidIdentifier(id)) {
 					poiList.add(new Poi(id, Double.parseDouble(row[1]), Double.parseDouble(row[2])));
 				} else {
-					log.warn("POI not inserted: invalid identifier: "+id+" at "+Arrays.toString(row)+" in "+filename);
+					Logger.warn("POI not inserted: invalid identifier: "+id+" at "+Arrays.toString(row)+" in "+filename);
 				}
 
 			}

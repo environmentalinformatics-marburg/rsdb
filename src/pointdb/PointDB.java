@@ -2,8 +2,8 @@ package pointdb;
 
 import java.io.File;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -28,7 +28,7 @@ import util.Util;
  *
  */
 public class PointDB {
-	private static final Logger log = LogManager.getLogger();	
+		
 
 	private final DB db;
 	private final DB dbMeta;
@@ -58,21 +58,21 @@ public class PointDB {
 		File fileMeta = new File(config.getTileMetaDbFullPath());
 		Util.checkFileNotLocked(file);
 		Util.checkFileNotLocked(fileMeta);
-		log.info("init PointDB...");		
+		Logger.info("init PointDB...");		
 		Util.createPathOfFile(file);
 		Util.createPathOfFile(fileMeta);
-		log.info("init PointDB open tile file ...");
+		Logger.info("init PointDB open tile file ...");
 		db = createTileDB(file,config.isTransactions());
-		log.info("init PointDB open tile map ...");
+		Logger.info("init PointDB open tile map ...");
 		tileMap = createTileMap(db, config.getStorageType());
-		log.info("init PointDB open meta file ...");
+		Logger.info("init PointDB open meta file ...");
 		dbMeta = createTileMetaDB(fileMeta, config.isTransactions());
-		log.info("init PointDB open meta map ...");
+		Logger.info("init PointDB open meta map ...");
 		tileMetaMap = createTileMetaMap(dbMeta);
 
-		log.info("init PointDB commit ...");
+		Logger.info("init PointDB commit ...");
 		commit(); // workaround for empty db close reopen error
-		log.info("init PointDB done");
+		Logger.info("init PointDB done");
 	}
 
 	public static void checkExistDB(PointdbConfig config) {
@@ -99,10 +99,10 @@ public class PointDB {
 	}
 
 	public void compact() {
-		log.info("DB commit...");
+		Logger.info("DB commit...");
 		dbMeta.commit();
 		db.commit();
-		log.info("DB compact...");
+		Logger.info("DB compact...");
 		dbMeta.compact();
 		db.compact();
 
@@ -110,10 +110,10 @@ public class PointDB {
 
 	public void close() {
 		if(!db.isClosed()) {
-			log.info("DB commit...");
+			Logger.info("DB commit...");
 			dbMeta.commit();
 			db.commit();
-			log.info("DB close...");
+			Logger.info("DB close...");
 			dbMeta.close();
 			db.close();
 		}

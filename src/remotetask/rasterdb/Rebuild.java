@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.Band;
 import rasterdb.RasterDB;
@@ -16,7 +16,7 @@ import rasterunit.TileKey;
 import remotetask.CancelableRemoteProxy;
 
 public class Rebuild extends CancelableRemoteProxy {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final RasterDB src;
 	private final Path rootPath;
@@ -86,7 +86,7 @@ public class Rebuild extends CancelableRemoteProxy {
 	}
 
 	private void write(RasterUnitStorage dstStorage, Tile[] batchCollector, int batchCnt) throws IOException {
-		log.info("write batch");
+		Logger.info("write batch");
 		for (int i = 0; i < batchCnt; i++) {
 			dstStorage.writeTile(batchCollector[i]);
 		}

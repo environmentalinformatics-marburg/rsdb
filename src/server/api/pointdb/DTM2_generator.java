@@ -6,7 +6,7 @@ import pointdb.processing.geopoint.RasterGrid;
 import util.collections.vec.Vec;
 
 public class DTM2_generator {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	HalfGrid halfGrid;
 

@@ -2,8 +2,8 @@ package pointdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Informal;
 import broker.Informal.Builder;
@@ -21,7 +21,7 @@ import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
 
 public class Rasterizer {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected final PointDB pointdb;
 	protected final RasterDB rasterdb;
@@ -125,20 +125,20 @@ public class Rasterizer {
 
 		public void write() throws IOException {
 			if(pointdbTileReadCount > 0) {
-				log.info("read");
+				Logger.info("read");
 				fill(pixels);
 				int rasterdbTileWriteCount = ProcessingFloat.writeMerge(rasterUnit, 0, band, pixels, ymin * tile_scale, xmin * tile_scale);
-				log.info("written "+"pointdbTileReadCount "+pointdbTileReadCount+"    "+"rasterdbTileWriteCount "+rasterdbTileWriteCount+"    "+xmin+"  "+xmax+"          "+((xmax - xmin) / PdbConst.UTM_TILE_SIZE + 1) + "        " + ymin+"  "+ymax+"          "+((ymax - ymin) / PdbConst.UTM_TILE_SIZE + 1));
+				Logger.info("written "+"pointdbTileReadCount "+pointdbTileReadCount+"    "+"rasterdbTileWriteCount "+rasterdbTileWriteCount+"    "+xmin+"  "+xmax+"          "+((xmax - xmin) / PdbConst.UTM_TILE_SIZE + 1) + "        " + ymin+"  "+ymax+"          "+((ymax - ymin) / PdbConst.UTM_TILE_SIZE + 1));
 				rasterUnit.commit();
-				log.info("committed");
+				Logger.info("committed");
 			}
 		}
 	}
 
 	public void run(Band band) throws IOException {
 		Statistics stat = pointdb.tileMetaProducer(null).toStatistics();
-		log.info(stat.tile_x_min+"  "+stat.tile_x_max+"          "+(stat.tile_x_max - stat.tile_x_min + PdbConst.UTM_TILE_SIZE));
-		log.info(stat.tile_y_min+"  "+stat.tile_y_max+"          "+(stat.tile_y_max - stat.tile_y_min + PdbConst.UTM_TILE_SIZE));
+		Logger.info(stat.tile_x_min+"  "+stat.tile_x_max+"          "+(stat.tile_x_max - stat.tile_x_min + PdbConst.UTM_TILE_SIZE));
+		Logger.info(stat.tile_y_min+"  "+stat.tile_y_max+"          "+(stat.tile_y_max - stat.tile_y_min + PdbConst.UTM_TILE_SIZE));
 
 
 		int xmin = stat.tile_x_min;
@@ -171,7 +171,7 @@ public class Rasterizer {
 				if(cxmax > xmax) {
 					cxmax = xmax;
 				}				
-				//log.info(cxmin+"  "+cxmax+"          "+((cxmax - cxmin) / PdbConst.UTM_TILE_SIZE + 1) + "        " + cymin+"  "+cymax+"          "+((cymax - cymin) / PdbConst.UTM_TILE_SIZE + 1));
+				//Logger.info(cxmin+"  "+cxmax+"          "+((cxmax - cxmin) / PdbConst.UTM_TILE_SIZE + 1) + "        " + cymin+"  "+cymax+"          "+((cymax - cymin) / PdbConst.UTM_TILE_SIZE + 1));
 				Rect rect = Rect.of_UTM(cxmin, cymin, cxmax, cymax);
 				StatisticsCollector keyStat = StatisticsCollector.collect(pointdb.tileKeyProducer(rect));
 				if(keyStat.tile_count > 0) {

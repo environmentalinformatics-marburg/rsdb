@@ -14,8 +14,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -43,7 +43,7 @@ import util.image.MonoColor;
 import util.image.Renderer;
 
 public class RasterdbMethod_wms extends RasterdbMethod {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public RasterdbMethod_wms(Broker broker) {
 		super(broker, "wms");	
@@ -54,7 +54,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		request.setHandled(true);
 
 		/*if(!"WMS".equals(request.getParameter("SERVICE"))) {
-			log.error("no WMS");
+			Logger.error("no WMS");
 			return;
 		}*/		
 
@@ -77,7 +77,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			handle_GetCapabilities(rasterdb, target, request, response, userIdentity);
 			break;
 		default:
-			log.error("unknown request "+reqParam);
+			Logger.error("unknown request "+reqParam);
 			return;
 		}
 	}
@@ -91,7 +91,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		String format = "png";
 
 		if(!target.isEmpty()) {
-			log.info("target |" + target + "|");
+			Logger.info("target |" + target + "|");
 			CustomWMS customWMS = rasterdb.customWmsMapReadonly.get(target);
 			if(customWMS != null) {
 				if(customWMS.hasValue_range()) {
@@ -103,7 +103,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 						range = new double[] {customWMS.value_range_static_min, customWMS.value_range_static_max};
 						break;
 					default:
-						log.warn("unknown value_range: " + customWMS.value_range);
+						Logger.warn("unknown value_range: " + customWMS.value_range);
 					}
 				}
 				if(customWMS.hasGamma()) {
@@ -114,7 +114,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 						try {
 							gamma = Double.parseDouble(customWMS.gamma);
 						} catch (Exception e) {
-							log.warn("unknown gamma value: " + e + "   " + customWMS.gamma);
+							Logger.warn("unknown gamma value: " + e + "   " + customWMS.gamma);
 						}
 					}
 				}
@@ -125,7 +125,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 					format = customWMS.format;
 				}
 			} else {
-				log.warn("custom WMS not found |" + target + "|");
+				Logger.warn("custom WMS not found |" + target + "|");
 			}
 		}
 
@@ -133,7 +133,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		String layers = Web.getString(request, "LAYERS", "color");
 		String[] layerList = layers.split(",");
 		if(layerList.length > 1) {
-			log.warn("multiple layers specified in LAYERS. Using first layer only.");
+			Logger.warn("multiple layers specified in LAYERS. Using first layer only.");
 		}
 		String layer = layerList[0];
 
@@ -145,7 +145,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		if(styles != null && !styles.isEmpty()) {
 			String[] stylesList = styles.split(",");
 			if(stylesList.length > 1) {
-				log.warn("styles for multiple layers specified in STYLES. Using styles of first layer only.");
+				Logger.warn("styles for multiple layers specified in STYLES. Using styles of first layer only.");
 			}
 			String style = stylesList[0];
 			String[] sParams = style.split("/");
@@ -154,7 +154,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 				switch(args[0]) {
 				
 				default:
-					log.warn("unknown style type: " + args[0]);
+					Logger.warn("unknown style type: " + args[0]);
 				}
 			}
 		}
@@ -163,11 +163,11 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");
 		String[] bbox = request.getParameter("BBOX").split(",");
-		//log.info("bbox "+Arrays.toString(bbox));
+		//Logger.info("bbox "+Arrays.toString(bbox));
 		//boolean transposed = rasterdb.ref().wms_transposed;
 		boolean transposed = false;
 		if(transposed) {
-			log.info("!!!            transposed                !!!");
+			Logger.info("!!!            transposed                !!!");
 		}
 		Range2d range2d = rasterdb.ref().parseBboxToRange2d(bbox, transposed);
 		BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);

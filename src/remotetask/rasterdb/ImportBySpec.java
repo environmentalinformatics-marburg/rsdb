@@ -2,8 +2,8 @@ package remotetask.rasterdb;
 
 import java.nio.file.Path;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.TimeSlice;
@@ -12,13 +12,13 @@ import rasterdb.RasterDB;
 import util.raster.GdalReader;
 
 public class ImportBySpec {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static ImportProcessor importPerpare(Broker broker, Path path, String rasterdbID, ImportSpec spec) {
 		if(path == null) {
 			throw new RuntimeException("no path");
 		}
-		log.info(path);
+		Logger.info(path);
 		GdalReader gdalreader = new GdalReader(path.toString());	
 		return importPerpare(broker, gdalreader, rasterdbID, spec);
 	}

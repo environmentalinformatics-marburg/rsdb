@@ -9,8 +9,8 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.SignStyle;
 import java.time.temporal.ChronoField;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.acl.ACL;
@@ -26,7 +26,7 @@ import util.Timer;
 import util.Util;
 
 public class Import_sequoia {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final String namePrefix;
@@ -41,14 +41,14 @@ public class Import_sequoia {
 	public void importDirectory(Path root) throws Exception {
 		Timer.start("import_sequoia "+root);		
 		importDirectoryInternal(root, root.getFileName().toString());
-		log.info(Timer.stop("import_sequoia "+root));
+		Logger.info(Timer.stop("import_sequoia "+root));
 	}
 
 	private void importDirectoryInternal(Path root, String dataName) throws Exception {
 		for(Path path:Util.getPaths(root)) {
 			if(path.toFile().isFile()) {
 				if(path.getFileName().toString().endsWith(".tif")) {
-					log.info("import sequoia "+path);
+					Logger.info("import sequoia "+path);
 					importFile(path);
 				}
 			} else if(path.toFile().isDirectory()) {
@@ -68,24 +68,24 @@ public class Import_sequoia {
 	public void importFile(Path path) throws Exception {
 		String filename = path.getFileName().toString();
 		if(!filename.contains("sequoia_reflectance")) {
-			log.info("skip filename "+filename);
+			Logger.info("skip filename "+filename);
 			return;
 		}
-		log.info("filename "+filename);
+		Logger.info("filename "+filename);
 		int layerNameIndex = filename.indexOf('_');
 		String layerSubName = filename.substring(0, layerNameIndex);
 		int dateIndex = filename.lastIndexOf('_');
 		String dateText = filename.substring(layerNameIndex + 1, dateIndex);
 		dateIndex = dateText.lastIndexOf('_');
 		dateText = dateText.substring(0, dateIndex);
-		log.info("dateText " + dateText);
+		Logger.info("dateText " + dateText);
 		LocalDate date = LocalDate.parse(dateText, UNDERSCORE_DATE);
 		LocalDateTime datetime = LocalDateTime.of(date, LocalTime.MIDNIGHT);
-		log.info("datetime " + datetime);
+		Logger.info("datetime " + datetime);
 		int timestamp = TimeUtil.toTimestamp(datetime);
 		String dateName = datetime.getYear() + "_" + (datetime.getMonthValue() <= 9 ? "0" : "") + datetime.getMonthValue() + "_" + (datetime.getDayOfMonth() <= 9 ? "0" : "") + datetime.getDayOfMonth();
 		String layerName = namePrefix + '_' + layerSubName + "_" + dateName;
-		log.info("layerName "+layerName);
+		Logger.info("layerName "+layerName);
 
 		Strategy strategy = Strategy.CREATE;
 		RasterDB rasterdb = null;
@@ -103,7 +103,7 @@ public class Import_sequoia {
 		spec.inf.corresponding_contact = corresponding_contact;
 		spec.inf.setTags("exploratories", "UAV", "sequoia", "reflectance", layerSubName);
 		spec.acl = ACL.of("be", "exploratories_cartography");
-		log.info(spec.bandSpecs);
+		Logger.info(spec.bandSpecs);
 
 		switch(spec.bandSpecs.size()) {
 		case 4: {

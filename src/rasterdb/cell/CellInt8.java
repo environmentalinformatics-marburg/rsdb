@@ -2,8 +2,8 @@ package rasterdb.cell;
 
 import java.nio.ByteOrder;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import me.lemire.integercompression.IntWrapper;
 import rasterdb.Band;
@@ -11,7 +11,7 @@ import rasterunit.Tile;
 import util.Serialisation;
 
 public class CellInt8 extends Cell<byte[][]>{
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public CellInt8(int pixel_len) {
 		super(pixel_len);

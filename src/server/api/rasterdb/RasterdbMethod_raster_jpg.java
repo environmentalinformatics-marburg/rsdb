@@ -10,7 +10,7 @@ import broker.Broker;
 import rasterdb.RasterDB;
 
 public class RasterdbMethod_raster_jpg extends RasterdbMethod {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public RasterdbMethod_raster_jpg(Broker broker) {
 		super(broker, "raster.jpg");	

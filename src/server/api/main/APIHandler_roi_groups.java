@@ -6,8 +6,8 @@ import java.util.stream.Stream.Builder;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -20,7 +20,7 @@ import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_roi_groups extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_roi_groups(Broker broker) {
 		super(broker, "roi_groups");
@@ -44,7 +44,7 @@ public class APIHandler_roi_groups extends APIHandler {
 						builder.accept(roiGroup);
 					}
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			});
 		} else {

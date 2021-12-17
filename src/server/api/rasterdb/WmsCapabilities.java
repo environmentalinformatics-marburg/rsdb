@@ -12,8 +12,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -28,7 +28,7 @@ import util.TimeUtil;
 import util.collections.ReadonlyNavigableSetView;
 
 public class WmsCapabilities {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final String baseURL;
@@ -36,7 +36,7 @@ public class WmsCapabilities {
 	public WmsCapabilities(Broker broker, String baseURL) {
 		this.broker = broker;
 		this.baseURL = baseURL.endsWith("/") ? baseURL.substring(0, baseURL.length() - 1) : baseURL;
-		log.info("baseURL " + this.baseURL);
+		Logger.info("baseURL " + this.baseURL);
 	}
 
 	public void capabilities(OutputStream out, UserIdentity userIdentity) {
@@ -54,7 +54,7 @@ public class WmsCapabilities {
 			transformer.transform(source, result);
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 		}
 	}
 
@@ -81,7 +81,7 @@ public class WmsCapabilities {
 		addElement(eRootLayer, "Title", "Remote Sensing Database");
 		addElement(eRootLayer, "Abstract", "WMS service");
 		for (String name : broker.getRasterdbNames()) {
-			log.info("load " + name);
+			Logger.info("load " + name);
 			RasterDB rasterdb = broker.getRasterdb(name);
 			if(rasterdb.getACL().isAllowed(userIdentity)) {
 				// int default_epsg = 4326; // WGS-84 / geographisch 2D weltweites System für

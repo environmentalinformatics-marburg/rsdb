@@ -5,8 +5,8 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
 import pointcloud.AttributeSelector;
@@ -19,7 +19,7 @@ import util.ByteArrayOut;
 import util.Receiver;
 
 public class PointTableWriter {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	//derived from https://stackoverflow.com/a/10554128
 	private static final int POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
@@ -167,7 +167,7 @@ public class PointTableWriter {
 			writeJsAllPoints(pointTables, receiver, format, pointCount);
 		} else {
 			double samplingFactor = ((double)pointCount) / maxSamplePoints;
-			log.info("sample " + maxSamplePoints + " of " + pointCount+ " sampling factor " + samplingFactor);
+			Logger.info("sample " + maxSamplePoints + " of " + pointCount+ " sampling factor " + samplingFactor);
 			writeJsSamplePoints(pointTables, receiver, format, samplingFactor);
 		}		
 	}
@@ -187,7 +187,7 @@ public class PointTableWriter {
 				samplingPos -= len;
 			}
 		}
-		log.info("samples "+samplePointCount);
+		Logger.info("samples "+samplePointCount);
 		int pointCount = samplePointCount;
 		receiver.setContentType("application/octet-stream");
 		switch(format) {

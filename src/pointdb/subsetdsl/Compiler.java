@@ -11,8 +11,8 @@ import java.util.stream.Collector;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.mapdb.Fun.Pair;
 
 import broker.Broker;
@@ -34,7 +34,7 @@ import pointdb.subsetdsl.SubsetDSLParser.UrlContext;
 import util.collections.vec.Vec;
 
 public class Compiler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public Compiler() {
 	}
@@ -98,7 +98,7 @@ public class Compiler {
 		@Override
 		public Vec<Pair<Region, String>> getRegions(Broker broker) {
 			Vec<Pair<Point, String>> points = p.getPoints(broker);
-			log.info("points "+points);
+			Logger.info("points "+points);
 			//Rect rect = points.asLazy().collect(p->p.a).reduceInPlace(Point.BBOX_COLLECTOR);
 			Rect rect = points.stream().map(p->p.a).collect(Point.BBOX_COLLECTOR);
 			return Vec.ofOne(new Pair<Region, String>(Region.ofRect(rect),"bbox"));
@@ -130,11 +130,11 @@ public class Compiler {
 			for(ExternalURL url:list) {
 				String g = url.group==null ? group : url.group;
 				if(g==null) {
-					log.warn("no group specified");
+					Logger.warn("no group specified");
 				} else {
 					Roi roi = broker.getRoiByPath(g, url.name);
 					Region region = Region.ofPolygon(roi.points);
-					log.info(region);
+					Logger.info(region);
 					regions.add(new Pair<Region, String>(region, url.name));
 				}
 			}
@@ -233,11 +233,11 @@ public class Compiler {
 			for(ExternalURL p:list) {
 				String g = p.group==null ? group : p.group;
 				if(g==null) {
-					log.warn("no group specified");
+					Logger.warn("no group specified");
 				} else {
 					Poi poi = broker.getPoiByPath(g, p.name);
 					if(poi==null) {
-						log.warn("POI not found "+p);
+						Logger.warn("POI not found "+p);
 					} else {
 						r.add(new Pair<Point, String>(new Point((long)(poi.x*1000), (long)(poi.y*1000)),p.name)); //short title
 					}

@@ -1,7 +1,7 @@
 package pointdb.process;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
@@ -16,7 +16,7 @@ import server.api.pointdb.RasterGenerator;
 import util.collections.vec.Vec;
 
 public class DataProvider {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public DataProvider2 dp;
 

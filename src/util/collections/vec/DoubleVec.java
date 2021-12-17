@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.function.DoubleConsumer;
 
 public class DoubleVec {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private static final double[] DEFAULT_SIZED_EMPTY_ARRAY = {};
 

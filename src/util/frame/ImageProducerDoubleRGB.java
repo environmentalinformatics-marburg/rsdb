@@ -3,15 +3,15 @@ package util.frame;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Phaser;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Timer;
 import util.Util;
 import util.image.ImageRGBA;
 
 public class ImageProducerDoubleRGB extends ImageRGBA {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private final DoubleFrame frameR;
 	private final DoubleFrame frameG;
@@ -143,7 +143,7 @@ public class ImageProducerDoubleRGB extends ImageRGBA {
 
 		draw(dataHolder[0], dataHolder[1], dataHolder[2], minR, rangeR, minG, rangeG, minB, rangeB, ginv);
 
-		log.info(Timer.stop("render"));
+		Logger.info(Timer.stop("render"));
 	}
 
 	private void draw(double[][] dataR, double[][] dataG, double[][] dataB, double minR, double rangeR, double minG, double rangeG, double minB, double rangeB, double ginv) {

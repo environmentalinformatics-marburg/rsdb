@@ -2,11 +2,11 @@ package rasterdb.ast;
 
 import java.util.ArrayList;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public interface TransformVisitor extends AstVisitor<AST, AST> {
-	static final Logger log = LogManager.getLogger();
+	
 	
 	@Override
 	default AST visitSequence(AST_Sequence ast, AST parent) {

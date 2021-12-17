@@ -14,8 +14,8 @@ import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -24,7 +24,7 @@ import com.googlecode.javaewah.datastructure.BitSet;
 import util.Util;
 
 public class ChunkedUploader {
-	private static final Logger log = LogManager.getLogger();
+	
 	public static final Object GLOBAL_LOCK = new Object();
 	private static final int FILE_SIZE_THRESHOLD = 100*1024*1024;
 	private static final MultipartConfigElement MULTI_PART_CONFIG = new MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, FILE_SIZE_THRESHOLD);
@@ -69,7 +69,7 @@ public class ChunkedUploader {
 			}
 			synchronized(GLOBAL_LOCK) {
 				if(Files.exists(path)) {
-					log.warn("file already exists");
+					Logger.warn("file already exists");
 					//throw new RuntimeException("file already exists");
 				}
 				File file = path.toFile();
@@ -92,14 +92,14 @@ public class ChunkedUploader {
 				throw new RuntimeException("wrong last chunk: totalSize:" + totalSize + "  pos:" + pos + "  chunkSize:" + chunkData.length+ "  chunkIndex:" + chunkIndex+"  totalChunks:" + totalChunks);
 			}
 			if(received.get(chunkIndex)) {
-				log.info("chunk already inserted");
+				Logger.info("chunk already inserted");
 			}
 
 			raf.seek(pos);
 			raf.write(chunkData);
 
 			received.set(chunkIndex);
-			log.info("cardinality "+received.cardinality() + " of " + totalChunks);
+			Logger.info("cardinality "+received.cardinality() + " of " + totalChunks);
 		}
 		public synchronized boolean isFinished() {
 			return received.cardinality() == totalChunks;
@@ -107,12 +107,12 @@ public class ChunkedUploader {
 	}
 	
 	public void handle(Request request, Response response, Consumer<ChunkedUpload> fileConsumer) throws IOException {
-		log.info(System.getProperty("java.io.tmpdir"));
+		Logger.info(System.getProperty("java.io.tmpdir"));
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType("text/plain;charset=utf-8");
-		//log.info("handle upload");
+		//Logger.info("handle upload");
 
-		//log.info(request.getContentType());
+		//Logger.info(request.getContentType());
 		if (request.getContentType() != null && request.getContentType().startsWith("multipart/form-data")) {
 			request.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG);
 		}
@@ -128,48 +128,48 @@ public class ChunkedUploader {
 			long totalSize = -1;
 
 			Collection<Part> parts = request.getParts();
-			//log.info("parts " + parts.size());
+			//Logger.info("parts " + parts.size());
 			for(Part part:parts) {
 				String partName = part.getName();
 				switch(partName) {
 				case "chunkNumber":
 					chunkNumber = toInt(part);
-					//log.info("chunkNumber " + chunkNumber);
+					//Logger.info("chunkNumber " + chunkNumber);
 					break;
 				case "identifier": //ignore
 					//String identifier = toString(part);
-					//log.info("identifier " + identifier);
+					//Logger.info("identifier " + identifier);
 					break;
 				case "totalSize":
 					totalSize = toLong(part);
-					log.info("totalSize " + totalSize);
+					Logger.info("totalSize " + totalSize);
 					break;
 				case "filename":
 					filename = toString(part);
-					log.info("filename " + filename);
+					Logger.info("filename " + filename);
 					break;
 				case "file":
-					//log.info("file " + toString(part));
+					//Logger.info("file " + toString(part));
 					chunkData = toBytes(part);
 					break;
 				case "chunkSize": //ignore
 					chunkSize = toInt(part);
-					//log.info("chunkSize " + chunkSize);
+					//Logger.info("chunkSize " + chunkSize);
 					break;
 				case "relativePath": //ignore
 					//String relativePath = toString(part);
-					//log.info("relativePath " + relativePath);
+					//Logger.info("relativePath " + relativePath);
 					break;
 				case "totalChunks":
 					totalChunks = toInt(part);
-					//log.info("totalChunks " + totalChunks);
+					//Logger.info("totalChunks " + totalChunks);
 					break;
 				case "currentChunkSize":
 					currentChunkSize = toInt(part);
-					log.info("currentChunkSize " + currentChunkSize);
+					Logger.info("currentChunkSize " + currentChunkSize);
 					break;
 				default:
-					log.info("unknown partName " + partName);
+					Logger.info("unknown partName " + partName);
 				}
 			}
 
@@ -187,7 +187,7 @@ public class ChunkedUploader {
 				}
 			} else {
 				if(!filename.equals(chunkedUpload.filename) || chunkSize != chunkedUpload.chunkSize || totalChunks != chunkedUpload.totalChunks || totalSize != chunkedUpload.totalSize) {
-					log.warn("same filename with different upload params, create new upload: " + filename);
+					Logger.warn("same filename with different upload params, create new upload: " + filename);
 					chunkedUpload = new ChunkedUpload(root, filename, chunkSize, totalChunks, totalSize);
 					map.put(filename, chunkedUpload);
 				}
@@ -195,14 +195,14 @@ public class ChunkedUploader {
 			chunkedUpload.add(chunkNumber, chunkData);
 
 			if(chunkedUpload.isFinished()) {
-				log.info("finished!");
+				Logger.info("finished!");
 				if(fileConsumer != null) {
 					fileConsumer.accept(chunkedUpload);
 				}
 			}
 
 		} catch (Exception e) {
-			log.error(e);
+			Logger.error(e);
 			throw new RuntimeException(e);
 		}
 
@@ -210,10 +210,10 @@ public class ChunkedUploader {
 		long read_bytes = 0;
 		while(!in.isFinished()) {
 			int c = in.read();
-			log.info(((char) c));
+			Logger.info(((char) c));
 			read_bytes++;
 		}
-		log.info("read_bytes " + read_bytes);*/
+		Logger.info("read_bytes " + read_bytes);*/
 	}
 	
 	public static byte[] toBytes(Part part) throws IOException {
@@ -222,7 +222,7 @@ public class ChunkedUploader {
 		int pos = 0;
 		InputStream in = part.getInputStream();
 		while(pos < raw_size) {
-			//log.info("read at "+pos+" of "+raw_size);
+			//Logger.info("read at "+pos+" of "+raw_size);
 			int read_size = in.read(raw, pos, raw_size - pos);
 			if(read_size < 1) {
 				throw new RuntimeException("not all bytes read "+pos+"  of  "+raw_size);

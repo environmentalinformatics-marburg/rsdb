@@ -2,8 +2,8 @@ package server.api.pointdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -26,7 +26,7 @@ import util.rdat.RdatRaster;
  */
 @Deprecated
 public class APIHandler_dtm extends PointdbAPIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_dtm(Broker broker) {
 		super(broker, "dtm");
@@ -38,7 +38,7 @@ public class APIHandler_dtm extends PointdbAPIHandler {
 		PointDB pointdb = getPointdb(request);
 		Rect rect = Rect.of_extent_request(request);
 		rect = rect.withBorderUTM(PointGrid.window_size).outerMeterRect();
-		log.info("rect "+rect);
+		Logger.info("rect "+rect);
 		PointFilter filter = PointFilter.createFilter("last_return=1");
 
 		Vec<GeoPoint> rawPoints = pointdb.tilePointProducer(rect).filter(filter).toGeoPointProducer().toList();		
@@ -47,7 +47,7 @@ public class APIHandler_dtm extends PointdbAPIHandler {
 		//for(int i=0;i<10;i++) {
 			rasterGrid = DTM_generator.generate(rawPoints, rect);
 		//}
-		log.info(Timer.stop("dtm"));
+		Logger.info(Timer.stop("dtm"));
 		rasterGrid.meta.put("name", "dtm");
 		RdatRaster.write_RDAT_RASTER(new ResponseReceiver(response), rasterGrid, pointdb.config.getProj4());
 

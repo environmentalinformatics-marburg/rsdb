@@ -6,8 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -20,7 +20,7 @@ import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_roi_groups extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected static final String MIME_JSON = "application/json";
 
@@ -50,7 +50,7 @@ public class APIHandler_roi_groups extends AbstractHandler {
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.setContentType("text/plain;charset=utf-8");
 			response.getWriter().println(e);

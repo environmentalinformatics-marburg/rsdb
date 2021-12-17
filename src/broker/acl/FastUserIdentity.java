@@ -4,12 +4,12 @@ import java.security.Principal;
 
 import javax.security.auth.Subject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 
 public class FastUserIdentity implements UserIdentity {
-	static final Logger log = LogManager.getLogger();
+	
 	private static final String[] NO_ROLES = new String[]{};
 
 	public final Subject subject;
@@ -37,7 +37,7 @@ public class FastUserIdentity implements UserIdentity {
 
 	@Override
 	public Principal getUserPrincipal() {
-		//log.info("getUserPrincipal");
+		//Logger.info("getUserPrincipal");
 		return principal;
 	}
 

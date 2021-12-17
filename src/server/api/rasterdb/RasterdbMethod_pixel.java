@@ -17,7 +17,7 @@ import util.Web;
 import util.frame.DoubleFrame;
 
 public class RasterdbMethod_pixel extends RasterdbMethod {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public RasterdbMethod_pixel(Broker broker) {
 		super(broker, "pixel");	

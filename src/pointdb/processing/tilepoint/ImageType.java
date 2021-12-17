@@ -1,14 +1,14 @@
 package pointdb.processing.tilepoint;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public enum ImageType {
 	INTENSITY,
 	Z,
 	INTENSITY_Z;
 	
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static ImageType parse(String text, ImageType defaultType) {
 		if(text==null||text.isEmpty()) {
@@ -22,7 +22,7 @@ public enum ImageType {
 		case "INTENSITY_Z":
 			return INTENSITY_Z;
 		default:
-			log.warn("image type not parsed :"+text);
+			Logger.warn("image type not parsed :"+text);
 			return defaultType;
 		}
 	}

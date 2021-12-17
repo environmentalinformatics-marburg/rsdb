@@ -19,8 +19,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.security.DefaultUserIdentity;
@@ -38,7 +38,7 @@ import util.Nonce;
 import util.TemplateUtil;
 
 public class LoginHandler extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static final String salt = Nonce.get(8);
 
@@ -64,8 +64,8 @@ public class LoginHandler extends AbstractHandler {
 	public static byte[] doHash(String username, String password, String salt) {
 		byte[] user_bytes = username.getBytes(charset);
 		byte[] password_bytes = password.getBytes(charset);
-		log.info(password);
-		log.info(Arrays.toString(password_bytes));
+		Logger.info(password);
+		Logger.info(Arrays.toString(password_bytes));
 		byte[] salt_bytes = salt.getBytes(charset);	
 		MessageDigest md = getHasher();
 		md.update(salt_bytes);
@@ -82,7 +82,7 @@ public class LoginHandler extends AbstractHandler {
 			MessageDigest md = getHasher();
 			md.update(new byte[] {});
 			byte[] digest = md.digest();
-			log.info("self check " + Hex.bytesToHex(digest)); 
+			Logger.info("self check " + Hex.bytesToHex(digest)); 
 		}
 		byte[] user_bytes = username.getBytes(charset);
 		byte[] user_salt_bytes = user_salt.getBytes(charset);	
@@ -92,8 +92,8 @@ public class LoginHandler extends AbstractHandler {
 		md.update(user_salt_bytes);
 		byte[] digest = md.digest();
 		String hash = Hex.bytesToHex(digest);
-		log.info(user_salt + username + user_salt);
-		log.info(username + "   user_hash " + hash + "   salt " + user_salt);
+		Logger.info(user_salt + username + user_salt);
+		Logger.info(username + "   user_hash " + hash + "   salt " + user_salt);
 		int hash_size = hash.length();
 		return hash.substring(hash_size - user_hash_size, hash_size);
 	}
@@ -102,17 +102,17 @@ public class LoginHandler extends AbstractHandler {
 		if(!JWSAuthentication.serverNonceMap.replace(server_nonce, Boolean.TRUE, Boolean.FALSE)) {
 			return false;
 		}
-		log.info("validate username: " + username);
-		//log.info("validate password: " + password);
-		log.info("validate salt: " + salt);
-		log.info("validate server_nonce: " + server_nonce);
-		log.info("validate client_nonce: " + client_nonce);
-		log.info("validate client_hash: " + client_hash);
+		Logger.info("validate username: " + username);
+		//Logger.info("validate password: " + password);
+		Logger.info("validate salt: " + salt);
+		Logger.info("validate server_nonce: " + server_nonce);
+		Logger.info("validate client_nonce: " + client_nonce);
+		Logger.info("validate client_hash: " + client_hash);
 		byte[] server_nonce_bytes = server_nonce.getBytes(charset);
 		byte[] client_nonce_bytes = client_nonce.getBytes(charset);
 		byte[] hash_bytes = doHash(username, password, salt);
 		String inner_hash = Hex.bytesToHex(hash_bytes);
-		log.info(username + "  inner_hash  " + inner_hash);
+		Logger.info(username + "  inner_hash  " + inner_hash);
 		MessageDigest md = getHasher();
 		md.update(server_nonce_bytes);
 		md.update(client_nonce_bytes);
@@ -121,7 +121,7 @@ public class LoginHandler extends AbstractHandler {
 		md.update(server_nonce_bytes);
 		String server_hash = Hex.bytesToHex(md.digest());
 		if(server_hash.equals(client_hash)) {
-			log.info("valid: " + username);
+			Logger.info("valid: " + username);
 			return true;
 		}
 		return false;		
@@ -144,12 +144,12 @@ public class LoginHandler extends AbstractHandler {
 			if(validAccount[0] == null) {
 				String username = account.user;
 				String username_hash = doUser_hash(username);
-				log.info(username + "    " + username_hash + " cmp " + user_hash+ "    user_salt " + user_salt);
+				Logger.info(username + "    " + username_hash + " cmp " + user_hash+ "    user_salt " + user_salt);
 				if(username_hash.equals(user_hash)) {
-					log.info(username + "    " + username_hash + " cmp " + user_hash + "   OK");
+					Logger.info(username + "    " + username_hash + " cmp " + user_hash + "   OK");
 					String password = account.password;					
 					if(validate(username, password, server_nonce, client_nonce, client_hash)) {
-						log.info(username_hash + "  " + username + "  " + user_hash + "  VALID");
+						Logger.info(username_hash + "  " + username + "  " + user_hash + "  VALID");
 						validAccount[0] = account;
 					}
 				}
@@ -163,7 +163,7 @@ public class LoginHandler extends AbstractHandler {
 			throws IOException, ServletException {
 		String loc = "/entrypoint";
 		String ref = request.getParameter("ref");
-		log.info("ref " + ref);
+		Logger.info("ref " + ref);
 		if(ref != null) {
 			loc = ref;
 		}		
@@ -188,7 +188,7 @@ public class LoginHandler extends AbstractHandler {
 
 			Account account = getAccount(user_hash, server_nonce, client_nonce, client_hash);
 			if(account == null) {
-				log.warn("missing identity");
+				Logger.warn("missing identity");
 				baseRequest.setHandled(true);
 				try {
 					Thread.sleep(1000);
@@ -218,7 +218,7 @@ public class LoginHandler extends AbstractHandler {
 			baseRequest.setHandled(true);
 			return;
 		} catch(LoginException e) {
-			log.warn(e);
+			Logger.warn(e);
 			baseRequest.setHandled(true);
 			try {
 				Thread.sleep(1000);

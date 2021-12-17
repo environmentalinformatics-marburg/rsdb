@@ -2,8 +2,8 @@ package server.api.pointdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
@@ -16,7 +16,7 @@ import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_info extends PointdbAPIHandler {
-	private static final Logger log = LogManager.getLogger();	
+		
 
 	private static final String MIME_JSON = "application/json";
 
@@ -44,7 +44,7 @@ public class APIHandler_info extends PointdbAPIHandler {
 				}
 			}
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 
 		if(projectionText.isEmpty()) {
@@ -58,9 +58,9 @@ public class APIHandler_info extends PointdbAPIHandler {
 
 		//if(MIME_JSON.equals(request.getHeader("Accept"))) { // JSON
 		response.setContentType(MIME_JSON);
-		log.info(response.getWriter().getClass());
+		Logger.info(response.getWriter().getClass());
 		JSONWriter json = new JSONWriter(response.getWriter());
-		//log.info("JSON!");
+		//Logger.info("JSON!");
 		json.object();
 		json.key("db");
 		json.value(db.config.name);

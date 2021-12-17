@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
 import pointcloud.AttributeSelector;
@@ -23,7 +23,7 @@ import util.Util;
 import util.Web;
 
 public class PointProcessor {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	@FunctionalInterface
 	public static interface PointTableTransformFunc extends Function<PointTable, PointTable>{
@@ -33,10 +33,10 @@ public class PointProcessor {
 		boolean useRawPoints = false;
 
 		if(useRawPoints) { // processings: just polygon filter
-			log.info("useRawPoints");
+			Logger.info("useRawPoints");
 
 			AttributeSelector queryAttributeSelector = selector == null ? new AttributeSelector(true) : selector;
-			//log.info("queryAttributeSelector " + queryAttributeSelector); 
+			//Logger.info("queryAttributeSelector " + queryAttributeSelector); 
 			Stream<PointTable> pointTables = pointcloud.getPointTables(t, xmin, ymin, xmax, ymax, queryAttributeSelector, filterFunc);
 
 			if(transformFunc != null) {
@@ -75,19 +75,19 @@ public class PointProcessor {
 			String filterText = request.getParameter("filter");
 			if(filterText!=null) {
 				filter = GeoPointFilter.createFilter(filterText);
-				log.info("filter: "+filterText+" "+filter);
+				Logger.info("filter: "+filterText+" "+filter);
 			}
 			boolean sort = false; // always sort if true else sort if needed for other processing (e.g. normalise extremes, ground)
 			switch(Web.getString(request, "sort", "no")) {
 			case "z":
-				log.info("sorting");
+				Logger.info("sorting");
 				sort = true;
 				break;
 			case "no":
 				//nothing
 				break;
 			default:
-				log.warn("unknown sort parameter "+Web.getString(request, "sort", "no"));
+				Logger.warn("unknown sort parameter "+Web.getString(request, "sort", "no"));
 			}
 			double xnorm = 0;
 			double ynorm = 0;

@@ -14,7 +14,7 @@ import java.nio.file.StandardOpenOption;
  *
  */
 public class Hyperspectral {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	FileChannel filechannel;
 
@@ -47,7 +47,7 @@ public class Hyperspectral {
 
 
 		filechannel = FileChannel.open(Paths.get(envi_data_file), StandardOpenOption.READ);
-		//log.info("file "+envi_data_file);
+		//Logger.info("file "+envi_data_file);
 		//mapBuffer(0);		
 	}
 
@@ -100,10 +100,10 @@ public class Hyperspectral {
 	ByteBuffer helperBuffer = null;
 
 	public short[][] getData(int band, int firstLine, int maxLines, short[][] targetData) throws IOException {
-		//log.info("maxLines "+maxLines);
+		//Logger.info("maxLines "+maxLines);
 		short[][] data;
 		if(targetData == null || targetData.length!=maxLines || targetData[0].length!=samples) {
-			//log.info("create new data array");
+			//Logger.info("create new data array");
 			data = new short[maxLines][samples];
 		} else {
 			data = targetData;
@@ -133,7 +133,7 @@ public class Hyperspectral {
 			lineEnd = lines-1;
 		}
 
-		//log.info(interleave);
+		//Logger.info(interleave);
 
 		switch(interleave) {
 		case "bil": {
@@ -152,7 +152,7 @@ public class Hyperspectral {
 			//Timer.start("read bsq");
 			long band_offset = header_offset + 2l*samples*lines*band;
 			long fileBytes = (lineEnd-lineStart+1)*stride_BSQ;
-			//log.info("fileBytes "+fileBytes);
+			//Logger.info("fileBytes "+fileBytes);
 			if(fileBytes>Integer.MAX_VALUE) {
 				throw new RuntimeException("integer overflow");
 			}
@@ -169,10 +169,10 @@ public class Hyperspectral {
 			helperBuffer.rewind();
 
 			final int lines = lineEnd-lineStart+1;
-			//log.info("line "+lineStart+" "+lineEnd+" "+lines);
+			//Logger.info("line "+lineStart+" "+lineEnd+" "+lines);
 			/*int xlen = samples;
 			ByteBuffer buffer = helperBuffer;
-			log.info("get "+lines+"  "+xlen);
+			Logger.info("get "+lines+"  "+xlen);
 			for(int y=0;y<lines;y++) {
 				short[] dataRow = data[y];
 				for(int x=0;x<xlen;x++) {
@@ -184,7 +184,7 @@ public class Hyperspectral {
 			for(int y=0;y<lines;y++) {
 				shortBuffer.get(data[y]);
 			}
-			//log.info(Timer.stopToString("read bsq"));
+			//Logger.info(Timer.stopToString("read bsq"));
 			break;
 		}
 		default:

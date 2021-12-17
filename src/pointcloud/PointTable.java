@@ -8,7 +8,7 @@ import pointdb.base.Point2d;
 import pointdb.base.PolygonUtil;
 
 public class PointTable {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	/**
 	 * rows denotes valid rows, higher rows are not valid. So x.length may be higher than rows.

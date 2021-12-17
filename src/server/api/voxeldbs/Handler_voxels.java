@@ -2,8 +2,8 @@ package server.api.voxeldbs;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -21,7 +21,7 @@ import voxeldb.voxelcellprocessors.VcpInt32;
 import voxeldb.voxelcellprocessors.VcpInt32DivCount;
 
 public class Handler_voxels {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public void handle(VoxelDB voxeldb, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		String format = Web.getString(request, "format");
@@ -172,7 +172,7 @@ public class Handler_voxels {
 		long cell_count_y = (((long)vrymax) - ((long)vrymin) + 1);
 		long cell_count_z = (((long)vrzmax) - ((long)vrzmin) + 1);
 		long cell_count =  cell_count_x * cell_count_y * cell_count_z;		
-		log.info("cell_count: " + cell_count);
+		Logger.info("cell_count: " + cell_count);
 		if(cell_count_max < cell_count) {
 			throw new RuntimeException("too large voxel subset requested, count of voxels: " + cell_count_x + "x" +  + cell_count_y + "x"  + cell_count_z + " = " + cell_count + "   max allowed: " + cell_count_max);
 		}

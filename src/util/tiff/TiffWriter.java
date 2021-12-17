@@ -7,8 +7,8 @@ import java.util.Objects;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.CharArrayWriterUnsync;
 import util.IndentedXMLStreamWriter;
@@ -16,7 +16,7 @@ import util.Util;
 import util.collections.vec.Vec;
 
 public class TiffWriter {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final short compressionType = 1; //no compression
 	private short photometricInterpretationType = 1; //BlackIsZero
@@ -239,7 +239,7 @@ public class TiffWriter {
 			ifd.add_XResolution(xRat[0], xRat[1]);
 			ifd.add_YResolution(yRat[0], yRat[1]);
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 
 		GeoKeyDirectory geoKeyDirectory = new GeoKeyDirectory();
@@ -297,7 +297,7 @@ public class TiffWriter {
 						}
 					});
 				} else {
-					log.warn("IFD: no data in tiff");
+					Logger.warn("IFD: no data in tiff");
 				}
 				xmlWriter.writeEndElement(); // GDALMetadata
 				xmlWriter.writeEndDocument();
@@ -305,7 +305,7 @@ public class TiffWriter {
 				String text = writer.toString();				
 				ifd.add_GDAL_METADATA(text);
 			} catch (Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 
@@ -439,7 +439,7 @@ public class TiffWriter {
 			throw new RuntimeException("there are bands");
 		}
 		if(tiffComposite != null) {
-			log.warn("overwrite composite");
+			Logger.warn("overwrite composite");
 		}
 		this.tiffComposite = tiffComposite;
 	}

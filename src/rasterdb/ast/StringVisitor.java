@@ -4,11 +4,11 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class StringVisitor implements AstVisitor<String, Integer> {
-	static final Logger log = LogManager.getLogger();
+	
 	public static final StringVisitor DEFAULT = new StringVisitor();
 	private static final String SEPERATOR = ", ";
 	private StringVisitor() {}
@@ -64,7 +64,7 @@ public class StringVisitor implements AstVisitor<String, Integer> {
 					break;	
 				}
 				int thisP = ast.getPriority();
-				//log.info("prio "+parentP+"  "+thisP);
+				//Logger.info("prio "+parentP+"  "+thisP);
 				if(parentP < thisP) {
 					return a+" "+op+" "+b;	
 				} else { 

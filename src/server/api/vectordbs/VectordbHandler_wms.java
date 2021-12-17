@@ -13,8 +13,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -33,7 +33,7 @@ import vectordb.Renderer;
 import vectordb.VectorDB;
 
 public class VectordbHandler_wms extends VectordbHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public VectordbHandler_wms(Broker broker) {
 		super(broker, "wms");
@@ -44,7 +44,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 		request.setHandled(true);
 
 		/*if(!"WMS".equals(request.getParameter("SERVICE"))) {
-			log.error("no WMS");
+			Logger.error("no WMS");
 			return;
 		}*/		
 
@@ -67,7 +67,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 			handle_GetCapabilities(vectordb, request, response, userIdentity);
 			break;
 		default:
-			log.error("unknown request " + reqParam);
+			Logger.error("unknown request " + reqParam);
 			return;
 		}		
 	}
@@ -80,10 +80,10 @@ public class VectordbHandler_wms extends VectordbHandler {
 		{
 			SpatialReference refDst = null;
 			if(crs != null) {
-				//log.info(crs);
+				//Logger.info(crs);
 				if(crs.startsWith("EPSG:")) {
 					int epsg = Integer.parseInt(crs.substring(5));
-					//log.info(epsg);
+					//Logger.info(epsg);
 					if(epsg >= 0) {					
 						if(epsg == VectorDB.WEB_MERCATOR_EPSG) {
 							refDst = VectorDB.WEB_MERCATOR_SPATIAL_REFERENCE;

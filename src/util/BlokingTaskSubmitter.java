@@ -6,11 +6,11 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class BlokingTaskSubmitter {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static ForkJoinPool executor = ForkJoinPool.commonPool();
 	//static final ForkJoinPool executor = new ForkJoinPool(1);
@@ -70,9 +70,9 @@ public class BlokingTaskSubmitter {
 	}
 
 	public BlokingTaskSubmitter() {
-		//log.info("int registered " + phaser.getRegisteredParties());
+		//Logger.info("int registered " + phaser.getRegisteredParties());
 		phaser.register();
-		//log.info("start registered " + phaser.getRegisteredParties());
+		//Logger.info("start registered " + phaser.getRegisteredParties());
 	}
 
 	public void submit(Runnable r) {
@@ -91,37 +91,37 @@ public class BlokingTaskSubmitter {
 		submit_remaining_count = SUBMIT_CHECK_INTERVAL_COUNT; 
 		int registered = phaser.getRegisteredParties();
 		if(registered >= MAX_QUEUED_COUNT) {
-			//log.info("backpressure");
+			//Logger.info("backpressure");
 			while(registered >= MIN_QUEUED_COUNT) {
 				try {
-					//log.info("sleep registered " + registered);
+					//Logger.info("sleep registered " + registered);
 					Thread.sleep(WAIT_CHECK_INTERVAL_MS);
 				} catch (InterruptedException e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 				registered = phaser.getRegisteredParties();
 			}
-			//log.info("remaining registered " + registered);
+			//Logger.info("remaining registered " + registered);
 			if(registered <= 2) {
-				log.warn("empty queue " + registered + "   " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
+				Logger.warn("empty queue " + registered + "   " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
 			}
 		}
 	}
 
 	public void finish() {
-		log.info("try finish " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
+		Logger.info("try finish " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
 		int phase = phaser.arriveAndDeregister();
 		while(true) {
 			try {
 				phaser.awaitAdvanceInterruptibly(phase, WAIT_FINISH_INTERVAL_MS, TimeUnit.MILLISECONDS);
 				break;
 			} catch (InterruptedException e) {
-				log.error("interrupted");
+				Logger.error("interrupted");
 				throw new RuntimeException(e);
 			} catch (TimeoutException e) {
-				log.info("wait for finish " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
+				Logger.info("wait for finish " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
 			}
 		}
-		log.info("finished " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
+		Logger.info("finished " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
 	}
 }

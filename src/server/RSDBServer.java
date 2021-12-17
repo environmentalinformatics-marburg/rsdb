@@ -10,10 +10,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.http.CompressedContentFormat;
 import org.eclipse.jetty.http.HttpVersion;
@@ -70,9 +68,7 @@ import util.Table.ColumnReaderString;
 import util.Util;
 
 public class RSDBServer {
-	static final Logger log = LogManager.getLogger();
-	public static final Marker MARKER_REQ = MarkerManager.getMarker("REQ");
-
+	
 	private static final long DATA_TRANSFER_TIMEOUT_MILLISECONDS = 2*60*60*1000; // set timeout to 2 hours
 	private static final int BIND_BACKLOG_SIZE = 50;
 
@@ -109,7 +105,7 @@ public class RSDBServer {
 					String path = request.getPathInfo();
 					String original_path = prefix + path; 
 					request.setPathInfo(original_path);
-					log.info(path + " -> " + original_path);
+					Logger.info(path + " -> " + original_path);
 				}
 			}});*/
 		return httpConfiguration;
@@ -212,8 +208,8 @@ public class RSDBServer {
 		/*RequestLog requestLog = new RequestLog() {			
 			@Override
 			public void log(Request request, Response response) {
-				log.info(MARKER_REQ, Web.getRequestLogString("REQ",request.getRequestURL().toString(),request));
-				//log.info("*** request   "+user+" "+request.getLocalAddr()+" "+request.getRequestURL()+"  "+request.getQueryString()+"  "+response.getStatus());
+				Logger.info(MARKER_REQ, Web.getRequestLogString("REQ",request.getRequestURL().toString(),request));
+				//Logger.info("*** request   "+user+" "+request.getLocalAddr()+" "+request.getRequestURL()+"  "+request.getQueryString()+"  "+response.getStatus());
 			}
 		};
 		server.setRequestLog(requestLog);*/
@@ -289,7 +285,7 @@ public class RSDBServer {
 					String path = request.getPathInfo();
 					String original_path = prefix + path; 
 					request.setContext(request.getContext(), original_path);
-					log.info(path + " -> " + original_path);
+					Logger.info(path + " -> " + original_path);
 				}				
 			}
 		});
@@ -343,7 +339,7 @@ public class RSDBServer {
 			try {
 				System.out.println((Runtime.getRuntime().maxMemory() / (1024*1024)) + " MBytes max for RSDB allocated memory");
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 			System.out.println("-------------------------------------------------------------------");
 			System.out.println("Hostnames: ");
@@ -359,7 +355,7 @@ public class RSDBServer {
 
 			}
 		} catch (Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 
 		Object http_connector = server.getAttribute("digest-http-connector");
@@ -486,10 +482,10 @@ public class RSDBServer {
 				String ip = ipReader.get(row);
 				String user = userReader.get(row);
 				if(ipMap.containsKey(ip)) {
-					log.warn("overwrite existing entry of "+ip+"  "+ipMap.get(ip)+" with "+user+"    in "+REALM_IP_CSV_FILE);
+					Logger.warn("overwrite existing entry of "+ip+"  "+ipMap.get(ip)+" with "+user+"    in "+REALM_IP_CSV_FILE);
 				}
 				if(broker.accountManager().getAccount(user) == null) {
-					log.warn("user does not exist entry of "+ip+" with "+user+"    in "+REALM_IP_CSV_FILE);
+					Logger.warn("user does not exist entry of "+ip+" with "+user+"    in "+REALM_IP_CSV_FILE);
 				}
 				ipMap.put(ip, user);
 			}

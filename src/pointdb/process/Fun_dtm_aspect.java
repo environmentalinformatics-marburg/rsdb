@@ -2,7 +2,7 @@ package pointdb.process;
 
 @Tag("dtm")
 public class Fun_dtm_aspect {
-	//private static final Logger log = LogManager.getLogger();
+	//
 	
 	@Description("circular mean of aspect of ground a.s.l. without weighting slopes (based on DTM raster pixels) small scale direction")
 	static class Fun_dtm_aspect_unweighted_mean extends ProcessingFun {
@@ -26,7 +26,7 @@ public class Fun_dtm_aspect {
 		@Override
 		public double process(DataProvider2 provider) {
 			double[] reg = provider.old.getDTM().getRegressionParameters();			
-			//log.info("TESTING reg "+reg[0]+" "+reg[1]+" "+reg[2]);
+			//Logger.info("TESTING reg "+reg[0]+" "+reg[1]+" "+reg[2]);
 			double dx = reg[1];
 			double dy = reg[2];
 			return Math.atan2(dy, dx);

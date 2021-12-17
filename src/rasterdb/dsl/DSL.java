@@ -2,8 +2,8 @@ package rasterdb.dsl;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.BindVisitor;
 import rasterdb.BandProcessor;
@@ -16,7 +16,7 @@ import rasterdb.node.ProcessorNode;
 import util.frame.DoubleFrame;
 
 public class DSL {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public static AST parse(String script, ErrorCollector errorCollector) {
 		try {
@@ -46,7 +46,7 @@ public class DSL {
 		ErrorCollector errorCollector = new ErrorCollector();
 		AST astUnified = parse_unify(script, errorCollector);
 		for(String line:errorCollector.lines) {
-			log.warn(line);
+			Logger.warn(line);
 		}
 		return astUnified;
 	} 

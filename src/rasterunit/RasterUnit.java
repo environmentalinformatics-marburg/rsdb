@@ -14,8 +14,8 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DB.BTreeMapMaker;
@@ -35,7 +35,7 @@ import util.collections.ReadonlyNavigableSetView;
 
 
 public class RasterUnit implements RasterUnitStorage {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private BTreeMap<TileKey,Tile> tileMap;
 
@@ -90,7 +90,7 @@ public class RasterUnit implements RasterUnitStorage {
 		}
 		org.mapdb.Atomic.String version = tileMapDb.atomicString("version");
 		if(version.get().isEmpty()) {
-			log.info("set version");
+			Logger.info("set version");
 			version.set("1");
 			tileMapDb.commit();
 		} else {
@@ -179,7 +179,7 @@ public class RasterUnit implements RasterUnitStorage {
 	 * @param tile
 	 */
 	public void write(TileKey tileKey, Tile tile) {
-		//log.info("write tile " + tileKey);
+		//Logger.info("write tile " + tileKey);
 		tilesWritten = true;
 		tileMap.put(tileKey, tile);
 		addKey(tileKey);
@@ -377,11 +377,11 @@ public class RasterUnit implements RasterUnitStorage {
 				fileChannel.write(byteBuffer);
 				return true;
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 				return false;
 			}
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 			return false;
 		}
 	}
@@ -392,7 +392,7 @@ public class RasterUnit implements RasterUnitStorage {
 				return false;
 			}
 			Timer.start("cache");
-			//log.info("load cache ...");
+			//Logger.info("load cache ...");
 			try(FileChannel fileChannel = FileChannel.open(cachePath, StandardOpenOption.READ)) {
 				int cache_size = (int) fileChannel.size();
 				ByteBuffer byteBuffer = ByteBuffer.allocateDirect(cache_size);
@@ -402,22 +402,22 @@ public class RasterUnit implements RasterUnitStorage {
 				((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 				int fileCacheHeader = byteBuffer.getInt();
 				if(fileCacheHeader != cacheHeader) {
-					log.warn("cache fileformat error");
+					Logger.warn("cache fileformat error");
 					return false;
 				}
 
 				int fileCacheVersion = byteBuffer.getInt();
 				if(fileCacheVersion != cacheVersion) {
-					log.warn("cache version error");
+					Logger.warn("cache version error");
 					return false;
 				}
 				int fileCacheTimestamp = byteBuffer.getInt();
 				if(fileCacheTimestamp != databaseCacheTimestamp.get()) {
-					log.warn("invalid cache file");
+					Logger.warn("invalid cache file");
 					return false;
 				}
 				int key_count = byteBuffer.getInt();
-				//log.info("key_count "+key_count);
+				//Logger.info("key_count "+key_count);
 				int byte_count = byteBuffer.getInt();
 				byte[] bytes = new byte[byte_count];
 				byteBuffer.get(bytes);
@@ -443,18 +443,18 @@ public class RasterUnit implements RasterUnitStorage {
 				tileKeys.addAll(Arrays.asList(tileKeyArray));
 				refreshDerivedKeys();
 				if(fileCacheTimestamp != databaseCacheTimestamp.get()) {
-					log.warn("invalid cache file");
+					Logger.warn("invalid cache file");
 					tileKeys.clear();
 					refreshDerivedKeys();
 					return false;
 				}
-				log.info("cache loaded  "+Timer.stop("cache")+"  "+key_count+" keys"/*+tileKeys.size()*/);			
+				Logger.info("cache loaded  "+Timer.stop("cache")+"  "+key_count+" keys"/*+tileKeys.size()*/);			
 				return true;
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 		return false;
 	}
@@ -483,10 +483,10 @@ public class RasterUnit implements RasterUnitStorage {
 			tileMap.clear();			
 			return cnt;
 		} finally {
-			log.info("refresh keys");
+			Logger.info("refresh keys");
 			refreshKeys();
 			tilesWritten = true;
-			log.info("commit");
+			Logger.info("commit");
 			commit();
 		}
 	}
@@ -497,9 +497,9 @@ public class RasterUnit implements RasterUnitStorage {
 			long cnt = 0;
 			TileKey min = new TileKey(t, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
 			TileKey max = new TileKey(t, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-			log.info("generate keys");
+			Logger.info("generate keys");
 			TreeSet<TileKey> keys = new TreeSet<TileKey>(tileKeys.subSet(min, true, max, true));
-			log.info("remove tiles");
+			Logger.info("remove tiles");
 			for(TileKey key:keys) {
 				if(tileMap.remove(key) != null) {
 					cnt++;
@@ -507,10 +507,10 @@ public class RasterUnit implements RasterUnitStorage {
 			}
 			return cnt;
 		} finally {
-			log.info("refresh keys");
+			Logger.info("refresh keys");
 			refreshKeys();
 			tilesWritten = true;
-			log.info("commit");
+			Logger.info("commit");
 			commit();
 		}
 	}
@@ -522,9 +522,9 @@ public class RasterUnit implements RasterUnitStorage {
 			for(int t:this.timeKeys) {				
 				TileKey min = new TileKey(t, b, Integer.MIN_VALUE, Integer.MIN_VALUE);
 				TileKey max = new TileKey(t, b, Integer.MAX_VALUE, Integer.MAX_VALUE);
-				log.info("generate keys");
+				Logger.info("generate keys");
 				TreeSet<TileKey> keys = new TreeSet<TileKey>(tileKeys.subSet(min, true, max, true));
-				log.info("remove tiles");
+				Logger.info("remove tiles");
 				for(TileKey key:keys) {
 					if(tileMap.remove(key) != null) {
 						cnt++;
@@ -533,10 +533,10 @@ public class RasterUnit implements RasterUnitStorage {
 			}			
 			return cnt;
 		} finally {
-			log.info("refresh keys");
+			Logger.info("refresh keys");
 			refreshKeys();
 			tilesWritten = true;
-			log.info("commit");
+			Logger.info("commit");
 			commit();
 		}
 	}

@@ -7,14 +7,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Range2d;
 import util.yaml.YamlMap;
 
 public class GeoReference {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public static final double NO_PIXEL_SIZE = Double.NaN;
 	public static final double NO_OFFSET = 0;
@@ -194,7 +194,7 @@ public class GeoReference {
 				try {
 					return Integer.parseUnsignedInt(codeText.trim());
 				} catch (Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 					return missing;
 				}
 			}
@@ -260,7 +260,7 @@ public class GeoReference {
 					}
 				}
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}		
 		return null;

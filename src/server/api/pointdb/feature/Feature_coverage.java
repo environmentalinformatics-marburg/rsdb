@@ -1,7 +1,7 @@
 package server.api.pointdb.feature;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONWriter;
 
 import pointdb.PointDB;
@@ -12,7 +12,7 @@ import pointdb.processing.tile.TileConsumer;
 import pointdb.processing.tilepoint.PointFilter;
 
 public class Feature_coverage extends Feature {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static class Consumer implements GeoPointConsumer {
 		private int min_x;
@@ -20,7 +20,7 @@ public class Feature_coverage extends Feature {
 
 		public int[][] counter;
 		public Consumer(Rect rect) {
-			log.info(rect);
+			Logger.info(rect);
 			this.min_x = rect.getInteger_UTM_min_x();
 			this.min_y = rect.getInteger_UTM_min_y();
 			int max_x = rect.getInteger_UTM_max_x();
@@ -31,9 +31,9 @@ public class Feature_coverage extends Feature {
 		public void nextGeoPoint(GeoPoint geoPoint) {
 			int x = (int) geoPoint.x;
 			int y = (int) geoPoint.y;
-			//			log.info(x+"   "+y);
-			//			log.info((x-min_x)+"   "+(y-min_y));
-			//			log.info(min_x+"   "+min_y);
+			//			Logger.info(x+"   "+y);
+			//			Logger.info((x-min_x)+"   "+(y-min_y));
+			//			Logger.info(min_x+"   "+min_y);
 			counter[y-min_y][x-min_x]++;
 		}
 
@@ -54,12 +54,12 @@ public class Feature_coverage extends Feature {
 	@Override
 	public void calc(JSONWriter json, PointDB db, Rect rect) {
 
-		log.info(rect);
+		Logger.info(rect);
 
 		Rect outerRect = rect.outerMeterRect();
 
 		Consumer consumer = new Consumer(outerRect);
-		TileConsumer injectedConsumer = tile->log.info(tile);
+		TileConsumer injectedConsumer = tile->Logger.info(tile);
 
 		db.tileProducer(outerRect)
 		.inject(injectedConsumer)

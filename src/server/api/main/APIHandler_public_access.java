@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONArray;
@@ -24,7 +24,7 @@ import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_public_access extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_public_access(Broker broker) {
 		super(broker, "public_access");
@@ -118,7 +118,7 @@ public class APIHandler_public_access extends APIHandler {
 			jsonResponse.endObject();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);			
+			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().append(e.toString());
 		}

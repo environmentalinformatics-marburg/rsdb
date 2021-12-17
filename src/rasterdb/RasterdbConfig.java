@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 import util.yaml.YamlMap;
 
 public class RasterdbConfig {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private Path path;
 	private String name;

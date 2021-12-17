@@ -3,8 +3,8 @@ package server.api.main;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -20,7 +20,7 @@ import rasterdb.RasterDB;
 import server.api.rasterdb.RasterdbMethod_wms;
 
 public class APIHandler_public extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	protected static final String MIME_JSON = "application/json";
 	
@@ -65,7 +65,7 @@ public class APIHandler_public extends AbstractHandler {
 	}
 	
 	public void refresh() {
-		log.info("refresh");
+		Logger.info("refresh");
 		HashMap<String, PublicAccessHandler> idMap = new HashMap<String, PublicAccessHandler>();
 		broker.publicAccessManager().forEach((id, publicAccess) -> {
 			PublicAccessHandler idHandler = toIdHandler(id, publicAccess);
@@ -86,7 +86,7 @@ public class APIHandler_public extends AbstractHandler {
 			break;
 		}
 		default:
-			log.warn("unknown type: ", publicAccess.type);
+			Logger.warn("unknown type: ", publicAccess.type);
 		}
 		return handler;
 	}
@@ -110,13 +110,13 @@ public class APIHandler_public extends AbstractHandler {
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			try {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				response.setContentType("text/plain;charset=utf-8");
 				response.getWriter().println("ERROR: " + e.getMessage());
 			} catch(Exception e1) {
-				log.warn(e1);
+				Logger.warn(e1);
 			}
 		}		
 	}

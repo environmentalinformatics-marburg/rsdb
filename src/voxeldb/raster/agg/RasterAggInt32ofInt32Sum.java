@@ -1,10 +1,10 @@
 package voxeldb.raster.agg;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class RasterAggInt32ofInt32Sum extends RasterAggInt32ofInt32 {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public final static RasterAggInt32ofInt32Sum DEFAULT = new RasterAggInt32ofInt32Sum();
 	@Override

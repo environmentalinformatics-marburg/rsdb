@@ -2,8 +2,8 @@ package pointdb.process;
 
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointcloud.GeoPointTransformer;
 import pointcloud.PointCloud;
@@ -24,7 +24,7 @@ import util.collections.vec.DoubleVec;
 import util.collections.vec.Vec;
 
 public class DataProvider2 {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private static final int BORDER_SIZE = 16;
 
@@ -206,13 +206,13 @@ public class DataProvider2 {
 				zs.add(pz);
 			}
 			//Timer.start("get_sortedRegionHeightPoints sort");
-			//log.info("sort "+zs.size());
+			//Logger.info("sort "+zs.size());
 			zs.sort(GeoPoint.Z_COMPARATOR_SAFE);
-			//log.info(Timer.stop("get_sortedRegionHeightPoints sort"));
+			//Logger.info(Timer.stop("get_sortedRegionHeightPoints sort"));
 			sortedRegionHeightPoints = zs;
-			//log.info("sorted");
+			//Logger.info("sorted");
 			if(zs.size() > 0) {
-				//log.info("get_sortedRegionHeightPoints " + zs.size() + "  min " + zs.get(0) + "  max " + zs.get(zs.size()-1));
+				//Logger.info("get_sortedRegionHeightPoints " + zs.size() + "  min " + zs.get(0) + "  max " + zs.get(zs.size()-1));
 			}
 		}
 		return sortedRegionHeightPoints;

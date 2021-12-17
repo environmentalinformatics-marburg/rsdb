@@ -9,7 +9,7 @@ import util.LittleEndianDataOutputStream;
 import util.Receiver;
 
 public class LasWriter {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private final static int LASF_SIGNATUR = 1179861324;
 

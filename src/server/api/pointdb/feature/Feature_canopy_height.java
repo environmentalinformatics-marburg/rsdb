@@ -1,7 +1,7 @@
 package server.api.pointdb.feature;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONWriter;
 
 import pointdb.PointDB;
@@ -12,7 +12,7 @@ import pointdb.processing.geopoint.Normalise;
 import util.collections.vec.Vec;
 
 public class Feature_canopy_height extends Feature {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	@Override
 	public void calc(JSONWriter json, PointDB db, Rect rect) {
@@ -37,7 +37,7 @@ public class Feature_canopy_height extends Feature {
 			}
 		}
 		
-		log.info("points "+result.size());
+		Logger.info("points "+result.size());
 		
 		if(max_z<=0) {
 			throw new RuntimeException("canopy_height calculation not possible for "+rect);

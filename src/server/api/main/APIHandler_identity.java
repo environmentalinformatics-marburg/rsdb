@@ -5,8 +5,8 @@ import java.lang.reflect.Field;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.security.DefaultUserIdentity;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Authentication.User;
@@ -23,7 +23,7 @@ import server.api.APIHandler;
 import util.JsonUtil;
 
 public class APIHandler_identity extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final Field FIELD_ROLES;
 
@@ -51,7 +51,7 @@ public class APIHandler_identity extends APIHandler {
 			try {
 				return (String[]) FIELD_ROLES.get(userIdentity);
 			} catch(Exception e) {
-				log.warn("could not get roles " + e);
+				Logger.warn("could not get roles " + e);
 				return new String[] {};
 			}
 		}
@@ -59,7 +59,7 @@ public class APIHandler_identity extends APIHandler {
 			Account account = ((Account) userIdentity);
 			return account.roles;
 		}
-		log.warn("could not get roles " + userIdentity.getClass());
+		Logger.warn("could not get roles " + userIdentity.getClass());
 		return new String[] {};
 	}
 

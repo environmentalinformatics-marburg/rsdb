@@ -1,14 +1,14 @@
 package pointdb.processing.tilepoint;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.Rect;
 import pointdb.processing.tilemeta.StatisticsCreator.Statistics;
 import util.image.ImageRGBA;
 
 public class ImageCreator {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final TilePointProducer tilePointProducer;
 	private final Statistics tileMinMaxCalc;
@@ -68,7 +68,7 @@ public class ImageCreator {
 	}
 
 	public void softCancel() {
-		log.info("softCancel");
+		Logger.info("softCancel");
 		tilePointProducer.requestStop();
 		requestedStop = true;
 	}

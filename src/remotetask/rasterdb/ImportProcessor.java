@@ -2,8 +2,8 @@ package remotetask.rasterdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import rasterdb.Band;
@@ -25,7 +25,7 @@ import util.frame.ShortFrame;
 import util.raster.GdalReader;
 
 public class ImportProcessor extends RemoteProxy {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private Broker broker;
 	private RasterDB rasterdb;
@@ -76,16 +76,16 @@ public class ImportProcessor extends RemoteProxy {
 			if(bandSpec.import_band) {
 				setMessage("importing band " + bandSpec.file_band_index);
 				int importBandTimestamp = bandSpec.timestamp;
-				log.info("pixelYmin "+ pixelYmin);
+				Logger.info("pixelYmin "+ pixelYmin);
 				int yoff = 0;
 				while(yoff < yRange) {
 					int ysize = yoff + maxLines <= yRange ? maxLines : yRange - yoff;			
-					log.info("full size "+ yRange + "  batch from " + yoff + " to " + (yoff + (ysize -1)) + " size " + ysize);
+					Logger.info("full size "+ yRange + "  batch from " + yoff + " to " + (yoff + (ysize -1)) + " size " + ysize);
 					int yEnd = yoff + (ysize - 1);
 					int yEndOffset = (yRange - 1) - yEnd;
 					int batchPixelYmin = pixelYmin + yEndOffset; 
 					//int batchPixelYmin = pixelYmin + ( (yStart + yRange - 1) - (yStart + yBatchSize - 1) );
-					log.info("batchPixelYmin "+ batchPixelYmin);
+					Logger.info("batchPixelYmin "+ batchPixelYmin);
 					if(yoff > 0) {
 						setMessage("importing band " + bandSpec.file_band_index + " (" + ((yoff*100) / yRange) + "%)");
 					}
@@ -106,7 +106,7 @@ public class ImportProcessor extends RemoteProxy {
 
 		/*setMessage("calculate extent");
 		Range2d localRange = rasterdb.getLocalRange(true);
-		log.info("new local range " + localRange);*/
+		Logger.info("new local range " + localRange);*/
 
 
 		if(update_pyramid) {
@@ -161,7 +161,7 @@ public class ImportProcessor extends RemoteProxy {
 		case GdalReader.GDAL_UINT16:
 		case GdalReader.GDAL_INT16: {
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
-				log.warn("convert uint16 raster data to int16");
+				Logger.warn("convert uint16 raster data to int16");
 			}
 			dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null, yoff, ysize);			
 			if(bandSpec.no_data_value != null) {
@@ -174,7 +174,7 @@ public class ImportProcessor extends RemoteProxy {
 					gdalNaShort = Short.MAX_VALUE;
 				}
 				if(gdalNaShort != bandNaShort) {
-					log.info("convert file no data value float "+bandSpec.no_data_value + " ==>   short " + gdalNaShort + " to band short " + bandNaShort);
+					Logger.info("convert file no data value float "+bandSpec.no_data_value + " ==>   short " + gdalNaShort + " to band short " + bandNaShort);
 					ProcessingShort.convertNA(dataShort, gdalNaShort, bandNaShort);
 				}				
 			}			
@@ -183,10 +183,10 @@ public class ImportProcessor extends RemoteProxy {
 		case GdalReader.GDAL_FLOAT64:
 		case GdalReader.GDAL_FLOAT32: {
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
-				log.warn("convert float64 raster data to int16");
+				Logger.warn("convert float64 raster data to int16");
 			}
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
-				log.warn("convert float32 raster data to int16");
+				Logger.warn("convert float32 raster data to int16");
 			}			
 			float[][] dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, yoff, ysize);
 			short bandNaShort = rasterdbBand.getInt16NA();
@@ -194,7 +194,7 @@ public class ImportProcessor extends RemoteProxy {
 				dataShort = TileFloat.floatToShort(dataFloat, null, bandNaShort);						
 			} else {
 				float gdalNaFloat = bandSpec.no_data_value.floatValue();
-				log.info("convert no data value " + gdalNaFloat + " to " + bandNaShort);
+				Logger.info("convert no data value " + gdalNaFloat + " to " + bandNaShort);
 				dataShort = TileFloat.floatToShort(dataFloat, null, gdalNaFloat, bandNaShort);
 			}			
 			break;
@@ -203,11 +203,11 @@ public class ImportProcessor extends RemoteProxy {
 			throw new RuntimeException("gdal data type not implemented for band type TYPE_SHORT " + bandSpec.gdal_raster_data_type);				
 		}
 		if(Double.isFinite(bandSpec.value_scale)) {
-			log.info("value_scale " + bandSpec.value_scale);
+			Logger.info("value_scale " + bandSpec.value_scale);
 			ShortFrame.rawMul(dataShort, bandSpec.value_scale);
 		}
 		if(Double.isFinite(bandSpec.value_offset)) {
-			log.info("value_offset " + bandSpec.value_offset);
+			Logger.info("value_offset " + bandSpec.value_offset);
 			ShortFrame.rawAdd(dataShort, bandSpec.value_offset);
 		}
 		dataShort = Util.flipRows(dataShort);
@@ -221,13 +221,13 @@ public class ImportProcessor extends RemoteProxy {
 			cnt = ProcessingShort.writeMerge(rasterUnit, timestamp, rasterdbBand, dataShort, pixelYmin, pixelXmin);
 		}		
 		rasterUnit.commit();
-		log.info("tiles written: " + cnt);
+		Logger.info("tiles written: " + cnt);
 	}
 
 	private static void importBand_TYPE_FLOAT(RasterDB rasterdb, BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize) throws IOException {
 		switch(bandSpec.gdal_raster_data_type) {
 		case GdalReader.GDAL_FLOAT64:
-			log.warn("convert float64 raster data to float32");
+			Logger.warn("convert float64 raster data to float32");
 		case GdalReader.GDAL_FLOAT32:
 		case GdalReader.GDAL_BYTE:
 		case GdalReader.GDAL_UINT16:
@@ -239,17 +239,17 @@ public class ImportProcessor extends RemoteProxy {
 				dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, bandSpec.no_data_value.floatValue(), yoff, ysize);
 			}
 			if(Double.isFinite(bandSpec.value_scale)) {
-				log.info("value_scale " + bandSpec.value_scale);
+				Logger.info("value_scale " + bandSpec.value_scale);
 				FloatFrame.rawMul(dataFloat, bandSpec.value_scale);
 			}
 			if(Double.isFinite(bandSpec.value_offset)) {
-				log.info("value_offset " + bandSpec.value_offset);
+				Logger.info("value_offset " + bandSpec.value_offset);
 				FloatFrame.rawAdd(dataFloat, bandSpec.value_offset);
 			}
 			dataFloat = Util.flipRows(dataFloat);
 			int cnt = ProcessingFloat.writeMerge(rasterUnit, timestamp, rasterdbBand, dataFloat, pixelYmin, pixelXmin);
 			rasterUnit.commit();
-			log.info("tiles written: " + cnt);
+			Logger.info("tiles written: " + cnt);
 			break;
 		}
 		default:
@@ -266,16 +266,16 @@ public class ImportProcessor extends RemoteProxy {
 		case GdalReader.GDAL_FLOAT64:
 		case GdalReader.GDAL_FLOAT32: {
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
-				log.warn("convert uint16 raster data to int8");
+				Logger.warn("convert uint16 raster data to int8");
 			}
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_INT16) {
-				log.warn("convert int16 raster data to int8");
+				Logger.warn("convert int16 raster data to int8");
 			}
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
-				log.warn("convert float64 raster data to int8");
+				Logger.warn("convert float64 raster data to int8");
 			}
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
-				log.warn("convert float32 raster data to int8");
+				Logger.warn("convert float32 raster data to int8");
 			}
 			dataBytes = gdalreader.getDataByte(bandSpec.file_band_index, null, yoff, ysize);	
 			break;
@@ -284,11 +284,11 @@ public class ImportProcessor extends RemoteProxy {
 			throw new RuntimeException("gdal data type not implemented for band type int8 " + bandSpec.gdal_raster_data_type);				
 		}
 		if(Double.isFinite(bandSpec.value_scale)) {
-			log.info("value_scale " + bandSpec.value_scale);
+			Logger.info("value_scale " + bandSpec.value_scale);
 			ByteFrame.rawMul(dataBytes, bandSpec.value_scale);
 		}
 		if(Double.isFinite(bandSpec.value_offset)) {
-			log.info("value_offset " + bandSpec.value_offset);
+			Logger.info("value_offset " + bandSpec.value_offset);
 			ByteFrame.rawAdd(dataBytes, bandSpec.value_offset);
 		}
 		dataBytes = Util.flipRows(dataBytes);
@@ -298,6 +298,6 @@ public class ImportProcessor extends RemoteProxy {
 		int ylen = dataBytes.length;
 		cnt = cellInt8.writeMerge(rasterUnit, timestamp, rasterdbBand, dataBytes, pixelYmin, pixelXmin, xlen, ylen);		
 		rasterUnit.commit();
-		log.info("tiles written: " + cnt);
+		Logger.info("tiles written: " + cnt);
 	}
 }

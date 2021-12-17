@@ -5,8 +5,8 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -14,7 +14,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import broker.Broker;
 
 public abstract class APIHandler extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	protected static final String MIME_JSON = "application/json";
 
@@ -33,7 +33,7 @@ public abstract class APIHandler extends AbstractHandler {
 			handle(target, baseRequest,(Response) response);
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e.getClass().getSimpleName()+" "+e.getMessage());
+			Logger.error(e.getClass().getSimpleName()+" "+e.getMessage());
 			try {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.setContentType("text/plain;charset=utf-8");
@@ -43,7 +43,7 @@ public abstract class APIHandler extends AbstractHandler {
 					response.getWriter().println(e.getClass().getSimpleName()+":    "+e.getMessage());
 				}
 			} catch(Exception e1) {
-				log.info(e1);
+				Logger.info(e1);
 			}
 		}
 	}

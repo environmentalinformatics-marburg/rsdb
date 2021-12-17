@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
 import broker.Broker;
@@ -23,7 +23,7 @@ import util.rdat.RdatList;
 import util.rdat.RdatWriter;
 
 public class APIHandler_volume {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected static final String MIME_JSON = "application/json";	
 	protected static final String MIME_CSV = "text/csv";
@@ -49,7 +49,7 @@ public class APIHandler_volume {
 		double req_ymin = Double.parseDouble(ext[1]);
 		double req_xmax = Double.parseDouble(ext[2]);
 		double req_ymax = Double.parseDouble(ext[3]);
-		log.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax);
+		Logger.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax);
 		
 		TimeSlice timeSlice = null;
 		if(Web.has(request, "time_slice_id")) {
@@ -92,21 +92,21 @@ public class APIHandler_volume {
 		double res_ymin = req_ymin;
 		double res_xmax = ((int)((req_xmax - req_xmin) / res)) + res_xmin;
 		double res_ymax = ((int)((req_ymax - req_ymin) / res)) + res_ymin;
-		log.info("res "+res_xmin+" "+res_ymin+" "+res_xmax+" "+res_ymax);
+		Logger.info("res "+res_xmin+" "+res_ymin+" "+res_xmax+" "+res_ymax);
 
 		double proc_add = res - SMALL_VALUE;
 		double proc_xmin = res_xmin;
 		double proc_ymin = res_ymin;
 		double proc_xmax = res_xmax + proc_add;
 		double proc_ymax = res_ymax + proc_add;
-		log.info("proc "+proc_xmin+" "+proc_ymin+" "+proc_xmax+" "+proc_ymax);
+		Logger.info("proc "+proc_xmin+" "+proc_ymin+" "+proc_xmax+" "+proc_ymax);
 
 		AttributeSelector selector = new AttributeSelector().setXYZ();
 		Stream<PointTable> pointTables = pointcloud.getPointTables(req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector);
 		Zvolume zvolume = new Zvolume(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 		pointTables.sequential().forEach(zvolume::insert);
 		double[] range = zvolume.getZRange(100d);
-		log.info("valume range "+Arrays.toString(range));
+		Logger.info("valume range "+Arrays.toString(range));
 		int[][][] volume = zvolume.getVolume(range[0], range[1], zres);
 
 		switch(format) {

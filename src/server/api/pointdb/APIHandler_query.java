@@ -6,8 +6,8 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -26,7 +26,7 @@ import util.Util;
 import util.Web;
 
 public class APIHandler_query extends PointdbAPIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	private static Point2d[] parsePolygon(String pText) {
 		String[] pTextArray = pText.split("__");
@@ -70,7 +70,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 			boundingRect = requestRegion.bbox;
 		} else if(request.getParameter("ext") != null) {
 			double[] requestExtent = Web.getDoubles(request, "ext");
-			log.info("doubles "+Arrays.toString(requestExtent));
+			Logger.info("doubles "+Arrays.toString(requestExtent));
 			if(requestExtent.length!=4) {
 				throw new RuntimeException("parameter ext needs four values: "+Arrays.toString(requestExtent));
 			}
@@ -96,7 +96,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 		String filterText = request.getParameter("filter");
 		if(filterText!=null) {
 			filter0 = GeoPointFilter.createFilter(filterText);
-			log.info("filter: "+filterText+" "+filter0);
+			Logger.info("filter: "+filterText+" "+filter0);
 		}
 		final GeoPointFilter filter = filter0;
 
@@ -104,21 +104,21 @@ public class APIHandler_query extends PointdbAPIHandler {
 		String columnsText = request.getParameter("columns");
 		if(columnsText!=null) {
 			columns0 = Util.columnTextToColumns(columnsText, false);
-			log.info("columns: "+ Arrays.toString(columns0));
+			Logger.info("columns: "+ Arrays.toString(columns0));
 		}
 		final String[] columns = columns0;
 
 		boolean sort0 = false; // always sort if true else sort if needed for other processing (e.g. normalise extremes, ground)
 		switch(Web.getString(request, "sort", "no")) {
 		case "z":
-			log.info("sorting");
+			Logger.info("sorting");
 			sort0 = true;
 			break;
 		case "no":
 			//nothing
 			break;
 		default:
-			log.warn("unknown sort parameter "+Web.getString(request, "sort", "no"));
+			Logger.warn("unknown sort parameter "+Web.getString(request, "sort", "no"));
 		}
 		final boolean sort = sort0;
 
@@ -134,7 +134,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 			Receiver receiver = new StreamReceiver(zipOutputStream);
 			Region rr = requestRegion;
 			boundingRect.tiles_utmm(1000_000, 1000_000, (xtile, ytile, tileRect) -> {
-				log.info(tileRect);
+				Logger.info(tileRect);
 				String tileFilename = "tile_" + xtile + "_" + ytile + ".las";
 				try {
 					Region tileRegion = Region.ofFilteredBbox(tileRect, rr.polygonPoints);
@@ -151,6 +151,6 @@ public class APIHandler_query extends PointdbAPIHandler {
 			Receiver receiver = new ResponseReceiver(response);
 			PointProcessor.process(pointdb, requestRegion, normalise, filter, sort, columns, format, -xmin, -ymin, receiver);
 		}
-		log.info(Timer.stop("query points"));
+		Logger.info(Timer.stop("query points"));
 	}
 }

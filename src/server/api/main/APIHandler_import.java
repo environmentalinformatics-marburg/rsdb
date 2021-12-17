@@ -6,8 +6,8 @@ import java.nio.file.Paths;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -28,7 +28,7 @@ import server.api.main.ChunkedUploader.ChunkedUpload;
 import util.Web;
 
 public class APIHandler_import extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final ChunkedUploader chunkedUploader;
 
@@ -42,13 +42,13 @@ public class APIHandler_import extends APIHandler {
 
 		JSONObject json = new JSONObject(Web.requestContentToString(request));
 		JSONObject specification = json.getJSONObject("specification");
-		log.info(specification);
+		Logger.info(specification);
 		String filename = specification.getString("filename");
 		ChunkedUpload chunkedUpload = chunkedUploader.map.get(filename);
 		Path path;
 		if(chunkedUpload == null) {
 			//throw new RuntimeException("file not found");
-			log.warn("old session ? ");
+			Logger.warn("old session ? ");
 			path = Paths.get("temp/raster", filename);
 		} else {
 			path = chunkedUpload.path;
@@ -57,10 +57,10 @@ public class APIHandler_import extends APIHandler {
 		String id = specification.getString("id");
 		UserIdentity userIdentity = Web.getUserIdentity(request);
 		if(!EmptyACL.ADMIN.isAllowed(userIdentity) && broker.hasRasterdb(id)) {
-			log.info("not admin");
+			Logger.info("not admin");
 			RasterDB rasterdb = broker.getRasterdb(id);
 			rasterdb.checkMod(userIdentity);
-			log.info("allowed");
+			Logger.info("allowed");
 		}
 
 		ImportSpec spec = new ImportSpec();

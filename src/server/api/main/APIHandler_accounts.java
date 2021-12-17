@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONArray;
@@ -28,7 +28,7 @@ import util.Web;
  *
  */
 public class APIHandler_accounts extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_accounts(Broker broker) {
 		super(broker, "accounts");
@@ -60,7 +60,7 @@ public class APIHandler_accounts extends APIHandler {
 		try {
 			accountManager.read();
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 		accountManager.foreachAccount(account -> {
 			json.object();
@@ -92,13 +92,13 @@ public class APIHandler_accounts extends APIHandler {
 					String[] roles = JsonUtil.optStringTrimmedArray(action, "roles");
 					Account account = new Account(user, password, roles, true);
 					broker.accountManager().addAccount(account);
-					log.info(user);
+					Logger.info(user);
 					break;
 				}
 				case "remove_account": {
 					String user = action.getString("user");					
 					broker.accountManager().remvoeAccount(user);
-					log.info(user);
+					Logger.info(user);
 					break;
 				}
 				case "set_account": {
@@ -114,16 +114,16 @@ public class APIHandler_accounts extends APIHandler {
 							builder.roles = JsonUtil.optStringTrimmedArray(action, "roles");
 						}
 						if(action.has("password")) {
-							//log.info("has pw");
+							//Logger.info("has pw");
 							String password = action.getString("password").trim();
 							if(!password.isEmpty()) {
 								builder.password = password;
-								//log.info("set pw  " + builder.password);
+								//Logger.info("set pw  " + builder.password);
 							}
 						}
 						accountManager.setAccount(builder.build());
 					}					
-					log.info(user);
+					Logger.info(user);
 					break;
 				}
 				default: throw new RuntimeException("unknown key: "+key);
@@ -138,7 +138,7 @@ public class APIHandler_accounts extends APIHandler {
 			jsonResponse.endObject();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);			
+			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().append(e.toString());
 		}

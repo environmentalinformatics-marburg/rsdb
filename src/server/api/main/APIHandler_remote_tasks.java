@@ -5,8 +5,8 @@ import java.io.PrintWriter;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -21,7 +21,7 @@ import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_remote_tasks extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_remote_tasks(Broker broker) {
 		super(broker, "remote_tasks");
@@ -32,7 +32,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 		if(target.isEmpty()) {
 			handleRoot(request, response);
 		} else {
-			//log.info("target [" + target + "]");
+			//Logger.info("target [" + target + "]");
 			String idText = target;
 			String subTarget = "";
 			int idEndIndex = target.indexOf('/');
@@ -131,7 +131,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 	protected void handleRootPOST(Request request, Response response) throws IOException {
 		JSONObject json = new JSONObject(Web.requestContentToString(request));
 		JSONObject args = json.getJSONObject("remote_task");
-		log.info(args);
+		Logger.info(args);
 		UserIdentity userIdentity = Web.getUserIdentity(request);
 		Context ctx = new Context(broker, args, userIdentity);
 		RemoteTask remoteTask = RemoteTaskExecutor.createTask(ctx);
@@ -151,7 +151,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 	}
 
 	private void handleId(long id, String target, Request request, Response response) throws IOException {
-		//log.info(id + "   "+ target);
+		//Logger.info(id + "   "+ target);
 		if(target.isEmpty()) {
 			handleIdRoot(id, request, response);
 		} else {

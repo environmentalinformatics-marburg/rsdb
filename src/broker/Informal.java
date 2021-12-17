@@ -3,8 +3,8 @@ package broker;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONWriter;
 
 import util.JsonUtil;
@@ -14,7 +14,7 @@ import util.collections.vec.Vec;
 import util.yaml.YamlMap;
 
 public class Informal {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final static Informal EMPTY = new Builder().build();
 

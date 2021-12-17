@@ -21,7 +21,7 @@ import util.tiff.TiffComposite;
 import util.tiff.TiffWriter;
 
 public class RequestProcessorProductWriters {
-	//private static final Logger log = LogManager.getLogger();	
+	//	
 
 	public static void writeRdat(DoubleFrame[] doubleFrames, BandProcessor processor, String productText, Receiver resceiver) throws IOException {
 		GeoReference ref = processor.rasterdb.ref();

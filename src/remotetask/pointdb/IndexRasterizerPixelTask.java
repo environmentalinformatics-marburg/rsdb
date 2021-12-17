@@ -1,7 +1,7 @@
 package remotetask.pointdb;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.Rect;
 import pointdb.process.DataProvider2;
@@ -10,7 +10,7 @@ import util.BlokingTaskSubmitter;
 import util.BlokingTaskSubmitter.PhasedTask;
 
 public class IndexRasterizerPixelTask extends PhasedTask {
-	private static final Logger log = LogManager.getLogger();
+	
 	private static final long serialVersionUID = -7212334543686038134L;
 	
 	private final DataProvider2Factory dpFactory;
@@ -39,7 +39,7 @@ public class IndexRasterizerPixelTask extends PhasedTask {
 				pixels[i][y][x] = (float) indices[i].process(dp);
 			} catch(Exception e) {
 				//e.printStackTrace();					
-				log.warn(e);
+				Logger.warn(e);
 				pixels[i][y][x] = Float.NaN;
 			}
 		}

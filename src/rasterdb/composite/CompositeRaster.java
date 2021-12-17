@@ -6,7 +6,7 @@ import java.util.function.IntFunction;
 import rasterdb.RasterDB;
 
 public class CompositeRaster {
-	//private static final Logger log = LogManager.getLogger();
+	//
 	
 	private RasterDB[] rasterdbs;
 	

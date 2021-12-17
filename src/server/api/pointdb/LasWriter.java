@@ -11,7 +11,7 @@ import util.Receiver;
 import util.collections.vec.Vec;
 
 public class LasWriter {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private final static int LASF_SIGNATUR = 1179861324;
 

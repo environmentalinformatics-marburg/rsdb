@@ -1,7 +1,7 @@
 package voxeldb.raster;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Range3d;
 import voxeldb.CellFactory;
@@ -11,7 +11,7 @@ import voxeldb.raster.agg.RasterAggBool8ofInt32;
 import voxeldb.voxelmapper.VoxelMapperInt32;
 
 public class RasterProcBool8ofInt32 extends RasterProcBool8 {
-	static final Logger log = LogManager.getLogger();
+	
 	
 	private final VoxelMapperInt32 mapper;
 	private final RasterAggBool8ofInt32 aggregator;

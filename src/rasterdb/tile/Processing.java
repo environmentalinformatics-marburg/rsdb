@@ -3,8 +3,8 @@ package rasterdb.tile;
 import java.io.IOException;
 import java.util.NavigableSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.Band;
 import rasterdb.RasterDB;
@@ -15,7 +15,7 @@ import rasterunit.RasterUnitStorage;
 import util.Range2d;
 
 public class Processing {
-	private static final Logger log = LogManager.getLogger();	
+		
 
 	public static class Commiter {
 		public static final int maxTileWriteCount = 256;
@@ -34,7 +34,7 @@ public class Processing {
 
 		private void checkCommit() {
 			if(maxTileWriteCount <= tileWriteCount) {
-				log.info("commit");
+				Logger.info("commit");
 				targetUnit.commit();
 				totalWriteCount += tileWriteCount;
 				tileWriteCount = 0;
@@ -43,7 +43,7 @@ public class Processing {
 
 		public void checkFinishCommit() {
 			if(0 < tileWriteCount) {
-				log.info("commit");
+				Logger.info("commit");
 				targetUnit.commit();
 				totalWriteCount += tileWriteCount;
 				tileWriteCount = 0;
@@ -126,7 +126,7 @@ public class Processing {
 		for(BandKey srcBandKey : srcBandKeys) {
 			Range2d range = srcStorage.getTileRange2d(srcBandKey);
 			if(range != null && ( range.getWidth() > 2 || range.getHeight() > 2)) {
-				log.info("pyramid " + srcPyramid + " size " + range);
+				Logger.info("pyramid " + srcPyramid + " size " + range);
 				needProcessing = true;
 				break;
 			}
@@ -134,10 +134,10 @@ public class Processing {
 
 		if(needProcessing) {
 			if(dstPyramid > PYRAMID_MAX) {
-				log.info("process pyramid limit reached" + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid) + " processing stopped.");
+				Logger.info("process pyramid limit reached" + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid) + " processing stopped.");
 				return;
 			}
-			log.info("process pyramid " + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid));
+			Logger.info("process pyramid " + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid));
 			for(BandKey srcBandKey : srcBandKeys) {
 				Band band = rasterdb.bandMapReadonly.get(srcBandKey.b);
 				int srcTimestamp = getTimestampFromT(srcBandKey.t); 

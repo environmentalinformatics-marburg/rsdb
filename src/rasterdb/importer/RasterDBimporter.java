@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.Band;
 import rasterdb.BandProcessing;
@@ -27,7 +27,7 @@ import util.raster.GdalReader;
 import util.raster.Hyperspectral;
 
 public class RasterDBimporter {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static HashSet<String> FILE_EXTENSIONS = new HashSet<String>(){{
 		add("bsq");
@@ -65,19 +65,19 @@ public class RasterDBimporter {
 					String filename = path.getFileName().toString().toLowerCase();
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(FILE_EXTENSIONS.contains(ext)) {
-						log.info("import file "+path);					
+						Logger.info("import file "+path);					
 						importFile(path, default_timestamp);
 					} else {
-						//log.info("skip file "+path);	
+						//Logger.info("skip file "+path);	
 					}
 				} catch(Exception e) {
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 
 			}
 		}
-		log.info(Timer.stop("import "+root));
+		Logger.info(Timer.stop("import "+root));
 	}
 
 	public void importFile(Path path, int default_timestamp) throws IOException {
@@ -101,11 +101,11 @@ public class RasterDBimporter {
 		Hyperspectral hyperspectral = new Hyperspectral(path.toString());
 		double pixel_sizeX = Math.abs(hyperspectral.enviHdr.mapinfo_pixelSizeX);
 		double pixel_sizeY = Math.abs(hyperspectral.enviHdr.mapinfo_pixelSizeY);
-		log.info("pixel_size "+pixel_sizeX+"  "+pixel_sizeY);
+		Logger.info("pixel_size "+pixel_sizeX+"  "+pixel_sizeY);
 
 		double easting = hyperspectral.enviHdr.mapinfo_pixelEasting;
 		double northing = hyperspectral.enviHdr.mapinfo_pixelNorthing - (hyperspectral.lines * pixel_sizeY);
-		log.info("geo "+easting+"  "+northing);
+		Logger.info("geo "+easting+"  "+northing);
 		if(!rasterdb.ref().has_pixel_size()) {
 			double rasterdb_geo_offset_x = easting;
 			double rasterdb_geo_offset_y = northing;
@@ -116,7 +116,7 @@ public class RasterDBimporter {
 		}
 		int pixelXmin = rasterdb.ref().geoXToPixel(easting);
 		int pixelYmin = rasterdb.ref().geoYToPixel(northing);
-		log.info("pixel "+ pixelXmin + "  " + pixelYmin);
+		Logger.info("pixel "+ pixelXmin + "  " + pixelYmin);
 
 		String mapInfoID = "mapinfoID ";
 		mapInfoID += "+proj="+hyperspectral.enviHdr.mapinfo_projectionName;
@@ -124,17 +124,17 @@ public class RasterDBimporter {
 		mapInfoID += " +"+hyperspectral.enviHdr.mapinfo_northOrSouth;
 		mapInfoID += " +units="+hyperspectral.enviHdr.mapinfo_units;
 		mapInfoID += " +ellps="+hyperspectral.enviHdr.mapinfo_datum;
-		log.info(mapInfoID);
+		Logger.info(mapInfoID);
 		if(!mapinfoIDcache.containsKey(mapInfoID)) {
 			try {
 				GdalReader gdalreader = new GdalReader(path.toString());
 				String proj4 = gdalreader.getProj4();
 				String code = gdalreader.getCRS_code();
-				log.info(proj4);
-				log.info(code);
+				Logger.info(proj4);
+				Logger.info(code);
 				mapinfoIDcache.put(mapInfoID, new String[]{code, proj4});
 			} catch(Exception e) {
-				log.error(e);
+				Logger.error(e);
 				mapinfoIDcache.put(mapInfoID, new String[0]);
 			}
 		}
@@ -156,7 +156,7 @@ public class RasterDBimporter {
 				throw new RuntimeException("proj4 of file need to be same as rasterDB"+rasterdb.ref().proj4+"  "+refs[1]);
 			}
 		} else {
-			log.warn("no projection reference");
+			Logger.warn("no projection reference");
 		}
 
 		int bandCount = hyperspectral.getBandCount();
@@ -171,7 +171,7 @@ public class RasterDBimporter {
 			targetData = hyperspectral.getData(fileBandIndex, targetData);			
 			targetData = Util.flipRows(targetData);
 			int cnt = ProcessingShort.writeMerge(rasterUnit, timestamp, band, targetData, pixelYmin, pixelXmin);
-			log.info(targetData.length + " x " + targetData[0].length+" b "+fileBandIndex+" tiles "+cnt);
+			Logger.info(targetData.length + " x " + targetData[0].length+" b "+fileBandIndex+" tiles "+cnt);
 
 			rasterUnit.commit();
 
@@ -186,7 +186,7 @@ public class RasterDBimporter {
 
 		}				
 
-		log.info("db tileKey count "+rasterUnit.getTileCount());
+		Logger.info("db tileKey count "+rasterUnit.getTileCount());
 	}
 
 
@@ -195,14 +195,14 @@ public class RasterDBimporter {
 
 	public void importFile_GDAL(Path path, Band existingBand, boolean useExistingBandsOrCreate, int timestamp) throws IOException {
 		String filename = path.toString();
-		log.info("import "+filename);
+		Logger.info("import "+filename);
 		GdalReader gdalreader = new GdalReader(filename);
-		log.info("gdalreader.dataset.GetDescription "+gdalreader.dataset.GetDescription());
-		//log.info("data type "+gdalreader.dataset.GetRasterBand(1).getDataType());
+		Logger.info("gdalreader.dataset.GetDescription "+gdalreader.dataset.GetDescription());
+		//Logger.info("data type "+gdalreader.dataset.GetRasterBand(1).getDataType());
 
 		String fileCode = null;		
 		String wkt = gdalreader.getWKT();
-		log.info("|||"+wkt+"|||");
+		Logger.info("|||"+wkt+"|||");
 		if(GdalReader.wktMap.containsKey(wkt)) {
 			fileCode = GdalReader.wktMap.get(wkt);
 		}
@@ -210,7 +210,7 @@ public class RasterDBimporter {
 		if(fileCode == null) {
 			fileCode = gdalreader.getCRS_code();
 		}
-		log.info("fileCode "+fileCode);
+		Logger.info("fileCode "+fileCode);
 
 		if(fileCode != null) {
 			if(rasterdb.ref().has_code()) {
@@ -219,10 +219,10 @@ public class RasterDBimporter {
 				}
 			} else {
 				rasterdb.setCode(fileCode);
-				log.info("************************set crs code   "+fileCode);
+				Logger.info("************************set crs code   "+fileCode);
 			}
 		} else {
-			log.warn("no ref code");
+			Logger.warn("no ref code");
 		}
 
 		String fileProj4 = null;
@@ -241,17 +241,17 @@ public class RasterDBimporter {
 				}
 			} else {
 				rasterdb.setProj4(fileProj4);
-				log.info("************************set crs proj4   "+fileProj4);
+				Logger.info("************************set crs proj4   "+fileProj4);
 			}
 		} else {
-			log.warn("no ref proj4");
+			Logger.warn("no ref proj4");
 		}
 
 		double[] gdal_ref = gdalreader.getGeoRef();
-		log.info("gdal "+Arrays.toString(gdalreader.dataset.GetGeoTransform()));
+		Logger.info("gdal "+Arrays.toString(gdalreader.dataset.GetGeoTransform()));
 		double easting = gdal_ref[0];
 		double northing = gdal_ref[1];
-		log.info("geo "+easting+"  "+northing);
+		Logger.info("geo "+easting+"  "+northing);
 
 		double pixel_size_x = gdalreader.getPixelSize_x();
 		double pixel_size_y = gdalreader.getPixelSize_y();
@@ -260,23 +260,23 @@ public class RasterDBimporter {
 			double rasterdb_geo_offset_x = easting;
 			double rasterdb_geo_offset_y = corrected_northing;
 			rasterdb.setPixelSize(pixel_size_x, pixel_size_y, rasterdb_geo_offset_x, rasterdb_geo_offset_y);
-			log.info("************************set pixel size   "+pixel_size_x+"  "+pixel_size_y);
+			Logger.info("************************set pixel size   "+pixel_size_x+"  "+pixel_size_y);
 		}
 		if(pixel_size_x != rasterdb.ref().pixel_size_x || pixel_size_y != rasterdb.ref().pixel_size_y) {
 			throw new RuntimeException("pixel_size of file need to be same as rasterDB "+rasterdb.ref().pixel_size_x+"  "+pixel_size_x+"    "+rasterdb.ref().pixel_size_y+"  "+pixel_size_y);
 		}
-		log.info("pixel_size "+pixel_size_x+"  "+pixel_size_y);
+		Logger.info("pixel_size "+pixel_size_x+"  "+pixel_size_y);
 
 		int pixelXmin = rasterdb.ref().geoXToPixel(easting);
 		//int pixelYmin = rasterdb.ref().geoYToPixel(northing) - gdalreader.y_range;
 		int pixelYmin = rasterdb.ref().geoYToPixel(corrected_northing);
-		log.info("pixel "+ pixelXmin + "  " + pixelYmin + "  " + (pixelXmin + gdalreader.x_range - 1) + "  " + (pixelYmin + gdalreader.y_range - 1) );
-		log.info("geo   "+ rasterdb.ref().pixelXToGeo(pixelXmin) + "  " + rasterdb.ref().pixelYToGeo(pixelYmin) + "  " + rasterdb.ref().pixelXToGeo(pixelXmin + gdalreader.x_range -1) + "  " + rasterdb.ref().pixelYToGeo(pixelYmin + gdalreader.y_range - 1) );
+		Logger.info("pixel "+ pixelXmin + "  " + pixelYmin + "  " + (pixelXmin + gdalreader.x_range - 1) + "  " + (pixelYmin + gdalreader.y_range - 1) );
+		Logger.info("geo   "+ rasterdb.ref().pixelXToGeo(pixelXmin) + "  " + rasterdb.ref().pixelYToGeo(pixelYmin) + "  " + rasterdb.ref().pixelXToGeo(pixelXmin + gdalreader.x_range -1) + "  " + rasterdb.ref().pixelYToGeo(pixelYmin + gdalreader.y_range - 1) );
 
 		int bandCount = gdalreader.getRasterCount();
 		if(existingBand != null) {
 			if(bandCount > 1) {
-				log.warn("import first band only");
+				Logger.warn("import first band only");
 				bandCount = 1;
 			}
 		}
@@ -285,7 +285,7 @@ public class RasterDBimporter {
 		float[][] targetDataFloat = null;
 
 		for(int fileBandIndex = 1; fileBandIndex <= bandCount; fileBandIndex++) {
-			log.info("fileBandIndex" + fileBandIndex);
+			Logger.info("fileBandIndex" + fileBandIndex);
 			org.gdal.gdal.Band gdalRasterBand = gdalreader.dataset.GetRasterBand(fileBandIndex);
 			Double[] noDataValueHolder = new Double[1];
 			gdalRasterBand.GetNoDataValue(noDataValueHolder);
@@ -293,9 +293,9 @@ public class RasterDBimporter {
 			gdalRasterBand.GetScale(bandValueScaleHolder);
 			Double[] bandValueOffsetHolder = new Double[1];
 			gdalRasterBand.GetOffset(bandValueOffsetHolder);
-			log.info("NA "+Arrays.toString(noDataValueHolder));
-			log.info("bandValueScale "+Arrays.toString(bandValueScaleHolder));
-			log.info("bandValueOffset "+Arrays.toString(bandValueOffsetHolder));
+			Logger.info("NA "+Arrays.toString(noDataValueHolder));
+			Logger.info("bandValueScale "+Arrays.toString(bandValueScaleHolder));
+			Logger.info("bandValueOffset "+Arrays.toString(bandValueOffsetHolder));
 			int gdalRasterDataType = gdalRasterBand.GetRasterDataType();
 			Band band = existingBand;
 			if(band == null && useExistingBandsOrCreate) {
@@ -324,12 +324,12 @@ public class RasterDBimporter {
 				switch(gdalRasterDataType) {
 				case GdalReader.GDAL_FLOAT64:
 				case GdalReader.GDAL_FLOAT32:
-					log.warn("convert float32/64 raster data to int16");
+					Logger.warn("convert float32/64 raster data to int16");
 				case GdalReader.GDAL_BYTE:
 				case GdalReader.GDAL_UINT16:
 				case GdalReader.GDAL_INT16: {
 					if(gdalRasterDataType == GdalReader.GDAL_UINT16) {
-						log.warn("cast uint16 raster data to int16");						
+						Logger.warn("cast uint16 raster data to int16");						
 					}
 					if(gdalRasterDataType == GdalReader.GDAL_BYTE) {
 						targetDataShort = gdalreader.getDataShortOfByte(fileBandIndex, targetDataShort);
@@ -337,7 +337,7 @@ public class RasterDBimporter {
 							short gdalNa = noDataValueHolder[0].shortValue();
 							short bandNA = band.getInt16NA();
 							if(gdalNa != bandNA) {
-								log.info("convert no data value " + gdalNa +" to " + bandNA);
+								Logger.info("convert no data value " + gdalNa +" to " + bandNA);
 								ProcessingShort.convertNA(targetDataShort, gdalNa, bandNA);
 							}
 						}
@@ -355,14 +355,14 @@ public class RasterDBimporter {
 							short gdalNa = noDataValueHolder[0].shortValue();
 							short bandNA = band.getInt16NA();
 							if(gdalNa != bandNA) {
-								log.info("convert no data value " + gdalNa +" to " + bandNA);
+								Logger.info("convert no data value " + gdalNa +" to " + bandNA);
 								ProcessingShort.convertNA(targetDataShort, gdalNa, bandNA);
 							}
 						}
 					}
 					targetDataShort = Util.flipRows(targetDataShort);
 					int cnt = ProcessingShort.writeMerge(rasterUnit, timestamp, band, targetDataShort, pixelYmin, pixelXmin);
-					log.info(targetDataShort.length + " x " + targetDataShort[0].length+" b "+fileBandIndex+"->"+band.index+" t "+timestamp+" tiles "+cnt);
+					Logger.info(targetDataShort.length + " x " + targetDataShort[0].length+" b "+fileBandIndex+"->"+band.index+" t "+timestamp+" tiles "+cnt);
 					rasterUnit.commit();
 					break;
 				}
@@ -374,7 +374,7 @@ public class RasterDBimporter {
 			case TilePixel.TYPE_FLOAT: {
 				switch(gdalRasterDataType) {
 				case GdalReader.GDAL_FLOAT64:
-					log.warn("convert float64 raster data to float32");
+					Logger.warn("convert float64 raster data to float32");
 				case GdalReader.GDAL_FLOAT32: {
 					if(noDataValueHolder[0] != null) {
 						float noDataValue = noDataValueHolder[0].floatValue();
@@ -387,7 +387,7 @@ public class RasterDBimporter {
 						throw new RuntimeException("wrong band data type "+band.type+"  for "+TilePixel.TYPE_FLOAT);
 					}
 					int cnt = ProcessingFloat.writeMerge(rasterUnit, timestamp, band, targetDataFloat, pixelYmin, pixelXmin);
-					log.info(targetDataFloat.length + " x " + targetDataFloat[0].length+" b "+fileBandIndex+" tiles "+cnt);
+					Logger.info(targetDataFloat.length + " x " + targetDataFloat[0].length+" b "+fileBandIndex+" tiles "+cnt);
 					rasterUnit.commit();
 					break;
 				}
@@ -402,12 +402,12 @@ public class RasterDBimporter {
 				switch(gdalRasterDataType) {
 				case GdalReader.GDAL_FLOAT64:
 				case GdalReader.GDAL_FLOAT32:
-					log.warn("convert float32/64 raster data to int16");
+					Logger.warn("convert float32/64 raster data to int16");
 				case GdalReader.GDAL_BYTE:
 				case GdalReader.GDAL_UINT16:
 				case GdalReader.GDAL_INT16: {
 					if(gdalRasterDataType == GdalReader.GDAL_UINT16) {
-						log.warn("cast uint16 raster data to int16");						
+						Logger.warn("cast uint16 raster data to int16");						
 					}
 					if(gdalRasterDataType == GdalReader.GDAL_BYTE) {
 						targetDataShort = gdalreader.getDataShortOfByte(fileBandIndex, targetDataShort);
@@ -415,7 +415,7 @@ public class RasterDBimporter {
 							short gdalNa = noDataValueHolder[0].shortValue();
 							short bandNA = band.getInt16NA();
 							if(gdalNa != bandNA) {
-								log.info("convert no data value " + gdalNa +" to " + bandNA);
+								Logger.info("convert no data value " + gdalNa +" to " + bandNA);
 								ProcessingShort.convertNA(targetDataShort, gdalNa, bandNA);
 							}
 						}
@@ -433,7 +433,7 @@ public class RasterDBimporter {
 							short gdalNa = noDataValueHolder[0].shortValue();
 							short bandNA = band.getInt16NA();
 							if(gdalNa != bandNA) {
-								log.info("convert no data value " + gdalNa +" to " + bandNA);
+								Logger.info("convert no data value " + gdalNa +" to " + bandNA);
 								ProcessingShort.convertNA(targetDataShort, gdalNa, bandNA);
 							}
 						}
@@ -443,7 +443,7 @@ public class RasterDBimporter {
 					int xlen = targetDataShort[0].length;
 					int ylen = targetDataShort.length;
 					int cnt = cellInt16.writeMerge(rasterUnit, timestamp, band, targetDataShort, pixelYmin, pixelXmin, xlen, ylen);					
-					log.info(targetDataShort.length + " x " + targetDataShort[0].length+" b "+fileBandIndex+"->"+band.index+" t "+timestamp+" tiles "+cnt);
+					Logger.info(targetDataShort.length + " x " + targetDataShort[0].length+" b "+fileBandIndex+"->"+band.index+" t "+timestamp+" tiles "+cnt);
 					rasterUnit.commit();
 					break;
 				}

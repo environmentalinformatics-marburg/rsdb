@@ -1,10 +1,10 @@
 package rasterdb.cell;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class Int16 {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	public static byte[] encInt16_split(short[] data) {
 		int size = data.length;

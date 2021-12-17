@@ -16,8 +16,8 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import ar.com.hjg.pngj.FilterType;
 import ar.com.hjg.pngj.IImageLine;
@@ -27,7 +27,7 @@ import util.SpiUtil;
 import util.Timer;
 
 public class ImageBufferARGB implements PureImage {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public final int width;
 	public final int height;
@@ -160,7 +160,7 @@ public class ImageBufferARGB implements PureImage {
 			try {
 				util.png.PngWriter.write(new DataOutputStream(out), this);
 			} catch (IOException e) {
-				log.catching(e);
+				Logger.warn(e);
 			}
 			break;
 		}
@@ -209,11 +209,11 @@ public class ImageBufferARGB implements PureImage {
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);			
 		}
 		if( !g.drawImage(bufferedImage, 0, 0, width, height, null) ) {
-			log.warn("image not drawn fully");			
+			Logger.warn("image not drawn fully");			
 		}
 		g.dispose();
 		target.bufferedImage.flush();
-		//log.info(Timer.stop("scale"));
+		//Logger.info(Timer.stop("scale"));
 		return target;
 	}
 

@@ -2,8 +2,8 @@ package server.api.voxeldbs;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -25,7 +25,7 @@ import voxeldb.raster.agg.RasterAggInt32ofInt32Sum;
 import voxeldb.voxelmapper.VoxelMapperInt32;
 
 public class Handler_raster {	
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public void handle(VoxelDB voxeldb, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		VoxelGeoRef ref = voxeldb.geoRef();
@@ -40,7 +40,7 @@ public class Handler_raster {
 		double req_ymax = Double.parseDouble(ext[3]);
 		double req_zmin = Web.getDouble(request, "zmin", Double.NaN);
 		double req_zmax = Web.getDouble(request, "zmax", Double.NaN);
-		log.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax + "    " + req_zmin + " " + req_zmax);
+		Logger.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax + "    " + req_zmin + " " + req_zmax);
 		Range3d range3d = ref.geoToRange(req_xmin, req_ymin, req_zmin, req_xmax, req_ymax, req_zmax);
 		if(!Double.isFinite(req_zmin)) {
 			range3d = range3d.withZmin(Integer.MIN_VALUE);
@@ -48,7 +48,7 @@ public class Handler_raster {
 		if(!Double.isFinite(req_zmax)) {
 			range3d = range3d.withZmax(Integer.MAX_VALUE);
 		}		
-		log.info(range3d);
+		Logger.info(range3d);
 		
 		TimeSlice timeSlice;
 		if(Web.has(request, "time_slice_id")) {
@@ -105,7 +105,7 @@ public class Handler_raster {
 		double aggOriginZ = ref.voxelZtoGeo(range.zmin);
 		double aggVoxelSizeX = ref.voxelSizeX * aggregation_factor_x;
 		double aggVoxelSizeY = ref.voxelSizeY * aggregation_factor_y;
-		log.info("res " + aggVoxelSizeX + " " + aggVoxelSizeY);
+		Logger.info("res " + aggVoxelSizeX + " " + aggVoxelSizeY);
 		VoxelGeoRef aggRef = ref.with(aggOriginX, aggOriginY, aggOriginZ, aggVoxelSizeX, aggVoxelSizeY, 0);
 		
 		CellFactory cellFactory = new CellFactory(voxeldb);

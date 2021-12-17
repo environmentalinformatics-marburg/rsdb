@@ -1,7 +1,7 @@
 package pointcloud;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import com.googlecode.javaewah.datastructure.BitSet;
 
@@ -9,7 +9,7 @@ import rasterdb.tile.ProcessingDouble;
 import util.collections.vec.Vec;
 
 public class PointRaster {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final Vec<P3d>[][] grid;
 	public final double xmin;
@@ -49,7 +49,7 @@ public class PointRaster {
 			}
 			list.add(new P3d(x, y, z));
 			} catch(Exception e) {
-				log.info("insert point " + xs[i] + " " + ys[i]);
+				Logger.info("insert point " + xs[i] + " " + ys[i]);
 				throw e;
 			}
 		}		

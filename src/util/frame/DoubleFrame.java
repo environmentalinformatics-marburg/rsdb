@@ -7,7 +7,7 @@ import java.util.TreeMap;
 import util.Range2d;
 
 public class DoubleFrame {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public final double[][] data;
 	public final int width;

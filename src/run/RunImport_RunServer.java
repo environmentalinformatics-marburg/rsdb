@@ -2,8 +2,8 @@ package run;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Server;
 
 import broker.Broker;
@@ -12,7 +12,7 @@ import server.RSDBServer;
 import util.Timer;
 
 public class RunImport_RunServer {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	public static void main(String[] args) throws IOException {
 		PointDB pointdb = null;
@@ -22,21 +22,21 @@ public class RunImport_RunServer {
 			Server server = RSDBServer.createServer(broker);
 			server.start();
 			RSDBServer.printServerEntrypoint(server, broker);
-			log.info("server ready...");
+			Logger.info("server ready...");
 			//server.join();
 			Timer.start("import");
 			RunImport runImport = new RunImport(pointdb);
 			runImport.loadAll();
-			log.info(Timer.stop("import"));
+			Logger.info(Timer.stop("import"));
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error("sever not started "+e);
+			Logger.error("sever not started "+e);
 		} finally {
 			if(pointdb!=null) {
 				pointdb.close();
 			}
 		}
-		log.info("server stopped");
+		Logger.info("server stopped");
 		System.exit(0);
 	}
 

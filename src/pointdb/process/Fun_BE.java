@@ -7,7 +7,7 @@ import util.collections.vec.Vec;
 
 @Tag("BE")
 public class Fun_BE {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	@Tag("canopy_height")
 	@Description("Mean Canopy Height (based on point height above ground)")	

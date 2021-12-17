@@ -5,11 +5,11 @@ import java.util.Arrays;
 
 import javax.security.auth.Subject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class FastRolesUserIdentity extends FastUserIdentity {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private final String[] roles;
 

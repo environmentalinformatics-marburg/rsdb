@@ -3,8 +3,8 @@ package util.tiff.file;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import rasterdb.Band;
@@ -25,7 +25,7 @@ import util.tiff.file.TiffFile.TiffImageEntry;
 import util.tiff.file.TiffFile.TiffTile;
 
 public class TiledWriter extends CancelableRemoteProxy {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final RasterDB rasterdb;
 	private final BandType bandType;
@@ -133,10 +133,10 @@ public class TiledWriter extends CancelableRemoteProxy {
 		int scale = 1;
 		int tileWidth = 1024;
 		int tileHeight = 1024;
-		log.info(range);
+		Logger.info(range);
 		//range = range.allignMaxToTiles(tileWidth, tileHeight);
 		range = range.allignToTiles(tileWidth, tileHeight);
-		log.info(range);
+		Logger.info(range);
 		int bandCount = bands.length;		
 		GeoReference ref = rasterdb.ref();
 		TiffFile tiffFile = new TiffFile(ref, range, tileWidth, tileHeight, bandCount);
@@ -178,7 +178,7 @@ public class TiledWriter extends CancelableRemoteProxy {
 			long totalTileCount = 0;
 
 			for(TiffImageEntry tiffImageEntry : imageList.asReverseIterable()) {
-				log.info("process scale " + tiffImageEntry.scale);
+				Logger.info("process scale " + tiffImageEntry.scale);
 				for(int b = 0; b < bandCount; b++) {
 					if(isCanceled()) {
 						throw new RuntimeException("canceled");
@@ -192,9 +192,9 @@ public class TiledWriter extends CancelableRemoteProxy {
 						TiffTile tile = btiles[i];
 						Range2d trange = new Range2d(tile.tileXmin, tile.tileYmin, tile.tileXmax, tile.tileYmax);
 						BandProcessor bandProcessor = new BandProcessor(rasterdb, trange, timestamp, tiffImageEntry.scale);
-						log.info(trange + "  " + band);
+						Logger.info(trange + "  " + band);
 						tile.pos = raf.getFilePointer();
-						log.info("file tile pos " + tile.pos);
+						Logger.info("file tile pos " + tile.pos);
 						switch(bandType) {
 						case INT16: {
 							ShortFrame shortFrame = bandProcessor.getShortFrame(band);	
@@ -235,7 +235,7 @@ public class TiledWriter extends CancelableRemoteProxy {
 						}
 
 						tile.len = raf.getFilePointer() - tile.pos;
-						log.info(tile);
+						Logger.info(tile);
 					}
 				}
 			}				

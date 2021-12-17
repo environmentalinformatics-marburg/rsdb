@@ -7,11 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class RemoteTaskExecutor {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final static Map<Long, RemoteTask> executingTaskMap = new ConcurrentHashMap<>();
 	

@@ -8,8 +8,8 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Phaser;
 import java.util.function.Consumer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import griddb.Attribute;
 import griddb.Cell;
@@ -19,7 +19,7 @@ import remotetask.CancelableRemoteProxy;
 import util.collections.ReadonlyNavigableSetView;
 
 public class Rebuild extends CancelableRemoteProxy {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final PointCloud src;
 	private final Path rootPath;
@@ -106,8 +106,8 @@ public class Rebuild extends CancelableRemoteProxy {
 		String name_dst = name_src + "_rebuild";
 		Path path_dst = rootPath.resolve(name_dst);
 		Path metaFile_dst = path_dst.resolve(metaFile_src.getName());
-		log.info(metaFile_src);
-		log.info(metaFile_dst);
+		Logger.info(metaFile_src);
+		Logger.info(metaFile_dst);
 
 		File pathfile_dst = path_dst.toFile();
 		if(pathfile_dst.exists()) {

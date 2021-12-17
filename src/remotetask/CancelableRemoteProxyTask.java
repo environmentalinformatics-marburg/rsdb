@@ -1,10 +1,10 @@
 package remotetask;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class CancelableRemoteProxyTask extends RemoteProxyTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public CancelableRemoteProxyTask(Context ctx) {
 		super(ctx);
@@ -15,7 +15,7 @@ public class CancelableRemoteProxyTask extends RemoteProxyTask {
 		RemoteProxy r = this.remoteProxy;
 		if(r == null) {
 			//throw new RuntimeException("missing RemoteProxy");
-			log.warn("missing RemoteProxy for " + this.getClass());
+			Logger.warn("missing RemoteProxy for " + this.getClass());
 			return true;
 		}
 		return r.isCancelable();
@@ -35,7 +35,7 @@ public class CancelableRemoteProxyTask extends RemoteProxyTask {
 		RemoteProxy r = this.remoteProxy;
 		if(r == null) {
 			//throw new RuntimeException("missing RemoteProxy");
-			log.warn("missing RemoteProxy for " + this.getClass());
+			Logger.warn("missing RemoteProxy for " + this.getClass());
 			return false;
 		}
 		return r.isCanceled();

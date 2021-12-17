@@ -5,8 +5,8 @@ import java.nio.charset.StandardCharsets;
 
 import jakarta.servlet.ServletInputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONArray;
@@ -21,7 +21,7 @@ import pointdb.subsetdsl.Region;
 import util.collections.vec.Vec;
 
 public class APIHandler_process extends PointdbAPIHandler {
-	private static final Logger log = LogManager.getLogger();	
+		
 
 	public APIHandler_process(Broker broker) {
 		super(broker, "process");		
@@ -36,12 +36,12 @@ public class APIHandler_process extends PointdbAPIHandler {
 
 		long reqest_size = request.getContentLength();
 		if(reqest_size>0) {			
-			log.info("reqest_size "+reqest_size);
+			Logger.info("reqest_size "+reqest_size);
 			byte[] raw = new byte[(int) reqest_size];
 			ServletInputStream in = request.getInputStream();
 			int pos = 0;
 			while(pos < reqest_size) {
-				log.info("read at "+pos+" of "+reqest_size);
+				Logger.info("read at "+pos+" of "+reqest_size);
 				int read_size = in.read(raw, pos, (int) (reqest_size - pos));
 				if(read_size < 1) {
 					throw new RuntimeException("not all bytes read "+pos+"  of  " + reqest_size);
@@ -52,7 +52,7 @@ public class APIHandler_process extends PointdbAPIHandler {
 				throw new RuntimeException("not all bytes read "+pos+"  of  " + reqest_size);
 			}
 			JSONObject jsonObject = new JSONObject(new String(raw, StandardCharsets.UTF_8));
-			log.info("json "+jsonObject);
+			Logger.info("json "+jsonObject);
 			if(jsonObject.has("areas")) {
 				areas = new Vec<Pair<Region, String>>();
 				JSONArray jsonSubset = jsonObject.optJSONArray("areas");
@@ -131,7 +131,7 @@ public class APIHandler_process extends PointdbAPIHandler {
 			if(areas != null) {
 				throw new RuntimeException("doubled parameter 'subset'");
 			}
-			log.info("subset "+subset);
+			Logger.info("subset "+subset);
 			//String[] subsets = subset.split("&");
 			areas = new pointdb.subsetdsl.Compiler().parse(subset).getRegions(broker);
 		}
@@ -154,7 +154,7 @@ public class APIHandler_process extends PointdbAPIHandler {
 			throw new RuntimeException("Parameter 'format' is missing.");
 		}
 
-		//log.info("areas " + areas);
+		//Logger.info("areas " + areas);
 
 		ProcessIndices.process(0, areas, functions, format, response, db, null, true);
 

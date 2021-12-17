@@ -7,8 +7,8 @@ import java.util.List;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.ast.AST;
 import rasterdb.ast.AST_Band_number;
@@ -27,12 +27,12 @@ import rasterdb.dsl.DSLParser.Seq_elementContext;
 import rasterdb.dsl.DSLParser.TermContext;
 
 public class ExpressionVisitor extends DSLBaseVisitor<AST> {
-	static final Logger log = LogManager.getLogger();
+	
 	public static final ExpressionVisitor DEFAULT = new ExpressionVisitor();
 	
 	@Override
 	public AST visitExpression(ExpressionContext ctx) {
-		//log.info("Expression "+ctx.getText());
+		//Logger.info("Expression "+ctx.getText());
 		Iterator<TermContext> termIt = ctx.term().iterator();
 		Iterator<TerminalNode> opIt = ctx.PLUS_MINUS().iterator();
 
@@ -56,7 +56,7 @@ public class ExpressionVisitor extends DSLBaseVisitor<AST> {
 	
 	@Override
 	public AST visitTerm(TermContext ctx) {
-		//log.info("Term "+ctx.getText());
+		//Logger.info("Term "+ctx.getText());
 		Iterator<FactorContext> factorIt = ctx.factor().iterator();
 		Iterator<TerminalNode> opIt = ctx.MUL_DIV().iterator();
 
@@ -98,7 +98,7 @@ public class ExpressionVisitor extends DSLBaseVisitor<AST> {
 				return ast;
 			}
 		}
-		log.warn("error in visitEntity");
+		Logger.warn("error in visitEntity");
 		return null;
 	}		
 
@@ -152,7 +152,7 @@ public class ExpressionVisitor extends DSLBaseVisitor<AST> {
 	}
 	@Override
 	protected AST defaultResult() {
-		log.warn("unknown part");
+		Logger.warn("unknown part");
 		new Throwable().printStackTrace();
 		return null;
 	}

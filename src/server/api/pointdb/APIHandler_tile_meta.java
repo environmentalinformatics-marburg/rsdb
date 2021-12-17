@@ -5,8 +5,8 @@ import java.io.PrintWriter;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -19,7 +19,7 @@ import util.CsvWriter;
 
 public class APIHandler_tile_meta extends PointdbAPIHandler {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();	
+		
 	
 	public APIHandler_tile_meta(Broker broker) {
 		super(broker, "tile_meta.csv");		

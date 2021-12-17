@@ -7,8 +7,8 @@ import java.util.Arrays;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -31,7 +31,7 @@ import util.Web;
 import util.collections.vec.Vec;
 
 public class RasterdbMethod_insert_raster extends RasterdbMethod {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public RasterdbMethod_insert_raster(Broker broker) {
 		super(broker, "insert_raster");	
@@ -48,36 +48,36 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 
 	@Override
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.info("!!! inser_raster !!!"+request);
+		Logger.info("!!! inser_raster !!!"+request);
 		request.setHandled(true);
 		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
 		try {
 			Vec<String> messages = new Vec<String>();
 
 			String[] extText = (request.getParameter("ext").split(" "));
-			log.info("ext "+Arrays.toString(extText));
+			Logger.info("ext "+Arrays.toString(extText));
 
 			double geoxmin = Double.parseDouble(extText[0]);
 			double geoymin = Double.parseDouble(extText[1]);
 			double geoxmax = Double.parseDouble(extText[2]);
 			double geoymax = Double.parseDouble(extText[3]);
 
-			log.info("geoxmin "+geoxmin);
-			log.info("geoymin "+geoymin);
-			log.info("geoxmax "+geoxmax);
-			log.info("geoymax "+geoymax);
-			log.info("geoxrange " + (geoxmax - geoxmin));
-			log.info("geoyrange " + (geoymax - geoymin));
+			Logger.info("geoxmin "+geoxmin);
+			Logger.info("geoymin "+geoymin);
+			Logger.info("geoxmax "+geoxmax);
+			Logger.info("geoymax "+geoymax);
+			Logger.info("geoxrange " + (geoxmax - geoxmin));
+			Logger.info("geoyrange " + (geoymax - geoymin));
 
 			int width = Integer.parseInt(request.getParameter("width"));
 			int height = Integer.parseInt(request.getParameter("height"));
-			log.info("width " + width);
-			log.info("heigth " + height);
+			Logger.info("width " + width);
+			Logger.info("heigth " + height);
 
 			double pixel_size_x = (geoxmax - geoxmin) / width;
 			double pixel_size_y = (geoymax - geoymin) / height;
-			log.info("pixel_size_x " + pixel_size_x);
-			log.info("pixel_size_y " + pixel_size_y);
+			Logger.info("pixel_size_x " + pixel_size_x);
+			Logger.info("pixel_size_y " + pixel_size_y);
 
 			if(rasterdb.ref().has_pixel_size()) {
 				double rasterdb_pixel_size_x = rasterdb.ref().pixel_size_x;
@@ -113,7 +113,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 
 			ServletInputStream in = request.getInputStream();
 			long request_size = request.getContentLengthLong();
-			log.info("request_size "+request_size);
+			Logger.info("request_size "+request_size);
 
 			String dataTypeText = request.getParameter("data_type");
 			if(dataTypeText == null) {
@@ -122,11 +122,11 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 			int dataTypeSize = getDataTypeSize(dataTypeText);
 
 			int raw_size = width * height * dataTypeSize;
-			log.info("raw_size " + raw_size);
+			Logger.info("raw_size " + raw_size);
 			byte[] raw = new byte[raw_size];
 			int pos = 0;
 			while(pos < raw_size) {
-				log.info("read at " + pos + " of " + raw_size);
+				Logger.info("read at " + pos + " of " + raw_size);
 				int read_size = in.read(raw, pos, raw_size - pos);
 				if(read_size < 1) {
 					throw new RuntimeException("not all bytes read "+pos+"  of  "+raw_size);
@@ -144,7 +144,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 				try{
 					timerange = TimeUtil.getDateTimeRange(timestampText);
 				}catch(Exception e) {
-					log.warn("could not parse timestamp: " + timestampText);
+					Logger.warn("could not parse timestamp: " + timestampText);
 				}
 				if(timerange != null) {
 					t = TimeUtil.toTimestamp(timerange[0]);
@@ -196,7 +196,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 					short sourceNA = 0;
 					float[][] converted_pixels = TileFloat.shortToFloat(pixels, null, sourceNA);
 					ProcessingFloat.writeMerge(rasterUnit, t, band, converted_pixels, pixelYmin, pixelXmin);
-					log.info("converted int16 data to float32 band data");
+					Logger.info("converted int16 data to float32 band data");
 					messages.add("converted int16 data to float32 band data");
 					break;
 				}
@@ -216,7 +216,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 					short targetNA = band.getInt16NA();
 					short[][] converted_pixels = TileFloat.floatToShort(pixels, null, targetNA);
 					ProcessingShort.writeMerge(rasterUnit, t, band, converted_pixels, pixelYmin, pixelXmin);
-					log.warn("converted float32 data to int16 band data");
+					Logger.warn("converted float32 data to int16 band data");
 					messages.add("converted float32 data to int16 band data");
 					break;
 				}
@@ -254,7 +254,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 			json.endObject();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}		

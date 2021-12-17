@@ -5,8 +5,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.TimeSlice;
 import broker.Informal.Builder;
@@ -20,7 +20,7 @@ import remotetask.CancelableRemoteProxy;
 import util.Range2d;
 
 public class Rasterizer extends CancelableRemoteProxy {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static final double DEFAULT_POINT_SCALE = 4;
 
@@ -67,7 +67,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 		double cellsize = pointcloud.getCellsize();
 		double pointcloud_xmin = (celloffset.x + cellrange.xmin) * cellsize;
 		double pointcloud_ymin = (celloffset.y + cellrange.ymin) * cellsize;		
-		log.info("set raster to pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin);
+		Logger.info("set raster to pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin);
 		rasterdb.setPixelSize(raster_pixel_size, raster_pixel_size, pointcloud_xmin, pointcloud_ymin);
 
 		selectorElevation = new AttributeSelector();
@@ -178,7 +178,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 		if(cellrange == null) {
 			return;
 		}
-		log.info("cellRange: " + cellrange);
+		Logger.info("cellRange: " + cellrange);
 		runCellRange(selectedBand, selector, pointProcessing, t, cellrange);
 	}
 
@@ -190,15 +190,15 @@ public class Rasterizer extends CancelableRemoteProxy {
 		if(isCanceled()) {
 			throw new RuntimeException("canceled");
 		}
-		log.info("pre  " + cellrange);
+		Logger.info("pre  " + cellrange);
 		cellrange = pointcloud.getCellRange2dOfSubset(cellrange);
-		log.info("post " + cellrange);
+		Logger.info("post " + cellrange);
 		if(cellrange == null) {
 			return;
 		}
 		int cellrangeY = cellrange.getHeight();
 		if(cellrangeY > 32) {
-			log.info("subdiv Y " + cellrangeY);
+			Logger.info("subdiv Y " + cellrangeY);
 			int middleY = (int) ((((long)cellrange.ymin) + ((long)cellrange.ymax)) / 2);
 			runCellRange(selectedBand, selector, pointProcessing, t, new Range2d(cellrange.xmin, cellrange.ymin, cellrange.xmax, middleY));
 			runCellRange(selectedBand, selector, pointProcessing, t, new Range2d(cellrange.xmin, middleY + 1, cellrange.xmax, cellrange.ymax));
@@ -207,7 +207,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 
 		int cellrangeX = cellrange.getWidth();
 		if(cellrangeX > 32) {
-			log.info("subdiv X " + cellrangeX);
+			Logger.info("subdiv X " + cellrangeX);
 			int middleX = (int) ((((long)cellrange.xmin) + ((long)cellrange.xmax)) / 2);
 			runCellRange(selectedBand, selector, pointProcessing, t, new Range2d(cellrange.xmin, cellrange.ymin, middleX, cellrange.ymax));
 			runCellRange(selectedBand, selector, pointProcessing, t, new Range2d(middleX + 1, cellrange.ymin, cellrange.xmax, cellrange.ymax));
@@ -221,13 +221,13 @@ public class Rasterizer extends CancelableRemoteProxy {
 		double pointcloud_ymin = (celloffset.y + cellrange.ymin) * cellsize;
 		double pointcloud_xmax = (celloffset.x + cellrange.xmax + 1) * cellsize - cellscale1d;
 		double pointcloud_ymax = (celloffset.y + cellrange.ymax + 1) * cellsize - cellscale1d;		
-		log.info("local pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin+"   pointcloud_xmax " + pointcloud_xmax + " pointcloud_ymax " + pointcloud_ymax);
+		Logger.info("local pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin+"   pointcloud_xmax " + pointcloud_xmax + " pointcloud_ymax " + pointcloud_ymax);
 		GeoReference ref = rasterdb.ref();
 		int raster_xmin = ref.geoXToPixel(pointcloud_xmin);
 		int raster_ymin = ref.geoYToPixel(pointcloud_ymin);
 		int raster_xmax = ref.geoXToPixel(pointcloud_xmax);
 		int raster_ymax = ref.geoYToPixel(pointcloud_ymax);
-		log.info("raster_xmin " + raster_xmin + " raster_ymin " + raster_ymin+"   raster_xmax " + raster_xmax + " raster_ymax " + raster_ymax);
+		Logger.info("raster_xmin " + raster_xmin + " raster_ymin " + raster_ymin+"   raster_xmax " + raster_xmax + " raster_ymax " + raster_ymax);
 
 		int ymin = raster_ymin;
 		while(ymin <= raster_ymax) {
@@ -235,7 +235,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 			int xmin = raster_xmin;
 			while(xmin <= raster_xmax) {
 				int xmax = xmin + raster_pixel_per_batch_row - 1;
-				//log.info("xmin " + xmin + " ymin " + ymin+"   xmax " + xmax + " ymax " + ymax);
+				//Logger.info("xmin " + xmin + " ymin " + ymin+"   xmax " + xmax + " ymax " + ymax);
 
 				int bxmin = xmin - border_pixels;
 				int bymin = ymin - border_pixels;
@@ -246,10 +246,10 @@ public class Rasterizer extends CancelableRemoteProxy {
 				double qymin = ref.pixelYToGeo(bymin);
 				double qxmax = ref.pixelXToGeo(bxmax + 1) - cellscale1d;
 				double qymax = ref.pixelYToGeo(bymax + 1) - cellscale1d;
-				//log.info("qxmin " + qxmin + " qymin " + qymin+"   qxmax " + qxmax + " qymax " + qymax);
+				//Logger.info("qxmin " + qxmin + " qymin " + qymin+"   qxmax " + qxmax + " qymax " + qymax);
 
 				int cellCount = pointcloud.countCells(t, qxmin, qymin, qxmax, qymax);
-				log.info("cell count "+cellCount);
+				Logger.info("cell count "+cellCount);
 				if(cellCount > 0) {
 					Stream<PointTable> pointTables = pointcloud.getPointTables(t, qxmin, qymin, qxmax, qymax, selector);
 					float[][] pixels = ProcessingFloat.createEmpty(bxmax - bxmin + 1, bymax - bymin + 1);
@@ -258,7 +258,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 					pixels = removeBorder(pixels, border_pixels);
 					ProcessingFloat.writeMerge(rasterUnit, t, selectedBand, pixels, ymin, xmin);
 					rasterUnit.commit();
-					log.info("committed");
+					Logger.info("committed");
 				}
 				xmin += raster_pixel_per_batch_row;
 			}
@@ -299,7 +299,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 				double[] xs = p.x;
 				double[] ys = p.y;
 				for (int i = 0; i < len; i++) {
-					//log.info("pos " + xs[i] + "  " + ys[i]);
+					//Logger.info("pos " + xs[i] + "  " + ys[i]);
 					int x = (int) ((xs[i] - qxmin) * point_scale);
 					int y = (int) ((ys[i] - qymin) * point_scale);
 					float prev = pixels[y][x];
@@ -313,16 +313,16 @@ public class Rasterizer extends CancelableRemoteProxy {
 	}
 
 	private static void processRed(Stream<PointTable> pointTables, double qxmin, double qymin, float[][] pixels, double point_scale) {
-		//log.info("processRed " + qxmin + "  " + qymin);
+		//Logger.info("processRed " + qxmin + "  " + qymin);
 		pointTables.forEach(p->{
 			char[] red = p.red;
 			if(red != null) {
 				int len = p.rows;
-				//log.info("row points " + len);
+				//Logger.info("row points " + len);
 				double[] xs = p.x;
 				double[] ys = p.y;
 				for (int i = 0; i < len; i++) {
-					//log.info("processRed point " + xs[i] + "  " + ys[i]);
+					//Logger.info("processRed point " + xs[i] + "  " + ys[i]);
 					int x = (int) ((xs[i] - qxmin) * point_scale);
 					int y = (int) ((ys[i] - qymin) * point_scale);
 					float prev = pixels[y][x];
@@ -331,7 +331,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 						pixels[y][x] = v;
 					}
 				}
-				//log.info("row points FINISH");
+				//Logger.info("row points FINISH");
 			}
 		});
 	}

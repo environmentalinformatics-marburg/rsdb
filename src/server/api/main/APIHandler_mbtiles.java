@@ -3,8 +3,8 @@ package server.api.main;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -12,7 +12,7 @@ import broker.Broker;
 import server.api.APIHandler;
 
 public class APIHandler_mbtiles extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_mbtiles(Broker broker) {
 		super(broker, "mbtiles");
@@ -21,9 +21,9 @@ public class APIHandler_mbtiles extends APIHandler {
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {		
 		String[] query = target.split("/");
-		log.info(Arrays.toString(query));
+		Logger.info(Arrays.toString(query));
 		if(query.length != 4) {
-			log.info("invalid query");
+			Logger.info("invalid query");
 			return;
 		}
 		int z = Integer.parseInt(query[1]);
@@ -48,7 +48,7 @@ public class APIHandler_mbtiles extends APIHandler {
 //			int zoom = next.getZoom();
 //			int column = next.getColumn();
 //			int row = next.getRow();
-//			log.info(zoom + "  " + column + "  " + row);
+//			Logger.info(zoom + "  " + column + "  " + row);
 //			InputStream tileData = next.getData();        
 //		}
 //		tiles.close();*/
@@ -60,7 +60,7 @@ public class APIHandler_mbtiles extends APIHandler {
 //			r.close();
 //			//response.getOutputStream().write(data);		
 //		} catch(Exception e) {
-//			log.error(e);
+//			Logger.error(e);
 //		}
 	}
 }

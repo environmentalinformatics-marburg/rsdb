@@ -5,15 +5,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.processing.geopoint.RasterSubGrid;
 import util.collections.vec.Vec;
 
 public class Watershed {
 
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static void main(String[] args) {
 
@@ -144,7 +144,7 @@ public class Watershed {
 
 
 		//pixelList.sortThis(); // sort pixel list
-		//log.info(pixelList);
+		//Logger.info(pixelList);
 	}
 
 	public void run() {
@@ -174,7 +174,7 @@ public class Watershed {
 	private void maskPixels(List<Pixel> pixelList, ArrayDeque<Pixel> queue) {
 		for(Pixel p:pixelList) { // begin loop over pixels with height h				
 			p.label = Pixel.MASK;
-			//log.info("neighbors "+p.neighbors);
+			//Logger.info("neighbors "+p.neighbors);
 			for(Pixel q:p.neighbors) { // loop over neighbors of p
 				if(q.label>=0) { // neighbor is labeled
 					p.distance = 1;
@@ -197,7 +197,7 @@ public class Watershed {
 				continue;
 			}
 
-			log.info("current height "+h);	
+			Logger.info("current height "+h);	
 
 			for(Pixel p:pixelList) {
 				int bases = 0;
@@ -245,12 +245,12 @@ public class Watershed {
 
 
 	private void flood() {
-		log.info("start watershed");		
+		Logger.info("start watershed");		
 
 		int current_label = 0;		
 		ArrayDeque<Pixel> queue = new ArrayDeque<Pixel>();		
 
-		log.info("loop over height "+hmin+"  "+hmax);
+		Logger.info("loop over height "+hmin+"  "+hmax);
 
 		for (int h=hmin; h<=hmax; h++) {// begin loop over h
 
@@ -259,7 +259,7 @@ public class Watershed {
 				continue;
 			}
 
-			log.info("current height "+h);			
+			Logger.info("current height "+h);			
 			maskPixels(pixelList, queue);
 
 
@@ -316,6 +316,6 @@ public class Watershed {
 
 		} // end loop over h		
 
-		log.info("end watershed");
+		Logger.info("end watershed");
 	}
 }

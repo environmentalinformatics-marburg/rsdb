@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -19,7 +19,7 @@ import util.Web;
 import util.image.ImageRGBA;
 
 public class APIHandler_map extends PointdbAPIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	public APIHandler_map(Broker broker) {
 		super(broker, "map");
@@ -27,7 +27,7 @@ public class APIHandler_map extends PointdbAPIHandler {
 
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
-		//log.info("get map");
+		//Logger.info("get map");
 		request.setHandled(true);
 		
 		PointDB pointdb = getPointdb(request);
@@ -44,7 +44,7 @@ public class APIHandler_map extends PointdbAPIHandler {
 		Aggregator aggregate = pointdb.tileMetaProducer(null).aggregate(tile_size).produceAggregator();		
 		Statistics stat = aggregate.toStatistics();		
 		imageRGBA = new MetaImageCreator(aggregate, stat, tile_size, x, y, width, height).create(gamma);
-		log.info(Timer.stop("meta"));
+		Logger.info(Timer.stop("meta"));
 		//}
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType("image/png");

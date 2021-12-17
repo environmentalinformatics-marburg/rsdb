@@ -8,8 +8,8 @@ import java.util.Base64;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
@@ -18,7 +18,7 @@ import broker.Broker;
 import server.api.APIHandler;
 
 public class APIHandler_session extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final SecureRandom random = new SecureRandom();
 	
@@ -43,7 +43,7 @@ public class APIHandler_session extends APIHandler {
 		JSONWriter json = new JSONWriter(response.getWriter());
 
 		String base64 = createSession();
-		log.info(decodeSession(base64));
+		Logger.info(decodeSession(base64));
 
 		json.object();
 		json.key("session");

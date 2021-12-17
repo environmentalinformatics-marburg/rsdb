@@ -6,15 +6,15 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.Rect;
 import util.Serialisation;
 
 public class RasterSubGrid extends AbstractRaster {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final int start_x;
 	public final int start_y;
@@ -277,7 +277,7 @@ public class RasterSubGrid extends AbstractRaster {
 				srow[x] = Math.atan(Math.sqrt(dx*dx+dy*dy)/2);
 			}
 		}
-		/*log.info(Timer.stopToString("tan"));
+		/*Logger.info(Timer.stopToString("tan"));
 		}*/
 	}
 

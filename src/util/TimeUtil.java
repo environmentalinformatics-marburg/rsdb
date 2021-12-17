@@ -10,11 +10,11 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class TimeUtil {
-	private static final Logger log = LogManager.getLogger();
+	
 	private final static DateTimeFormatter FILENAME_TIME_FORMATTER = DateTimeFormatter.ofPattern("HHmm");
 	private final static DateTimeFormatter PRETTY_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 	private static final LocalDateTime OLE_AUTOMATION_TIME_START = LocalDateTime.of(1899,12,30,0,0);
@@ -28,7 +28,7 @@ public class TimeUtil {
 	 */
 	public static int getTimestampOfFilename(String filename) {
 		try {
-			log.info("get timestamp "+filename);
+			Logger.info("get timestamp "+filename);
 			int beginIndex = filename.lastIndexOf('/');
 			if(beginIndex<0) {
 				beginIndex = filename.lastIndexOf('\\');
@@ -39,13 +39,13 @@ public class TimeUtil {
 				String isoText = text.substring(14,27);
 				String isoTextDate = isoText.substring(0, 8);
 				String isoTextTime = isoText.substring(9);
-				log.info("isoText "+isoText);
-				log.info("text "+isoText +"   "+isoTextDate+"  "+isoTextTime);
+				Logger.info("isoText "+isoText);
+				Logger.info("text "+isoText +"   "+isoTextDate+"  "+isoTextTime);
 				LocalDate date = LocalDate.parse(isoTextDate, DateTimeFormatter.BASIC_ISO_DATE);
 				LocalTime time = LocalTime.parse(isoTextTime, FILENAME_TIME_FORMATTER);
 				LocalDateTime datetime = LocalDateTime.of(date, time);
 				int timestamp = toTimestamp(datetime);
-				log.info(datetime+" -> "+timestamp);
+				Logger.info(datetime+" -> "+timestamp);
 				return timestamp;
 			} else {
 
@@ -53,16 +53,16 @@ public class TimeUtil {
 				String isoText = text.substring(0, 15);
 				String isoTextDate = isoText.substring(0, 10);
 				String isoTextTime = isoText.substring(11);
-				log.info("text "+isoText +"   "+isoTextDate+"  "+isoTextTime);
+				Logger.info("text "+isoText +"   "+isoTextDate+"  "+isoTextTime);
 				LocalDate date = LocalDate.parse(isoTextDate, DateTimeFormatter.ISO_LOCAL_DATE);
 				LocalTime time = LocalTime.parse(isoTextTime, FILENAME_TIME_FORMATTER);
 				LocalDateTime datetime = LocalDateTime.of(date, time);
 				int timestamp = toTimestamp(datetime);
-				log.info(datetime+" -> "+timestamp);
+				Logger.info(datetime+" -> "+timestamp);
 				return timestamp;
 			}
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 		return 0;
 	}
@@ -79,7 +79,7 @@ public class TimeUtil {
 			}
 			return -1;
 		} catch(Exception e) {
-			log.warn("timestamp parse error "+e+"   of "+s);
+			Logger.warn("timestamp parse error "+e+"   of "+s);
 			return -2;
 		}
 	}

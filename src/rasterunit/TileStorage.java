@@ -25,8 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import griddb.Encoding;
 import util.Range2d;
@@ -35,7 +35,7 @@ import util.Timer;
 import util.collections.ReadonlyNavigableSetView;
 
 public class TileStorage implements RasterUnitStorage {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final TileStorageConfig config;
 	private final FileChannel tileFileChannel;
@@ -85,7 +85,7 @@ public class TileStorage implements RasterUnitStorage {
 		if(createIndexFile) {
 			tileFileOptions = new  OpenOption[] {StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW};
 		}
-		//log.info("options " + Arrays.toString(tileFileOptions));
+		//Logger.info("options " + Arrays.toString(tileFileOptions));
 		tileFileChannel = FileChannel.open(config.storagePath , tileFileOptions);
 		map = new ConcurrentSkipListMap<TileKey, TileSlot>(TileKey.COMPARATOR);
 		tileKeysReadonly = new ReadonlyNavigableSetView<TileKey>(map.keySet());
@@ -146,16 +146,16 @@ public class TileStorage implements RasterUnitStorage {
 					if(prevValue.isConcurrentUpdate()) {
 						if(concurrentUpdateWaitCount >= 10) {
 							try {							
-								log.info("wait for concurrent update (" + concurrentUpdateWaitCount + ")  " + key.toString());
+								Logger.info("wait for concurrent update (" + concurrentUpdateWaitCount + ")  " + key.toString());
 								Thread.sleep(concurrentUpdateWaitCount * 100);
 							} catch (InterruptedException e) {
-								log.error(e);
+								Logger.error(e);
 							}
 						}
 						concurrentUpdateWaitCount++;
 						if(concurrentUpdateWaitCount > 100) {
 							String message = "could not write tile because of persisting concurrent updates " + key.toString();
-							log.error(message);
+							Logger.error(message);
 							throw new RuntimeException(message);
 						}
 					} else {
@@ -290,11 +290,11 @@ public class TileStorage implements RasterUnitStorage {
 			} else {
 				freeSetAddCounter.setRelease(0);
 			}*/
-			//log.info("pre  " + freeSet.toString());
+			//Logger.info("pre  " + freeSet.toString());
 			int consolidatedFreeSlotsCount = consolidateFreeSlotsDirect();
-			//log.info("post " + freeSet.toString());
+			//Logger.info("post " + freeSet.toString());
 			/*if(consolidatedFreeSlotsCount > 0) {
-				log.info("consolidatedFreeSlotsCount " + consolidatedFreeSlotsCount);
+				Logger.info("consolidatedFreeSlotsCount " + consolidatedFreeSlotsCount);
 			}*/
 			//freeSetAddCounter.setRelease(0); // Java 9 or newer only
 			freeSetAddCounter.set(0);
@@ -303,9 +303,9 @@ public class TileStorage implements RasterUnitStorage {
 
 	private void consolidateFreeSlots() {
 		Timer.resume("consolidateFreeSlots");
-		//log.info("consolidateFreeSlots start " + "   " + freeSet);
+		//Logger.info("consolidateFreeSlots start " + "   " + freeSet);
 		flushLock.writeLock().lock();
-		//log.info("consolidateFreeSlots locked");
+		//Logger.info("consolidateFreeSlots locked");
 		try {
 			/*int tileSlotSize = map.size();
 			TileSlot[] tileSlots = new TileSlot[tileSlotSize]; 
@@ -343,17 +343,17 @@ public class TileStorage implements RasterUnitStorage {
 					throw new RuntimeException("tile file error");
 				}
 				if(pos < tileFileLen) {
-					log.info("truncate " + tileFileLen + " to " + pos);
+					Logger.info("truncate " + tileFileLen + " to " + pos);
 					tileFileChannel.truncate(pos);
 				}
 			} catch (IOException e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		} finally {
 			flushLock.writeLock().unlock();
-			//log.info("consolidateFreeSlots unlocked");
+			//Logger.info("consolidateFreeSlots unlocked");
 		}	
-		//log.info("consolidateFreeSlots end " + Timer.stop("consolidateFreeSlots") + "   " + freeSet);
+		//Logger.info("consolidateFreeSlots end " + Timer.stop("consolidateFreeSlots") + "   " + freeSet);
 		Timer.stop("consolidateFreeSlots");
 	}
 
@@ -410,16 +410,16 @@ public class TileStorage implements RasterUnitStorage {
 						if(tileSlotPre.isConcurrentUpdate()) {
 							if(concurrentUpdateInnerWaitCount >= 10) {
 								try {							
-									log.info("wait for concurrent update (" + concurrentUpdateInnerWaitCount + ")  " + tileKey.toString());
+									Logger.info("wait for concurrent update (" + concurrentUpdateInnerWaitCount + ")  " + tileKey.toString());
 									Thread.sleep(concurrentUpdateInnerWaitCount * 100);
 								} catch (InterruptedException e) {
-									log.error(e);
+									Logger.error(e);
 								}
 							}
 							concurrentUpdateInnerWaitCount++;
 							if(concurrentUpdateInnerWaitCount > 100) {
 								String message = "could not read tile because of persisting concurrent updates " + tileKey.toString();
-								log.error(message);
+								Logger.error(message);
 								throw new RuntimeException(message);
 							}							
 						} else {
@@ -434,16 +434,16 @@ public class TileStorage implements RasterUnitStorage {
 				} else {
 					if(concurrentUpdateOuterWaitCount >= 10) {
 						try {							
-							log.info("wait for concurrent update (" + concurrentUpdateOuterWaitCount + ")  " + tileKey.toString());
+							Logger.info("wait for concurrent update (" + concurrentUpdateOuterWaitCount + ")  " + tileKey.toString());
 							Thread.sleep(concurrentUpdateOuterWaitCount * 100);
 						} catch (InterruptedException e) {
-							log.error(e);
+							Logger.error(e);
 						}
 					}
 					concurrentUpdateOuterWaitCount++;
 					if(concurrentUpdateOuterWaitCount > 100) {
 						String message = "could not read tile because of persisting concurrent updates " + tileKey.toString();
-						log.error(message);
+						Logger.error(message);
 						throw new RuntimeException(message);
 					}	
 				}
@@ -608,15 +608,15 @@ public class TileStorage implements RasterUnitStorage {
 				if(curr < 0) {
 					throw new RuntimeException("internal error: " + v);
 				}
-				//log.info("writeindex2 curr " + curr);
+				//Logger.info("writeindex2 curr " + curr);
 				long value = Serialisation.encodeZigZag(curr - prev);
-				//log.info("writeindex2 value " + value);
+				//Logger.info("writeindex2 value " + value);
 				upper[i] = (int) (value >> 32);
 				lower[i++] = (int) value;
-				//log.info("writeindex2 upper " + upper[i-1]);
-				//log.info("writeindex2 lower " + lower[i-1]);
-				//log.info("writeindex2 combA " + ((long)lower[i-1] | ((long)upper[i-1]<<32)));
-				//log.info("writeindex2 combB " + (((long)(upper[i-1]) << 32) + (lower[i-1] & 0xFFFFFFFFL)));
+				//Logger.info("writeindex2 upper " + upper[i-1]);
+				//Logger.info("writeindex2 lower " + lower[i-1]);
+				//Logger.info("writeindex2 combA " + ((long)lower[i-1] | ((long)upper[i-1]<<32)));
+				//Logger.info("writeindex2 combB " + (((long)(upper[i-1]) << 32) + (lower[i-1] & 0xFFFFFFFFL)));
 
 
 
@@ -652,7 +652,7 @@ public class TileStorage implements RasterUnitStorage {
 
 		((Buffer) byteBuffer).flip(); // fix compatibility with older versions than JDK9
 		int dataSize = byteBuffer.limit();
-		//log.info("dataSize " + dataSize);
+		//Logger.info("dataSize " + dataSize);
 
 		try(FileChannel indexFileChannel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
 			int fileWritten = 0;
@@ -672,7 +672,7 @@ public class TileStorage implements RasterUnitStorage {
 	public static TreeSet<TileSlot> readIndex(Path path, ConcurrentSkipListMap<TileKey, TileSlot> map) throws IOException {
 		try(FileChannel indexFileChannel = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.CREATE)) {
 			long fileLen = indexFileChannel.size();
-			//log.info("fileLen " + fileLen);
+			//Logger.info("fileLen " + fileLen);
 			if(fileLen > Integer.MAX_VALUE) {
 				throw new RuntimeException("index file too large");
 			}
@@ -707,7 +707,7 @@ public class TileStorage implements RasterUnitStorage {
 
 	public static TreeSet<TileSlot> readIndexVersion1(ByteBuffer byteBuffer, ConcurrentSkipListMap<TileKey, TileSlot> map) {
 		int mapLen = byteBuffer.getInt();
-		log.info("mapLen " + mapLen);
+		Logger.info("mapLen " + mapLen);
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 		TreeSet<TileSlot> slotSet = new TreeSet<TileSlot>(TileSlot.POS_LEN_REV_COMPARATOR);
 		for (int i = 0; i < mapLen; i++) {
@@ -727,7 +727,7 @@ public class TileStorage implements RasterUnitStorage {
 
 	public static TreeSet<TileSlot> readIndexVersion2(ByteBuffer byteBuffer, ConcurrentSkipListMap<TileKey, TileSlot> map) {
 		int mapLen = byteBuffer.getInt();
-		//log.info("mapLen " + mapLen);
+		//Logger.info("mapLen " + mapLen);
 
 		int[] ts = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
 		Serialisation.decodeDelta(ts);  // delta, no zigzag
@@ -749,11 +749,11 @@ public class TileStorage implements RasterUnitStorage {
 			poss[i] = ((long)(pos_upper[i]) << 32) + (pos_lower[i] & 0xFFFFFFFFL);
 		}
 		/*if(poss.length > 0) {
-			log.info("poss0 " + poss[0]);
+			Logger.info("poss0 " + poss[0]);
 		}*/
 		Serialisation.decodeDeltaZigZag(poss);
 		/*if(poss.length > 0) {
-			log.info("dec poss0 " + poss[0]);
+			Logger.info("dec poss0 " + poss[0]);
 		}*/
 
 		int[] lens = Encoding.decInt32_pfor_internal(Serialisation.readIntsWithSize(byteBuffer));
@@ -832,7 +832,7 @@ public class TileStorage implements RasterUnitStorage {
 					throw new RuntimeException("tile file error");
 				}
 				if(pos < tileFileLen) {
-					log.info("truncate " + tileFileLen + " to " + pos);
+					Logger.info("truncate " + tileFileLen + " to " + pos);
 					tileFileChannel.truncate(pos);
 				}
 			} else {
@@ -917,9 +917,9 @@ public class TileStorage implements RasterUnitStorage {
 	public TileCollection readTiles(int t, int b, int ymin, int ymax, int xmin, int xmax) {
 		Collection<RowKey> rows = getRowKeys(t, b, ymin, ymax);
 		TileCollection tileCollection = new TileCollection(this, rows, xmin, xmax);
-		//log.info("read tile rows for t" + t + " b" + b + ":   " +  tileCollection.rowCount());
-		//log.info("read tiles for t" + t + " b" + b + ":   " +  tileCollection.size());
-		//log.info("read tiles: " + tileCollection);
+		//Logger.info("read tile rows for t" + t + " b" + b + ":   " +  tileCollection.rowCount());
+		//Logger.info("read tiles for t" + t + " b" + b + ":   " +  tileCollection.size());
+		//Logger.info("read tiles: " + tileCollection);
 		return tileCollection;
 	}
 

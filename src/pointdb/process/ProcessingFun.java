@@ -3,11 +3,11 @@ package pointdb.process;
 import java.util.Arrays;
 import java.util.TreeSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public abstract class ProcessingFun {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final String name;
 	public final String description;
@@ -22,9 +22,9 @@ public abstract class ProcessingFun {
 		this.name = className;
 		Description descriptionAnnotation = clazz.getAnnotation(Description.class);
 		if(descriptionAnnotation == null) {
-			log.info(name + " no description");
+			Logger.info(name + " no description");
 		} else {			
-			//log.info(name + ": "+descriptionAnnotation.value());
+			//Logger.info(name + ": "+descriptionAnnotation.value());
 		}
 		this.description = descriptionAnnotation == null ? name : descriptionAnnotation.value();
 
@@ -41,7 +41,7 @@ public abstract class ProcessingFun {
 		Tag[] tagAnnotations = clazz.getAnnotationsByType(Tag.class);
 		for(Tag tagAnnotation:tagAnnotations) {
 			set.addAll(Arrays.asList(tagAnnotation.value()));
-			//log.info(clazz.getName()+" tag "+Arrays.toString(tagAnnotation.value()));
+			//Logger.info(clazz.getName()+" tag "+Arrays.toString(tagAnnotation.value()));
 		}
 		Class<?> superClazz = clazz.getSuperclass();
 		if(superClazz != null && superClazz != Object.class) {

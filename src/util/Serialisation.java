@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.mapdb.DataIO;
 import org.mapdb.Serializer;
 import org.xerial.snappy.Snappy;
@@ -19,7 +19,7 @@ import me.lemire.integercompression.VariableByte;
 
 public final class Serialisation {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private Serialisation(){}
 
@@ -31,7 +31,7 @@ public final class Serialisation {
 
 	public static int[] readUncompressIntArray(DataInput in) throws IOException {
 		int len = in.readInt();
-		//log.info("array size "+len);
+		//Logger.info("array size "+len);
 		byte[] bytes = new byte[len];
 		in.readFully(bytes);
 		return Snappy.uncompressIntArray(bytes);
@@ -777,7 +777,7 @@ public final class Serialisation {
 		@Override
 		public int[] deserialize(DataInput in, int available) throws IOException {
 			final int size = DataIO.unpackInt(in);
-			//log.info("deser "+size);
+			//Logger.info("deser "+size);
 			byte[] byteArray = new byte[size*4];
 			in.readFully(byteArray);
 			return byteToIntArrayBigEndian(byteArray);

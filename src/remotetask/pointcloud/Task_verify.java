@@ -4,8 +4,8 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -22,7 +22,7 @@ import remotetask.Param;
 @Description("Check point data.")
 @Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer.", example="pointcloud1")
 public class Task_verify extends CancelableRemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;

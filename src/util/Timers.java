@@ -4,11 +4,11 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class Timers implements Serializable {
-	private static final Logger log = LogManager.getLogger();
+	
 	public static final Timers DEFAULT = new Timers();
 	
 	private Map<String,Timer> map = new ConcurrentHashMap<String,Timer>();
@@ -111,7 +111,7 @@ public class Timers implements Serializable {
 	public Timer get(String name) {
 		Timer it = map.get(name);
 		if(it==null) {
-			log.warn("timer not started: "+name);
+			Logger.warn("timer not started: "+name);
 			it = new Timer(name, -1, -1);
 		}
 		return it;

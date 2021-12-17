@@ -3,8 +3,8 @@ package remotetask.rasterdb;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -19,7 +19,7 @@ import util.collections.vec.Vec;
 import util.raster.GdalReader;
 
 public class ImportSpec {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public double pixel_size_x = Double.NaN;
 	public double pixel_size_y = Double.NaN;
@@ -51,17 +51,17 @@ public class ImportSpec {
 		case "int16":
 			return 3;		
 		default:
-			log.warn("unknown band type: " + name);
+			Logger.warn("unknown band type: " + name);
 			return -1;
 		}	
 	}
 
 	public void parse(JSONObject specification) {
-		log.info("parse spec " + specification);
+		Logger.info("parse spec " + specification);
 		Iterator<String> specIt = specification.keys();
 		while(specIt.hasNext()) {
 			String specKey = specIt.next();
-			//log.info("specKey " + specKey);
+			//Logger.info("specKey " + specKey);
 			switch(specKey) {
 			case "strategy": {
 				strategy = Strategy.of(specification.getString("strategy"));	
@@ -134,7 +134,7 @@ public class ImportSpec {
 							break;
 						}						
 						default: {					
-							log.warn("unknown band key: "+bandKey);
+							Logger.warn("unknown band key: "+bandKey);
 							//throw new RuntimeException("unknown key: "+key);
 						}
 						}
@@ -181,7 +181,7 @@ public class ImportSpec {
 								bandSpec.rastedb_band_data_type = 3;
 								break;							
 							default:
-								log.warn("unknown band type: " + rastedb_band_data_type_name);
+								Logger.warn("unknown band type: " + rastedb_band_data_type_name);
 							}
 							break;
 						}
@@ -254,7 +254,7 @@ public class ImportSpec {
 							break;
 						}
 						default: {					
-							log.warn("unknown band key: "+bandKey);
+							Logger.warn("unknown band key: "+bandKey);
 							//throw new RuntimeException("unknown key: "+key);
 						}
 						}
@@ -329,7 +329,7 @@ public class ImportSpec {
 				break;
 			}
 			default: {
-				log.warn("unknown spec key: "+specKey);
+				Logger.warn("unknown spec key: "+specKey);
 				//throw new RuntimeException("unknown key: "+key);
 			}
 			}

@@ -1,14 +1,14 @@
 package server;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Server;
 
 import broker.Broker;
 
 
 public class RunServer {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static void main(String[] args) {
 		
@@ -18,7 +18,7 @@ public class RunServer {
 			run(broker);
 		} catch (Throwable e) {
 			//e.printStackTrace();
-			log.error("sever not started "+e);
+			Logger.error("sever not started "+e);
 		} finally {			
 			try {
 				if(broker!=null) {
@@ -26,9 +26,9 @@ public class RunServer {
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			} finally {
-				log.info("server stopped");
+				Logger.info("server stopped");
 				System.exit(0);
 			}
 		}
@@ -44,7 +44,7 @@ public class RunServer {
 			server.join();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 		}
 	}
 
@@ -60,13 +60,13 @@ public class RunServer {
 					server.stop();
 				} catch(Exception e) {
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 				try {
 					broker.close();
 				} catch(Exception e) {
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 		});

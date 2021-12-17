@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class ErrorCollector extends DiagnosticErrorListener {
-	static final Logger log = LogManager.getLogger();
+	
 	
 	public ArrayList<String> lines = new ArrayList<String>();
 	

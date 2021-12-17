@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -15,7 +15,7 @@ import util.Web;
 import vectordb.VectorDB;
 
 public class VectordbHandler_geometry extends VectordbHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	public VectordbHandler_geometry(Broker broker) {
 		super(broker, "geometry.json");
@@ -37,7 +37,7 @@ public class VectordbHandler_geometry extends VectordbHandler {
 			response.getWriter().print(geometry);
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}		

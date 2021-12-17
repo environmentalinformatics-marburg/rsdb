@@ -7,7 +7,7 @@ import java.util.Map;
 import util.collections.vec.Vec;
 
 public class RdatList {
-	//private static final Logger log = LogManager.getLogger();	
+	//	
 	
 	Vec<RdatList.Entry> entries = new Vec<RdatList.Entry>();
 	

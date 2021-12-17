@@ -4,8 +4,8 @@ import java.util.Collection;
 
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.GeoPoint;
 import pointdb.base.Rect;
@@ -14,7 +14,7 @@ import pointdb.processing.geopoint.RasterGrid;
 import util.collections.vec.Vec;
 
 public class RasterGenerator {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public PointGrid pointGrid;
 	public RasterGrid rasterGrid;
@@ -67,7 +67,7 @@ public class RasterGenerator {
 		if(wxend<xrange-1) wxend++;
 		if(wyend<yrange-1) wyend++;
 		while(zCount == 0d) {
-			//log.info("round "+expansionCount);
+			//Logger.info("round "+expansionCount);
 			for (int wy = wybegin; wy <= wyend; wy++) {
 				Vec<GeoPoint>[] wrow = grid[wy];
 				for (int wx = wxbegin; wx <= wxend; wx++) {
@@ -116,7 +116,7 @@ public class RasterGenerator {
 		if(wxend<xrange-1) wxend++;
 		if(wyend<yrange-1) wyend++;
 		while(Double.isNaN(z)) {
-			//log.info("round "+expansionCount);
+			//Logger.info("round "+expansionCount);
 			for (int wy = wybegin; wy <= wyend; wy++) {
 				Vec<GeoPoint>[] wrow = grid[wy];
 				for (int wx = wxbegin; wx <= wxend; wx++) {
@@ -127,7 +127,7 @@ public class RasterGenerator {
 						double distance = Math.sqrt(dx*dx + dy*dy);
 						if(distance<minDistance) {
 							z = p.z;
-							//log.info("OK");
+							//Logger.info("OK");
 						}
 					}
 
@@ -173,7 +173,7 @@ public class RasterGenerator {
 			if(wyend<yrange-1) wyend++;
 			int cnt = pointGrid.countWindow(wxbegin, wybegin, wxend, wyend);
 			if(cnt>0) {
-				//log.info(cnt);
+				//Logger.info(cnt);
 				if(cnt<7) {
 					double sum = 0;
 					for (int wy = wybegin; wy <= wyend; wy++) {
@@ -221,7 +221,7 @@ public class RasterGenerator {
 					catch(SingularMatrixException e) {
 						//singularMatrixExceptionCount++;
 					} catch(Exception e) {
-						log.warn(e);						
+						Logger.warn(e);						
 					}
 				}
 			}

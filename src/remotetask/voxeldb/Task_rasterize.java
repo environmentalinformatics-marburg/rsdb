@@ -26,7 +26,7 @@ import voxeldb.VoxelDB;
 @Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (if layer exists, delete) (target, default: [voxeldb]_rasterized)", example="rasterdb1", required=false)
 public class Task_rasterize extends CancelableRemoteTask {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private final Broker broker;
 	private final JSONObject task;

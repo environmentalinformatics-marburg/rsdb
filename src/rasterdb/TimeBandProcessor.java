@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.cell.CellInt16;
 import rasterdb.cell.CellInt8;
@@ -25,7 +25,7 @@ import util.frame.FloatFrame;
 import util.frame.ShortFrame;
 
 public class TimeBandProcessor {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public final RasterDB rasterdb;
 	public final Range2d range2d;
@@ -54,7 +54,7 @@ public class TimeBandProcessor {
 		this.range2d = range2d;
 		this.scale = scale;
 		if(rasterdb.isInternalPyramid()) {
-			//log.info("setScaleInternalPyramid");
+			//Logger.info("setScaleInternalPyramid");
 			setScaleInternalPyramid(scale);
 		} else {
 			this.pyramid = 0;
@@ -87,7 +87,7 @@ public class TimeBandProcessor {
 	}
 
 	private static int factorToScale(int f) {
-		//log.info("factor " + f);
+		//Logger.info("factor " + f);
 		if(f >= 65536) return 65536;
 		if(f >= 32768) return 32768;
 		if(f >= 16384) return 16384;
@@ -108,7 +108,7 @@ public class TimeBandProcessor {
 	}
 
 	private void setScale(int scale) {
-		//log.info("scale " + scale);
+		//Logger.info("scale " + scale);
 		switch(scale) {
 		case 1:
 			pyramid_rasterUnit = rasterdb.rasterUnit();
@@ -239,7 +239,7 @@ public class TimeBandProcessor {
 				pyramid = 0;
 				this.scale = pyramidLayerInternalDiv;
 			} else {
-				//log.info("max pyramid " + Processing.getPyramidFromT(pyramid_rasterUnit.bandKeysReadonly().last().t));
+				//Logger.info("max pyramid " + Processing.getPyramidFromT(pyramid_rasterUnit.bandKeysReadonly().last().t));
 				pyramid = Processing.getPyramidFromT(maxPyramidBandKey.t);
 				int toPyramidDiv = 1 << pyramid; 
 				int div = scale >>> pyramid;
@@ -247,7 +247,7 @@ public class TimeBandProcessor {
 				this.scale = pyramidLayerInternalDiv << pyramid; 
 				pyramid_dstRange = range2d.floorDiv(toPyramidDiv).floorDiv(pyramidLayerInternalDiv);
 				pyramid_srcRange = pyramid_dstRange.mulExpand(pyramidLayerInternalDiv);
-				log.info("scale " + scale + "  toPyramidDiv " + toPyramidDiv +  "  pyramid " + pyramid + "  pyramidLayerInternalDiv " + pyramidLayerInternalDiv  + " ->scale " + scale);				
+				Logger.info("scale " + scale + "  toPyramidDiv " + toPyramidDiv +  "  pyramid " + pyramid + "  pyramidLayerInternalDiv " + pyramidLayerInternalDiv  + " ->scale " + scale);				
 			}
 		}		
 	}
@@ -266,9 +266,9 @@ public class TimeBandProcessor {
 
 
 	private short[][] readShort(int timestamp, Band band) {
-		//log.info("get from pyramid " + pyramid + "   div " + pyramidDiv);
-		//log.info("src " + pyramid_srcRange);
-		//log.info("src " + pyramid_dstRange);
+		//Logger.info("get from pyramid " + pyramid + "   div " + pyramidDiv);
+		//Logger.info("src " + pyramid_srcRange);
+		//Logger.info("src " + pyramid_dstRange);
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
 		return ProcessingShort.readPixels(pyramidLayerInternalDiv, pyramid_rasterUnit, t, band, pyramid_srcRange);		
 	}
@@ -297,7 +297,7 @@ public class TimeBandProcessor {
 			return ShortFrame.of(readShort(timestamp, band), range2d);
 		}
 		case TilePixel.TYPE_FLOAT: {
-			log.warn("downcast float to short");
+			Logger.warn("downcast float to short");
 			short na_target = 0;
 			return ShortFrame.ofFloats(FloatFrame.of(readFloat(timestamp, band), range2d), na_target);
 		}
@@ -322,18 +322,18 @@ public class TimeBandProcessor {
 		int tileType = band.type;
 		switch(tileType) {
 		case TilePixel.TYPE_SHORT: {
-			log.warn("downcast short to byte");
+			Logger.warn("downcast short to byte");
 			short na_src = 0;
 			byte na_target = 0;			
 			return ByteFrame.ofShorts(ShortFrame.of(readShort(timestamp, band), range2d), na_src, na_target);
 		}
 		case TilePixel.TYPE_FLOAT: {
-			log.warn("downcast float to byte");
+			Logger.warn("downcast float to byte");
 			byte na_target = 0;
 			return ByteFrame.ofFloats(FloatFrame.of(readFloat(timestamp, band), range2d), na_target);
 		}
 		case CellType.INT16: {
-			log.warn("downcast short to byte");
+			Logger.warn("downcast short to byte");
 			short na_src = 0;
 			byte na_target = 0;
 			return ByteFrame.ofShorts(ShortFrame.of(readInt16(timestamp, band), range2d), na_src, na_target);

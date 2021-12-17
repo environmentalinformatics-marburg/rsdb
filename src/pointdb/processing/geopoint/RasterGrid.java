@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.GeoPoint;
 import pointdb.base.Rect;
@@ -16,7 +16,7 @@ import util.collections.vec.Vec;
 
 public class RasterGrid extends RasterSubGrid {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static final int window_size = PointGrid.window_size;
 

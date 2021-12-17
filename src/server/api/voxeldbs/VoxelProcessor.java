@@ -2,8 +2,8 @@ package server.api.voxeldbs;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Response;
 
 import broker.TimeSlice;
@@ -15,7 +15,7 @@ import voxeldb.voxelcellprocessors.VcpCntUint8;
 import voxeldb.voxelcellprocessors.VcpInt32;
 
 public class VoxelProcessor {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private final VoxelDB voxeldb;
 	private CellFactory cellFactory;

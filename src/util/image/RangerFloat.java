@@ -3,13 +3,13 @@ package util.image;
 import java.util.Arrays;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Timer;
 
 public class RangerFloat {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public static double[] range(float[][] data) {
 		int height = data.length;
@@ -134,7 +134,7 @@ public class RangerFloat {
 		if(min == Double.NEGATIVE_INFINITY || max == Double.NEGATIVE_INFINITY) {
 			Timer.start("Ranger");
 			double[] r = range(data);
-			//log.info(Timer.stop("Ranger"));
+			//Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];
@@ -148,7 +148,7 @@ public class RangerFloat {
 			max = min + 1;
 		}
 		if(med == Double.NEGATIVE_INFINITY) {
-			//log.info("set med");
+			//Logger.info("set med");
 			med = (min + max) / 2;
 		}
 		return new double[] {min, max, med};
@@ -165,7 +165,7 @@ public class RangerFloat {
 		if(min == Double.NEGATIVE_INFINITY || max == Double.NEGATIVE_INFINITY) {
 			Timer.start("Ranger");
 			double[] r = rangeSync(data);
-			log.info(Timer.stop("Ranger"));
+			Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];
@@ -179,7 +179,7 @@ public class RangerFloat {
 			max = min + 1;
 		}
 		if(med == Double.NEGATIVE_INFINITY) {
-			log.info("set med");
+			Logger.info("set med");
 			med = (min + max) / 2;
 		}
 		return new double[] {min, max, med};

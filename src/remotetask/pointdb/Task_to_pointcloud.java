@@ -2,8 +2,8 @@ package remotetask.pointdb;
 
 import java.util.TreeSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -34,7 +34,7 @@ import util.collections.vec.Vec;
 @Param(name="storage_type", desc="Storage type of new PointCloud. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) PointCloud operation mode. (RasterUnit only, default false)", example="false", required=false)
 public class Task_to_pointcloud extends RemoteTask{
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -78,9 +78,9 @@ public class Task_to_pointcloud extends RemoteTask{
 		
 		private void commit() {
 			Timer.start("to_pointdb commit");
-			log.info(Timer.stop("to_pointdb commit between"));
+			Logger.info(Timer.stop("to_pointdb commit between"));
 			pointcloud.commit();
-			log.info(Timer.stop("to_pointdb commit"));
+			Logger.info(Timer.stop("to_pointdb commit"));
 			Timer.start("to_pointdb commit between");
 		}
 
@@ -123,11 +123,11 @@ public class Task_to_pointcloud extends RemoteTask{
 
 			setMessage("verify pointdb layer");
 			Statistics stat = pointdb.tileMetaProducer(null).toStatistics();
-			log.info(stat.tile_x_min+"  "+stat.tile_x_max+"          "+(stat.tile_x_max - stat.tile_x_min + PdbConst.UTM_TILE_SIZE));
-			log.info(stat.tile_y_min+"  "+stat.tile_y_max+"          "+(stat.tile_y_max - stat.tile_y_min + PdbConst.UTM_TILE_SIZE));
-			log.info("utmm tile size " + PdbConst.LOCAL_TILE_SIZE);
-			log.info("utm tile size " + PdbConst.UTM_TILE_SIZE);
-			log.info("tiles " + stat.tile_sum);
+			Logger.info(stat.tile_x_min+"  "+stat.tile_x_max+"          "+(stat.tile_x_max - stat.tile_x_min + PdbConst.UTM_TILE_SIZE));
+			Logger.info(stat.tile_y_min+"  "+stat.tile_y_max+"          "+(stat.tile_y_max - stat.tile_y_min + PdbConst.UTM_TILE_SIZE));
+			Logger.info("utmm tile size " + PdbConst.LOCAL_TILE_SIZE);
+			Logger.info("utm tile size " + PdbConst.UTM_TILE_SIZE);
+			Logger.info("tiles " + stat.tile_sum);
 
 
 			setMessage("set pointcloud parameters");
@@ -168,7 +168,7 @@ public class Task_to_pointcloud extends RemoteTask{
 						long utmm_cell_max_x = utmm_cell_min_x + utmm_cellsize_minus_one;
 						long utmm_cell_max_y = utmm_cell_min_y + utmm_cellsize_minus_one;
 						Rect rect = Rect.of_UTMM(utmm_cell_min_x, utmm_cell_min_y, utmm_cell_max_x, utmm_cell_max_y);
-						//log.info("rect "+rect);
+						//Logger.info("rect "+rect);
 
 						DBTileKeyProducer tileKeyProducer = DBTileKeyProducer.of(pointdb, rect);
 						TileKeyIsEmptyCollector.Processor tileKeyConsumer = new TileKeyIsEmptyCollector.Processor();
@@ -180,9 +180,9 @@ public class Task_to_pointcloud extends RemoteTask{
 							Timer.start("to_pointdb read");
 							Vec<Tile> tiles = pointdb.tileProducer(rect).toVec();
 							sourceTileCount += tiles.size();
-							log.info(Timer.stop("to_pointdb read"));
+							Logger.info(Timer.stop("to_pointdb read"));
 							int len = tiles.elementSum(Tile::size);
-							log.info("tiles " + tiles.size()+"   "+len);
+							Logger.info("tiles " + tiles.size()+"   "+len);
 							int[] xs = new int[len];
 							int[] ys = new int[len];
 							int[] zs = new int[len];
@@ -202,7 +202,7 @@ public class Task_to_pointcloud extends RemoteTask{
 									double xx = (x - utm_cell_min_x) * cellScale;
 									double yy = (y - utm_cell_min_y) * cellScale;
 									double zz = z * cellScale;
-									//log.info(x+"  "+xx+"     "+y+"  "+yy+"     "+z+"  "+zz);
+									//Logger.info(x+"  "+xx+"     "+y+"  "+yy+"     "+z+"  "+zz);
 									xs[cnt] = (int) xx;
 									ys[cnt] = (int) yy;
 									zs[cnt] = (int) zz;
@@ -220,7 +220,7 @@ public class Task_to_pointcloud extends RemoteTask{
 							int cell_pos_x = (int) (Math.floor(utm_cell_min_x / cellsize) - celloffset.x);
 							int cell_pos_y = (int) (Math.floor(utm_cell_min_y / cellsize) - celloffset.y);
 							int cell_pos_z = 0;
-							log.info("cellpos "+cell_pos_x+"  "+cell_pos_y);
+							Logger.info("cellpos "+cell_pos_x+"  "+cell_pos_y);
 							CellTable cellTable = new CellTable(cell_pos_x, cell_pos_y, cell_pos_z, len, xs, ys, zs);
 							cellTable.intensity = intensity;
 							cellTable.returnNumber = returnNumber;
@@ -230,20 +230,20 @@ public class Task_to_pointcloud extends RemoteTask{
 							cellTable.cleanup();
 							CellTable oldCellTable = pointcloud.getCellTable(cellTable.cx, cellTable.cy, cellTable.cz);
 							if(oldCellTable != null) {
-								log.warn("merge with existing cell");
+								Logger.warn("merge with existing cell");
 								cellTable = CellTable.merge(oldCellTable, cellTable);
 							}
 							Timer.start("to_pointdb create tile");
 							int t = 0;
 							rasterunit.Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy, cellTable.cz, t, Integer.MIN_VALUE);
-							log.info(Timer.stop("to_pointdb create tile"));
+							Logger.info(Timer.stop("to_pointdb create tile"));
 							Timer.start("to_pointdb write");
 							pointcloud.writeTile(tile);
 							targetTileCount++;
-							log.info(Timer.stop("to_pointdb write"));
+							Logger.info(Timer.stop("to_pointdb write"));
 							//pointcloud.commit();
 							commiter.addOne();
-							log.info(Timer.stop("to_pointdb tile"));
+							Logger.info(Timer.stop("to_pointdb tile"));
 							if(isMessageTime()) {
 								setMessage(sourceTileCount + " of " + stat.tile_sum + " source tiles processed -> " + targetTileCount + " target tiles");
 							}

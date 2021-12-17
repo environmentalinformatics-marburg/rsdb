@@ -1,10 +1,10 @@
 package voxeldb.raster.agg;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class RasterAggBool8ofInt32Exist extends RasterAggBool8ofInt32 {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public final static RasterAggBool8ofInt32Exist DEFAULT = new RasterAggBool8ofInt32Exist();
 	@Override

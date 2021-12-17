@@ -1,7 +1,7 @@
 package remotetask.voxeldb;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -16,7 +16,7 @@ import voxeldb.VoxelDB;
 @Description("Recalculate extent of VoxelDB layer. This may be needed if cached extent info is out of date.")
 @Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer.", example="voxeldb1")
 public class Task_refresh_extent extends RemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -37,7 +37,7 @@ public class Task_refresh_extent extends RemoteTask {
 			Range3d range = voxeldb.getLocalRange(true);
 				setMessage("local range " + range);
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 	}
 }

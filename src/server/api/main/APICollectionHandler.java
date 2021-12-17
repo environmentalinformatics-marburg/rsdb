@@ -8,10 +8,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -19,15 +17,13 @@ import server.api.APIHandler;
 import util.Web;
 
 public abstract class APICollectionHandler extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
-	public static final Marker MARKER_API = MarkerManager.getMarker("API");
-
+	
 	HashMap<String, APIHandler> methodMap = new HashMap<String, APIHandler>();
 
 	protected void addMethod(APIHandler handler) {
 		String name = handler.getAPIMethod();
 		if(methodMap.containsKey(name)) {
-			log.warn("method name already exists overwrite '"+name+"'  "+methodMap.get(name)+"  "+handler);
+			Logger.warn("method name already exists overwrite '"+name+"'  "+methodMap.get(name)+"  "+handler);
 		}
 		methodMap.put(name, handler);
 	}
@@ -46,7 +42,7 @@ public abstract class APICollectionHandler extends AbstractHandler {
 			subTarget = method.substring(subIndex + 1);	
 			method = method.substring(0, subIndex);			
 		}
-		log.info(MARKER_API, Web.getRequestLogString("API",method,baseRequest));
+		Logger.tag("API").info(Web.getRequestLogString("API",method,baseRequest));
 		if(method.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentType("text/plain;charset=utf-8");
@@ -59,7 +55,7 @@ public abstract class APICollectionHandler extends AbstractHandler {
 		if(method.charAt(method.length()-1)=='/') {
 			method = method.substring(0, method.length()-1);
 		}
-		//log.info("method: "+method);
+		//Logger.info("method: "+method);
 		APIHandler handler = methodMap.get(method);
 		if(handler==null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

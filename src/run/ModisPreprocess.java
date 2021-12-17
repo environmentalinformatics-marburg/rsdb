@@ -14,18 +14,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Util;
 
 public class ModisPreprocess {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static void call(String... args) {
 		try {
 			List<String> argsList = Arrays.asList(args);
-			log.info(argsList);
+			Logger.info(argsList);
 			ProcessBuilder pb = new ProcessBuilder(argsList);
 			pb.redirectOutput(Redirect.INHERIT);
 			pb.redirectError(Redirect.INHERIT);
@@ -33,7 +33,7 @@ public class ModisPreprocess {
 			Process process = pb.start();
 			process.waitFor();
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 	}
 
@@ -41,7 +41,7 @@ public class ModisPreprocess {
 		ArrayList<String> lines = new ArrayList<String>();
 		try {
 			List<String> argsList = Arrays.asList(args);
-			log.info(argsList);
+			Logger.info(argsList);
 			ProcessBuilder pb = new ProcessBuilder(argsList);
 			//pb.redirectOutput(Redirect.INHERIT);
 			pb.redirectError(Redirect.INHERIT);
@@ -57,7 +57,7 @@ public class ModisPreprocess {
 			}
 			process.waitFor();
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 		return lines;
 	}
@@ -96,7 +96,7 @@ public class ModisPreprocess {
 		Path sourceDir = Paths.get("temp/modis");
 		Path target = Paths.get("temp/bale_modis");
 		convertDirectory(sourceDir, target);
-		log.info("-------------------------");
+		Logger.info("-------------------------");
 	}
 
 	public static void convertDirectory(Path root, Path target){
@@ -104,7 +104,7 @@ public class ModisPreprocess {
 			for(Path path:Util.getPaths(root)) {
 				if(path.toFile().isFile()) {
 					if(path.getFileName().toString().endsWith("hdf")) {
-						log.info("import hdf "+path);
+						Logger.info("import hdf "+path);
 						convertFile(path, target);
 					}
 				} else if(path.toFile().isDirectory()) {
@@ -112,7 +112,7 @@ public class ModisPreprocess {
 				}
 			}
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 	}
 	
@@ -131,18 +131,18 @@ public class ModisPreprocess {
 
 		
 
-		log.info(datetime);
+		Logger.info(datetime);
 
 		Path datsetsTarget = target.resolve(datetime.format(DATE_TIME_FORMATER2)+"__"+name);
 		datsetsTarget.toFile().mkdirs();
-		log.info(datsetsTarget);
+		Logger.info(datsetsTarget);
 
 		ArrayList<String> datasets = getModisDatasets(source.toString());
 		for(String dataset:datasets) {
 			String shortdatasetName = dataset.substring(dataset.lastIndexOf(':')+1);			
-			log.info(dataset);
+			Logger.info(dataset);
 			Path datasetTarget = datsetsTarget.resolve(shortdatasetName+".tif");
-			log.info(datasetTarget);
+			Logger.info(datasetTarget);
 			gdal_translate(dataset.toString(), datasetTarget.toString());
 		}
 	}

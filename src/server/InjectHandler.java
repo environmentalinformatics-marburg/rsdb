@@ -6,15 +6,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import util.Web;
 
 public class InjectHandler extends AbstractHandler {
-	static final Logger log = LogManager.getLogger();
+	
 
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -38,9 +38,9 @@ public class InjectHandler extends AbstractHandler {
 			/*Enumeration<String> hs = request.getHeaderNames();
 		while(hs.hasMoreElements()) {
 			String h = hs.nextElement();
-			log.info("header   " + h + ": " + request.getHeader(h));
+			Logger.info("header   " + h + ": " + request.getHeader(h));
 		}*/
-			log.info(RSDBServer.MARKER_REQ, Web.getRequestLogString("REQ", baseRequest.getMethod() + "   " + baseRequest.getRequestURL().toString(), baseRequest));
+			Logger.tag("REQ").info(Web.getRequestLogString("REQ", baseRequest.getMethod() + "   " + baseRequest.getRequestURL().toString(), baseRequest));
 		}
 	}
 }

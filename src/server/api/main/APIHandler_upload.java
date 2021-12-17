@@ -11,7 +11,7 @@ import broker.Broker;
 import server.api.APIHandler;
 
 public class APIHandler_upload extends APIHandler {
-	//private static final Logger log = LogManager.getLogger();
+	//
 	private static final Path TEMP_PATH = Paths.get("temp/raster");
 
 	ChunkedUploader chunkedUploader = new ChunkedUploader(TEMP_PATH);

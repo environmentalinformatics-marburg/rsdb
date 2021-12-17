@@ -2,8 +2,8 @@ package rasterdb;
 
 import java.util.ArrayList;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.ast.AST;
 import rasterdb.ast.AST_Band_number;
@@ -13,7 +13,7 @@ import rasterdb.ast.AST_radiance;
 import rasterdb.ast.TransformVisitor;
 
 public class BindVisitor implements TransformVisitor {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private final RasterDB rasterdb;
 
@@ -25,7 +25,7 @@ public class BindVisitor implements TransformVisitor {
 	public AST visitRadiation(AST_radiance ast, AST parent) {		
 		Band band = BandProcessing.getBestSpectralBandWithinFwhm(rasterdb, ast.nm);
 		if(band==null) {
-			log.warn("band with wavelength "+ast.nm+" not found get nearest band");
+			Logger.warn("band with wavelength "+ast.nm+" not found get nearest band");
 			band = BandProcessing.getClosestSpectralBand(rasterdb, ast.nm);
 		}
 		if(band==null) {

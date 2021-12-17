@@ -4,8 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.Geometry;
@@ -20,7 +20,7 @@ import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class Renderer {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static Color COLOR_POLYGON = new Color(0, 255, 0, 100);
 	public static Color COLOR_POLYGON_OUTLINE = new Color(128, 128, 128, 100);
@@ -33,7 +33,7 @@ public class Renderer {
 	public static String colorToString(Color c) {
 		int v = (c.getRed() << 24) | (c.getGreen() << 16) | (c.getBlue() << 8) | (c.getAlpha() << 0);		
 		String hex = '#' + Integer.toHexString(v).toUpperCase();
-		//log.info(Integer.toHexString(c.getRed()).toUpperCase() + " " + Integer.toHexString(c.getGreen()).toUpperCase() + " " + Integer.toHexString(c.getBlue()).toUpperCase() + " " + Integer.toHexString(c.getAlpha()).toUpperCase() + " -> " + hex);
+		//Logger.info(Integer.toHexString(c.getRed()).toUpperCase() + " " + Integer.toHexString(c.getGreen()).toUpperCase() + " " + Integer.toHexString(c.getBlue()).toUpperCase() + " " + Integer.toHexString(c.getAlpha()).toUpperCase() + " -> " + hex);
 		return hex;
 	}
 	
@@ -48,7 +48,7 @@ public class Renderer {
 				int b = (v >> 8) & 0xFF;
 				int a = (v >> 0) & 0xFF;
 				Color c = new Color(r, g, b, a);
-				//log.info(hex + " -> " + Integer.toHexString(c.getRed()).toUpperCase() + " " + Integer.toHexString(c.getGreen()).toUpperCase() + " " + Integer.toHexString(c.getBlue()).toUpperCase() + " " + Integer.toHexString(c.getAlpha()).toUpperCase());
+				//Logger.info(hex + " -> " + Integer.toHexString(c.getRed()).toUpperCase() + " " + Integer.toHexString(c.getGreen()).toUpperCase() + " " + Integer.toHexString(c.getBlue()).toUpperCase() + " " + Integer.toHexString(c.getAlpha()).toUpperCase());
 				return c;
 			} catch(Exception e) {
 				return COLOR_ERROR;
@@ -75,7 +75,7 @@ public class Renderer {
 		int width = (int) Math.ceil(targetScale * xlen);
 		int height = (int) Math.ceil(targetScale * ylen);
 
-		log.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
+		Logger.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
 
 		return render(datasource, extent, width, height, ct, style);
 	}
@@ -99,10 +99,10 @@ public class Renderer {
 
 		double xoff = - extent.xmin + 2 * (1 / xscale);
 		double yoff = extent.ymax + 2 * (1 / yscale);
-		//log.info("xscale " + xscale);
-		//log.info("yscale " + yscale);
-		//log.info("1/xscale " + (1 / xscale));
-		//log.info("1/yscale " + (1 / yscale));
+		//Logger.info("xscale " + xscale);
+		//Logger.info("yscale " + yscale);
+		//Logger.info("1/xscale " + (1 / xscale));
+		//Logger.info("1/yscale " + (1 / yscale));
 		Drawer drawer = new Drawer(gc, xoff, yoff, xscale, yscale);
 
 		/*traversePolygons(datasource, drawer);
@@ -158,7 +158,7 @@ public class Renderer {
 		public void drawPointBox(double x, double y) {
 			int x1 = (int) ((x + xoff) * xscale);
 			int y1 = (int) ((yoff - y) * yscale);
-			//log.info(x1 + " " + y1);
+			//Logger.info(x1 + " " + y1);
 			/*gc.setColor(Color.gray);
 			gc.drawLine(x1, y1-1, x1, y1+1);
 			gc.drawLine(x1-1, y1, x1+1, y1);*/
@@ -188,7 +188,7 @@ public class Renderer {
 			int y1 = (int) ((yoff - y) * yscale);
 			int x2 = (int) ((xa + xoff) * xscale);
 			int y2 = (int) ((yoff - ya) * yscale);
-			log.info("draw line "+x1+" "+y1+"  "+x2+" "+y2+"   " + x +" " + y + "  " + xa + " " + ya);
+			Logger.info("draw line "+x1+" "+y1+"  "+x2+" "+y2+"   " + x +" " + y + "  " + xa + " " + ya);
 			gc.setColor(Color.DARK_GRAY);
 			gc.drawLine(x1, y1, x2, y2);			
 		}
@@ -220,7 +220,7 @@ public class Renderer {
 				double[] p = (double[]) points[i];
 				xs[i] = (int) ((p[0] + xoff) * xscale);
 				ys[i] = (int) ((yoff - p[1]) * yscale);
-				//log.info("polygon point " + xs[i] + " " + ys[i]);
+				//Logger.info("polygon point " + xs[i] + " " + ys[i]);
 			}
 			polygonDrawer.drawPolygons(gc, xs, ys, len);			
 		}
@@ -272,7 +272,7 @@ public class Renderer {
 		int layerCount = datasource.GetLayerCount();
 		for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 			Layer layer = datasource.GetLayerByIndex(layerIndex);
-			log.info("layer.GetGeomType() " + layer.GetGeomType());
+			Logger.info("layer.GetGeomType() " + layer.GetGeomType());
 			layer.ResetReading();
 			Feature feature = layer.GetNextFeature();
 			while(feature != null) {
@@ -289,12 +289,12 @@ public class Renderer {
 		case 1: {
 			double x = geometry.GetX();
 			double y = geometry.GetY();
-			log.info("point " + x + " " + y);
+			Logger.info("point " + x + " " + y);
 			drawer.drawPointCross(x, y);
 			break;
 		}
 		default:
-			//log.warn("unknown geometry " + type);
+			//Logger.warn("unknown geometry " + type);
 		}
 	}
 
@@ -304,12 +304,12 @@ public class Renderer {
 		case 1: { // POINT
 			double x = geometry.GetX();
 			double y = geometry.GetY();
-			log.info("point " + x + " " + y);
+			Logger.info("point " + x + " " + y);
 			drawer.drawPointTop(x, y);
 			break;
 		}
 		default: 
-			//log.warn("unknown geometry " + type + "  " + geometry.GetGeometryName());
+			//Logger.warn("unknown geometry " + type + "  " + geometry.GetGeometryName());
 		}
 	}
 
@@ -319,7 +319,7 @@ public class Renderer {
 		case -2147483643: { // MULTILINESTRING 
 			/*double x = geometry.GetX();
 			double y = geometry.GetY();
-			log.info("point " + x + " " + y);
+			Logger.info("point " + x + " " + y);
 			drawer.drawPointTop(x, y);*/
 			int geoCount = geometry.GetGeometryCount();
 			for(int i=0; i<geoCount; i++) {
@@ -332,11 +332,11 @@ public class Renderer {
 		case -2147483646: { // LINESTRING 
 			/*double x = geometry.GetX();
 			double y = geometry.GetY();
-			log.info("point " + x + " " + y);
+			Logger.info("point " + x + " " + y);
 			drawer.drawPointTop(x, y);*/
 
 			double[][] points = geometry.GetPoints();
-			log.info(points.length);
+			Logger.info(points.length);
 			double[] st = null;
 			for(double[] p:points) {
 				if(st != null) {
@@ -347,7 +347,7 @@ public class Renderer {
 			break;
 		}
 		default: 
-			//log.warn("unknown geometry " + type + "  " + geometry.GetGeometryName());
+			//Logger.warn("unknown geometry " + type + "  " + geometry.GetGeometryName());
 		}
 	}
 
@@ -357,7 +357,7 @@ public class Renderer {
 		case 6: { // MULTIPOLYGON
 			/*double x = geometry.GetX();
 			double y = geometry.GetY();
-			log.info("point " + x + " " + y);
+			Logger.info("point " + x + " " + y);
 			drawer.drawPointTop(x, y);*/
 			int geoCount = geometry.GetGeometryCount();
 			for(int i=0; i<geoCount; i++) {
@@ -371,7 +371,7 @@ public class Renderer {
 		case -2147483645: { // POLYGON
 			/*double x = geometry.GetX();
 			double y = geometry.GetY();
-			log.info("point " + x + " " + y);
+			Logger.info("point " + x + " " + y);
 			drawer.drawPointTop(x, y);*/
 			int geoCount = geometry.GetGeometryCount();
 			for(int i=0; i<geoCount; i++) {
@@ -385,12 +385,12 @@ public class Renderer {
 		case -2147483646: { // LINEARRING
 			/*double x = geometry.GetX();
 			double y = geometry.GetY();
-			log.info("point " + x + " " + y);
+			Logger.info("point " + x + " " + y);
 			drawer.drawPointTop(x, y);*/
 
 			double[][] points = geometry.GetPoints();
 			drawer.drawPolygon(points);
-			/*log.info(points.length);
+			/*Logger.info(points.length);
 			double[] st = null;
 			for(double[] p:points) {
 				if(st != null) {
@@ -402,7 +402,7 @@ public class Renderer {
 		}
 
 		default: 
-			log.warn("unknown geometry " + type + "  " + geometry.GetGeometryName());
+			Logger.warn("unknown geometry " + type + "  " + geometry.GetGeometryName());
 		}
 	}
 
@@ -460,7 +460,7 @@ public class Renderer {
 			if(geometry != null) {
 				collectGeometry(geometry, points, lines, polygons, ct);
 			} else {
-				log.warn("missing geometry");
+				Logger.warn("missing geometry");
 			}
 			feature = layer.GetNextFeature();
 		}		
@@ -471,7 +471,7 @@ public class Renderer {
 		switch (type) {
 		case 1:  // 1  POINT
 		case -2147483647: { //  0x80000001 Point25D
-			//log.info("read point");
+			//Logger.info("read point");
 			double x = geometry.GetX();
 			double y = geometry.GetY();
 			if(ct != null) {
@@ -485,7 +485,7 @@ public class Renderer {
 		}
 		case 2: // 2  LINESTRING
 		case -2147483646: { // 0x80000002  LineString25D
-			//log.info("read line");
+			//Logger.info("read line");
 			double[][] linePoints = geometry.GetPoints();
 			if(ct != null) {
 				ct.TransformPoints(linePoints);
@@ -502,7 +502,7 @@ public class Renderer {
 				switch (subType) {
 				case 2: // 2  LINESTRING
 				case -2147483646: { // 0x80000002  LineString25D
-					//log.info("read polygon");
+					//Logger.info("read polygon");
 					double[][] polygonPoints = subGeo.GetPoints();
 					if(ct != null) {
 						ct.TransformPoints(polygonPoints);
@@ -511,14 +511,14 @@ public class Renderer {
 					break;
 				}
 				default: 
-					log.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
+					Logger.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
 				}
 			}
 			break;
 		}
 		case 4: // 4  MultiPoint
 		case -2147483644: { // 0x80000004  MultiPoint25D
-			//log.info("read points");
+			//Logger.info("read points");
 			double[][] ps = geometry.GetPoints();
 			if(ct != null) {
 				ct.TransformPoints(ps);
@@ -538,7 +538,7 @@ public class Renderer {
 				switch (subType) {
 				case 2: // 2  LINESTRING
 				case -2147483646: { // 0x80000002  LineString25D
-					//log.info("read lines");
+					//Logger.info("read lines");
 					double[][] linePoints = subGeo.GetPoints(3); // 3 dimensions needed for correct parameter TransformPoints
 					if(ct != null) {
 						ct.TransformPoints(linePoints);
@@ -547,7 +547,7 @@ public class Renderer {
 					break;
 				}
 				default: 
-					log.warn("unknown MULTILINESTRING sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
+					Logger.warn("unknown MULTILINESTRING sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
 				}
 			}
 			break;
@@ -568,7 +568,7 @@ public class Renderer {
 						switch (subsubType) {
 						case 2: // 2  LINESTRING
 						case -2147483646: { // 0x80000002  LineString25D
-							//log.info("read polygons");
+							//Logger.info("read polygons");
 							double[][] polygonPoints = subsubGeo.GetPoints();
 							if(ct != null) {
 								ct.TransformPoints(polygonPoints);
@@ -578,19 +578,19 @@ public class Renderer {
 							break;
 						}
 						default: 
-							log.warn("unknown MULTIPOLYGON POLYGON sub geometry " + subsubType + "  "+ Long.toHexString(Integer.toUnsignedLong(subsubType)) + "  " + subsubGeo.GetGeometryName());
+							Logger.warn("unknown MULTIPOLYGON POLYGON sub geometry " + subsubType + "  "+ Long.toHexString(Integer.toUnsignedLong(subsubType)) + "  " + subsubGeo.GetGeometryName());
 						}
 					}
 					break;
 				}
 				default: 
-					log.warn("unknown MULTIPOLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
+					Logger.warn("unknown MULTIPOLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
 				}
 			}
 			break;
 		}
 		default: 
-			log.warn("unknown geometry " + type + "  "+ Long.toHexString(Integer.toUnsignedLong(type)) + "  " + geometry.GetGeometryName());
+			Logger.warn("unknown geometry " + type + "  "+ Long.toHexString(Integer.toUnsignedLong(type)) + "  " + geometry.GetGeometryName());
 		}		
 	}
 }

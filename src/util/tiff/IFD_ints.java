@@ -4,14 +4,14 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Util;
 import util.tiff.TiffReader.IfdEntry;
 
 public class IFD_ints extends IFD_Entry { // 32 bit unsigned integer
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	int[] values;
 
@@ -32,7 +32,7 @@ public class IFD_ints extends IFD_Entry { // 32 bit unsigned integer
 			out.writeInt(values[0]);//--- (not data offset): value
 		} else {
 			out.writeInt(data_pos); //--- data offset
-			//log.info(hex(id) + " ints " + hex(data_pos));
+			//Logger.info(hex(id) + " ints " + hex(data_pos));
 		}
 	}
 	
@@ -52,7 +52,7 @@ public class IFD_ints extends IFD_Entry { // 32 bit unsigned integer
 			out.writeInt(values[1]);//--- (not data offset): value
 		} else {
 			out.writeLong(data_pos); //--- data offset
-			log.info("bigTIFF " + Util.hex(id) + " ints " + Util.hex(data_pos));
+			Logger.info("bigTIFF " + Util.hex(id) + " ints " + Util.hex(data_pos));
 		}
 	}
 	
@@ -75,7 +75,7 @@ public class IFD_ints extends IFD_Entry { // 32 bit unsigned integer
 		if(values.length>1) {
 			for(int v:values) {
 				out.writeInt(v);
-				//log.info(" ints int " + v + " ->  " + hex(v));
+				//Logger.info(" ints int " + v + " ->  " + hex(v));
 			}		
 		}
 	}
@@ -85,7 +85,7 @@ public class IFD_ints extends IFD_Entry { // 32 bit unsigned integer
 		if(values.length>2) {
 			for(int v:values) {
 				out.writeInt(v);
-				log.info("bigTIFF ints int " + v + " ->  " + Util.hex(v));
+				Logger.info("bigTIFF ints int " + v + " ->  " + Util.hex(v));
 			}		
 		}
 	}

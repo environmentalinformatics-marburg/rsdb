@@ -14,7 +14,7 @@ import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_layer_tags extends APIHandler {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public APIHandler_layer_tags(Broker broker) {
 		super(broker, "layer_tags");

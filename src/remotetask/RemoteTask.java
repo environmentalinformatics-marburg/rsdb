@@ -4,8 +4,8 @@ import java.util.Comparator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import remotetask.pointcloud.task_pointcloud;
 import remotetask.pointdb.task_pointdb;
@@ -13,7 +13,7 @@ import remotetask.rasterdb.task_rasterdb;
 import remotetask.vectordb.task_vectordb;
 
 public abstract class RemoteTask implements Runnable, MessageProxy {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	private ConcurrentLinkedQueue<String> logMessages = new ConcurrentLinkedQueue<String>();
 	
@@ -61,12 +61,12 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 		} catch(Exception e) {
 			status = Status.ERROR;
 			setMessage("Error: " + e.getMessage());
-			log.error(e.getMessage());
+			Logger.error(e.getMessage());
 			e.printStackTrace();
 		} catch(Throwable e) {
 			status = Status.ERROR;
 			setMessage("Error: " + e.getMessage());
-			log.error(e.getMessage());
+			Logger.error(e.getMessage());
 			e.printStackTrace();
 			throw e;
 		} finally {
@@ -126,7 +126,7 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 	}
 	
 	public void cancel() {
-		log.info("cancel not supported");
+		Logger.info("cancel not supported");
 	}
 	
 	public boolean isCanceled() {
@@ -135,7 +135,7 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 	
 	protected void log(String message) {
 		//logMessages.add(message);
-		log.info(message);
+		Logger.info(message);
 	}
 
 	public ConcurrentLinkedQueue<String> getLog() {

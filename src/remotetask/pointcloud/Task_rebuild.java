@@ -1,7 +1,7 @@
 package remotetask.pointcloud;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -19,7 +19,7 @@ import remotetask.Param;
 @Param(name="compression_level", type="integer", desc="Level of compression. (0 to 100) If missing no recompression is applied.", example="1", required=false)
 @Param(name="storage_type", desc="Storage type of new PointCloud. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 public class Task_rebuild extends CancelableRemoteProxyTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -36,7 +36,7 @@ public class Task_rebuild extends CancelableRemoteProxyTask {
 		src.check(ctx.userIdentity);
 		EmptyACL.ADMIN.check(ctx.userIdentity);
 		storage_type = task.optString("storage_type", "TileStorage");
-		log.info("set storage type: " + storage_type);
+		Logger.info("set storage type: " + storage_type);
 		compression_level = task.optInt("compression_level", Integer.MIN_VALUE);
 	}
 

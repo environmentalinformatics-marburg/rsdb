@@ -16,7 +16,7 @@ import remotetask.Param;
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="pyramid_type", desc="Pyramid type of new RasterDB. (default: compact_div2)", format="files_div4 or compact_div2", example="files_div4", required=false)
 public class Task_rebuild extends CancelableRemoteProxyTask {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private final Broker broker;
 	private final JSONObject task;

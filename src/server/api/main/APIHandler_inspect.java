@@ -9,8 +9,8 @@ import java.util.regex.Pattern;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.gdal.gdal.Driver;
@@ -33,7 +33,7 @@ import util.Web;
 import util.raster.GdalReader;
 
 public class APIHandler_inspect extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final ChunkedUploader chunkedUploader;
 
@@ -96,13 +96,13 @@ public class APIHandler_inspect extends APIHandler {
 	}
 
 	public static ImportSpec createSpec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, int[] layerBandIndices, String[] timesliceNames) {
-		log.info(fullPath);
+		Logger.info(fullPath);
 		GdalReader gdalreader = new GdalReader(fullPath.toString());
 		return createSpec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, layerBandIndices, timesliceNames);
 	}
 
 	public static void createJSONspec(Path fullPath, Strategy strategy, String fileID, String rasterdbID, RasterDB rasterdb, boolean guessTimestamp, JSONWriter json, int[] layerBandIndices, String[] timesliceNames) {
-		log.info(fullPath);
+		Logger.info(fullPath);
 		GdalReader gdalreader = new GdalReader(fullPath.toString());
 		createJSONspec(gdalreader, strategy, fileID, rasterdbID, rasterdb, guessTimestamp, json, layerBandIndices, timesliceNames);
 	}
@@ -163,7 +163,7 @@ public class APIHandler_inspect extends APIHandler {
 			}
 
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 
 		json.key("file_pixel_size_x");
@@ -333,7 +333,7 @@ public class APIHandler_inspect extends APIHandler {
 					bandValueScale = bandValueScaleHolder[0].doubleValue();
 				}			
 			} catch (Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 			if(hasBandValueScale) {
 				json.key("value_scale");
@@ -352,7 +352,7 @@ public class APIHandler_inspect extends APIHandler {
 					bandValueOffset = bandValueOffsetHolder[0].doubleValue();
 				}			
 			} catch (Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 			if(hasBandValueOffset) {
 				json.key("value_offset");
@@ -541,12 +541,12 @@ public class APIHandler_inspect extends APIHandler {
 				Matcher matcher = pattern.matcher(fileID);
 				if(matcher.find()) {
 					String tText = matcher.group(1);
-					log.info("tText " + tText);
+					Logger.info("tText " + tText);
 					LocalDate date = LocalDate.parse(tText, TimeUtil.DATE_UNDERSCORE);
 					timestampText = date.toString();
 				}
 			} catch (Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 
@@ -589,7 +589,7 @@ public class APIHandler_inspect extends APIHandler {
 		Path path;
 		if(chunkedUpload == null) {
 			//throw new RuntimeException("file not found");
-			log.warn("old session ? ");
+			Logger.warn("old session ? ");
 			path = Paths.get("temp", fileID);
 		} else {
 			path = chunkedUpload.path;

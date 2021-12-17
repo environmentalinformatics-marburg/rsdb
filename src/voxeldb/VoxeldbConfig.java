@@ -5,8 +5,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Informal;
@@ -15,7 +15,7 @@ import broker.acl.EmptyACL;
 import util.yaml.YamlMap;
 
 public class VoxeldbConfig {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final String name;
 	public final Path path;
@@ -58,7 +58,7 @@ public class VoxeldbConfig {
 			return EmptyACL.ADMIN;
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			return EmptyACL.ADMIN;
 		}
 	}
@@ -75,12 +75,12 @@ public class VoxeldbConfig {
 				}
 				return Informal.ofYaml(yamlMap);
 			} else {
-				log.warn("missing meta: " + name+ "    " + metaPath);
+				Logger.warn("missing meta: " + name+ "    " + metaPath);
 			}
 			return Informal.EMPTY;
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			return Informal.EMPTY;
 		}
 	}

@@ -5,8 +5,8 @@ import java.util.TreeSet;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -27,7 +27,7 @@ import util.Range2d;
 import util.TimeUtil;
 
 public class RasterdbMethod_meta_json extends RasterdbMethod {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public RasterdbMethod_meta_json(Broker broker) {
 		super(broker, "meta.json");	
@@ -35,7 +35,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 
 	@Override
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		//log.info(request);
+		//Logger.info(request);
 		request.setHandled(true);
 		try {
 			boolean requestTileCount = request.getParameter("tile_count") != null;
@@ -107,7 +107,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 						}
 					}
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			}
 			if(ref.has_code()) {
@@ -123,7 +123,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 							}
 						}
 					} catch(Exception e) {
-						log.warn(e);
+						Logger.warn(e);
 					}
 				}
 			}
@@ -262,7 +262,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 					json.key("storage_size");
 					json.value(storage_size);
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			}
 			if(requestInternalStorageInternalFreeSize) {
@@ -275,7 +275,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 					json.key("storage_internal_free_size");
 					json.value(storage_internal_free_size);
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			}
 			json.key("custom_wms");
@@ -288,7 +288,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			json.endObject(); // end full object
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}		

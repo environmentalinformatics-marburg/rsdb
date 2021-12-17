@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -28,7 +28,7 @@ import util.TimeUtil;
 import util.Web;
 
 public class RequestProcessor {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	enum RdatDataType {INT16, FLOAT32, FLOAT64};
 
@@ -39,7 +39,7 @@ public class RequestProcessor {
 	public static void process(String format, RasterDB rasterdb, Request request, Response response) throws IOException {
 		request.setHandled(true);
 		try {
-			//log.info("buffer size " + response.getBufferSize());
+			//Logger.info("buffer size " + response.getBufferSize());
 			//response.setBufferSize(1024*1024);
 			format = Web.getString(request, "format", format);
 
@@ -55,7 +55,7 @@ public class RequestProcessor {
 
 			if(reqWidth > 0 || reqHeight > 0) {
 				if(scaleDiv != 1) {
-					log.warn("div parameter ignored");
+					Logger.warn("div parameter ignored");
 				}
 				scaleDiv = TimeBandProcessor.calcScale(range2d, reqWidth, reqHeight);
 			}
@@ -67,8 +67,8 @@ public class RequestProcessor {
 
 			BandProcessor processor = new BandProcessor(rasterdb, Web.getFlag(request, "clipped") ? range2d.clip(rasterLocalRange) : range2d, timestamp, scaleDiv);
 
-			log.info("processor dstRange " + processor.getDstRange());
-			log.info("processor srcRange " + processor.getSrcRange());
+			Logger.info("processor dstRange " + processor.getDstRange());
+			Logger.info("processor srcRange " + processor.getSrcRange());
 
 			String productText = request.getParameter("product");
 			String bandText = request.getParameter("band");
@@ -107,13 +107,13 @@ public class RequestProcessor {
 				RequestProcessorProduct.processProduct(processor, productText, outputProcessingType, format, new ResponseReceiver(response));								
 			}
 		} catch (Exception e) {
-			log.error(e);
+			Logger.error(e);
 			e.printStackTrace();
 			try {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getWriter().println(e);
 			} catch(Exception e1) {
-				log.error(e1);
+				Logger.error(e1);
 			}
 		}
 	}
@@ -150,7 +150,7 @@ public class RequestProcessor {
 			try{
 				timestampRange = TimeUtil.getTimestampRangeOrNull(timestampText);
 			}catch(Exception e) {
-				log.warn("could not parse timestamp: " + timestampText);
+				Logger.warn("could not parse timestamp: " + timestampText);
 			}
 			if(timestampRange != null) {
 				NavigableSet<Integer> timestampSubset = rasterUnitStorage.timeKeysReadonly().subSet(timestampRange[0], true, timestampRange[1], true);

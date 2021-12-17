@@ -2,8 +2,8 @@ package rasterdb.importer;
 
 import java.nio.file.Path;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import rasterdb.RasterDB;
@@ -11,7 +11,7 @@ import util.Timer;
 import util.Util;
 
 public class Import_modis {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	//private final Broker broker;
 	private final RasterDB rasterdb;
@@ -26,7 +26,7 @@ public class Import_modis {
 	public void importDirectory(Path root) throws Exception {
 		Timer.start("import_modis "+root);		
 		importDirectoryInternal(root, root.getFileName().toString());
-		log.info(Timer.stop("import_modis "+root));
+		Logger.info(Timer.stop("import_modis "+root));
 		rasterdb.rebuildPyramid(true);
 	}
 	
@@ -34,7 +34,7 @@ public class Import_modis {
 		for(Path path:Util.getPaths(root)) {
 			if(path.toFile().isFile()) {
 				if(path.getFileName().toString().endsWith(".tif")) {
-					log.info("import modis "+path);
+					Logger.info("import modis "+path);
 					importFile(path);
 				}
 			} else if(path.toFile().isDirectory()) {

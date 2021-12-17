@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class SyncVec<T> implements Iterable<T> {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private static final Object[] DEFAULT_SIZED_EMPTY_ARRAY = {};
 

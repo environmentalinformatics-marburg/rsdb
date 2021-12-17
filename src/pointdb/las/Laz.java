@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import com.github.mreutegg.laszip4j.LASHeader;
 import com.github.mreutegg.laszip4j.LASPoint;
@@ -21,7 +21,7 @@ import pointcloud.CellTable;
 import pointdb.base.Point;
 
 public class Laz {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final Path filename;
 	public final LASReader reader;
@@ -70,10 +70,10 @@ public class Laz {
 	}
 
 	public Point[] read(long record_start, int record_count, int[] intDiffs, int[] intFactors) {
-		log.info("laz offset "+ Arrays.toString(offset));
-		log.info("laz offset "+ Arrays.toString(scale_factor));
-		log.info("laz intDiffs "+ Arrays.toString(intDiffs));
-		log.info("laz intFactors "+ Arrays.toString(intFactors));
+		Logger.info("laz offset "+ Arrays.toString(offset));
+		Logger.info("laz offset "+ Arrays.toString(scale_factor));
+		Logger.info("laz intDiffs "+ Arrays.toString(intDiffs));
+		Logger.info("laz intFactors "+ Arrays.toString(intFactors));
 		if(internalReader == null) {			
 			internalReader = new LASreadOpener().open(filename.toFile().getAbsolutePath());
 			internalReaderPos = 0;
@@ -93,7 +93,7 @@ public class Laz {
 		int cnt = 0;
 		LASpoint mutablePoint = internalReader.point;
 		while(cnt < record_count) {
-			//log.info("read " + cnt);
+			//Logger.info("read " + cnt);
 			if(!internalReader.read_point()) {
 				throw new RuntimeException("not all points read "+ cnt + "  " + record_count + "    "  + number_of_point_records + " file points");
 			}
@@ -102,7 +102,7 @@ public class Laz {
 		}
 		internalReaderPos += cnt;
 		if(number_of_point_records == internalReaderPos || cnt < record_count) {
-			log.info("close internal reader");
+			Logger.info("close internal reader");
 			internalReader.close();
 			internalReader = null;
 		}
@@ -112,10 +112,10 @@ public class Laz {
 
 
 	public Point[] readwithInternalIterator(long record_start, int record_count, int[] intDiffs, int[] intFactors) {
-		log.info("laz offset "+ Arrays.toString(offset));
-		log.info("laz offset "+ Arrays.toString(scale_factor));
-		log.info("laz intDiffs "+ Arrays.toString(intDiffs));
-		log.info("laz intFactors "+ Arrays.toString(intFactors));
+		Logger.info("laz offset "+ Arrays.toString(offset));
+		Logger.info("laz offset "+ Arrays.toString(scale_factor));
+		Logger.info("laz intDiffs "+ Arrays.toString(intDiffs));
+		Logger.info("laz intFactors "+ Arrays.toString(intFactors));
 		if(lasPointIterator == null) {
 			lasPointIterator = reader.getPoints().iterator();
 			lasPointIteratorPos = 0;
@@ -140,7 +140,7 @@ public class Laz {
 			cnt++;
 		}
 		if(cnt < record_count) {
-			log.warn("not all points read "+ cnt + "  " + record_count);
+			Logger.warn("not all points read "+ cnt + "  " + record_count);
 		}
 		lasPointIteratorPos += cnt;
 		return points;
@@ -211,7 +211,7 @@ public class Laz {
 		int cnt = 0;
 		LASpoint mutablePoint = internalReader.point;
 		while(cnt < record_count) {
-			//log.info("read point " + cnt);
+			//Logger.info("read point " + cnt);
 			if(!internalReader.read_point()) {
 				throw new RuntimeException("not all points read "+ cnt + "  " + record_count + "    "  + number_of_point_records + " file points");
 			}
@@ -237,7 +237,7 @@ public class Laz {
 		}
 		internalReaderPos += cnt;
 		if(number_of_point_records == internalReaderPos || cnt < record_count) {
-			log.info("close internal reader");
+			Logger.info("close internal reader");
 			internalReader.close();
 			internalReader = null;
 		}
@@ -303,7 +303,7 @@ public class Laz {
 			cnt++;
 		}
 		if(cnt < record_count) {
-			log.warn("not all points read "+ cnt + "  " + record_count);
+			Logger.warn("not all points read "+ cnt + "  " + record_count);
 		}
 		lasPointIteratorPos += cnt;
 
@@ -327,7 +327,7 @@ public class Laz {
 			LASheader h = r.header;
 			return readEPSGByHeader(h);
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 			return 0;
 		} finally {
 			r.close();
@@ -344,7 +344,7 @@ public class Laz {
 				break;
 			}			
 			}			
-			//log.info("len re " + ((int)e.key_id) + "   " + ((int)e.count) + "   " + ((int)e.tiff_tag_location) + "  " + ((int) e.value_offset));
+			//Logger.info("len re " + ((int)e.key_id) + "   " + ((int)e.count) + "   " + ((int)e.tiff_tag_location) + "  " + ((int) e.value_offset));
 		}
 		return epsg;
 	}

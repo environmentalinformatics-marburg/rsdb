@@ -1,7 +1,7 @@
 package server.api.pointdb;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.GeoPoint;
 import pointdb.base.Rect;
@@ -9,7 +9,7 @@ import pointdb.processing.geopoint.RasterGrid;
 import util.collections.vec.Vec;
 
 public class VoxelGenerator {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Rect rect;
 	private final Vec<GeoPoint> points;
@@ -20,10 +20,10 @@ public class VoxelGenerator {
 	}
 
 	public RasterGrid[] get() {
-		log.info("org rect "+rect);
+		Logger.info("org rect "+rect);
 		RasterGrid dtm = new DTM2_generator(rect, points).get();
-		log.info("dtm rect "+dtm);
-		log.info("data "+dtm.data[0].length+"  "+dtm.data.length);
+		Logger.info("dtm rect "+dtm);
+		Logger.info("data "+dtm.data[0].length+"  "+dtm.data.length);
 
 		int zMax = 50;
 		int topLevel = zMax-1;

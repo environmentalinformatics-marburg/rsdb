@@ -3,7 +3,7 @@ package pointdb.process;
 @Tag("forest_structure")
 @Description("Leaf-area index, from Getzin et al., with k=0.3, h.bin=1, GR.threshold=5 (based on CHM raster pixels)")
 public class Fun_LAI extends ProcessingFun {
-	//private static final Logger log = LogManager.getLogger();
+	//
 	
 	/*private static int[] getProfile_CHM_based(DataProvider2 provider) {
 		RasterSubGrid chm = provider.getCHM();
@@ -71,12 +71,12 @@ public class Fun_LAI extends ProcessingFun {
 	@Override
 	public double process(DataProvider2 provider) {		
 		//int[] profile = getProfile_CHM_based(provider);
-		//log.info("LAI pre points " + provider.get_sortedRegionHeightPoints().size());
+		//Logger.info("LAI pre points " + provider.get_sortedRegionHeightPoints().size());
 		//double[] points = provider.get_sortedCanopyHeights();
 		double[] points = provider.get_sortedRegionHeights();
-		//log.info("LAI points " + points.length);
+		//Logger.info("LAI points " + points.length);
 		int[] profile = getProfile(points);
-		//log.info("profile "+Arrays.toString(profile));
+		//Logger.info("profile "+Arrays.toString(profile));
 		if(profile.length == 0 || profile.length == 1) {
 			return 0;
 		}
@@ -90,16 +90,16 @@ public class Fun_LAI extends ProcessingFun {
 		for(Integer cnt:profile) {
 			sum += cnt;
 		}
-		//log.info("sum " + sum);
+		//Logger.info("sum " + sum);
 		double[] cumProfile = new double[profile.length];
 		double cumsum = 0;
 		for(int i = profile.length - 1; i >= 0; i--) {
 			cumsum += profile[i];
 			cumProfile[i] = 1d - cumsum / sum;
 		}
-		/*log.info("cumProfile ");
+		/*Logger.info("cumProfile ");
 		for (int i = 0; i < cumProfile.length; i++) {
-			log.info(i+" "+cumProfile[i]);
+			Logger.info(i+" "+cumProfile[i]);
 		}*/
 		
 		double[] cumProfileNext = new double[profile.length];
@@ -107,23 +107,23 @@ public class Fun_LAI extends ProcessingFun {
 			cumProfileNext[i] = cumProfile[i + 1];
 		}
 		cumProfileNext[profile.length - 1] = 1d;
-		/*log.info("cumProfileNext ");
+		/*Logger.info("cumProfileNext ");
 		for (int i = 0; i < cumProfileNext.length; i++) {
-			log.info(i+" "+cumProfileNext[i]);
+			Logger.info(i+" "+cumProfileNext[i]);
 		}*/
 		
 		double[] vfp = new double[profile.length];
 		double k = 0.3d;
 		double h_bin = 1d;
 		double factor = 1d / (k * h_bin);
-		//log.info("factor " + factor);
+		//Logger.info("factor " + factor);
 		for (int i = 1; i < profile.length; i++) {
 			vfp[i] = (cumProfileNext[i] == 0 || cumProfile[i] == 0) ? 0 : ( factor * (Math.log(cumProfileNext[i]) - Math.log(cumProfile[i])) );
 		}
 		
-		/*log.info("vfp ");
+		/*Logger.info("vfp ");
 		for (int i = 0; i < vfp.length; i++) {
-			log.info(i+" "+vfp[i]);
+			Logger.info(i+" "+vfp[i]);
 		}*/
 		
 		int gr_threshold = profile.length < 5 ? profile.length : 5;
@@ -131,9 +131,9 @@ public class Fun_LAI extends ProcessingFun {
 			vfp[i] = 0;
 		}
 		
-		/*log.info("vfp ");
+		/*Logger.info("vfp ");
 		for (int i = 0; i < vfp.length; i++) {
-			log.info(i+" "+vfp[i]);
+			Logger.info(i+" "+vfp[i]);
 		}*/
 		
 		return vfp;

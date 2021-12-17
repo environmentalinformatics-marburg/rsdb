@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
@@ -22,7 +22,7 @@ import util.Timer;
 import util.Util;
 
 public class GdalReader {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static final int GDAL_BYTE = 1;
 	public static final int GDAL_UINT16 = 2;
@@ -62,7 +62,7 @@ public class GdalReader {
 
 	static {
 		gdal.AllRegister();
-		log.info("GDAL version "+gdal.VersionInfo());
+		Logger.info("GDAL version "+gdal.VersionInfo());
 	}
 
 	public double[] transform(double[] tr, double px, double py) {
@@ -77,19 +77,19 @@ public class GdalReader {
 	}
 
 	public void info() {
-		log.info(filename);
-		log.info(x_range+" "+y_range); 
+		Logger.info(filename);
+		Logger.info(x_range+" "+y_range); 
 		int rasterCount = dataset.getRasterCount();
-		log.info("RasterCount "+rasterCount);
-		log.info("GetMetadata_Lis "+dataset.GetMetadata_List());
-		log.info("MetadataDomainList "+dataset.GetMetadataDomainList());
-		log.info("Projection "+dataset.GetProjection());
-		log.info("Description "+dataset.GetDescription());
-		log.info("GCPProjection "+dataset.GetGCPProjection());
-		log.info("ProjectionRef "+dataset.GetProjectionRef());
-		log.info(dataset.GetMetadata_List("IMAGE_STRUCTURE"));
-		log.info("GeoTransform "+Arrays.toString(getGeoRef()));
-		log.info(dataset.GetMetadataItem("TIFFTAG_IMAGEDESCRIPTION"));
+		Logger.info("RasterCount "+rasterCount);
+		Logger.info("GetMetadata_Lis "+dataset.GetMetadata_List());
+		Logger.info("MetadataDomainList "+dataset.GetMetadataDomainList());
+		Logger.info("Projection "+dataset.GetProjection());
+		Logger.info("Description "+dataset.GetDescription());
+		Logger.info("GCPProjection "+dataset.GetGCPProjection());
+		Logger.info("ProjectionRef "+dataset.GetProjectionRef());
+		Logger.info(dataset.GetMetadata_List("IMAGE_STRUCTURE"));
+		Logger.info("GeoTransform "+Arrays.toString(getGeoRef()));
+		Logger.info(dataset.GetMetadataItem("TIFFTAG_IMAGEDESCRIPTION"));
 	}
 
 	public String getWKT() {
@@ -111,7 +111,7 @@ public class GdalReader {
 			String proj4 = sprSrc.ExportToProj4();
 			return proj4;
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 			return null;
 		}
 	}
@@ -127,18 +127,18 @@ public class GdalReader {
 			if(projRef == null || projRef.isEmpty()) {
 				return null;
 			}
-			log.info(projRef);
+			Logger.info(projRef);
 			sprSrc.ImportFromWkt(projRef);
 			if(sprSrc.GetAuthorityName("PROJCS") != null) {
 				return sprSrc.GetAuthorityName("PROJCS")+":"+sprSrc.GetAuthorityCode("PROJCS");
 			}
-			log.info("--------------GET ------------- "+sprSrc.GetAuthorityCode("GEOGCS"));
-			log.info("--------------GET ------------- "+sprSrc.GetAuthorityName("GEOGCS"));
+			Logger.info("--------------GET ------------- "+sprSrc.GetAuthorityCode("GEOGCS"));
+			Logger.info("--------------GET ------------- "+sprSrc.GetAuthorityName("GEOGCS"));
 			String name = sprSrc.GetAuthorityName("GEOGCS");
 			String code = sprSrc.GetAuthorityCode("GEOGCS");
 			return code == null ? null : ((name == null ? "USER":name)+":"+code);
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 			return null;
 		}
 	}
@@ -150,21 +150,21 @@ public class GdalReader {
 		int y_range = dataset.getRasterYSize();
 		int srcSize = x_range*y_range;
 
-		log.info(filename);
-		log.info(x_range+" "+y_range);
+		Logger.info(filename);
+		Logger.info(x_range+" "+y_range);
 		int rasterCount = dataset.getRasterCount();
-		log.info("bands "+rasterCount);
-		log.info(dataset.GetMetadata_List());
-		log.info(dataset.GetMetadataDomainList());
-		log.info(dataset.GetProjection());
-		log.info(dataset.GetDescription());
-		log.info(dataset.GetGCPProjection());
-		log.info(dataset.GetProjectionRef());
-		log.info(dataset.GetMetadata_List("IMAGE_STRUCTURE"));
+		Logger.info("bands "+rasterCount);
+		Logger.info(dataset.GetMetadata_List());
+		Logger.info(dataset.GetMetadataDomainList());
+		Logger.info(dataset.GetProjection());
+		Logger.info(dataset.GetDescription());
+		Logger.info(dataset.GetGCPProjection());
+		Logger.info(dataset.GetProjectionRef());
+		Logger.info(dataset.GetMetadata_List("IMAGE_STRUCTURE"));
 
 		/*Vector<GCP> gcps = dataset.GetGCPs();
 		for(GCP gcp:gcps) {
-			log.info(gcp.getGCPLine()+" "+gcp.getGCPPixel()+" "+gcp.getGCPX()+" "+gcp.getGCPY()+" "+gcp.getGCPZ());
+			Logger.info(gcp.getGCPLine()+" "+gcp.getGCPPixel()+" "+gcp.getGCPX()+" "+gcp.getGCPY()+" "+gcp.getGCPZ());
 		}*/
 
 
@@ -175,9 +175,9 @@ public class GdalReader {
 		Timer.start("GDAL read");
 		/*for(int bandIndex=1;bandIndex<=rasterCount;bandIndex++) {
 			Band band = dataset.GetRasterBand(bandIndex);
-			log.info(band.GetMetadata_Dict());
+			Logger.info(band.GetMetadata_Dict());
 			int result = band.ReadRaster(0, 0, x_range, y_range, in);
-			log.info(bandIndex+" result "+result);
+			Logger.info(bandIndex+" result "+result);
 			data = Util.arrayToArrayArray(in, x_range,data);
 
 
@@ -194,7 +194,7 @@ public class GdalReader {
 		CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(sprSrc, sprDst);
 
 		Vector<GCP> gcps = dataset.GetGCPs();
-		log.info("gcps "+gcps.size());
+		Logger.info("gcps "+gcps.size());
 		double[] p = new double[]{0d, 0d, 0d};
 		MinMax2d minmax = new MinMax2d();
 		for(GCP gcp:gcps) {
@@ -205,22 +205,22 @@ public class GdalReader {
 		}
 		if(gcps.size()<4) { // TODO change
 			double[] trSrc = dataset.GetGeoTransform();
-			log.info("src "+Arrays.toString(trSrc));
+			Logger.info("src "+Arrays.toString(trSrc));
 			minmax.apply(transform(ct, transform(trSrc, 0, 0)));
 			minmax.apply(transform(ct, transform(trSrc, x_range-1, 0)));
 			minmax.apply(transform(ct, transform(trSrc, 0, y_range-1)));
 			minmax.apply(transform(ct, transform(trSrc, x_range-1, y_range-1)));
 		}
 
-		log.info(minmax);
+		Logger.info(minmax);
 
 		double pixel_width = 20;
 
 		int dstWidth = (int) (minmax.xrange() / pixel_width);
 		int dstHeight = (int) (minmax.yrange() / pixel_width);
 		int dstSize = dstWidth*dstHeight;
-		log.info(srcSize+" = "+x_range+" * "+y_range);
-		log.info(dstSize+" = "+dstWidth+" * "+dstHeight);
+		Logger.info(srcSize+" = "+x_range+" * "+y_range);
+		Logger.info(dstSize+" = "+dstWidth+" * "+dstHeight);
 
 
 		Driver driver = gdal.GetDriverByName("GTIFF");
@@ -228,7 +228,7 @@ public class GdalReader {
 
 
 		String wkt = sprDst.ExportToWkt();
-		log.info(wkt);
+		Logger.info(wkt);
 
 		outDataset.SetProjection(wkt);
 
@@ -251,7 +251,7 @@ public class GdalReader {
 
 		outDataset.SetGeoTransform(tr);
 
-		log.info("dst "+Arrays.toString(outDataset.GetGeoTransform()));
+		Logger.info("dst "+Arrays.toString(outDataset.GetGeoTransform()));
 
 		Timer.start("reproject");
 		//gdal.ReprojectImage(dataset, outDataset);
@@ -264,9 +264,9 @@ public class GdalReader {
 		double maxerror = 0.125d; //default value in gdalwarp 0.125d //TODO check!
 		gdal.ReprojectImage(src_ds, dst_ds, src_wkt, dst_wkt, eResampleAlg, WarpMemoryLimit, maxerror);
 		//gdal.ReprojectImage(src_ds, dst_ds);
-		log.info(Timer.stop("reproject"));
+		Logger.info(Timer.stop("reproject"));
 
-		log.info(Timer.stop("GDAL read"));	
+		Logger.info(Timer.stop("GDAL read"));	
 	}
 
 	public final Dataset dataset;

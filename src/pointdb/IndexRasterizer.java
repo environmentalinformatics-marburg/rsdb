@@ -2,8 +2,8 @@ package pointdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Informal.Builder;
 import pointdb.base.PdbConst;
@@ -18,7 +18,7 @@ import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
 
 public class IndexRasterizer {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final PointDB pointdb;
 	private final RasterDB rasterdb;
@@ -65,7 +65,7 @@ public class IndexRasterizer {
 			hy += processing_pixel_size;
 		}
 
-		log.info("width "+width+"  height "+height);
+		Logger.info("width "+width+"  height "+height);
 		float[][] pixels = new float[height][width];
 
 		long y = ymin;
@@ -75,7 +75,7 @@ public class IndexRasterizer {
 
 				int py = 0;
 		while(y <= ymax) {
-			log.info("row " + py + " of " + height);
+			Logger.info("row " + py + " of " + height);
 			long x = xmin;
 			int px = 0;			
 			while(x <= xmax) {
@@ -90,7 +90,7 @@ public class IndexRasterizer {
 			py++;
 		}
 
-		log.info("cnt " + cnt);
+		Logger.info("cnt " + cnt);
 		Band band = rasterdb.createBand(TilePixel.TYPE_FLOAT, "index_rasterized", null);
 		ProcessingFloat.writeMerge(rasterUnit, 0, band, pixels, 0, 0);
 		rasterUnit.commit();

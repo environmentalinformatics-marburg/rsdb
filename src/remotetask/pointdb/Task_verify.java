@@ -2,8 +2,8 @@ package remotetask.pointdb;
 
 import java.util.concurrent.atomic.LongAdder;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -22,7 +22,7 @@ import remotetask.RemoteTask;
 @Description("Check point data.")
 @Param(name="pointdb", type="pointdb", desc="ID of PointDB layer.", example="pointdb1")
 public class Task_verify extends CancelableRemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -71,7 +71,7 @@ public class Task_verify extends CancelableRemoteTask {
 			if(isMessageTime()) {
 				setMessage(getCnt() + " of " + total + " tiles processed");
 				if(isCanceled()) {
-					log.info("tileProducer.requestStop");
+					Logger.info("tileProducer.requestStop");
 					tileProducer.requestStop();
 				}
 			}

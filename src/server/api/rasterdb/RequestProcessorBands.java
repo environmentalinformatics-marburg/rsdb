@@ -14,7 +14,7 @@ import util.Receiver;
 import util.image.ImageBufferARGB;
 
 public class RequestProcessorBands {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public static void processBands(TimeBandProcessor processor, Collection<TimeBand> processingBands, OutputProcessingType outputProcessingType, String format, Receiver receiver) throws IOException {
 		Range2d reqRange2d = processor.getDstRange();

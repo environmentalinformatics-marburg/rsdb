@@ -14,7 +14,7 @@ import rasterunit.TileKey;
 import util.Range2d;
 
 public class ProcessingShort {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public static short[][] readPixels(int div, RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange) {
 		switch(div) {
@@ -502,7 +502,7 @@ public class ProcessingShort {
 		for(int i=0;i<h;i++) {
 			short[] src = pixels[i];				
 			for(int c=0;c<w;c++) {
-				//log.info(src[c]);
+				//Logger.info(src[c]);
 				if(src[c] == srcNA) {
 					src[c] = dstNA;
 				}

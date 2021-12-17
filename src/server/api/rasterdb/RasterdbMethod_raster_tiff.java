@@ -5,8 +5,8 @@ import java.util.Enumeration;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -15,7 +15,7 @@ import broker.Broker;
 import rasterdb.RasterDB;
 
 public class RasterdbMethod_raster_tiff extends RasterdbMethod {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public RasterdbMethod_raster_tiff(Broker broker) {
 		super(broker, "raster.tiff");	
@@ -25,15 +25,15 @@ public class RasterdbMethod_raster_tiff extends RasterdbMethod {
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		
 		String queryString = request.getQueryString();
-		log.info("queryString " + queryString + "     " + queryString.endsWith(".xml"));
+		Logger.info("queryString " + queryString + "     " + queryString.endsWith(".xml"));
 		Enumeration<String> it = request.getHeaderNames();
 		while(it.hasMoreElements()) {
 			String e = it.nextElement();
-			log.info("   " + e + "  " + request.getHeader(e));			
+			Logger.info("   " + e + "  " + request.getHeader(e));			
 		}
 		
 		if(request.getHeader("range") != null) {
-			log.info("filtered range request");
+			Logger.info("filtered range request");
 			request.setHandled(true);
 			response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
 			response.getWriter().println("HTTP range request not supported");
@@ -59,7 +59,7 @@ public class RasterdbMethod_raster_tiff extends RasterdbMethod {
 				|| queryString.endsWith(".RPC")
 				|| queryString.endsWith(".PVL")
 				|| queryString.endsWith(".pvl")) { // workaround: Discard additional XML queries from GDAL.
-			log.info("filtered   " + queryString);
+			Logger.info("filtered   " + queryString);
 			request.setHandled(true);
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			return;
@@ -79,7 +79,7 @@ public class RasterdbMethod_raster_tiff extends RasterdbMethod {
 			break;*/
 		}
 		default:
-			log.warn("unknown method: " + httpMethod);
+			Logger.warn("unknown method: " + httpMethod);
 			response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 			request.setHandled(true);
 		}

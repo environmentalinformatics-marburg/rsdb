@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -21,7 +21,7 @@ import util.Timer;
 import util.Web;
 
 public class APIHandler_image extends PointdbAPIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final int TILE_LOCAL_TO_SCREEN_DIV_DEFAULT = 500;
 
@@ -32,7 +32,7 @@ public class APIHandler_image extends PointdbAPIHandler {
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
 		Timer.start("image");
-		//log.info("get image");
+		//Logger.info("get image");
 		request.setHandled(true);
 		PointDB pointdb = getPointdb(request);
 		double x = Web.getDouble(request, "x");
@@ -49,7 +49,7 @@ public class APIHandler_image extends PointdbAPIHandler {
 		String filterText = request.getParameter("filter");
 		if(filterText!=null) {
 			filter = PointFilter.createFilter(filterText);
-			log.info("filter: "+filterText+" "+filter);
+			Logger.info("filter: "+filterText+" "+filter);
 		}
 
 		Rect rect = Rect.of_utm_center(utm_center_x, utm_center_y, width, height, TILE_LOCAL_TO_SCREEN_DIV);
@@ -59,6 +59,6 @@ public class APIHandler_image extends PointdbAPIHandler {
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType("image/png");
 		imageCreator.create().writePngUncompressed(response.getOutputStream());
-		log.info(Timer.stop("image"));
+		Logger.info(Timer.stop("image"));
 	}
 }

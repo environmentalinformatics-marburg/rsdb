@@ -7,10 +7,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -18,9 +16,7 @@ import broker.Broker;
 import util.Web;
 
 public class APICollectionHandler extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
-	public static final Marker MARKER_API = MarkerManager.getMarker("API");
-
+	
 	HashMap<String, PointdbAPIHandler> methodMap = new HashMap<String, PointdbAPIHandler>();
 
 	public APICollectionHandler(Broker broker) {
@@ -55,7 +51,7 @@ public class APICollectionHandler extends AbstractHandler {
 	private void addMethod(PointdbAPIHandler handler, String apiMethod) {
 		String name = apiMethod;
 		if(methodMap.containsKey(name)) {
-			log.warn("method name already exists overwrite '"+name+"'  "+methodMap.get(name)+"  "+handler);
+			Logger.warn("method name already exists overwrite '"+name+"'  "+methodMap.get(name)+"  "+handler);
 		}
 		methodMap.put(name, handler);
 	}
@@ -64,12 +60,12 @@ public class APICollectionHandler extends AbstractHandler {
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		baseRequest.setHandled(true);
-		//log.info("pointDB request "+target);
+		//Logger.info("pointDB request "+target);
 		String method = target;
 		if(method.charAt(0)=='/') {
 			method = target.substring(1);
 		}
-		log.info(MARKER_API, Web.getRequestLogString("API",method,baseRequest));
+		Logger.tag("API").info(Web.getRequestLogString("API",method,baseRequest));
 		if(method.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentType("text/plain;charset=utf-8");
@@ -79,7 +75,7 @@ public class APICollectionHandler extends AbstractHandler {
 		if(method.charAt(method.length()-1)=='/') {
 			method = method.substring(0, method.length()-1);
 		}
-		//log.info("method: "+method);
+		//Logger.info("method: "+method);
 		PointdbAPIHandler handler = methodMap.get(method);
 		if(handler==null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

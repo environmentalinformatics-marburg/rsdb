@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class EnviHdr {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	private static final Pattern COMMA_WHITESPACE_PATTERN = Pattern.compile(",\\s");
 
@@ -108,17 +108,17 @@ public class EnviHdr {
 						multilineCollector.add(value);
 					}
 					if(!multilineCollector.isEmpty()) {
-						//log.info("multiline "+multilineKey+"  "+multilineCollector);
+						//Logger.info("multiline "+multilineKey+"  "+multilineCollector);
 						String s = multilineCollector.get(0);
 						for (int i = 1; i < multilineCollector.size(); i++) {
 							s += '\n'+multilineCollector.get(i);							
 						}
 						if(map.containsKey(multilineKey)) {
-							log.warn("overwriting duplicate key "+multilineKey);
+							Logger.warn("overwriting duplicate key "+multilineKey);
 						}
 						map.put(multilineKey, s);						
 					} else {
-						log.warn("empty multiline key "+multilineKey);
+						Logger.warn("empty multiline key "+multilineKey);
 					}
 					multilineKey = null;
 					multilineCollector.clear();
@@ -144,7 +144,7 @@ public class EnviHdr {
 					braceleft = false;
 					value = value.substring(value.indexOf('{')+1, value.indexOf('}')).trim();
 				} else { // multiline values
-					//log.warn("skip multiline value for key: "+key);
+					//Logger.warn("skip multiline value for key: "+key);
 					multilineCollector.clear();
 					multilineKey = key;
 					value = value.substring(value.indexOf('{')+1).trim();
@@ -159,12 +159,12 @@ public class EnviHdr {
 			//System.out.println("public int "+key+"=-1;");
 
 			if(map.containsKey(key)) {
-				log.warn("overwriting duplicate key "+key);
+				Logger.warn("overwriting duplicate key "+key);
 			}
 			if(!value.isEmpty()) {
 				map.put(key, value);	
 			} else {
-				log.warn("empty key "+key);
+				Logger.warn("empty key "+key);
 			}
 		}
 	}
@@ -227,11 +227,11 @@ public class EnviHdr {
 				} else if(value.equalsIgnoreCase("Micrometers")) {
 					wavelength_picometre_factor = 1000_000d;
 				} else {
-					log.info("unknown unit "+value+"   --> default to micrometers");
+					Logger.info("unknown unit "+value+"   --> default to micrometers");
 				}
 				break;
 			default:
-				log.info("unknown key: "+key+"   "+value);
+				Logger.info("unknown key: "+key+"   "+value);
 			}
 		}
 	}
@@ -255,7 +255,7 @@ public class EnviHdr {
 		mapinfo_datum = entries[9];//		Datum
 		mapinfo_units = entries[10];//		Units
 
-		//log.info(Arrays.toString(entries));
+		//Logger.info(Arrays.toString(entries));
 	}
 
 	public static void main(String[] args) throws IOException {

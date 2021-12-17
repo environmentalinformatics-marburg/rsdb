@@ -5,13 +5,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.BitSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import com.github.luben.zstd.Zstd;
 
 public class Cell {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final int x;
 	public final int y;
@@ -25,7 +25,7 @@ public class Cell {
 	
 	public Cell(int x, int y, int b, byte[] data_compressed) throws IOException {
 		long size = Zstd.decompressedSize(data_compressed);
-		//log.info(data_compressed.length + " -> " + size);
+		//Logger.info(data_compressed.length + " -> " + size);
 		this.data = Zstd.decompress(data_compressed, (int) size);
 		this.x = x;
 		this.y = y;
@@ -78,9 +78,9 @@ public class Cell {
 		for (int i = 0; i < column_count; i++) {
 			byteBuffer.put(columns[i]);
 		}
-		log.info("compress: " + result.length);
+		Logger.info("compress: " + result.length);
 		byte[] result_compressed = Zstd.compress(result, compression_level);
-		//log.info("compressed "+result.length+" -> "+result_compressed.length);
+		//Logger.info("compressed "+result.length+" -> "+result_compressed.length);
 		return result_compressed;
 	}
 

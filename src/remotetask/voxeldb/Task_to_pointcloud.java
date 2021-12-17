@@ -3,8 +3,8 @@ package remotetask.voxeldb;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -24,7 +24,7 @@ import voxeldb.VoxelDB;
 @Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer. (target) (if layer exists, delete)", example="pointcloud1", required=false)
 public class Task_to_pointcloud extends RemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -122,7 +122,7 @@ public class Task_to_pointcloud extends RemoteTask {
 						}
 					}
 
-					log.info("VoxelCell " + xmin + " " + ymin + " " + zmin + "   " + xmax + " "+ ymax + " " + zmax);
+					Logger.info("VoxelCell " + xmin + " " + ymin + " " + zmin + "   " + xmax + " "+ ymax + " " + zmax);
 
 					int z = 0;
 					CellTable cellTable = new CellTable(voxelCell.x, voxelCell.y, z, pos);
@@ -138,7 +138,7 @@ public class Task_to_pointcloud extends RemoteTask {
 					Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy, cellTable.cz, timeSlice.id, Integer.MIN_VALUE);
 					pointcloud.writeTile(tile);			
 
-					log.info(voxelCell + "  " + sum);	
+					Logger.info(voxelCell + "  " + sum);	
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}

@@ -5,8 +5,8 @@ import java.nio.file.Path;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -21,7 +21,7 @@ import vectordb.Renderer;
 import vectordb.VectorDB;
 
 public class VectordbHandler_raster_png extends VectordbHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public VectordbHandler_raster_png(Broker broker) {
 		super(broker, "raster.png");
@@ -52,38 +52,38 @@ public class VectordbHandler_raster_png extends VectordbHandler {
 			ImageBufferARGB image = Renderer.renderProportionalFullMaxSize(datasource, maxWidth, maxHeight, null, vectordb.getStyle());
 
 			/*double[] extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
-			log.info(Arrays.toString(extent));			
+			Logger.info(Arrays.toString(extent));			
 			
 
 			double xoff = extent[0];
 			double yoff = extent[1];
-			log.info("xoff " + xoff +"  yoff " + yoff);
+			Logger.info("xoff " + xoff +"  yoff " + yoff);
 			double xlen = extent[2] - extent[0];
 			double ylen = extent[3] - extent[1];
-			log.info("xlen " + xlen +"  ylen " + ylen);
+			Logger.info("xlen " + xlen +"  ylen " + ylen);
 			double xres = xlen / width;
 			double dheight = ylen / xres;
 			int height = (int) Math.ceil(dheight);
 			double yres = xres;
-			log.info("xres " + xres +"  yres " + yres);
-			log.info("width " + width +"  height " + height);
+			Logger.info("xres " + xres +"  yres " + yres);
+			Logger.info("width " + width +"  height " + height);
 
 			Driver driver = gdal.GetDriverByName("MEM");			
 			Dataset dataset = driver.Create("", width, height, 1, gdalconst.GDT_Byte);
 			double[] geo = new double[]{xoff, xres, 0.0, yoff, 0.0, yres};
 			dataset.SetGeoTransform(geo);
-			log.info(Arrays.toString(dataset.GetGeoTransform()));
+			Logger.info(Arrays.toString(dataset.GetGeoTransform()));
 			
 			boolean hasProjSet = false;
 
 			int layerCount = datasource.GetLayerCount();
-			log.info("datasource.GetLayerCount() " + layerCount);
+			Logger.info("datasource.GetLayerCount() " + layerCount);
 			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
 				if(!hasProjSet) {
 					SpatialReference spatialRef = layer.GetSpatialRef();
 					String wkt = spatialRef.ExportToWkt();
-					log.info(wkt);
+					Logger.info(wkt);
 					dataset.SetProjection(wkt);
 					hasProjSet = true;
 				}
@@ -104,7 +104,7 @@ public class VectordbHandler_raster_png extends VectordbHandler {
 			image.writePngCompressed(response.getOutputStream());			
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}		

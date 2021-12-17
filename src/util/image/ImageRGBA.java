@@ -14,8 +14,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import ar.com.hjg.pngj.FilterType;
 import ar.com.hjg.pngj.IImageLine;
@@ -32,7 +32,7 @@ import util.Timer;
  */
 public class ImageRGBA implements PureImage {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected final int width;
 	protected final int height;
@@ -105,7 +105,7 @@ public class ImageRGBA implements PureImage {
 			System.arraycopy(imageBuffer, 0, dataBuffer.getData(), 0, imageBuffer.length);
 			return bi;
 		} else {
-			//log.info("direct buffered image");
+			//Logger.info("direct buffered image");
 			return bufferedImage;
 		}
 	}
@@ -527,11 +527,11 @@ public class ImageRGBA implements PureImage {
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);			
 		}
 		if( !g.drawImage(bi, 0, 0, width, height, null) ) {
-			log.warn("image not drawn fully");			
+			Logger.warn("image not drawn fully");			
 		}
 		g.dispose();
 		bi.flush();
-		log.info(Timer.stop("scale"));
+		Logger.info(Timer.stop("scale"));
 		/*
 		Timer.start("scale");
 		Image sizedBiTemp = bi.getScaledInstance(width, height, Image.SCALE_FAST);
@@ -539,11 +539,11 @@ public class ImageRGBA implements PureImage {
 		Graphics2D g = sizedBi.createGraphics();
 		g.drawImage(sizedBiTemp, 0, 0 , null);
 		g.dispose();
-		log.info(Timer.stop("scale"));
+		Logger.info(Timer.stop("scale"));
 		 */
 		/*Timer.start("scale");
 		BufferedImage sizedBi = Scalr.resize(bi, Method.AUTOMATIC, Mode.FIT_EXACT, width, height);		
-		log.info(Timer.stop("scale"));*/
+		Logger.info(Timer.stop("scale"));*/
 		return target;
 	}	
 

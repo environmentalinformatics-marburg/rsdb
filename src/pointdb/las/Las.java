@@ -10,15 +10,15 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.BitSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointcloud.CellTable;
 import pointdb.base.Point;
 import util.Timer;
 
 public class Las {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final static int LASF_SIGNATUR = 1179861324;
 
@@ -126,7 +126,7 @@ public class Las {
 		//System.out.println("offset_to_point_data "+offset_to_point_data);
 
 		number_of_Variable_Length_Records = mappedByteBuffer.getInt();
-		//log.info("number_of_Variable_Length_Records "+number_of_Variable_Length_Records);
+		//Logger.info("number_of_Variable_Length_Records "+number_of_Variable_Length_Records);
 
 		point_data_record_format = Byte.toUnsignedInt(mappedByteBuffer.get());
 		//System.out.println("point_data_record_format "+point_data_record_format);
@@ -170,7 +170,7 @@ public class Las {
 
 		if(version_Minor>2) {
 			long start_of_Waveform_Data_Packet_Record = mappedByteBuffer.getLong();
-			//log.info("start_of_Waveform_Data_Packet_Record "+start_of_Waveform_Data_Packet_Record);
+			//Logger.info("start_of_Waveform_Data_Packet_Record "+start_of_Waveform_Data_Packet_Record);
 		}
 
 		if(version_Minor>3) {
@@ -184,7 +184,7 @@ public class Las {
 		}
 
 		if(mappedByteBuffer.position()!=header_Size) {
-			log.warn("header longer than read bytes: " + mappedByteBuffer.position() +" of " + header_Size);
+			Logger.warn("header longer than read bytes: " + mappedByteBuffer.position() +" of " + header_Size);
 		}
 
 		readEPSG();
@@ -277,15 +277,15 @@ public class Las {
 
 	public static int getEPSGfromProjectedCSTypeGeoKey(int epsgRaw) {
 		if(epsgRaw == 0) {
-			log.warn("no epsg: " + epsgRaw + " -> undefined");
+			Logger.warn("no epsg: " + epsgRaw + " -> undefined");
 			return 0;
 		}
 		if(epsgRaw == 32767) {
-			log.warn("no epsg: " + epsgRaw + " -> user-defined");
+			Logger.warn("no epsg: " + epsgRaw + " -> user-defined");
 			return 0;
 		}
 		if(epsgRaw >= 32768) {
-			log.warn("no epsg: " + epsgRaw + " -> private user implementations");
+			Logger.warn("no epsg: " + epsgRaw + " -> private user implementations");
 			return 0;
 		}
 		return epsgRaw;
@@ -319,19 +319,19 @@ public class Las {
 				byte[] descriptionBytes = new byte[32];
 				vlrHeaderBuffer.get(descriptionBytes);
 				String description = new String(descriptionBytes, StandardCharsets.US_ASCII);
-				//log.info("VLR " + vlrIndex);
-				//log.info("reserved " + reserved);
-				//log.info("userID " + userID);
-				//log.info("recordID " + recordID);
-				//log.info("recordLengthAfterHeader " + recordLengthAfterHeader);
-				//log.info("description " + description);
+				//Logger.info("VLR " + vlrIndex);
+				//Logger.info("reserved " + reserved);
+				//Logger.info("userID " + userID);
+				//Logger.info("recordID " + recordID);
+				//Logger.info("recordLengthAfterHeader " + recordLengthAfterHeader);
+				//Logger.info("description " + description);
 				ByteBuffer vlrContentBuffer = ByteBuffer.allocateDirect(recordLengthAfterHeader).order(ByteOrder.LITTLE_ENDIAN);
 				filechannel.read(vlrContentBuffer);
 				vlrContentBuffer.rewind();
 
 				switch(recordID) {
 				case 34735: {
-					//log.info("GeoKeyDirectoryTag Record");
+					//Logger.info("GeoKeyDirectoryTag Record");
 					int wKeyDirectoryVersion = (int) vlrContentBuffer.getChar();
 					if(wKeyDirectoryVersion != 1) {
 						throw new RuntimeException("error in GeoKeyDirectoryTag wKeyDirectoryVersion is not 1: " + wKeyDirectoryVersion);
@@ -345,7 +345,7 @@ public class Las {
 						throw new RuntimeException("error in GeoKeyDirectoryTag wMinorRevision is not 0: " + wMinorRevision);
 					}
 					int wNumberOfKeys = (int) vlrContentBuffer.getChar();
-					//log.info("wNumberOfKeys " + wNumberOfKeys);
+					//Logger.info("wNumberOfKeys " + wNumberOfKeys);
 					geoKeyTags = new GeoKeyTag[wNumberOfKeys];
 					for (int keyIndex = 0; keyIndex < wNumberOfKeys; keyIndex++) {
 						int wKeyID = (int) vlrContentBuffer.getChar();
@@ -357,21 +357,21 @@ public class Las {
 					break;
 				}
 				case 34736: {
-					//log.info("GeoDoubleParamsTag Record");
+					//Logger.info("GeoDoubleParamsTag Record");
 					doubles = new double[recordLengthAfterHeader / 8];
 					vlrContentBuffer.asDoubleBuffer().get(doubles);
-					//log.info(Arrays.toString(doubles));
+					//Logger.info(Arrays.toString(doubles));
 					break;
 				}
 				case 34737: {
-					//log.info("GeoAsciiParamsTag Record");
+					//Logger.info("GeoAsciiParamsTag Record");
 					asciiBytes = new byte[recordLengthAfterHeader];
 					vlrContentBuffer.get(asciiBytes);
-					//log.info(new String(asciiBytes, StandardCharsets.US_ASCII));
+					//Logger.info(new String(asciiBytes, StandardCharsets.US_ASCII));
 					break;
 				}
 				default:
-					//log.info("unknown recordID "+recordID);
+					//Logger.info("unknown recordID "+recordID);
 				}
 			}
 
@@ -379,92 +379,92 @@ public class Las {
 				try {
 					switch(geoKeyTag.wKeyID) {
 					case GTModelTypeGeoKey:
-						//log.info("GTModelTypeGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GTModelTypeGeoKey " + geoKeyTag.getInt());
 						break;
 					case GTRasterTypeGeoKey:
-						//log.info("GTRasterTypeGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GTRasterTypeGeoKey " + geoKeyTag.getInt());
 						break;
 					case GTCitationGeoKey:
-						//log.info("GTCitationGeoKey " + geoKeyTag.getString(asciiBytes));
+						//Logger.info("GTCitationGeoKey " + geoKeyTag.getString(asciiBytes));
 						break;
 					case GeographicTypeGeoKey:
-						//log.info("GeographicTypeGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GeographicTypeGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogCitationGeoKey:
-						//log.info("GeogCitationGeoKey " + geoKeyTag.getString(asciiBytes));
+						//Logger.info("GeogCitationGeoKey " + geoKeyTag.getString(asciiBytes));
 						break;
 					case GeogGeodeticDatumGeoKey:
-						//log.info("GeogGeodeticDatumGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GeogGeodeticDatumGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogPrimeMeridianGeoKey:
-						//log.info("GeogPrimeMeridianGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GeogPrimeMeridianGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogLinearUnitsGeoKey:
-						//log.info("GeogLinearUnitsGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GeogLinearUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogAngularUnitsGeoKey:
-						//log.info("GeogAngularUnitsGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GeogAngularUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogEllipsoidGeoKey:
-						//log.info("GeogEllipsoidGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GeogEllipsoidGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogSemiMajorAxisGeoKey:
-						//log.info("GeogSemiMajorAxisGeoKey " + geoKeyTag.getDouble(doubles));
+						//Logger.info("GeogSemiMajorAxisGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case GeogInvFlatteningGeoKey:
-						//log.info("GeogInvFlatteningGeoKey " + geoKeyTag.getDouble(doubles));
+						//Logger.info("GeogInvFlatteningGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case GeogAzimuthUnitsGeoKey:
-						//log.info("GeogAzimuthUnitsGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GeogAzimuthUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					case GeogPrimeMeridianLongGeoKey:
-						//log.info("GeogPrimeMeridianLongGeoKey " + geoKeyTag.getDouble(doubles));
+						//Logger.info("GeogPrimeMeridianLongGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjectedCSTypeGeoKey: {
 						int epsgRaw = geoKeyTag.getInt();
 						epsg = getEPSGfromProjectedCSTypeGeoKey(epsgRaw);
-						//log.info("ProjectedCSTypeGeoKey " + epsg);
+						//Logger.info("ProjectedCSTypeGeoKey " + epsg);
 						break;
 					}
 					case PCSCitationGeoKey:
-						//log.info("PCSCitationGeoKey " + geoKeyTag.getString(asciiBytes));
+						//Logger.info("PCSCitationGeoKey " + geoKeyTag.getString(asciiBytes));
 						break;
 					case ProjectionGeoKey:
-						//log.info("ProjectionGeoKey " + geoKeyTag.getInt());
+						//Logger.info("ProjectionGeoKey " + geoKeyTag.getInt());
 						break;
 					case ProjCoordTransGeoKey:
-						//log.info("GProjCoordTransGeoKey " + geoKeyTag.getInt());
+						//Logger.info("GProjCoordTransGeoKey " + geoKeyTag.getInt());
 						break;
 					case ProjLinearUnitsGeoKey:
-						//log.info("ProjLinearUnitsGeoKey " + geoKeyTag.getInt());
+						//Logger.info("ProjLinearUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					case ProjNatOriginLongGeoKey:
-						//log.info("ProjNatOriginLongGeoKey " + geoKeyTag.getDouble(doubles));
+						//Logger.info("ProjNatOriginLongGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjNatOriginLatGeoKey:
-						//log.info("ProjNatOriginLatGeoKey " + geoKeyTag.getDouble(doubles));
+						//Logger.info("ProjNatOriginLatGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjFalseEastingGeoKey:
-						//log.info("ProjFalseEastingGeoKey " + geoKeyTag.getDouble(doubles));
+						//Logger.info("ProjFalseEastingGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjFalseNorthingGeoKey:
-						//log.info("ProjFalseNorthingGeoKey " + geoKeyTag.getDouble(doubles));
+						//Logger.info("ProjFalseNorthingGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case ProjScaleAtNatOriginGeoKey:
-						//log.info("ProjScaleAtNatOriginGeoKey " + geoKeyTag.getDouble(doubles));
+						//Logger.info("ProjScaleAtNatOriginGeoKey " + geoKeyTag.getDouble(doubles));
 						break;
 					case VerticalUnitsGeoKey:
-						//log.info("VerticalUnitsGeoKey " + geoKeyTag.getInt());
+						//Logger.info("VerticalUnitsGeoKey " + geoKeyTag.getInt());
 						break;
 					default:
-						//log.info("wKeyID " + geoKeyTag.wKeyID);
+						//Logger.info("wKeyID " + geoKeyTag.wKeyID);
 					}
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			}
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 		return epsg;
 	}
@@ -478,10 +478,10 @@ public class Las {
 	 * @throws IOException
 	 */
 	public Point[] read(long record_start, int record_count, int[] intDiffs, int[] intFactors) throws IOException {
-		log.info("las offset "+ Arrays.toString(offset));
-		log.info("las offset "+ Arrays.toString(scale_factor));
-		log.info("las intDiffs "+ Arrays.toString(intDiffs));
-		log.info("las intFactors "+ Arrays.toString(intFactors));
+		Logger.info("las offset "+ Arrays.toString(offset));
+		Logger.info("las offset "+ Arrays.toString(scale_factor));
+		Logger.info("las intDiffs "+ Arrays.toString(intDiffs));
+		Logger.info("las intFactors "+ Arrays.toString(intFactors));
 		switch(point_data_record_format) {
 		case LAS_RECORD_TYPE_0:
 			return read_record_format_0(record_start, record_count, intDiffs, intFactors);
@@ -526,7 +526,7 @@ public class Las {
 		}
 		long filePosStart = offset_to_point_data+((long)record_start)*point_Data_Record_Length;
 		long fileBytes = record_count*point_Data_Record_Length;
-		//log.info("read file bytes "+fileBytes);
+		//Logger.info("read file bytes "+fileBytes);
 		//MappedByteBuffer mappedByteBuffer = filechannel.map(MapMode.READ_ONLY, filePosStart, fileBytes); // buggy?
 
 		if(fileBytes>Integer.MAX_VALUE) {
@@ -592,7 +592,7 @@ public class Las {
 
 				/*
 				byte userData = byteBuffer.get();
-				log.info((userData&0xff)*0.1d);
+				Logger.info((userData&0xff)*0.1d);
 				char pointSourceID = byteBuffer.getChar();
 				 */
 
@@ -685,23 +685,23 @@ public class Las {
 				//********** additional data
 				if(return_Number==3) {
 					short pointSourceID = mappedByteBuffer.getShort();
-					//log.info("pointSourceID "+pointSourceID);
+					//Logger.info("pointSourceID "+pointSourceID);
 					double GPSTime = mappedByteBuffer.getDouble();
-					//log.info("GPSTime "+GPSTime);
+					//Logger.info("GPSTime "+GPSTime);
 
 					//********** additional data in format 9
 					byte wavePacketDescriptorIndex = mappedByteBuffer.get();
-					//log.info("wavePacketDescriptorIndex "+wavePacketDescriptorIndex);
+					//Logger.info("wavePacketDescriptorIndex "+wavePacketDescriptorIndex);
 					long byteOffsetToWaveformData = mappedByteBuffer.getLong();
-					log.info("byteOffsetToWaveformData "+byteOffsetToWaveformData);
+					Logger.info("byteOffsetToWaveformData "+byteOffsetToWaveformData);
 					int waveformPacketSizeInBytes = mappedByteBuffer.getInt();
-					log.info("waveformPacketSizeInBytes "+waveformPacketSizeInBytes);
+					Logger.info("waveformPacketSizeInBytes "+waveformPacketSizeInBytes);
 					float returnPointWaveformLocation = mappedByteBuffer.getFloat();
-					//log.info("returnPointWaveformLocation "+returnPointWaveformLocation);
+					//Logger.info("returnPointWaveformLocation "+returnPointWaveformLocation);
 					float x_t = mappedByteBuffer.getFloat();
 					float y_t = mappedByteBuffer.getFloat();
 					float z_t = mappedByteBuffer.getFloat();
-					//log.info("x_t "+x_t+"y_t "+y_t+"z_t "+z_t);
+					//Logger.info("x_t "+x_t+"y_t "+y_t+"z_t "+z_t);
 				}
 				//**********
 				 */
@@ -753,23 +753,23 @@ public class Las {
 				//********** additional data
 				if(return_Number==3) {
 					short pointSourceID = mappedByteBuffer.getShort();
-					//log.info("pointSourceID "+pointSourceID);
+					//Logger.info("pointSourceID "+pointSourceID);
 					double GPSTime = mappedByteBuffer.getDouble();
-					//log.info("GPSTime "+GPSTime);
+					//Logger.info("GPSTime "+GPSTime);
 
 					//********** additional data in format 9
 					byte wavePacketDescriptorIndex = mappedByteBuffer.get();
-					//log.info("wavePacketDescriptorIndex "+wavePacketDescriptorIndex);
+					//Logger.info("wavePacketDescriptorIndex "+wavePacketDescriptorIndex);
 					long byteOffsetToWaveformData = mappedByteBuffer.getLong();
-					log.info("byteOffsetToWaveformData "+byteOffsetToWaveformData);
+					Logger.info("byteOffsetToWaveformData "+byteOffsetToWaveformData);
 					int waveformPacketSizeInBytes = mappedByteBuffer.getInt();
-					log.info("waveformPacketSizeInBytes "+waveformPacketSizeInBytes);
+					Logger.info("waveformPacketSizeInBytes "+waveformPacketSizeInBytes);
 					float returnPointWaveformLocation = mappedByteBuffer.getFloat();
-					//log.info("returnPointWaveformLocation "+returnPointWaveformLocation);
+					//Logger.info("returnPointWaveformLocation "+returnPointWaveformLocation);
 					float x_t = mappedByteBuffer.getFloat();
 					float y_t = mappedByteBuffer.getFloat();
 					float z_t = mappedByteBuffer.getFloat();
-					//log.info("x_t "+x_t+"y_t "+y_t+"z_t "+z_t);
+					//Logger.info("x_t "+x_t+"y_t "+y_t+"z_t "+z_t);
 				}
 				//**********
 				 */
@@ -837,7 +837,7 @@ public class Las {
 		helperBuffer.rewind();
 		//Timer.resume("read records");
 		int ret = filechannel.read(helperBuffer, filePosStart);
-		//log.info(Timer.stop("read records"));
+		//Logger.info(Timer.stop("read records"));
 		helperBuffer.rewind();
 		if(ret!=fileBytes) {
 			throw new RuntimeException("file read error");
@@ -909,7 +909,7 @@ public class Las {
 		helperBuffer.rewind();
 		Timer.resume("read records");
 		int ret = filechannel.read(helperBuffer, filePosStart);
-		log.info(Timer.stop("read records"));
+		Logger.info(Timer.stop("read records"));
 		helperBuffer.rewind();
 		if(ret!=fileBytes) {
 			throw new RuntimeException("file read error");
@@ -985,7 +985,7 @@ public class Las {
 		helperBuffer.rewind();
 		Timer.resume("read records");
 		int ret = filechannel.read(helperBuffer, filePosStart);
-		log.info(Timer.stop("read records"));
+		Logger.info(Timer.stop("read records"));
 		helperBuffer.rewind();
 		if(ret!=fileBytes) {
 			throw new RuntimeException("file read error");
@@ -1067,7 +1067,7 @@ public class Las {
 		helperBuffer.rewind();
 		Timer.resume("read records");
 		int ret = filechannel.read(helperBuffer, filePosStart);
-		log.info(Timer.stop("read records"));
+		Logger.info(Timer.stop("read records"));
 		helperBuffer.rewind();
 		if(ret!=fileBytes) {
 			throw new RuntimeException("file read error");
@@ -1152,7 +1152,7 @@ public class Las {
 		helperBuffer.rewind();
 		Timer.resume("read records");
 		int ret = filechannel.read(helperBuffer, filePosStart);
-		log.info(Timer.stop("read records"));
+		Logger.info(Timer.stop("read records"));
 		helperBuffer.rewind();
 		if(ret!=fileBytes) {
 			throw new RuntimeException("file read error");
@@ -1235,7 +1235,7 @@ public class Las {
 		helperBuffer.rewind();
 		Timer.resume("read records");
 		int ret = filechannel.read(helperBuffer, filePosStart);
-		log.info(Timer.stop("read records"));
+		Logger.info(Timer.stop("read records"));
 		helperBuffer.rewind();
 		if(ret!=fileBytes) {
 			throw new RuntimeException("file read error");

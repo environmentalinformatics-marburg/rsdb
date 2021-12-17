@@ -9,8 +9,8 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.SignStyle;
 import java.time.temporal.ChronoField;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.Informal.Builder;
@@ -20,7 +20,7 @@ import util.Timer;
 import util.Util;
 
 public class Import_soda_OLD {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final String namePrefix;
@@ -37,7 +37,7 @@ public class Import_soda_OLD {
 	public void importDirectory(Path root) throws Exception {
 		Timer.start("import_soda "+root);		
 		importDirectoryInternal(root, root.getFileName().toString());
-		log.info(Timer.stop("import_soda "+root));
+		Logger.info(Timer.stop("import_soda "+root));
 		//rasterdb.rebuildPyramid();
 	}
 	
@@ -45,7 +45,7 @@ public class Import_soda_OLD {
 		for(Path path:Util.getPaths(root)) {
 			if(path.toFile().isFile()) {
 				if(path.getFileName().toString().endsWith(".tif")) {
-					log.info("import soda "+path);
+					Logger.info("import soda "+path);
 					importFile(path);
 				}
 			} else if(path.toFile().isDirectory()) {
@@ -65,16 +65,16 @@ public class Import_soda_OLD {
 	
 	public void importFile(Path path) throws Exception {
 		String filename = path.getFileName().toString();
-		log.info("filename "+filename);
+		Logger.info("filename "+filename);
 		int layerNameIndex = filename.indexOf('_');
 		String layerSubName = filename.substring(0, layerNameIndex);
-		log.info("layerName "+layerSubName);
+		Logger.info("layerName "+layerSubName);
 		int dateIndex = filename.lastIndexOf('_');
 		String dateText = filename.substring(layerNameIndex + 1, dateIndex);
-		log.info("dateText " + dateText);
+		Logger.info("dateText " + dateText);
 		LocalDate date = LocalDate.parse(dateText, UNDERSCORE_DATE);
 		LocalDateTime datetime = LocalDateTime.of(date, LocalTime.MIDNIGHT);
-		log.info("datetime " + datetime);
+		Logger.info("datetime " + datetime);
 		int timestamp = TimeUtil.toTimestamp(datetime);
 		String layerName = namePrefix + '_' + layerSubName;
 		

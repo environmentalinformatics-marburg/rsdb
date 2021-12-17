@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import rasterdb.Band;
@@ -18,7 +18,7 @@ import util.Timer;
 import util.Util;
 
 public class Import_rapideye {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	//private final Broker broker;
 	private final RasterDB rasterdb;
@@ -74,7 +74,7 @@ public class Import_rapideye {
 		}		
 		
 		importDirectoryInternal(root, root.getFileName().toString());
-		log.info(Timer.stop("import_rapideye "+root));
+		Logger.info(Timer.stop("import_rapideye "+root));
 		rasterdb.rebuildPyramid(true);
 	}
 	
@@ -82,7 +82,7 @@ public class Import_rapideye {
 		for(Path path:Util.getPaths(root)) {
 			if(path.toFile().isFile()) {
 				if(path.getFileName().toString().equals(dataName+".tif")) {
-					log.info("import rapideye "+path);
+					Logger.info("import rapideye "+path);
 					importFile(path);				}
 			} else if(path.toFile().isDirectory()) {
 				importDirectoryInternal(path, path.getFileName().toString());
@@ -95,11 +95,11 @@ public class Import_rapideye {
 		String filename = path.getFileName().toString();
 		int dtStart = filename.indexOf('_') + 1;
 		String dtText = filename.substring(dtStart, dtStart + 10);
-		log.info("dtText "+dtText);
+		Logger.info("dtText "+dtText);
 		LocalDate date = LocalDate.parse(dtText, DateTimeFormatter.ISO_LOCAL_DATE);
 		LocalDateTime datetime = LocalDateTime.of(date, LocalTime.MIDNIGHT);
 		int timestamp = TimeUtil.toTimestamp(datetime);
-		log.info("dtText "+dtText+"  timestamp "+timestamp);
+		Logger.info("dtText "+dtText+"  timestamp "+timestamp);
 		rasterdbimporter.importFile_GDAL(path, null, true, timestamp);
 	}
 	
@@ -113,13 +113,13 @@ public class Import_rapideye {
 					String filename = path.getFileName().toString().toLowerCase();
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(ext.equals("tif")) {
-						//log.info("import file "+path);
+						//Logger.info("import file "+path);
 						String title = filename.substring(0, filename.lastIndexOf('.'));
-						log.info("title "+title);
+						Logger.info("title "+title);
 						String bandTitle = title.substring(title.lastIndexOf('_')+1);
-						log.info("bandTitle "+bandTitle);
+						Logger.info("bandTitle "+bandTitle);
 						if(fileMap.containsKey(bandTitle)) {
-							log.warn("band already inserted. overwrite");
+							Logger.warn("band already inserted. overwrite");
 						}
 						fileMap.put(bandTitle, path);
 
@@ -128,11 +128,11 @@ public class Import_rapideye {
 
 						//importFile(path.toString());
 					} else {
-						//log.info("skip file "+path);	
+						//Logger.info("skip file "+path);	
 					}
 				} catch(Exception e) {
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 		}
@@ -159,11 +159,11 @@ public class Import_rapideye {
 					throw new RuntimeException();
 				}
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 
-		log.info(Timer.stop("import_rapideye"+root));
+		Logger.info(Timer.stop("import_rapideye"+root));
 		rasterdb.rebuildPyramid();
 	}*/
 }

@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
@@ -17,7 +17,7 @@ import util.Web;
 
 public class APIHandler_dbs_json extends PointdbAPIHandler {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();	
+		
 
 	private static final String MIME_JSON = "application/json";
 

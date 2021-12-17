@@ -9,7 +9,7 @@ import org.json.JSONWriter;
 import util.CarpException;
 
 public abstract class ACL {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public static final String ROLE_ADMIN = "admin";
 

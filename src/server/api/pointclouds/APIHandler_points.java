@@ -13,8 +13,8 @@ import java.util.zip.ZipOutputStream;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.yaml.snakeyaml.Yaml;
 
@@ -35,7 +35,7 @@ import util.StreamReceiver;
 import util.Web;
 
 public class APIHandler_points {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected static final String MIME_JSON = "application/json";	
 	protected static final String MIME_CSV = "text/csv";
@@ -148,7 +148,7 @@ public class APIHandler_points {
 			Receiver receiver = new StreamReceiver(zipOutputStream);
 			Region rr = requestRegion;
 			boundingRect.tiles_utmm(1000_000, 1000_000, (xtile, ytile, tileRect) -> {
-				log.info(tileRect);
+				Logger.info(tileRect);
 				String tileFilename = "tile_" + xtile + "_" + ytile + ".las";
 				try {
 					Region tileRegion = Region.ofFilteredBbox(tileRect, rr.polygonPoints);

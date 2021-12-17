@@ -7,8 +7,8 @@ import java.util.TreeSet;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -20,7 +20,7 @@ import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_roles extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_roles(Broker broker) {
 		super(broker, "roles");
@@ -28,7 +28,7 @@ public class APIHandler_roles extends APIHandler {
 
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
-		log.info("request roles");
+		Logger.info("request roles");
 		UserIdentity userIdentity = Web.getUserIdentity(request);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);

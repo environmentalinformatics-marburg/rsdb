@@ -6,8 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -23,11 +23,11 @@ import org.eclipse.jetty.util.URIUtil;
  *
  */
 public class OptionalSecuredRedirectHandler extends AbstractHandler {
-	static final Logger log = LogManager.getLogger();
+	
 	
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-		//log.info("handle");
+		//Logger.info("handle");
 		//new RuntimeException().printStackTrace();
 		//if (baseRequest.isSecure() || (channel == null)) { // changed
 		if (baseRequest.isSecure()) { // changed

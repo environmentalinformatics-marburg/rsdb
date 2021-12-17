@@ -3,8 +3,8 @@ package rasterdb.importer;
 import java.nio.file.Path;
 import java.util.TreeMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import rasterdb.Band;
@@ -14,7 +14,7 @@ import util.Timer;
 import util.Util;
 
 public class Import_landsat8 {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	//private final Broker broker;
 	private final RasterDB rasterdb_30m;
@@ -142,13 +142,13 @@ public class Import_landsat8 {
 					String filename = path.getFileName().toString().toLowerCase();
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(ext.equals("tif")) {
-						//log.info("import file "+path);
+						//Logger.info("import file "+path);
 						String title = filename.substring(0, filename.lastIndexOf('.'));
-						log.info("title "+title);
+						Logger.info("title "+title);
 						String bandTitle = title.substring(title.lastIndexOf('_')+1);
-						log.info("bandTitle "+bandTitle);
+						Logger.info("bandTitle "+bandTitle);
 						if(fileMap.containsKey(bandTitle)) {
-							log.warn("band already inserted. overwrite");
+							Logger.warn("band already inserted. overwrite");
 						}
 						fileMap.put(bandTitle, path);
 
@@ -157,11 +157,11 @@ public class Import_landsat8 {
 
 						//importFile(path.toString());
 					} else {
-						//log.info("skip file "+path);	
+						//Logger.info("skip file "+path);	
 					}
 				} catch(Exception e) {
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 		}
@@ -188,11 +188,11 @@ public class Import_landsat8 {
 					throw new RuntimeException();
 				}
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 
-		log.info(Timer.stop("import_landsat8"+root));
+		Logger.info(Timer.stop("import_landsat8"+root));
 		rasterdb_30m.rebuildPyramid(true);
 		rasterdb_15m.rebuildPyramid(true);
 	}

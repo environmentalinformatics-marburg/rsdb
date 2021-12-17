@@ -18,8 +18,8 @@ import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import rasterunit.BandKey;
@@ -37,7 +37,7 @@ import util.collections.vec.Vec;
 import util.yaml.YamlMap;
 
 public class GridDB implements AutoCloseable {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final int TILE_TYPE_CELL = 0;
 
@@ -70,7 +70,7 @@ public class GridDB implements AutoCloseable {
 		this.path = path;
 		this.name = name;
 		this.storageType = preferredStorageType; // will be overwritten if yaml file exists
-		//log.info("preferredStorageType (" + path + "   "+ name + ") " + preferredStorageType);
+		//Logger.info("preferredStorageType (" + path + "   "+ name + ") " + preferredStorageType);
 		this.transaction =  transaction;
 		path.toFile().mkdirs();
 		this.extendedMeta = extendedMeta;
@@ -194,7 +194,7 @@ public class GridDB implements AutoCloseable {
 	public synchronized void addAttribute(String name, int encoding) {
 		Attribute prev = getAttribute(name);
 		if(prev != null) {
-			log.warn("attribute already inserted "+name);
+			Logger.warn("attribute already inserted "+name);
 		} else {
 			int id = attributes.size();
 			if(id>127) {
@@ -242,7 +242,7 @@ public class GridDB implements AutoCloseable {
 
 	public synchronized void writeMeta() {
 		try {
-			log.info("write meta " + metaPath);
+			Logger.info("write meta " + metaPath);
 			LinkedHashMap<String, Object> map = metaToYaml();
 			Yaml yaml = new Yaml();
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(metaFileTemp)));
@@ -251,7 +251,7 @@ public class GridDB implements AutoCloseable {
 			Files.move(metaPathTemp, metaPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 			unsetUnsavedMetaChanges();
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 	}
 	
@@ -281,7 +281,7 @@ public class GridDB implements AutoCloseable {
 	public synchronized void readMeta() { // throws if read error
 		try {
 			if (metaPath.toFile().exists()) {
-				//log.info("read meta exists " + metaPath);
+				//Logger.info("read meta exists " + metaPath);
 				YamlMap map;
 				try(InputStream in = new FileInputStream(metaFile)) {
 					map = YamlMap.ofObject(new Yaml().load(in));
@@ -292,7 +292,7 @@ public class GridDB implements AutoCloseable {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			throw new RuntimeException(e);
 		}
 	}

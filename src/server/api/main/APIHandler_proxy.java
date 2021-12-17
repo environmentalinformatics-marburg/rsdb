@@ -8,8 +8,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.server.Request;
@@ -20,7 +20,7 @@ import server.api.APIHandler;
 import util.Util;
 
 public class APIHandler_proxy extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final Path PROXY_ROOT = Paths.get("proxy/osm");
 	
@@ -32,7 +32,7 @@ public class APIHandler_proxy extends APIHandler {
 
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {		
-		log.info(target);
+		Logger.info(target);
 		if(target.startsWith("/") || target.contains("..") || target.contains("./") || target.contains("\\") || target.contains("~")) {
 			throw new RuntimeException("invalid proxy path");
 		}
@@ -44,7 +44,7 @@ public class APIHandler_proxy extends APIHandler {
 		byte[] data = null;
 		if(path.toFile().exists()) {
 			data = Files.readAllBytes(path);
-			log.info("from cache");
+			Logger.info("from cache");
 		} else {
 			try {
 				HttpClient httpClient = new HttpClient();
@@ -52,19 +52,19 @@ public class APIHandler_proxy extends APIHandler {
 				httpClient.start();
 				String host = hosts[ThreadLocalRandom.current().nextInt(hosts.length)];
 				String url = host + target;
-				log.info("GET " + url);
+				Logger.info("GET " + url);
 				ContentResponse r = httpClient.GET(url);
 				if(r.getStatus() == 200) {
 					data = r.getContent();
-					log.info("write " + path);
+					Logger.info("write " + path);
 					path.getParent().toFile().mkdirs();
 					Files.write(path, data);
 				} else {
-					log.info("returned " + r.getStatus());
+					Logger.info("returned " + r.getStatus());
 				}
 				httpClient.stop();
 			} catch (Exception e) {
-				log.error(e);
+				Logger.error(e);
 			}
 		}
 		if(data != null) {

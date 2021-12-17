@@ -21,8 +21,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.security.DefaultUserIdentity;
@@ -50,7 +50,7 @@ import util.collections.vec.Vec;
  *
  */
 public class JWSAuthentication extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final boolean ALWAYS_REFRESH_MUSTACHE = true;
 
@@ -199,7 +199,7 @@ public class JWSAuthentication extends AbstractHandler {
 	private void hanndleAuthenticationRequired(Request request, HttpServletResponse response) throws IOException {
 		String reqUrl = request.getRequestURL().toString();
 		String reqUrlQs = request.getQueryString();
-		log.info("reqUrlQs " + reqUrlQs);
+		Logger.info("reqUrlQs " + reqUrlQs);
 		String req = reqUrl;
 		if(reqUrlQs != null) {
 			req += '?' + reqUrlQs;
@@ -256,12 +256,12 @@ public class JWSAuthentication extends AbstractHandler {
 	}
 
 	private void handleJwsParameterRedirect(String compactJws, Request request, HttpServletResponse response) throws IOException {
-		log.info("handleJwsParameterRedirect: " + compactJws);
+		Logger.info("handleJwsParameterRedirect: " + compactJws);
 		request.setHandled(true);
 		String redirect_target = request.getRequestURL().toString();
 		try {
 			String qs = request.getQueryString();
-			log.info("qs " + qs);
+			Logger.info("qs " + qs);
 			int jwsIndex = qs.indexOf("jws=");
 			if(jwsIndex < 0) {
 				throw new RuntimeException("url JWS error");
@@ -302,7 +302,7 @@ public class JWSAuthentication extends AbstractHandler {
 				return;
 			} else {
 				e.printStackTrace();
-				log.warn(e);
+				Logger.warn(e);
 				HttpSession session = request.getSession(false);
 				if(session != null) {
 					session.invalidate();

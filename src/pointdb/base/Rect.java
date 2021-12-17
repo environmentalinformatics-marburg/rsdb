@@ -2,8 +2,8 @@ package pointdb.base;
 
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
 import pointcloud.DoubleRect;
@@ -15,7 +15,7 @@ import util.Web;
  *
  */
 public class Rect {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	public final long utmm_min_x;
 	public final long utmm_min_y;

@@ -2,8 +2,8 @@ package remotetask.rasterdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.acl.EmptyACL;
 import rasterdb.RasterDB;
@@ -26,7 +26,7 @@ import util.raster.GdalReader;
 @Param(name="update_pyramid", type="boolean", desc="Build pyramid of scaled down raster including imported data. Needed for visualisations. (default true. Use 'false' if you import multiple rasters for import speed up. After import, run task rebuild_pyramid once.)", example="false", required=false)
 @Param(name="update_catalog", type="boolean", desc="Update extent with new imported data. (default true. Use 'false' if you import multiple rasters for import speed up. After import, run task rebuild_pyramid once.)", example="false", required=false)
 public class Task_import extends RemoteProxyTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public Task_import(Context ctx) {
 		super(ctx);
@@ -73,7 +73,7 @@ public class Task_import extends RemoteProxyTask {
 				bandSpec.no_data_value = no_data_value;
 			}
 		}
-		log.info(spec);
+		Logger.info(spec);
 		
 		
 		ImportProcessor importProcessor = ImportBySpec.importPerpare(ctx.broker, gdalreader, rasterdbID, spec);

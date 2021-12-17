@@ -11,8 +11,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.security.UserAuthentication;
 import org.eclipse.jetty.security.UserStore;
@@ -31,7 +31,7 @@ import broker.acl.FastUserIdentity;
  *
  */
 public class IpAuthentication extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final AccountManager userStore;
 	private Map<String, String> ipMap = new HashMap<String, String>();
@@ -51,22 +51,22 @@ public class IpAuthentication extends AbstractHandler {
 	@Override
 	public void handle(String target, Request request, HttpServletRequest req, HttpServletResponse response) throws IOException, ServletException {
 		String ip = request.getRemoteAddr();
-		//log.info("ip "+ip);
+		//Logger.info("ip "+ip);
 		String user = ipMap.get(ip);
 		if(user != null) {
-			//log.info("user "+user);
+			//Logger.info("user "+user);
 			Account account = userStore.getAccount(user);
 			if(account == null) {
-				log.warn("no identiy for user "+user);
+				Logger.warn("no identiy for user "+user);
 				account = userHelperCache.computeIfAbsent(user, name -> {
 					return new Account(name, user, null, false);
 				});
 			}
-			//log.info("identity "+userIdentity);
+			//Logger.info("identity "+userIdentity);
 			//Subject subject = userIdentity.getSubject();
-			//log.info(subject.getPrivateCredentials().iterator().next().getClass());
-			//log.info(subject.getPublicCredentials());
-			//log.info(userIdentity.getUserPrincipal().getClass());
+			//Logger.info(subject.getPrivateCredentials().iterator().next().getClass());
+			//Logger.info(subject.getPublicCredentials());
+			//Logger.info(userIdentity.getUserPrincipal().getClass());
 			Authentication authentication = new UserAuthentication("IP", account);
 			request.setAuthentication(authentication);	
 		}		

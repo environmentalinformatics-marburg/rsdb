@@ -10,7 +10,7 @@ import broker.Broker;
 import rasterdb.RasterDB;
 
 public abstract class RasterdbMethod {
-	//private static final Logger log = LogManager.getLogger();
+	//
 	
 	protected static final String MIME_JSON = "application/json";
 

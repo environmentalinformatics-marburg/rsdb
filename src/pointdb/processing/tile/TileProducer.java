@@ -1,6 +1,8 @@
 package pointdb.processing.tile;
 
-import org.apache.logging.log4j.LogManager;
+
+
+import org.tinylog.Logger;
 
 import pointdb.base.Rect;
 import pointdb.base.Tile;
@@ -27,6 +29,6 @@ public interface TileProducer {
 	}
 
 	default void requestStop() {
-		LogManager.getLogger().info("requestStop not implemented");
+		Logger.info("requestStop not implemented");
 	}
 }

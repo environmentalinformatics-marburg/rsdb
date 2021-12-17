@@ -1,10 +1,10 @@
 package remotetask;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public abstract class RemoteProxy implements AutoCloseable {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	private MessageProxy messageProxy = MessageProxy.MESSAGE_PROXY_NULL;
 	
@@ -30,7 +30,7 @@ public abstract class RemoteProxy implements AutoCloseable {
 	}
 	
 	public void cancel() {
-		log.info("cancel not supported");
+		Logger.info("cancel not supported");
 	}
 	
 	public boolean isCanceled() {

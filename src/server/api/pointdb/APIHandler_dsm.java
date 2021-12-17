@@ -2,8 +2,8 @@ package server.api.pointdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -28,7 +28,7 @@ import util.rdat.RdatRaster;
  */
 @Deprecated
 public class APIHandler_dsm extends PointdbAPIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_dsm(Broker broker) {
 		super(broker, "dsm");
@@ -40,7 +40,7 @@ public class APIHandler_dsm extends PointdbAPIHandler {
 		PointDB pointdb = getPointdb(request);
 		Rect rect = Rect.of_extent_request(request);
 		rect = rect.withBorderUTM(PointGrid.window_size).outerMeterRect();
-		log.info("rect "+rect);
+		Logger.info("rect "+rect);
 		//Filter filter = Filter.createFilter("last_return=1");
 		PointFilter filter = null;
 

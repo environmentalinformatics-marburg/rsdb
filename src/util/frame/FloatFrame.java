@@ -4,13 +4,13 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Range2d;
 
 public class FloatFrame {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final float[][] data;
 	public final int width;

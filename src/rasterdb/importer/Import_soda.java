@@ -9,8 +9,8 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.SignStyle;
 import java.time.temporal.ChronoField;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.acl.ACL;
@@ -25,7 +25,7 @@ import util.Timer;
 import util.Util;
 
 public class Import_soda {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	private final Broker broker;
 	private final String namePrefix;
@@ -40,14 +40,14 @@ public class Import_soda {
 	public void importDirectory(Path root) throws Exception {
 		Timer.start("import_soda "+root);		
 		importDirectoryInternal(root, root.getFileName().toString());
-		log.info(Timer.stop("import_soda "+root));
+		Logger.info(Timer.stop("import_soda "+root));
 	}
 	
 	private void importDirectoryInternal(Path root, String dataName) throws Exception {
 		for(Path path:Util.getPaths(root)) {
 			if(path.toFile().isFile()) {
 				if(path.getFileName().toString().endsWith(".tif")) {
-					log.info("import soda "+path);
+					Logger.info("import soda "+path);
 					importFile(path);
 				}
 			} else if(path.toFile().isDirectory()) {
@@ -67,21 +67,21 @@ public class Import_soda {
 	public void importFile(Path path) throws Exception {
 		String filename = path.getFileName().toString();
 		if(!filename.contains("soda")) {
-			log.info("skip filename "+filename);
+			Logger.info("skip filename "+filename);
 			return;
 		}
-		log.info("filename "+filename);
+		Logger.info("filename "+filename);
 		int layerNameIndex = filename.indexOf('_');
 		String layerSubName = filename.substring(0, layerNameIndex);
 		int dateIndex = filename.lastIndexOf('_');
 		String dateText = filename.substring(layerNameIndex + 1, dateIndex);		
-		log.info("dateText " + dateText);
+		Logger.info("dateText " + dateText);
 		LocalDate date = LocalDate.parse(dateText, UNDERSCORE_DATE);
 		LocalDateTime datetime = LocalDateTime.of(date, LocalTime.MIDNIGHT);
-		log.info("datetime " + datetime);
+		Logger.info("datetime " + datetime);
 		int timestamp = TimeUtil.toTimestamp(datetime);
 		String layerName = namePrefix + '_' + layerSubName;
-		log.info("layerName "+layerName);
+		Logger.info("layerName "+layerName);
 		
 		ImportSpec spec = APIHandler_inspect.createSpec(path, Strategy.CREATE, filename, layerName, null, false, null, null);		
 		spec.storage_type = "TileStorage";
@@ -92,7 +92,7 @@ public class Import_soda {
 		spec.inf.corresponding_contact = corresponding_contact;
 		spec.inf.setTags("exploratories", "UAV", "soda", layerSubName);
 		spec.acl = ACL.of("be");
-		log.info(spec.bandSpecs);
+		Logger.info(spec.bandSpecs);
 		BandSpec band1 = spec.bandSpecs.get(0);
 		band1.band_name = "Red";
 		band1.visualisation = "red";

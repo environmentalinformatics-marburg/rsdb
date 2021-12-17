@@ -7,8 +7,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONWriter;
@@ -23,7 +23,7 @@ import util.Range2d;
 import util.Web;
 
 public class RasterdbsHandler extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected static final String MIME_JSON = "application/json";
 
@@ -42,7 +42,7 @@ public class RasterdbsHandler extends AbstractHandler {
 		boolean includeRef = request.getParameter("ref") != null;
 		boolean includeInfo = request.getParameter("info") != null;
 
-		log.info(request + "    size: " + request.getContentLength());
+		Logger.info(request + "    size: " + request.getContentLength());
 		request.setHandled(true);
 		try {
 			TreeSet<String> rasterdbTags = new TreeSet<>();
@@ -158,7 +158,7 @@ public class RasterdbsHandler extends AbstractHandler {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}

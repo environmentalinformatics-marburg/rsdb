@@ -17,7 +17,7 @@ import remotetask.RemoteProxyTask;
 @Param(name="pointcloud", type="pointcloud", desc="ID of Pointcloud layer to rename.", example="pointcloud1")
 @Param(name="new_name", type="layer_id", desc="ID of new Pointcloud layer.", example="pointcloudA")
 public class Task_rename extends RemoteProxyTask {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private final Broker broker;
 	private final JSONObject task;

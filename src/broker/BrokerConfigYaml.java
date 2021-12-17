@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.group.ExternalGroupConfig;
@@ -14,7 +14,7 @@ import util.Util;
 import util.yaml.YamlMap;
 
 public class BrokerConfigYaml extends BrokerConfig {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public BrokerConfigYaml(String filename) {
 		try {
@@ -26,7 +26,7 @@ public class BrokerConfigYaml extends BrokerConfig {
 				if(Util.isValidIdentifier(pointdbConfig.name)) {
 					pointdbMap.put(pointdbConfig.name, pointdbConfig);
 				} else {
-					log.warn("pointdb not inserted: invalid identifier: "+pointdbConfig.name+" in "+filename);
+					Logger.warn("pointdb not inserted: invalid identifier: "+pointdbConfig.name+" in "+filename);
 				}
 			}
 
@@ -35,7 +35,7 @@ public class BrokerConfigYaml extends BrokerConfig {
 				if(Util.isValidIdentifier(poiConfig.name)) {
 					poiGroupMap.put(poiConfig.name, poiConfig);
 				} else {
-					log.warn("poiGroup not inserted: invalid identifier: "+poiConfig.name+" in "+filename);
+					Logger.warn("poiGroup not inserted: invalid identifier: "+poiConfig.name+" in "+filename);
 				}
 			}
 
@@ -44,7 +44,7 @@ public class BrokerConfigYaml extends BrokerConfig {
 				if(Util.isValidIdentifier(roiConfig.name)) {
 					roiGroupMap.put(roiConfig.name, roiConfig);
 				} else {
-					log.warn("roiGroup not inserted: invalid identifier: "+roiConfig.name+" in "+filename);
+					Logger.warn("roiGroup not inserted: invalid identifier: "+roiConfig.name+" in "+filename);
 				}
 			}
 
@@ -54,17 +54,17 @@ public class BrokerConfigYaml extends BrokerConfig {
 						JwsConfig jwsConfig = JwsConfig.ofYAML(yamlMap);
 						jwsConfigs.add(jwsConfig);
 					} catch (Exception e) {
-						log.warn(e);
+						Logger.warn(e);
 					}
 				}
 			} catch (Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 
 			this.serverConfig = configMap.funMap("server", m->ServerConfig.ofYAML(m), ServerConfig::new);
 		}catch (Exception e) {
 			e.printStackTrace();
-			log.error("config YAML file error in "+filename+"  "+e);
+			Logger.error("config YAML file error in "+filename+"  "+e);
 			//throw new RuntimeException(e);
 		}
 	}

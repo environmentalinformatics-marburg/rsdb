@@ -12,7 +12,7 @@ import me.lemire.integercompression.VariableByte;
 import util.Serialisation;
 
 public class Encoding {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private static ThreadLocal<IntCompressor> threadLocal_ic = new ThreadLocal<IntCompressor>() {
 		@Override

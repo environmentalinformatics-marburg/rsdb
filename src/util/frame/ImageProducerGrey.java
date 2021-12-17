@@ -1,14 +1,14 @@
 package util.frame;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Util;
 import util.image.ImageGrey;
 
 public class ImageProducerGrey extends ImageGrey {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();	
+		
 	
 	private final ShortFrame frame;
 	private final int len;
@@ -48,7 +48,7 @@ public class ImageProducerGrey extends ImageGrey {
 			int[] minmaxR = frame.getMinMax0();
 			minR = minmaxR[0];
 			maxR = minmaxR[1];
-			//log.info("minmax "+Arrays.toString(minmaxR));
+			//Logger.info("minmax "+Arrays.toString(minmaxR));
 		}
 
 		int rangeR = maxR-minR;

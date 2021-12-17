@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -17,7 +17,7 @@ import broker.group.RoiGroup;
 import pointdb.base.Point2d;
 
 public class APIHandler_roi_group {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected static final String MIME_JSON = "application/json";
 
@@ -28,9 +28,9 @@ public class APIHandler_roi_group {
 	}
 
 	public void handle(String name, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.info("get: " + name);
+		Logger.info("get: " + name);
 		RoiGroup roiGroup = broker.getRoiGroup(name);
-		log.info("get: " + roiGroup);
+		Logger.info("get: " + roiGroup);
 		if(roiGroup == null) {
 			throw new RuntimeException("roi_group not found: " + name);
 		} else if(target.equals("/")) {

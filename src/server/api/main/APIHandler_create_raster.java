@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
@@ -16,7 +16,7 @@ import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_create_raster extends APIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_create_raster(Broker broker) {
 		super(broker, "create_raster");
@@ -32,7 +32,7 @@ public class APIHandler_create_raster extends APIHandler {
 		String storage_type = "TileStorage";
 		String storage_type_parameter = request.getParameter("storage_type");
 		if(storage_type_parameter != null && !storage_type_parameter.isEmpty()) {
-			log.info("set storage_type" + storage_type_parameter);
+			Logger.info("set storage_type" + storage_type_parameter);
 			storage_type = storage_type_parameter;
 		}
 		String proj4 = request.getParameter("proj4");

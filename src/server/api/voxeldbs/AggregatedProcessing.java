@@ -2,8 +2,8 @@ package server.api.voxeldbs;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Response;
 
 import broker.TimeSlice;
@@ -30,7 +30,7 @@ import voxeldb.aggregator.base.AggUint8ofInt32;
 import voxeldb.voxelmapper.VoxelMapperInt32;
 
 public class AggregatedProcessing {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static void process(VoxelDB voxeldb, Range3d range, TimeSlice timeSlice, int aggregation_factor_x, int aggregation_factor_y, int aggregation_factor_z, String product, boolean crop, Response response, String format) throws IOException {
 		VoxelGeoRef ref = voxeldb.geoRef();
@@ -41,7 +41,7 @@ public class AggregatedProcessing {
 		double aggVoxelSizeY = ref.voxelSizeY * aggregation_factor_y;
 		double aggVoxelSizeZ = ref.voxelSizeZ * aggregation_factor_z;
 		VoxelGeoRef aggRef = ref.with(aggOriginX, aggOriginY, aggOriginZ, aggVoxelSizeX, aggVoxelSizeY, aggVoxelSizeZ);
-		log.info(aggRef);
+		Logger.info(aggRef);
 
 		CellFactory cellFactory = new CellFactory(voxeldb);
 		AggProc aggProc = null;
@@ -104,7 +104,7 @@ public class AggregatedProcessing {
 		double aggVoxelSizeY = ref.voxelSizeY * aggregation_factor_y;
 		double aggVoxelSizeZ = ref.voxelSizeZ * aggregation_factor_z;
 		VoxelGeoRef aggRef = ref.with(aggOriginX, aggOriginY, aggOriginZ, aggVoxelSizeX, aggVoxelSizeY, aggVoxelSizeZ);
-		log.info(aggRef);
+		Logger.info(aggRef);
 
 		CellFactory cellFactory = new CellFactory(voxeldb);
 		AggProc aggProc = null;

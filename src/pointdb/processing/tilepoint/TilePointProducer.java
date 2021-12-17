@@ -1,6 +1,6 @@
 package pointdb.processing.tilepoint;
 
-import org.apache.logging.log4j.LogManager;
+import org.tinylog.Logger;
 
 public interface TilePointProducer {
 	void produce(TilePointConsumer tilePointConsumer);
@@ -26,6 +26,6 @@ public interface TilePointProducer {
 	}
 	
 	default void requestStop() {
-		LogManager.getLogger().info("requestStop not implemented");
+		Logger.info("requestStop not implemented");
 	}	
 }

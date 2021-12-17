@@ -3,8 +3,8 @@ package server.api.pointdb;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -30,7 +30,7 @@ import util.rdat.RdatRaster;
  */
 @Deprecated
 public class APIHandler_chm extends PointdbAPIHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public APIHandler_chm(Broker broker) {
 		super(broker, "chm");
@@ -42,7 +42,7 @@ public class APIHandler_chm extends PointdbAPIHandler {
 		PointDB pointdb = getPointdb(request);
 		Rect requestRect = Rect.of_extent_request(request);
 		Rect rect = requestRect.withBorderUTM(PointGrid.window_size).outerMeterRect();
-		log.info("rect "+rect);
+		Logger.info("rect "+rect);
 		//Filter filter = Filter.createFilter("last_return=1");
 		PointFilter filter = null;
 
@@ -50,7 +50,7 @@ public class APIHandler_chm extends PointdbAPIHandler {
 		String columnsText = request.getParameter("columns");
 		if(columnsText!=null) {
 			columns = Util.columnTextToColumns(columnsText, false);
-			log.info("columns: "+ Arrays.toString(columns));
+			Logger.info("columns: "+ Arrays.toString(columns));
 		}
 
 		Vec<GeoPoint> rawPoints = pointdb.tilePointProducer(rect).filter(filter).toGeoPointProducer().toList();

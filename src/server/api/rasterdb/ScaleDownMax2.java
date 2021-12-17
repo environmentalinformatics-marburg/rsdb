@@ -48,7 +48,7 @@ public class ScaleDownMax2 {
 				double frac2 = f2 - pos - 1;
 				double frac = frac2 / (frac1 + frac2);				
 				xFracs[xDst] = (float) frac;				
-				//log.info(xDst + "  " + pos + "  " + frac1 + "  " + frac2 + "   " + frac);
+				//Logger.info(xDst + "  " + pos + "  " + frac1 + "  " + frac2 + "   " + frac);
 			}
 		}
 
@@ -63,7 +63,7 @@ public class ScaleDownMax2 {
 				double frac2 = f2 - pos - 1;
 				double frac = frac2 / (frac1 + frac2);				
 				yFracs[yDst] = (float) frac;				
-				//log.info(yDst + "  " + pos + "  " + frac1 + "  " + frac2 + "   " + frac);
+				//Logger.info(yDst + "  " + pos + "  " + frac1 + "  " + frac2 + "   " + frac);
 			}
 		}
 
@@ -76,7 +76,7 @@ public class ScaleDownMax2 {
 			for (int xDst = 0; xDst < widthDst; xDst++) {
 				float xFrac = xFracs[xDst];
 				int xDstSrcPos = xDstSrcPoss[xDst];
-				//log.info(xDst + "  " + xDstSrcPos + "  " + xFrac);
+				//Logger.info(xDst + "  " + xDstSrcPos + "  " + xFrac);
 				float s00 = srcY0[xDstSrcPos];
 				float s01 = srcY0[xDstSrcPos + 1];
 				float s0 = s00 + (s01 - s00) * xFrac;
@@ -121,7 +121,7 @@ public class ScaleDownMax2 {
 				double frac2 = f2 - pos - 1;
 				double frac = frac2 / (frac1 + frac2);				
 				xFracs[xDst] = (float) frac;				
-				//log.info(xDst + "  " + pos + "  " + frac1 + "  " + frac2 + "   " + frac);
+				//Logger.info(xDst + "  " + pos + "  " + frac1 + "  " + frac2 + "   " + frac);
 			}
 		}
 
@@ -136,7 +136,7 @@ public class ScaleDownMax2 {
 				double frac2 = f2 - pos - 1;
 				double frac = frac2 / (frac1 + frac2);				
 				yFracs[yDst] = (float) frac;				
-				//log.info(yDst + "  " + pos + "  " + frac1 + "  " + frac2 + "   " + frac);
+				//Logger.info(yDst + "  " + pos + "  " + frac1 + "  " + frac2 + "   " + frac);
 			}
 		}
 
@@ -149,7 +149,7 @@ public class ScaleDownMax2 {
 			for (int xDst = 0; xDst < widthDst; xDst++) {
 				float xFrac = xFracs[xDst];
 				int xDstSrcPos = xDstSrcPoss[xDst];
-				//log.info(xDst + "  " + xDstSrcPos + "  " + xFrac);
+				//Logger.info(xDst + "  " + xDstSrcPos + "  " + xFrac);
 				float s00 = srcY0[xDstSrcPos];
 				float s01 = srcY0[xDstSrcPos + 1];
 				float s0 = s00 + (s01 - s00) * xFrac;

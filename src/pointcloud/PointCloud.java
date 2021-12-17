@@ -10,8 +10,8 @@ import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 
 import com.googlecode.javaewah.datastructure.BitSet;
@@ -38,7 +38,7 @@ import util.collections.ReadonlyNavigableSetView;
 import util.yaml.YamlMap;
 
 public class PointCloud implements AutoCloseable {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final int CURRENT_VERSION_MAJOR = 1;
 	private static final int CURRENT_VERSION_MINOR = 0;
@@ -236,7 +236,7 @@ public class PointCloud implements AutoCloseable {
 		byte[] cellData = compression_level == Integer.MIN_VALUE ? Cell.createData(attributes, columns, column_count) : Cell.createData(attributes, columns, column_count, compression_level);
 
 		Tile tile = griddb.createTile(cx, cy, cz, t, cellData);
-		//log.info("create cell cx: " + cx + " cy: " + cy + " columns: " + column_count + " rows: " + cellTable.rows + " compressed: " + cellData.length);
+		//Logger.info("create cell cx: " + cx + " cy: " + cy + " columns: " + column_count + " rows: " + cellTable.rows + " compressed: " + cellData.length);
 		return tile;
 	}
 
@@ -357,7 +357,7 @@ public class PointCloud implements AutoCloseable {
 		synchronized (griddb) {
 			if(celloffset == null) {
 				celloffset = new DoublePoint(xcelloffset, ycelloffset);
-				log.info("set celloffset " + celloffset);
+				Logger.info("set celloffset " + celloffset);
 				griddb.writeMeta();
 			}
 		}
@@ -390,7 +390,7 @@ public class PointCloud implements AutoCloseable {
 
 	public Stream<Cell> getCells(int t, double xmin, double ymin, double xmax, double ymax) {
 		if(celloffset == null) {
-			log.warn("no cell offset in PointCloud " + config.name);
+			Logger.warn("no cell offset in PointCloud " + config.name);
 			return Stream.empty();
 		} else {
 			double xcelloffset = celloffset.x;
@@ -399,7 +399,7 @@ public class PointCloud implements AutoCloseable {
 			int xcellmax = (int) (Math.floor(xmax / cellsize) - xcelloffset);
 			int ycellmin = (int) (Math.floor(ymin / cellsize) - ycelloffset);
 			int ycellmax = (int) (Math.floor(ymax / cellsize) - ycelloffset);
-			//log.info(xcellmin + " " + ycellmin + " " + xcellmax + " " + ycellmax);
+			//Logger.info(xcellmin + " " + ycellmin + " " + xcellmax + " " + ycellmax);
 			int z = 0;
 			Stream<Cell> cells = griddb.getCells(t, z, xcellmin, ycellmin, xcellmax, ycellmax);		
 			return cells;
@@ -408,7 +408,7 @@ public class PointCloud implements AutoCloseable {
 
 	public TileCollection getTiles(int t, double xmin, double ymin, double xmax, double ymax) {
 		if(celloffset == null) {
-			log.warn("no cell offset in PointCloud " + config.name);
+			Logger.warn("no cell offset in PointCloud " + config.name);
 			return null;
 		} else {
 			double xcelloffset = celloffset.x;
@@ -417,7 +417,7 @@ public class PointCloud implements AutoCloseable {
 			int xcellmax = (int) (Math.floor(xmax / cellsize) - xcelloffset);
 			int ycellmin = (int) (Math.floor(ymin / cellsize) - ycelloffset);
 			int ycellmax = (int) (Math.floor(ymax / cellsize) - ycelloffset);
-			//log.info(xcellmin + " " + ycellmin + " " + xcellmax + " " + ycellmax);
+			//Logger.info(xcellmin + " " + ycellmin + " " + xcellmax + " " + ycellmax);
 			int z = 0;
 			return griddb.getTiles(t, z, xcellmin, ycellmin, xcellmax, ycellmax);		
 		}
@@ -425,7 +425,7 @@ public class PointCloud implements AutoCloseable {
 
 	public int countCells(int t, double xmin, double ymin, double xmax, double ymax) {
 		if(celloffset == null) {
-			log.warn("no cell offset in PointCloud " + config.name);
+			Logger.warn("no cell offset in PointCloud " + config.name);
 			return 0;
 		} else {
 			double xcelloffset = celloffset.x;
@@ -460,7 +460,7 @@ public class PointCloud implements AutoCloseable {
 	}
 
 	public CellTable getCellTable(Cell cell, AttributeSelector selector) {
-		//log.info("getCellTable " + selector);
+		//Logger.info("getCellTable " + selector);
 		int[] x = selector.x ? cell.getInt(attr_x) : null;
 		int[] y = selector.y ? cell.getInt(attr_y) : null;
 		int[] z = selector.z ? cell.getInt(attr_z) : null;
@@ -470,7 +470,7 @@ public class PointCloud implements AutoCloseable {
 		}
 		if(selector.returnNumber) {
 			cellTable.returnNumber = cell.getByte(attr_returnNumber);
-			//log.info("cellTable.returnNumber " + cellTable.returnNumber + "   " + attr_returnNumber);
+			//Logger.info("cellTable.returnNumber " + cellTable.returnNumber + "   " + attr_returnNumber);
 		}
 		if(selector.returns) {
 			cellTable.returns = cell.getByte(attr_returns);
@@ -518,20 +518,20 @@ public class PointCloud implements AutoCloseable {
 
 	public Stream<PointTable> getPointTables(int t, double xmin, double ymin, double xmax, double ymax, AttributeSelector selector, ChainedFilterFunc filterFunc) {
 		AttributeSelector loadSelector = selector.hasXY() ? selector : selector.copy().setXY();
-		//log.info("selector " + selector); 
-		//log.info("loadSelector " + loadSelector); 
+		//Logger.info("selector " + selector); 
+		//Logger.info("loadSelector " + loadSelector); 
 		Stream<CellTable> cellTables = getCellTables(t, xmin, ymin, xmax, ymax, loadSelector);
 		Stream<PointTable> pointTables = cellTables.map(cellTable -> {
 
 			/*if(cellTable.returnNumber != null && cellTable.returnNumber.length > 0) {
-				log.info("cellTable.returnNumber" + cellTable.returnNumber[0]);
+				Logger.info("cellTable.returnNumber" + cellTable.returnNumber[0]);
 			} else {
-				log.info("cellTable.returnNumber MISSING");
+				Logger.info("cellTable.returnNumber MISSING");
 			}*/
 
-			/*log.info("CellTable " + cellTable.cx + "  " + cellTable.cy + "  offset " + celloffset.x + " " + celloffset.y + "  cellsize " + cellsize + " cellscale " + cellscale);
+			/*Logger.info("CellTable " + cellTable.cx + "  " + cellTable.cy + "  offset " + celloffset.x + " " + celloffset.y + "  cellsize " + cellsize + " cellscale " + cellscale);
 			if(cellTable.x != null && cellTable.x.length > 0 && cellTable.y != null && cellTable.y.length > 0 ) {
-				log.info("cell point "+cellTable.x[0]+" "+cellTable.y[0]);
+				Logger.info("cell point "+cellTable.x[0]+" "+cellTable.y[0]);
 			}*/
 			//Timer.resume("create mask");
 
@@ -543,9 +543,9 @@ public class PointCloud implements AutoCloseable {
 				double pymin = (celloffset.y + cellTable.cy) * cellsize;
 				double pxmax = (celloffset.x + cellTable.cx + 1) * cellsize - 1 / cellscale;
 				double pymax = (celloffset.y + cellTable.cy + 1) * cellsize - 1 / cellscale;
-				//log.info("cell range   " + pxmin + " " + pymin + " " + pxmax + " " + pymax);
+				//Logger.info("cell range   " + pxmin + " " + pymin + " " + pxmax + " " + pymax);
 				filter = xmin <= pxmin && ymin <= pymin && xmax >= pxmax && ymax >= pymax ? null : maskExtent(cellTable, xmin, ymin, xmax, ymax);
-				//log.info("filter range " + xmin + " " + ymin + " " + xmax + " " + ymax + "   " + filter);
+				//Logger.info("filter range " + xmin + " " + ymin + " " + xmax + " " + ymax + "   " + filter);
 			}
 
 			//Timer.stop("create mask");
@@ -560,11 +560,11 @@ public class PointCloud implements AutoCloseable {
 			}
 			int size = filter == null ? cellTable.rows : filter.cardinality();
 			/*if(size < cellTable.rows) {
-				log.info("filter "+Timer.get("create mask"));
+				Logger.info("filter "+Timer.get("create mask"));
 			}*/
 			/*if(cellTable.x != null) {
 				for(int x:cellTable.x) {
-					log.info("px " + x);
+					Logger.info("px " + x);
 				}
 			}*/
 			PointTable pointTable = size < cellTable.rows ? cellTableToPointTable(cellTable, filter, size) : cellTableToPointTable(cellTable);
@@ -613,7 +613,7 @@ public class PointCloud implements AutoCloseable {
 
 	public PointTable cellTableToPointTable(CellTable cellTable, BitSet mask, int size) {
 		int len = cellTable.rows;
-		//log.info("cellTableToPointTable " + size +" / " + len +" -> " + (((double)size) / len));
+		//Logger.info("cellTableToPointTable " + size +" / " + len +" -> " + (((double)size) / len));
 		double[] x = cellTable.x == null ? null : ColumnsUtil.filterTransform(cellTable.x, len, mask, size, cellscale, (celloffset.x + cellTable.cx) * cellsize);
 		double[] y = cellTable.y == null ? null : ColumnsUtil.filterTransform(cellTable.y, len, mask, size, cellscale, (celloffset.y + cellTable.cy) * cellsize);
 		double[] z = cellTable.z == null ? null : ColumnsUtil.filterTransform(cellTable.z, len, mask, size, cellscale);

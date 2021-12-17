@@ -16,8 +16,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -35,7 +35,7 @@ import util.Web;
 import vectordb.VectorDB;
 
 public class VectordbHandler_wfs extends VectordbHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final String FEATURE_NAME = "feature";
 	private static final String GEOMETRY_PROPERTY_NAME = "geometry";
@@ -63,7 +63,7 @@ public class VectordbHandler_wfs extends VectordbHandler {
 		request.setHandled(true);
 
 		/*if(!"WFS".equals(request.getParameter("SERVICE"))) {
-			log.error("no WFS");
+			Logger.error("no WFS");
 			return;
 		}*/		
 
@@ -89,10 +89,10 @@ public class VectordbHandler_wfs extends VectordbHandler {
 		case "GetFeature":
 			Timer.start("GetFeature");
 			handle_GetFeature(vectordb, request, response);
-			log.info(Timer.stop("GetFeature"));
+			Logger.info(Timer.stop("GetFeature"));
 			break;			
 		default:
-			log.error("unknown request "+reqParam);
+			Logger.error("unknown request "+reqParam);
 		}		
 	}
 

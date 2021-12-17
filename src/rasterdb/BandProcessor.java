@@ -19,7 +19,7 @@ public class BandProcessor extends TimeBandProcessor {
 	public BandProcessor(RasterDB rasterdb, Range2d range2d, int timestamp, int scale) {
 		super(rasterdb, range2d, scale);
 		this.timestamp = timestamp;
-		//log.info("resulting scale " + scale);
+		//Logger.info("resulting scale " + scale);
 	}
 
 	public BandProcessor(RasterDB rasterdb, Range2d range2d, int timestamp, int reqWidth, int reqHeight) {

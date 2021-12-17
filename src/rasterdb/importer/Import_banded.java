@@ -3,8 +3,8 @@ package rasterdb.importer;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.Band;
 import rasterdb.RasterDB;
@@ -15,7 +15,7 @@ import util.Timer;
 import util.Util;
 
 public class Import_banded {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final RasterDB rasterdb;
 	//private final RasterUnit rasterUnit;
@@ -46,19 +46,19 @@ public class Import_banded {
 					String filename = path.getFileName().toString().toLowerCase();
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(ext.equals("tif")) {
-						log.info("import file "+path);					
+						Logger.info("import file "+path);					
 						importFile(path);
 					} else {
-						//log.info("skip file "+path);	
+						//Logger.info("skip file "+path);	
 					}
 				} catch(Exception e) {
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 
 			}
 		}
-		log.info(Timer.stop("import "+root));
+		Logger.info(Timer.stop("import "+root));
 	}
 
 	private void importFile(Path path) {
@@ -69,11 +69,11 @@ public class Import_banded {
 			try {
 				String parent = path.getParent().getFileName().toString();
 				String dateTimeText = parent.substring(0, 17);
-				log.info("dateTimeText "+dateTimeText);
+				Logger.info("dateTimeText "+dateTimeText);
 				LocalDateTime datetime = LocalDateTime.parse(dateTimeText, ModisPreprocess.DATE_TIME_FORMATER2);
 				timestamp = TimeUtil.toTimestamp(datetime);
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 			Band band = rasterdb.getBandByTitle(title);
 			if(band == null) {
@@ -82,7 +82,7 @@ public class Import_banded {
 			boolean useExistingBands = false; // don't load band
 			rasterdbimporter.importFile_GDAL(path, band, useExistingBands, timestamp);	
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 	}
 

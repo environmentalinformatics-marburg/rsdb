@@ -9,7 +9,7 @@ import pointdb.lidarindicesdsl.LidarIndicesDSLParser.Index_sequenceContext;
 import util.collections.vec.Vec;
 
 public class Compiler {
-	//private static final Logger log = LogManager.getLogger();
+	//
 	
 	public Compiler() {
 	}

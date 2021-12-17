@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -14,7 +14,7 @@ import broker.Broker;
 import vectordb.VectorDB;
 
 public abstract class VectordbHandler {
-private static final Logger log = LogManager.getLogger();
+
 	
 	protected static final String MIME_JSON = "application/json";
 
@@ -44,7 +44,7 @@ private static final Logger log = LogManager.getLogger();
 			handleDELETE(vectordb, target, request, response, userIdentity);
 			return;			
 		default:
-			log.error("HTTP method not allowed");
+			Logger.error("HTTP method not allowed");
 			response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 			response.setContentType("text/plain;charset=utf-8");
 			response.getWriter().println("HTTP method not allowed");
@@ -53,7 +53,7 @@ private static final Logger log = LogManager.getLogger();
 	}
 	
 	public void handleGET(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.error("HTTP method not allowed");
+		Logger.error("HTTP method not allowed");
 		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 		response.setContentType("text/plain;charset=utf-8");
 		response.getWriter().println("HTTP method not allowed");
@@ -61,7 +61,7 @@ private static final Logger log = LogManager.getLogger();
 	}
 	
 	public void handlePOST(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.error("HTTP method not allowed");
+		Logger.error("HTTP method not allowed");
 		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 		response.setContentType("text/plain;charset=utf-8");
 		response.getWriter().println("HTTP method not allowed");
@@ -69,7 +69,7 @@ private static final Logger log = LogManager.getLogger();
 	}
 	
 	public void handleDELETE(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.error("HTTP method not allowed");
+		Logger.error("HTTP method not allowed");
 		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 		response.setContentType("text/plain;charset=utf-8");
 		response.getWriter().println("HTTP method not allowed");

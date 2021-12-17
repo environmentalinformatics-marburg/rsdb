@@ -3,13 +3,13 @@ package rasterdb.ast;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.dsl.DSL;
 
 public class MacroVisitor implements TransformVisitor {
-	private static final Logger log = LogManager.getLogger();
+	
 	public static final MacroVisitor DEFAULT = new MacroVisitor();
 
 	private final static TreeMap<String, String> compositeFormulaMap = new TreeMap<String, String>();
@@ -17,13 +17,13 @@ public class MacroVisitor implements TransformVisitor {
 
 	private static void add(String name, String formula) {
 		try {
-			log.info(name);
+			Logger.info(name);
 			AST ast = DSL.parse_unify(formula);
-			log.info(DSL.toString(ast));
+			Logger.info(DSL.toString(ast));
 			compositeFormulaMap.put(name, formula);
 			compositeAstMap.put(name, ast);
 		} catch(Exception e) {
-			log.warn("could not create formula for " + name +"   " + e);
+			Logger.warn("could not create formula for " + name +"   " + e);
 		}
 	}
 	

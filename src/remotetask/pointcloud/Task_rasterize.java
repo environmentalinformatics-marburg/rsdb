@@ -23,7 +23,7 @@ import remotetask.Param;
 @Param(name="point_scale", type="number", desc="point coordinates to pixel scale factor (default: 4, results in 0.25 units pixel size)", example="4", required=false)
 @Param(name="processing_bands", type="string_array", desc="List of processing bands that should be processed. If needed point attributes are missing, a processing bands is omitted. Possible case sensitive values: red, green, blue, intensity, elevation (default all processings: red, green, blue, intensity, elevation)", example="intensity, elevation", required=false)
 public class Task_rasterize extends CancelableRemoteProxyTask {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private final Broker broker;
 	private final JSONObject task;

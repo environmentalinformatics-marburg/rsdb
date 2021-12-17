@@ -3,15 +3,15 @@ package util.frame;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Phaser;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Timer;
 import util.Util;
 import util.image.ImageRGBA;
 
 public class ImageProducerRGB extends ImageRGBA {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public final ShortFrame frameR;
 	public final ShortFrame frameG;
@@ -142,7 +142,7 @@ public class ImageProducerRGB extends ImageRGBA {
 
 		draw(dataHolder[0], dataHolder[1], dataHolder[2], minR, rangeR, minG, rangeG, minB, rangeB, ginv);
 
-		log.info(Timer.stop("render"));
+		Logger.info(Timer.stop("render"));
 	}
 
 	private void draw(short[][] dataR, short[][] dataG, short[][] dataB, int minR, int rangeR, int minG, int rangeG, int minB, int rangeB, float ginv) {
@@ -173,14 +173,14 @@ public class ImageProducerRGB extends ImageRGBA {
 
 		phaser.arriveAndAwaitAdvance();
 
-		/*log.info("RGB done "+exe.getPoolSize());
-		log.info("PoolSize "+exe.getPoolSize());
-		log.info("ActiveThreadCount "+exe.getActiveThreadCount());
-		log.info("RunningThreadCount "+exe.getRunningThreadCount());
-		log.info("Parallelism "+exe.getParallelism());
-		log.info("QueuedSubmissionCount "+exe.getQueuedSubmissionCount());
-		log.info("StealCount "+exe.getStealCount());
-		log.info("QueuedTaskCount "+exe.getQueuedTaskCount());*/
+		/*Logger.info("RGB done "+exe.getPoolSize());
+		Logger.info("PoolSize "+exe.getPoolSize());
+		Logger.info("ActiveThreadCount "+exe.getActiveThreadCount());
+		Logger.info("RunningThreadCount "+exe.getRunningThreadCount());
+		Logger.info("Parallelism "+exe.getParallelism());
+		Logger.info("QueuedSubmissionCount "+exe.getQueuedSubmissionCount());
+		Logger.info("StealCount "+exe.getStealCount());
+		Logger.info("QueuedTaskCount "+exe.getQueuedTaskCount());*/
 	}
 
 	private void draw(short[][] dataR, short[][] dataG, short[][] dataB, int minR, int rangeR, int minG, int rangeG, int minB, int rangeB, float ginv, int ystart, int yborder) {

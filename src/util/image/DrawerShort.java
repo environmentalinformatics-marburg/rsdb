@@ -3,11 +3,11 @@ package util.image;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Phaser;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class DrawerShort {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public static void drawGrey(ImageBufferARGB image, short[][] data, int na, int min, int max, double gamma) {
 		int yStart = 0;
@@ -60,7 +60,7 @@ public class DrawerShort {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			Logger.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;
@@ -89,7 +89,7 @@ public class DrawerShort {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			//log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			//Logger.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;
@@ -118,7 +118,7 @@ public class DrawerShort {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			//log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			//Logger.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;
@@ -147,7 +147,7 @@ public class DrawerShort {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			Logger.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;
@@ -176,7 +176,7 @@ public class DrawerShort {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			//log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			//Logger.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;
@@ -205,7 +205,7 @@ public class DrawerShort {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			Logger.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;
@@ -234,7 +234,7 @@ public class DrawerShort {
 			if(partNr == parts) {
 				yEnd = end;
 			}
-			log.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
+			Logger.info("draw "+partNr+"/"+parts+"   "+yStart+"  "+yEnd+"  of "+end);
 			phaser.register();
 			final int yStartLocal = yStart;
 			final int yEndLocal = yEnd;

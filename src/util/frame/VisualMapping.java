@@ -2,15 +2,15 @@ package util.frame;
 
 
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public enum VisualMapping {
 
 	GREY,
 	COLOR;
 
-	private static final Logger log = LogManager.getLogger();
+	
 
 	/**
 	 * 
@@ -27,7 +27,7 @@ public enum VisualMapping {
 		case "default":
 			return DEFAULT;
 		default:
-			log.warn("unknown mapping -> set default  "+mapping);
+			Logger.warn("unknown mapping -> set default  "+mapping);
 			return DEFAULT;
 		}
 	}

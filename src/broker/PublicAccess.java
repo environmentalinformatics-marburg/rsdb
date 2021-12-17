@@ -2,13 +2,13 @@ package broker;
 
 import java.util.LinkedHashMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.yaml.YamlMap;
 
 public abstract class PublicAccess {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static class RasterDbWMS extends PublicAccess {
 		public static final String TYPE = "RasterDB_WMS";
@@ -49,7 +49,7 @@ public abstract class PublicAccess {
 			publicAccess = RasterDbWMS.ofYAML(id, map);
 			break;
 		default:
-			log.warn("unknown type: " + type);			
+			Logger.warn("unknown type: " + type);			
 		}
 		return publicAccess;
 	}

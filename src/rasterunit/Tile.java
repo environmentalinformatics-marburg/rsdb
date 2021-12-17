@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.mapdb.Serializer;
 
 public class Tile {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public final int t;
 	public final int b;

@@ -3,13 +3,13 @@ package util.image;
 import java.util.Arrays;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Timer;
 
 public class RangerDouble {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public static double[] range(double[][] data) {
 		int height = data.length;
@@ -133,7 +133,7 @@ public class RangerDouble {
 		if(min == Double.NEGATIVE_INFINITY || max == Double.NEGATIVE_INFINITY) {
 			Timer.start("Ranger");
 			double[] r = range(data);
-			//log.info(Timer.stop("Ranger"));
+			//Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];
@@ -163,7 +163,7 @@ public class RangerDouble {
 		if(min == Double.NEGATIVE_INFINITY || max == Double.NEGATIVE_INFINITY) {
 			Timer.start("Ranger");
 			double[] r = rangeSync(data);
-			log.info(Timer.stop("Ranger"));
+			Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];
@@ -187,19 +187,19 @@ public class RangerDouble {
 			return gamma;
 		}
 		if(range.length < 3) {
-			log.warn("no median, using gamma 2");
+			Logger.warn("no median, using gamma 2");
 			return 2.0;
 		}
 		double median = range[2];
 		if(range[0] == median || range[1] == median) {
 			median = (range[0] + range[1]) / 2;
-			log.info("median not suitable, using gamma 2");
+			Logger.info("median not suitable, using gamma 2");
 			return 2.0;
 		}
 		double f = (median - range[0]) / (range[1] - range[0]);		
-		//log.info("f " + f);
+		//Logger.info("f " + f);
 		double g = Math.log(f) / Math.log(0.5);
-		//log.info("gamma " + g);
+		//Logger.info("gamma " + g);
 		return g;
 	}
 

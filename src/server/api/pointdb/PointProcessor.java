@@ -2,8 +2,8 @@ package server.api.pointdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
@@ -18,10 +18,10 @@ import util.collections.vec.Vec;
 import util.rdat.RdatPointDataFrame;
 
 public class PointProcessor {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	public static void process(PointDB pointdb, Region region, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, Receiver receiver) throws IOException {
-		log.info("query region " + region);
+		Logger.info("query region " + region);
 		DataProvider2 dp2 = new DataProvider2(pointdb, region);
 		String proj4 = pointdb.config.getProj4();
 		process(dp2, normalise, filter, sort, columns, format, xnorm, ynorm, proj4, receiver);
@@ -32,7 +32,7 @@ public class PointProcessor {
 
 		if(normalise.normalise_ground) {
 			points = dp2.get_sortedRegionHeightPoints();
-			log.info("query points " + points.size());
+			Logger.info("query points " + points.size());
 			if(normalise.normalise_extremes) {
 				points = Normalise.no_extermes_of_sorted(points);
 			}

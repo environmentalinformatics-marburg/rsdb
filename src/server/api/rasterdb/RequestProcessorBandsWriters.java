@@ -8,8 +8,8 @@ import java.util.function.Supplier;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.GeoReference;
 import rasterdb.TimeBand;
@@ -37,7 +37,7 @@ import util.tiff.TiffTiledBandInt16;
 import util.tiff.TiffWriter;
 
 public class RequestProcessorBandsWriters {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static void writeRdat(TimeBandProcessor processor, Collection<TimeBand> processingBands, Receiver resceiver) throws IOException {
 		GeoReference ref = processor.rasterdb.ref();
@@ -225,7 +225,7 @@ public class RequestProcessorBandsWriters {
 				}
 				case TilePixel.TYPE_FLOAT: {
 					TiffTiledBandInt16 tiffTiledBand = TiffTiledBand.ofInt16Iterator(dstWidth, dstHeight, 256, 256, () -> {						
-						log.warn("downcast float to short");
+						Logger.warn("downcast float to short");
 						short na_target = 0;
 						short[][] empty = new short[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
 						return new TileFloatToShortIterator(tileIterator.get(), empty, na_target);

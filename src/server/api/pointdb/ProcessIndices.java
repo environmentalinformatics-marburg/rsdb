@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
 import org.mapdb.Fun.Pair;
@@ -21,7 +21,7 @@ import util.collections.vec.Vec;
 import util.rdat.RdatDataFrame;
 
 public class ProcessIndices {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static void process(int t, Vec<Pair<Region, String>> areas, Vec<String> functions, String format, Response response, PointDB db, PointCloud pointcloud, boolean omit_empty_areas) throws IOException {
 		switch(format) {
@@ -68,7 +68,7 @@ public class ProcessIndices {
 							}
 						} catch(Exception e) {
 							e.printStackTrace();
-							log.error(e);
+							Logger.error(e);
 							row[i] = Double.NaN;
 						}
 					}
@@ -108,7 +108,7 @@ public class ProcessIndices {
 					try {
 						writer.flush(); // detect HTTP connection closed
 					} catch(Exception e) {
-						log.error(e);
+						Logger.error(e);
 						return;
 					}
 					timestamp = t;
@@ -121,7 +121,7 @@ public class ProcessIndices {
 							json.key(s.b);
 							json.array();
 						} catch(Exception e) {
-							log.error(e);
+							Logger.error(e);
 							return;
 						}
 						for(String f:functions) {
@@ -131,24 +131,24 @@ public class ProcessIndices {
 									try {
 										json.value(v);
 									} catch(Exception e) {
-										log.error(e);
+										Logger.error(e);
 										return;
 									}
 								} else {
 									try {
 										json.value("NA");	
 									} catch(Exception e) {
-										log.error(e);
+										Logger.error(e);
 										return;
 									}
 								}
 							} catch(Exception e) {
 								e.printStackTrace();
-								log.error(e);
+								Logger.error(e);
 								try {
 									json.value("NA");
 								} catch(Exception eClose) {
-									log.error(eClose);
+									Logger.error(eClose);
 									return;
 								}
 							}
@@ -156,19 +156,19 @@ public class ProcessIndices {
 						try {
 							json.endArray();
 						} catch(Exception e) {
-							log.error(e);
+							Logger.error(e);
 							return;
 						}
 					}
 				} catch(Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 			try {
 				json.endObject();
 				json.endObject();
 			} catch(Exception e) {
-				log.error(e);
+				Logger.error(e);
 				return;
 			}*/
 			break;
@@ -192,7 +192,7 @@ public class ProcessIndices {
 								}
 							} catch(Exception e) {
 								e.printStackTrace();
-								log.error(e);
+								Logger.error(e);
 								row[i] = Double.NaN;
 							}
 						}
@@ -207,7 +207,7 @@ public class ProcessIndices {
 						results.add(namedRow);
 					}
 				} catch(Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 			}
 

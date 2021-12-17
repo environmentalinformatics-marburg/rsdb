@@ -2,8 +2,8 @@ package server.api.rasterdb;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.BandProcessor;
 import rasterdb.dsl.DSL;
@@ -16,16 +16,16 @@ import util.image.ImageBufferARGB;
 import util.image.Renderer;
 
 public class RequestProcessorProduct {
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	public static void processProduct(BandProcessor processor, String productText, OutputProcessingType outputProcessingType, String format, Receiver resceiver) throws IOException {
 		Range2d reqRange2d = processor.getDstRange();
 		int reqWidth = reqRange2d.getWidth();
 		int reqHeight = reqRange2d.getHeight();
 		ErrorCollector errorCollector = new ErrorCollector();
-		log.info("process: "+productText);
+		Logger.info("process: "+productText);
 		DoubleFrame[] doubleFrames = DSL.process(productText, errorCollector, processor);
-		log.info("BANDS "+doubleFrames.length);
+		Logger.info("BANDS "+doubleFrames.length);
 		
 		switch(outputProcessingType) {
 		case IDENTITY:

@@ -4,15 +4,15 @@ import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.GeoPoint;
 import pointdb.base.Rect;
 import util.collections.vec.Vec;
 
 public class PointGrid extends AbstractCollection<GeoPoint> implements GeoPointConsumer {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static final int window_size = 5;
 
@@ -122,13 +122,13 @@ public class PointGrid extends AbstractCollection<GeoPoint> implements GeoPointC
 		for (int y = window_size-1; y < border_y; y++) {
 			Vec<GeoPoint>[] row = grid[y];
 			for (int x = window_size-1; x < border_x; x++) {
-				log.info("points in cell "+row[x].size());
+				Logger.info("points in cell "+row[x].size());
 				result.addAll(row[x]);
 			}
 		}
 		/*for(ArrayList<GeoPoint>[] row:grid) {
 			for(ArrayList<GeoPoint> cell:row) {
-				//log.info(cell.size());
+				//Logger.info(cell.size());
 				result.addAll(cell);
 			}
 		}*/

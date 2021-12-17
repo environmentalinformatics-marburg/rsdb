@@ -19,8 +19,8 @@ import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
@@ -51,7 +51,7 @@ import util.yaml.YamlMap;
 import vectordb.style.Style;
 
 public class VectorDB {
-	private static final Logger log = LogManager.getLogger();
+	
 	private static final String TYPE = "vectordb";
 
 	public static final SpatialReference WEB_MERCATOR_SPATIAL_REFERENCE = new SpatialReference("");
@@ -97,7 +97,7 @@ public class VectorDB {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -113,7 +113,7 @@ public class VectorDB {
 			Files.move(config.metaTempPath, config.metaPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -154,7 +154,7 @@ public class VectorDB {
 			try {
 				map.put("style", style.toYaml());
 			} catch(Exception e) {
-				log.error(e);
+				Logger.error(e);
 			}
 		}
 	}
@@ -176,7 +176,7 @@ public class VectorDB {
 			style = yamlMap.optMapConv("style", Style::ofYaml, null);
 		} catch(Exception e) {
 			style = null;
-			log.error(e);
+			Logger.error(e);
 		}
 	}
 
@@ -245,10 +245,10 @@ public class VectorDB {
 						options.add("FORMAT=GML3");
 						options.add("GML3_LONGSRS=NO");
 						String gml = geometry.ExportToGML(options);	
-						//log.info(gml);
+						//Logger.info(gml);
 						gmls.add(gml);
 					} else {
-						log.warn("missing geometry in feature : " + feature.GetFID());
+						Logger.warn("missing geometry in feature : " + feature.GetFID());
 					}
 					feature = layer.GetNextFeature();
 				}
@@ -285,7 +285,7 @@ public class VectorDB {
 				try {
 					targetEPSG = Integer.parseInt(this.getDetails().epsg);
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			}
 			if(targetEPSG > 0) {
@@ -304,8 +304,8 @@ public class VectorDB {
 				CoordinateTransformation ct = null;
 				if(refDst != null && layerRef != null) {
 					ct = CoordinateTransformation.CreateCoordinateTransformation(layerRef, refDst);	
-					//log.info("refDst " + refDst);
-					//log.info("layerRef " + layerRef);
+					//Logger.info("refDst " + refDst);
+					//Logger.info("layerRef " + layerRef);
 				}
 				layer.ResetReading();
 				Feature feature = layer.GetNextFeature();
@@ -335,7 +335,7 @@ public class VectorDB {
 						sb.append("}");
 					} else {
 						String attr1 = feature.GetFieldAsString(0);
-						log.warn("missing geometry in feature : " + feature.GetFID() + "  " + attr1);
+						Logger.warn("missing geometry in feature : " + feature.GetFID() + "  " + attr1);
 					}
 					feature = layer.GetNextFeature();
 				}
@@ -388,9 +388,9 @@ public class VectorDB {
 	public String getGeoJSONAsCollection(int epsg) {
 		DataSource datasource = getDataSource();
 		try {
-			/*log.info("datasource.GetLayerCount() " + datasource.GetLayerCount());
+			/*Logger.info("datasource.GetLayerCount() " + datasource.GetLayerCount());
 		Layer layer = datasource.GetLayerByIndex(0);
-		log.info("layer.GetFeatureCount() " + layer.GetFeatureCount());
+		Logger.info("layer.GetFeatureCount() " + layer.GetFeatureCount());
 		Feature feature = layer.GetNextFeature();
 		Geometry geometry = feature.GetGeometryRef();		
 		String json = geometry.ExportToJson();*/
@@ -398,10 +398,10 @@ public class VectorDB {
 
 			SpatialReference refSrc = null;
 			int layerCount = datasource.GetLayerCount();
-			log.info("datasource.GetLayerCount() " + layerCount);
+			Logger.info("datasource.GetLayerCount() " + layerCount);
 			Geometry resultGeo = new Geometry(7);// GEOMETRYCOLLECTION
-			log.info(resultGeo+" "+resultGeo.GetGeometryName());
-			//log.info(resultGeo.ExportToJson());
+			Logger.info(resultGeo+" "+resultGeo.GetGeometryName());
+			//Logger.info(resultGeo.ExportToJson());
 			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
 				SpatialReference layerRef = layer.GetSpatialRef();
@@ -415,7 +415,7 @@ public class VectorDB {
 					if(geometry != null) {
 						resultGeo.AddGeometry(geometry);
 					} else {
-						log.warn("missing geometry");
+						Logger.warn("missing geometry");
 					}
 					feature = layer.GetNextFeature();
 				}
@@ -434,7 +434,7 @@ public class VectorDB {
 			}
 
 			String json = resultGeo.ExportToJson();		
-			//log.info(json);
+			//Logger.info(json);
 			return json;
 		} finally {
 			closeDataSource(datasource);
@@ -442,7 +442,7 @@ public class VectorDB {
 	}
 
 	public static void deconGeo(Geometry geometry, Vec<Object[]> ps) {
-		//log.info("geometry.GetGeometryName() " + geometry.GetGeometryName());
+		//Logger.info("geometry.GetGeometryName() " + geometry.GetGeometryName());
 		int pointCount = geometry.GetPointCount();
 		if(pointCount > 0) {
 			Object[] points = geometry.GetPoints();
@@ -456,7 +456,7 @@ public class VectorDB {
 			if(subGeo != null) {
 				deconGeo(subGeo, ps);
 			} else {
-				log.warn("missing sub geometry");
+				Logger.warn("missing sub geometry");
 			}
 		}		
 	}
@@ -466,7 +466,7 @@ public class VectorDB {
 			throw new RuntimeException("no datasource in vector layer " + this.getName());
 		}
 		String fullFileName = config.dataPath.resolve(dataFilename).toString();
-		//log.info(fullFileName);
+		//Logger.info(fullFileName);
 		DataSource datasource = ogr.Open(fullFileName, 0); // read only
 		if(datasource == null) {
 			throw new RuntimeException("could not open datasource: " + fullFileName);
@@ -501,7 +501,7 @@ public class VectorDB {
 				if(geometry != null) {
 					deconGeo(geometry, ps);
 				} else {
-					log.warn("missing geometry");
+					Logger.warn("missing geometry");
 				}
 				feature = layer.GetNextFeature();
 			}
@@ -511,11 +511,11 @@ public class VectorDB {
 		int pos = 0;
 		for(Object o:ps) {
 			Object[] p = (Object[]) o;
-			//log.info("len " + p.length);
+			//Logger.info("len " + p.length);
 			System.arraycopy(p, 0, points, pos, p.length);
 			pos += p.length;
 		}
-		log.info("datasource.GetLayerCount() " + layerCount + "   points " + points.length);
+		Logger.info("datasource.GetLayerCount() " + layerCount + "   points " + points.length);
 		return points;	
 	}
 
@@ -556,7 +556,7 @@ public class VectorDB {
 
 	public SpatialReference getSpatialReference() {
 		String fullFileName = config.dataPath.resolve(dataFilename).toString();
-		//log.info(fullFileName);
+		//Logger.info(fullFileName);
 		DataSource datasource = ogr.Open(fullFileName);
 		Layer layer = datasource.GetLayerByIndex(0);
 		Feature feature = layer.GetNextFeature();
@@ -565,7 +565,7 @@ public class VectorDB {
 			SpatialReference ref = geometry.GetSpatialReference();
 			return ref;
 		} else {
-			log.warn("missing geometry");
+			Logger.warn("missing geometry");
 			SpatialReference ref = layer.GetSpatialRef();
 			return ref;
 		}
@@ -575,7 +575,7 @@ public class VectorDB {
 		File[] fullfiles = config.dataPath.toFile().listFiles();
 		if(fullfiles == null) {
 			//throw new RuntimeException("data directory does not exist");
-			log.warn("data directory does not exist");
+			Logger.warn("data directory does not exist");
 			return java.util.Collections.emptyList();
 		}
 		List<Path> files = Arrays.stream(fullfiles).map(file -> {
@@ -696,7 +696,7 @@ public class VectorDB {
 				closeDataSource(datasource);
 			}
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 		return details;
 	}
@@ -722,7 +722,7 @@ public class VectorDB {
 				consumer.consume(fieldIndex, fieldName);
 			}
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		} finally {
 			closeDataSource(datasource);
 		}
@@ -750,7 +750,7 @@ public class VectorDB {
 				feature = layer.GetNextFeature();
 			}
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		} finally {
 			vectorFeature = null;
 			closeDataSource(datasource);
@@ -859,7 +859,7 @@ public class VectorDB {
 									double y = geometry.GetY();
 									pois.add(new Poi(name, x, y));
 								} else {
-									log.warn("missing geometry in " + getName());
+									Logger.warn("missing geometry in " + getName());
 								}
 							}
 							feature = layer.GetNextFeature();
@@ -883,9 +883,9 @@ public class VectorDB {
 			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
 				int geomType = layer.GetGeomType();
-				//log.info("getROIs geomType " + geomType);
+				//Logger.info("getROIs geomType " + geomType);
 				if(geomType == 6 || geomType == -2147483642) { // 6  MultiPolygon 0x80000006  MultiPolygon25D
-					log.warn("just first polygon will be included in multipolygon in " + getName());
+					Logger.warn("just first polygon will be included in multipolygon in " + getName());
 					int fieldIndex = layer.FindFieldIndex(nameAttr, 1);
 					if(fieldIndex >= 0) {
 						layer.ResetReading();
@@ -931,29 +931,29 @@ public class VectorDB {
 				int geoCount = geometry.GetGeometryCount();
 				if(geoCount != 1) {
 					if(geoCount > 1) {
-						log.warn("just first sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+						Logger.warn("just first sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
 					} else {
-						log.warn("missing sub geometry in polygon: " + geoCount+" in " + getName() + " : " + name);
+						Logger.warn("missing sub geometry in polygon: " + geoCount+" in " + getName() + " : " + name);
 						return;
 					}
 				}
 				Geometry subGeo = geometry.GetGeometryRef(0);
 				if(subGeo != null) {
 					int subType = subGeo.GetGeometryType();
-					//log.info("subgeomerty: " + subType + " in " + getName() + " : " + name);
+					//Logger.info("subgeomerty: " + subType + " in " + getName() + " : " + name);
 					if(subType == 3 || subType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D fix subType polygon
 						int subsubCount = subGeo.GetGeometryCount();
 						if(subsubCount > 1) {
-							log.warn("just first sub sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
+							Logger.warn("just first sub sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
 						}
 						Geometry subsubGeo = subGeo.GetGeometryRef(0);
 						if(subsubGeo != null) { 
 							int subsubType = subsubGeo.GetGeometryType();
-							//log.warn("fix subtype polygon -> subgeomerty: " + subType + " in " + getName() + " : " + name + "  " + subsubCount);
+							//Logger.warn("fix subtype polygon -> subgeomerty: " + subType + " in " + getName() + " : " + name + "  " + subsubCount);
 							subGeo = subsubGeo;
 							subType = subsubType;
 						} else {
-							log.warn("missing sub sub geometry");
+							Logger.warn("missing sub sub geometry");
 						}
 					}
 					switch (subType) {
@@ -971,13 +971,13 @@ public class VectorDB {
 						break;
 					}
 					default: 
-						log.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
+						Logger.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
 					}
 				} else {
-					log.warn("missing sub geometry");
+					Logger.warn("missing sub geometry");
 				}
 			} else {
-				log.warn("missing geometry");
+				Logger.warn("missing geometry");
 			}
 		}		
 	}

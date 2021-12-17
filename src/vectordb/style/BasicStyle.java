@@ -7,8 +7,8 @@ import java.awt.Stroke;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
@@ -22,7 +22,7 @@ import vectordb.Renderer.Drawer.PolygonDrawer;
 
 
 public class BasicStyle extends Style implements PolygonDrawer {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final float DEFAULT_STROKE_WIDTH = 2f;
 
@@ -43,7 +43,7 @@ public class BasicStyle extends Style implements PolygonDrawer {
 		yamlMap.optFunString("stroke_color", text -> stroke_color = Renderer.stringToColor(text));
 		float stroke_width = yamlMap.optFloat("stroke_width", DEFAULT_STROKE_WIDTH);
 		float[] stroke_dash = yamlMap.optFloatArray("stroke_dash", null);
-		log.info(Arrays.toString(stroke_dash));
+		Logger.info(Arrays.toString(stroke_dash));
 		stroke = createStroke(stroke_width, stroke_dash);
 		yamlMap.optFunString("fill_color", text -> fill_color = Renderer.stringToColor(text));
 	}
@@ -53,7 +53,7 @@ public class BasicStyle extends Style implements PolygonDrawer {
 		JsonUtil.optFunString(json, "stroke_color", text -> stroke_color = Renderer.stringToColor(text));
 		float stroke_width = json.optFloat("stroke_width", DEFAULT_STROKE_WIDTH);
 		float[] stroke_dash = JsonUtil.optFloatArray(json, "stroke_dash", null);
-		log.info(Arrays.toString(stroke_dash));
+		Logger.info(Arrays.toString(stroke_dash));
 		stroke = createStroke(stroke_width, stroke_dash);
 		JsonUtil.optFunString(json, "fill_color", text -> fill_color = Renderer.stringToColor(text));
 	}	

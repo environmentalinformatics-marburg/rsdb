@@ -14,8 +14,8 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.gdal.gdal.gdal;
 import org.json.JSONObject;
 
@@ -52,7 +52,7 @@ import util.TimeUtil;
 import util.Timer;
 
 public class Terminal {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	@FunctionalInterface
 	interface CommandFunc {
@@ -147,21 +147,21 @@ public class Terminal {
 			Timer.start("import");
 			Broker broker = new Broker();
 			PointDB pointdb = broker.getPointdb(args[2], true);
-			log.info(pointdb.config);
+			Logger.info(pointdb.config);
 			RunImport runImport = new RunImport(pointdb);
 			runImport.loadAll();
 			broker.close();
-			log.info(Timer.stop("import"));
+			Logger.info(Timer.stop("import"));
 			break;
 		}
 		default:
-			log.error("import type unknown: "+args[1]);
+			Logger.error("import type unknown: "+args[1]);
 		}
 
 	}
 
 	public static void command_gdal(String[] args) {
-		log.info("GDAL version "+gdal.VersionInfo());
+		Logger.info("GDAL version "+gdal.VersionInfo());
 	}
 
 	public static void command_import_server(String[] args) {
@@ -172,21 +172,21 @@ public class Terminal {
 		try {
 			new Thread(()->RunServer.run(broker)).start();
 		} catch (Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 		//String name = args[2];
 		switch(args[1]) {
 		case "pointdb": {
 			Timer.start("import");
 			PointDB pointdb = broker.getPointdb(args[2], true);
-			log.info(pointdb.config);
+			Logger.info(pointdb.config);
 			RunImport runImport = new RunImport(pointdb);
 			runImport.loadAll();
-			log.info(Timer.stop("import"));
+			Logger.info(Timer.stop("import"));
 			break;
 		}
 		default:
-			log.error("import type unknown: "+args[1]);
+			Logger.error("import type unknown: "+args[1]);
 		}
 		broker.close();
 	}
@@ -212,7 +212,7 @@ public class Terminal {
 				runCommand(args);
 			}
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 			e.printStackTrace();
 		}
 		System.exit(0);
@@ -223,7 +223,7 @@ public class Terminal {
 		public static FlexConsole create() {
 			Console console = System.console();
 			if(console==null) {
-				log.warn("no full terminal");
+				Logger.warn("no full terminal");
 				return new SimpleConsole();
 			}
 			return new FullConsole(console);
@@ -321,7 +321,7 @@ public class Terminal {
 
 
 	public static String[] mergeQuote(String[] args) {
-		//log.info("merge " + Arrays.toString(args));
+		//Logger.info("merge " + Arrays.toString(args));
 		ArrayList<String> result = new ArrayList<String>();
 		boolean quoteOne = false;
 		boolean quoteTwo = false;
@@ -431,10 +431,10 @@ public class Terminal {
 				command.call.run(args);
 			} catch(Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
-			log.error("error unknown command: "+args[0]);
+			Logger.error("error unknown command: "+args[0]);
 		}
 	}
 
@@ -478,10 +478,10 @@ public class Terminal {
 					command.call.run(rasterdbName, execArgs);
 				} catch(Exception e) {
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 			} else {
-				log.error("error unknown command: "+subCommand);
+				Logger.error("error unknown command: "+subCommand);
 			}
 
 		} else {
@@ -520,9 +520,9 @@ public class Terminal {
 			int timestamp = 0;
 			if(args.length==2) {
 				String timestampText = args[1].trim();
-				log.info(timestampText);
+				Logger.info(timestampText);
 				timestamp = TimeUtil.parseIsoTimestamp(timestampText);
-				log.info(timestamp);
+				Logger.info(timestamp);
 			}
 			try(Broker broker = new Broker()) {
 				RasterDB rasterdb = broker.createOrGetRasterdb(rasterdbName);
@@ -530,12 +530,12 @@ public class Terminal {
 				try {
 					importer.importDirectoryRecursive(Paths.get(path), timestamp);
 				} catch (Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 				rasterdb.rebuildPyramid(true);
 			} catch(Exception e){
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("need one parameter as import path and one optional timestamp: "+Arrays.toString(args));
@@ -553,17 +553,17 @@ public class Terminal {
 				/*try {
 					new Thread(()->RunServer.run(broker)).start();
 				} catch (Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}*/
 
 				try {
 					importer.importDirectoryRecursive(Paths.get(path));
 				} catch (Exception e) {
-					log.error(e);
+					Logger.error(e);
 				}
 				rasterdb.rebuildPyramid(true);
 			} catch(Exception e){
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("need one parameter as import path: "+Arrays.toString(args));
@@ -577,7 +577,7 @@ public class Terminal {
 				RasterDB rasterdb = broker.createOrGetRasterdb(rasterdbName);
 				rasterdb.rebuildPyramid(true);
 			} catch(Exception e){
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("no parameters needed: "+Arrays.toString(args));
@@ -588,12 +588,12 @@ public class Terminal {
 		if(args.length == 3) {
 			String name = args[1];
 			String source = args[2];			
-			log.info("import_landsat8 "+name+" from "+source);
+			Logger.info("import_landsat8 "+name+" from "+source);
 			try(Broker broker = new Broker()) {
 				Import_landsat8 importer = new Import_landsat8(broker, name);
 				importer.importDirectory(Paths.get(source));
 			} catch (Exception e) {
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command import_landsat8 needs 2 parameters");
@@ -604,13 +604,13 @@ public class Terminal {
 		if(args.length == 3) {
 			String name = args[1];
 			String source = args[2];			
-			log.info("import_rapideye "+name+" from "+source);
+			Logger.info("import_rapideye "+name+" from "+source);
 			try(Broker broker = new Broker()) {
 				Import_rapideye importer = new Import_rapideye(broker, name);
 				importer.importDirectory(Paths.get(source));
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command import_rapideye needs 2 parameters");
@@ -621,13 +621,13 @@ public class Terminal {
 		if(args.length == 3) {
 			String name = args[1];
 			String source = args[2];			
-			log.info("import_modis "+name+" from "+source);
+			Logger.info("import_modis "+name+" from "+source);
 			try(Broker broker = new Broker()) {
 				Import_modis importer = new Import_modis(broker, name);
 				importer.importDirectory(Paths.get(source));
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command import_modis needs 2 parameters");
@@ -638,13 +638,13 @@ public class Terminal {
 		if(args.length == 3) {
 			String name = args[1];
 			String source = args[2];			
-			log.info("import_soda "+name+" from "+source);
+			Logger.info("import_soda "+name+" from "+source);
 			try(Broker broker = new Broker()) {
 				Import_soda_OLD importer = new Import_soda_OLD(broker, name);
 				importer.importDirectory(Paths.get(source));
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command import_soda needs 2 parameters");
@@ -656,13 +656,13 @@ public class Terminal {
 			String name = args[1];
 			String source = args[2];
 			String corresponding_contact = args[3];
-			log.info("import_sequoia "+name+" from "+source);
+			Logger.info("import_sequoia "+name+" from "+source);
 			try(Broker broker = new Broker()) {
 				Import_sequoia importer = new Import_sequoia(broker, name, corresponding_contact);
 				importer.importDirectory(Paths.get(source));
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command import_soda needs 2 parameters");
@@ -674,13 +674,13 @@ public class Terminal {
 			String name = args[1];
 			String source = args[2];
 			String corresponding_contact = args[3];
-			log.info("import_soda "+name+" from "+source);
+			Logger.info("import_soda "+name+" from "+source);
 			try(Broker broker = new Broker()) {
 				Import_soda importer = new Import_soda(broker, name, corresponding_contact);
 				importer.importDirectory(Paths.get(source));
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command import_soda needs 2 parameters");
@@ -703,7 +703,7 @@ public class Terminal {
 				broker.catalog.rebuildCatalog();
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("catalog_refresh does not have arguments");
@@ -711,7 +711,7 @@ public class Terminal {
 	}
 
 	public static void command_rasterize_pointdb(String[] args) {
-		log.info("command_rasterize_pointdb " + Arrays.toString(args));
+		Logger.info("command_rasterize_pointdb " + Arrays.toString(args));
 		if(args.length == 3) {
 			if(args[1].isEmpty()) {
 				System.out.println("command_rasterize_pointdb empty pointdb parameter");
@@ -731,7 +731,7 @@ public class Terminal {
 				rasterdb.rebuildPyramid(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command_rasterize_pointdb does not have 2 arguments");
@@ -739,7 +739,7 @@ public class Terminal {
 	}
 
 	public static void command_import_pointcloud(String[] args) {
-		log.info("command_import_pointcloud " + Arrays.toString(args));
+		Logger.info("command_import_pointcloud " + Arrays.toString(args));
 		if(args.length >= 3) {
 			try(Broker broker = new Broker()) {
 				String name = args[1];
@@ -754,9 +754,9 @@ public class Terminal {
 						try {
 							double cellsize = Double.parseDouble(value);
 							if(pointcloud.trySetCellsize(cellsize)) {
-								log.info("set cellsize " + cellsize);
+								Logger.info("set cellsize " + cellsize);
 							} else {
-								log.warn("could not set cellsize " + cellsize);
+								Logger.warn("could not set cellsize " + cellsize);
 							}
 						} catch(Exception e) {
 							throw new RuntimeException("error in arg: " + arg +"        " + e);
@@ -771,10 +771,10 @@ public class Terminal {
 				Timer.start("total import");
 				importer.importDirectory(root);
 				pointcloud.getGriddb().storage().flush();
-				log.info(Timer.stop("total import"));
+				Logger.info(Timer.stop("total import"));
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command_import_pointcloud does not have 2 arguments");
@@ -782,7 +782,7 @@ public class Terminal {
 	}
 
 	public static void command_read_pointcloud(String[] args) {
-		log.info("command_read_pointcloud " + Arrays.toString(args));
+		Logger.info("command_read_pointcloud " + Arrays.toString(args));
 		if(args.length == 1) {
 			try(Broker broker = new Broker()) {
 				PointCloud pointcloud = broker.getPointCloud("test");
@@ -795,20 +795,20 @@ public class Terminal {
 				for(int t : ts) {
 					Stream<CellTable> cellTables = pointcloud.getCellTables(t, -Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE, selector);
 					cellTables.sequential().forEach(cellTable -> {
-						log.info(cellTable);
+						Logger.info(cellTable);
 						if(cellTable.rows >= 100000 && cellTable.gpsTime != null) {
 							for (int i = 0; i < 100000; i++) {
 								if(cellTable.edgeOfFlightLine != null && cellTable.edgeOfFlightLine.get(i)) {
-									log.info(i+"   "+cellTable.gpsTime[i]+"  "+cellTable.x[i]+"  "+(cellTable.scanDirectionFlag == null ? "-" : cellTable.scanDirectionFlag.get(i))+" "+ (cellTable.edgeOfFlightLine == null ? "-" : cellTable.edgeOfFlightLine.get(i)));
+									Logger.info(i+"   "+cellTable.gpsTime[i]+"  "+cellTable.x[i]+"  "+(cellTable.scanDirectionFlag == null ? "-" : cellTable.scanDirectionFlag.get(i))+" "+ (cellTable.edgeOfFlightLine == null ? "-" : cellTable.edgeOfFlightLine.get(i)));
 								}
 							}
 						}
 					});
 				}
-				log.info(Timer.stop("full read"));
+				Logger.info(Timer.stop("full read"));
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command_read_pointcloud does not have 1 arguments");
@@ -816,7 +816,7 @@ public class Terminal {
 	}
 
 	public static void command_rasterize_pointcloud(String[] args) {
-		log.info("command_rasterize_pointcloud " + Arrays.toString(args));
+		Logger.info("command_rasterize_pointcloud " + Arrays.toString(args));
 		if(args.length == 3) {
 			if(args[1].isEmpty()) {
 				System.out.println("command_rasterize_pointcloud empty pointcloud parameter");
@@ -835,7 +835,7 @@ public class Terminal {
 				rasterdb.rebuildPyramid(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command_rasterize_pointcloud does not have 1 arguments");
@@ -843,7 +843,7 @@ public class Terminal {
 	}
 
 	public static void command_recompress_pointcloud(String[] args) {
-		log.info("command_recompress_pointcloud " + Arrays.toString(args));
+		Logger.info("command_recompress_pointcloud " + Arrays.toString(args));
 		if(args.length == 2) {
 			try(Broker broker = new Broker()) {
 				PointCloud pointcloud = broker.getPointCloud(args[1]);
@@ -853,10 +853,10 @@ public class Terminal {
 				Timer.start("recompress");
 				Rebuild rebuild = new Rebuild(pointcloud, broker.getPointCloudRoot(), stroage_type, recompress, comression_level);
 				rebuild.process();
-				log.info(Timer.stop("recompress"));
+				Logger.info(Timer.stop("recompress"));
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command_recompress_pointcloud does not have 2 arguments");
@@ -864,7 +864,7 @@ public class Terminal {
 	}
 
 	public static void command_index_rasterize_pointdb(String[] args) {
-		log.info("command_index_rasterize_pointdb " + Arrays.toString(args));
+		Logger.info("command_index_rasterize_pointdb " + Arrays.toString(args));
 		if(args.length == 3) {
 			if(args[1].isEmpty()) {
 				System.out.println("command_rasterize_pointdb empty pointdb parameter");
@@ -879,7 +879,7 @@ public class Terminal {
 				PointDB pointdb = broker.getPointdb(args[1]);			
 				RasterDB rasterdb = broker.createOrGetRasterdb(args[2]);
 				Rect rect = StatisticsCollector.collect(pointdb.tileKeyProducer(null)).toRect();
-				log.info("limit");
+				Logger.info("limit");
 				long xmin = rect.utmm_min_x;
 				long ymin = rect.utmm_min_y;
 				long xmax = rect.utmm_max_x;
@@ -900,16 +900,16 @@ public class Terminal {
 				rasterdb.rebuildPyramid(true);
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
-			log.info(Timer.stop("command_index_rasterize_pointdb"));
+			Logger.info(Timer.stop("command_index_rasterize_pointdb"));
 		} else {
 			System.out.println("command_rasterize_pointdb does not have 2 arguments");
 		}
 	}
 
 	public static void command_task(String[] args) {
-		log.info("command_task " + Arrays.toString(args));
+		Logger.info("command_task " + Arrays.toString(args));
 		if(args.length == 1) {
 			FlexConsole console = FlexConsole.create();
 			console.printf("\n%s", "task$ ");
@@ -922,10 +922,10 @@ public class Terminal {
 				remoteTask.run();
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else if(args.length == 2) {
-			log.info("JSON "+ args[1]);
+			Logger.info("JSON "+ args[1]);
 			JSONObject task = new JSONObject(args[1]);
 			try(Broker broker = new Broker()) {
 				Context ctx = new Context(broker, task, null);
@@ -933,7 +933,7 @@ public class Terminal {
 				remoteTask.run();
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 			}
 		} else {
 			System.out.println("command_task can only have zero or two args: " + (args.length - 1));
@@ -941,7 +941,7 @@ public class Terminal {
 	}
 
 	public static void command_tasks(String[] args) {
-		log.info("command_tasks " + Arrays.toString(args));
+		Logger.info("command_tasks " + Arrays.toString(args));
 		if(args.length == 1) {
 			Map<String, TreeMap<String, RemoteTaskInfo>> map = RemoteTasks.list();
 			for(Entry<String, TreeMap<String, RemoteTaskInfo>> eCat:map.entrySet()) {
@@ -956,9 +956,9 @@ public class Terminal {
 	}
 
 	public static void command_echo(String[] args) {
-		log.info("command_echo " + Arrays.toString(args));
+		Logger.info("command_echo " + Arrays.toString(args));
 		for (int i = 0; i < args.length; i++) {
-			log.info(i+". [" + args[i] + "]");
+			Logger.info(i+". [" + args[i] + "]");
 		}
 	}
 }

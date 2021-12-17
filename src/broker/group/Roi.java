@@ -5,8 +5,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,7 +16,7 @@ import util.Util;
 import util.collections.vec.Vec;
 
 public class Roi {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final String name;
 	public final Point2d[] points;
@@ -30,7 +30,7 @@ public class Roi {
 	}
 	
 	public static Roi[] readRoiGeoJSON(Path filename) throws IOException {
-		//log.info("read "+filename);
+		//Logger.info("read "+filename);
 		String jsonText = new String(Files.readAllBytes(filename),Charset.forName("UTF-8"));
 		JSONObject json = new JSONObject(jsonText);
 		if(!json.getString("type").equals("FeatureCollection")) {
@@ -71,13 +71,13 @@ public class Roi {
 				}
 				if(Util.isValidIdentifier(name)) {
 					Roi roi = new Roi(name, points.toArray(new Point2d[0]));
-					//log.info(roi);
+					//Logger.info(roi);
 					rois.add(roi);
 				} else {
-					log.warn("ROI not inserted: invalid identifier: "+name+" in "+filename);
+					Logger.warn("ROI not inserted: invalid identifier: "+name+" in "+filename);
 				}
 			} catch(Exception e) {
-				log.error(e);
+				Logger.error(e);
 			}
 		}
 		return rois.toArray(new Roi[0]);

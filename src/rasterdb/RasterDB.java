@@ -19,8 +19,8 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 import org.locationtech.proj4j.CRSFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -41,7 +41,7 @@ import util.Range2d;
 import util.yaml.YamlMap;
 
 public class RasterDB implements AutoCloseable {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final String TYPE = "RasterDB";
 
@@ -97,12 +97,12 @@ public class RasterDB implements AutoCloseable {
 		// *** Set config properties for new RasterDB, will be overwritten from meta if RasterDB already exists.
 		this.storageType = config.preferredStorageType == null ? STORAGE_TYPE_TILE_STORAGE : config.preferredStorageType;
 		this.tilePixelLen = config.preferredTilePixelLen;
-		//log.info("tilePixelLen " + tilePixelLen);
+		//Logger.info("tilePixelLen " + tilePixelLen);
 		this.pyramidType = config.preferredPyramidType;
 		// ***
 		
 		readMeta(); // possibly overwrite config properties from meta
-		//log.info("tilePixelLen " + tilePixelLen);
+		//Logger.info("tilePixelLen " + tilePixelLen);
 	}
 
 	public synchronized void flush() throws IOException {
@@ -126,10 +126,10 @@ public class RasterDB implements AutoCloseable {
 
 	@Override
 	public synchronized void close() {
-		log.info("close rasterdb " + config.getName()+" ...");
+		Logger.info("close rasterdb " + config.getName()+" ...");
 		try {
 			if (rasterUnit != null) {
-				//log.info("close rasterUnit");
+				//Logger.info("close rasterUnit");
 				rasterUnit.close();
 				rasterUnit = null;
 			}
@@ -167,18 +167,18 @@ public class RasterDB implements AutoCloseable {
 			dstStorage.removeAllTiles();
 			Processing.rebuildPyramid(this, rasterUnit(), dstStorage, 2);
 		} else {
-			log.info("build map 1:4");
+			Logger.info("build map 1:4");
 			long c1 = Processing.writeStorageDiv(this, rasterUnit(), rasterPyr1Unit(), 4);
-			log.info("tiles written " + c1);
-			log.info("build map 1:16");
+			Logger.info("tiles written " + c1);
+			Logger.info("build map 1:16");
 			long c2 = Processing.writeStorageDiv(this, rasterPyr1Unit(), rasterPyr2Unit(), 4);
-			log.info("tiles written " + c2);
-			log.info("build map 1:64");
+			Logger.info("tiles written " + c2);
+			Logger.info("build map 1:64");
 			long c3 = Processing.writeStorageDiv(this, rasterPyr2Unit(), rasterPyr3Unit(), 4);
-			log.info("tiles written " + c3);
-			log.info("build map 1:256");
+			Logger.info("tiles written " + c3);
+			Logger.info("build map 1:256");
 			long c4 = Processing.writeStorageDiv(this, rasterPyr3Unit(), rasterPyr4Unit(), 4);
-			log.info("tiles written " + c4);
+			Logger.info("tiles written " + c4);
 		}		
 
 		if(flush) {		
@@ -230,7 +230,7 @@ public class RasterDB implements AutoCloseable {
 			out.close();
 			Files.move(writepath, metaPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 	}
 
@@ -287,10 +287,10 @@ public class RasterDB implements AutoCloseable {
 					});
 				}
 			}
-			//log.info("*** ref *** " + ref + "    of   " + metaPath);
+			//Logger.info("*** ref *** " + ref + "    of   " + metaPath);
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.warn(e);
+			Logger.warn(e);
 		}
 	}
 
@@ -307,7 +307,7 @@ public class RasterDB implements AutoCloseable {
 		}
 		index++;
 		Band band = Band.ofSpectralBand(type, index, wavelength, fwhm, title, visualisation);
-		log.info("create spectral band " + band.index + "  " + band.wavelength + "  " + band.fwhm);
+		Logger.info("create spectral band " + band.index + "  " + band.wavelength + "  " + band.fwhm);
 		bandMap.put(index, band);
 		writeMeta();
 		return band;
@@ -326,7 +326,7 @@ public class RasterDB implements AutoCloseable {
 		}
 		index++;
 		Band band = Band.of(type, index, title, visualisation);
-		log.info("create band " + band.index);
+		Logger.info("create band " + band.index);
 		setBand(band, false);
 		return band;
 	}
@@ -334,7 +334,7 @@ public class RasterDB implements AutoCloseable {
 	public synchronized void setBand(Band band, boolean replaceIfExisting) {
 		if (bandMap.containsKey(band.index)) {
 			if(replaceIfExisting) {
-			log.warn("replace band" + band);
+			Logger.warn("replace band" + band);
 			} else {
 				throw new RuntimeException("band already existing: " + band.toString());
 			}
@@ -408,7 +408,7 @@ public class RasterDB implements AutoCloseable {
 
 	public void setCode(String code) {
 		ref = ref.withCode(code, GeoReference.code_wms_transposed.contains(code));
-		log.info(ref + "   " + GeoReference.code_wms_transposed.contains(code));
+		Logger.info(ref + "   " + GeoReference.code_wms_transposed.contains(code));
 		writeMeta();
 	}
 
@@ -443,23 +443,23 @@ public class RasterDB implements AutoCloseable {
 	}
 
 	public void setProj4(String proj4) {
-		log.info("setProj4 " + proj4);
+		Logger.info("setProj4 " + proj4);
 		ref = ref.withProj4(proj4);
-		log.info(ref);
+		Logger.info(ref);
 		writeMeta();
 		if(!ref.has_code() && ref.has_proj4()) {
 			try {
-				log.info("try get EPSG from PROJ4 '" + ref.proj4 + "'");
+				Logger.info("try get EPSG from PROJ4 '" + ref.proj4 + "'");
 				String epsg = CRS_FACTORY.readEpsgFromParameters(ref.proj4);
 				if(epsg != null) {
 					String c = "EPSG:" + epsg;
-					log.info("EPSG from PROJ4 '" + ref.proj4 + "' -> " + c);
+					Logger.info("EPSG from PROJ4 '" + ref.proj4 + "' -> " + c);
 					setCode(c);
 				} else {
-					log.info("EPSG from PROJ4 not found '" + ref.proj4 + "' -> ");
+					Logger.info("EPSG from PROJ4 not found '" + ref.proj4 + "' -> ");
 				}
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 	}

@@ -15,8 +15,8 @@ import java.util.function.Consumer;
 
 import javax.security.auth.Subject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.security.IdentityService;
 import org.eclipse.jetty.security.LoginService;
 import org.eclipse.jetty.security.RunAsToken;
@@ -32,7 +32,7 @@ import util.yaml.YamlUtil;
 
 
 public class AccountManager extends UserStore implements IdentityService, LoginService {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Path accountsPath;
 	private final Path realmPropertiesPath;
@@ -75,17 +75,17 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 					}
 				}
 			} else {
-				log.info("realm.properties file: " + realmPropertiesPath);
+				Logger.info("realm.properties file: " + realmPropertiesPath);
 			}
 		} catch(Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}		
 	}
 
 	public synchronized boolean read() {
 		TreeMap<String, Account> accountMap = new TreeMap<String, Account>();
 		if(!Files.exists(accountsPath)) {
-			log.info("no accounts file: " + accountsPath);
+			Logger.info("no accounts file: " + accountsPath);
 			readRealmProperties(accountMap);
 			return false;			
 		}
@@ -140,14 +140,14 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 	//IdentityService
 	@Override
 	public Object associate(UserIdentity arg0) {
-		//log.warn("not implemented");
+		//Logger.warn("not implemented");
 		return null;
 	}
 
 	//IdentityService
 	@Override
 	public void disassociate(Object arg0) {
-		//log.warn("not implemented: " + arg0);			
+		//Logger.warn("not implemented: " + arg0);			
 	}
 
 	//IdentityService

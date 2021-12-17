@@ -11,8 +11,8 @@ import java.util.function.IntSupplier;
 
 import jakarta.servlet.ServletInputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.UserIdentity;
@@ -20,7 +20,7 @@ import org.eclipse.jetty.server.Authentication.User;
 import org.json.JSONObject;
 
 public final class Web {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private Web(){}
 
@@ -48,7 +48,7 @@ public final class Web {
 		try {
 			return Double.parseDouble(text);
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 			return defaultValue;
 		}
 	}
@@ -166,7 +166,7 @@ public final class Web {
 		try {
 			return Integer.parseInt(text);
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 			return defaultValue;
 		}
 	}
@@ -179,7 +179,7 @@ public final class Web {
 		try {
 			return Integer.parseInt(text);
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 			return defaultValue.getAsInt();
 		}
 	}
@@ -195,7 +195,7 @@ public final class Web {
 		if(text.equalsIgnoreCase("false")) {
 			return false;
 		}
-		log.warn("value unknown return default: |"+text+"|");
+		Logger.warn("value unknown return default: |"+text+"|");
 		return defaultValue;
 	}
 
@@ -229,7 +229,7 @@ public final class Web {
 		String user = "?";
 		UserIdentity userIdentity = Web.getUserIdentity(request);
 		if(userIdentity!=null) {
-			//log.info("userIdentity "+userIdentity);
+			//Logger.info("userIdentity "+userIdentity);
 			user = userIdentity.getUserPrincipal().getName();
 		}
 		StringBuilder s = new StringBuilder();
@@ -353,7 +353,7 @@ public final class Web {
 		ServletInputStream in = request.getInputStream();
 		int pos = 0;
 		while(pos < reqest_size) {
-			//log.info("read at "+pos+" of "+reqest_size);
+			//Logger.info("read at "+pos+" of "+reqest_size);
 			int read_size = in.read(raw, pos, (int) (reqest_size - pos));
 			if(read_size < 1) {
 				throw new RuntimeException("not all bytes read "+pos+"  of  " + reqest_size);

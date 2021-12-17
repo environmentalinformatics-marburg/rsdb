@@ -1,7 +1,7 @@
 package server.api.pointdb;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
 import broker.Broker;
@@ -11,7 +11,7 @@ import util.Web;
 
 public abstract class PointdbAPIHandler extends APIHandler {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();	
+		
 
 	public PointdbAPIHandler(Broker broker, String apiMethod) {
 		super(broker, apiMethod);

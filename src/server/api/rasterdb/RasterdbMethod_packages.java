@@ -23,8 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -54,7 +54,7 @@ import util.collections.array.iterator.ReadonlyArrayIterator;
 import util.collections.vec.Vec;
 
 public class RasterdbMethod_packages extends RasterdbMethod {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Map<Long, Spec> specMap = new ConcurrentHashMap<>();
 
@@ -90,7 +90,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 
 	@Override
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.info(request);
+		Logger.info(request);
 		request.setHandled(true);
 		String reqMethod = request.getMethod();
 		switch(reqMethod) {
@@ -109,7 +109,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		try {
 			JSONObject json = new JSONObject(Web.requestContentToString(request));
 			JSONObject meta = json.getJSONObject("package");
-			log.info(meta);
+			Logger.info(meta);
 			meta.getJSONArray("ext");
 			Spec spec = new Spec(rasterdb);
 			double[] ext = JsonUtil.getDoubleArray(meta, "ext");
@@ -164,7 +164,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			jsonResponse.endObject();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);			
+			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
 			response.setContentType(MIME_JSON);
@@ -298,7 +298,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 						}
 					} catch(Exception e) {
 						e.printStackTrace();
-						log.warn(e);
+						Logger.warn(e);
 					}*/
 
 				}
@@ -344,7 +344,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 							xmlWriter.writeEndElement(); // ColorInterp
 							break;
 						default:
-							log.warn("unknown visualisation: " + srcBand.visualisation);
+							Logger.warn("unknown visualisation: " + srcBand.visualisation);
 						}
 					}
 					switch(gdalTypeName) {
@@ -357,7 +357,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 						// nothing: NoDataValue is NaN
 						break;
 					default:
-						log.warn("unknown type: " + gdalTypeName);
+						Logger.warn("unknown type: " + gdalTypeName);
 					}
 					if(srcBand.has_title()) {
 						xmlWriter.writeStartElement("Description");
@@ -416,7 +416,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 				zipOutputStream.closeEntry();
 			}
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 	}
 

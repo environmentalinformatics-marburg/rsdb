@@ -14,7 +14,7 @@ import pointdb.process.ProcessingFun;
 import util.Web;
 
 public class APIHandler_index_list {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	protected static final String MIME_JSON = "application/json";	
 	protected static final String MIME_CSV = "text/csv";

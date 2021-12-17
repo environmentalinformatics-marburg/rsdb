@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 
@@ -19,7 +19,7 @@ import util.Timer;
 import util.Util;
 
 public class Importer extends CancelableRemoteProxy {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
@@ -72,14 +72,14 @@ public class Importer extends CancelableRemoteProxy {
 					String filename = path.getFileName().toString().toLowerCase();
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(ext.trim().toLowerCase().equals("las") || ext.trim().toLowerCase().equals("laz")) {
-						//log.info("import file "+path);					
+						//Logger.info("import file "+path);					
 						importFile(path);
 					} else {
-						//log.info("skip file "+path);	
+						//Logger.info("skip file "+path);	
 					}
 				} catch(Exception e) {
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 
 			}
@@ -87,7 +87,7 @@ public class Importer extends CancelableRemoteProxy {
 	}
 
 	private void importFile(Path filename) throws IOException {
-		log.info("import " + filename);
+		Logger.info("import " + filename);
 		Timer.start("import");
 		
 		voxeldb.invalidateLocalRange(false);
@@ -98,19 +98,19 @@ public class Importer extends CancelableRemoteProxy {
 		int fileEPSG = 0;
 		if(filename.toString().toLowerCase().endsWith("las")) {
 			las = new Las(filename);
-			log.info(las);			
+			Logger.info(las);			
 			fileEPSG = las.readEPSG();			
 		} else if(filename.toString().toLowerCase().endsWith("laz")) {
 			laz = new Laz(filename);
 			isLas = false;
-			log.info(laz);
+			Logger.info(laz);
 			fileEPSG = laz.readEPSG();
 		} else {
 			throw new RuntimeException("unknown extension");
 		}
 
 		if(fileEPSG != 0) {
-			log.info("fileEpsg " + fileEPSG);
+			Logger.info("fileEpsg " + fileEPSG);
 			if(voxeldb.geoRef().hasEpsg()) {
 				//TODO
 			} else {
@@ -122,16 +122,16 @@ public class Importer extends CancelableRemoteProxy {
 						if(crs != null) {
 							String fileProj4 = crs.getParameterString();
 							if(fileProj4 != null && !fileProj4.isEmpty()) {
-								log.info("set proj4: " + fileProj4);
+								Logger.info("set proj4: " + fileProj4);
 								voxeldb.setProj4(fileProj4);
 							} else {
-								log.warn("could not get proj4 of epsg");
+								Logger.warn("could not get proj4 of epsg");
 							}
 						} else {
-							log.warn("could not get proj4 of epsg");
+							Logger.warn("could not get proj4 of epsg");
 						}
 					} catch(Exception e) {
-						log.warn("could not get proj4 of epsg: " + e);
+						Logger.warn("could not get proj4 of epsg: " + e);
 					}
 				}
 			}
@@ -217,7 +217,7 @@ public class Importer extends CancelableRemoteProxy {
 			if(isCanceled()) {
 				throw new RuntimeException("canceled");
 			}
-			//log.info(Timer.stop("get records"));
+			//Logger.info(Timer.stop("get records"));
 			setMessage("process records at " + pos + " len " + len + "  of " + las_number_of_point_records + "   round " + round);
 
 			Timer.resume("convert records");
@@ -233,7 +233,7 @@ public class Importer extends CancelableRemoteProxy {
 			int[] yrange = Util.getRange(ys);
 			int[] zrange = Util.getRange(zs);
 
-			log.info("block range "+Arrays.toString(xrange) + " " + Arrays.toString(yrange) + " " + Arrays.toString(zrange));
+			Logger.info("block range "+Arrays.toString(xrange) + " " + Arrays.toString(yrange) + " " + Arrays.toString(zrange));
 
 			double xscale = las_scale_factor[0];
 			double yscale = las_scale_factor[1];
@@ -249,7 +249,7 @@ public class Importer extends CancelableRemoteProxy {
 			double zmin = (zrange[0] * zscale) + zoff;
 			double zmax = (zrange[1] * zscale) + zoff;
 
-			log.info("projected range "+xmin+" "+ymin+" "+zmin+"   "+xmax+" "+ymax+" "+zmax+"      "+(xmax-xmin)+" "+(ymax-ymin)+" "+(zmax-zmin));
+			Logger.info("projected range "+xmin+" "+ymin+" "+zmin+"   "+xmax+" "+ymax+" "+zmax+"      "+(xmax-xmin)+" "+(ymax-ymin)+" "+(zmax-zmin));
 
 			int xcellmin = (int) Math.floor((xmin - xProjectedOrigin) / xProjectedCellsize);
 			int xcellmax = (int) Math.floor((xmax - xProjectedOrigin) / xProjectedCellsize);		
@@ -299,7 +299,7 @@ public class Importer extends CancelableRemoteProxy {
 			int ycellrange = ycellmax - ycellmin + 1;
 			int zcellrange = zcellmax - zcellmin + 1;
 			long totalCellCount = ((long) xcellrange) * ((long) ycellrange) * ((long) zcellrange);
-			log.info("cell "+xcellmin+" "+ycellmin+" "+zcellmin+"   "+xcellmax+" "+ycellmax+" "+zcellmax+"     "+xcellrange+" "+ycellrange+" "+zcellrange + "   " + totalCellCount);
+			Logger.info("cell "+xcellmin+" "+ycellmin+" "+zcellmin+"   "+xcellmax+" "+ycellmax+" "+zcellmax+"     "+xcellrange+" "+ycellrange+" "+zcellrange + "   " + totalCellCount);
 			int maxCellCountPerBatch = 1024*1024;
 			//long maxVoxels = 10_000_000_000l;
 			//int maxCellCountPerBatch = (int) (((maxVoxels / xVoxelCellsize) / yVoxelCellsize) / zVoxelCellsize);
@@ -308,15 +308,15 @@ public class Importer extends CancelableRemoteProxy {
 				if(subdividedLen < 1) {
 					subdividedLen = 1;
 				}
-				log.info("point range to large: " + totalCellCount + "  of max " + maxCellCountPerBatch + " -> subdivide, slows down processing.  " + subdividedLen);
+				Logger.info("point range to large: " + totalCellCount + "  of max " + maxCellCountPerBatch + " -> subdivide, slows down processing.  " + subdividedLen);
 				continue; // process smaller set of point records	
 			}
 			subdividedLen = 0; // no subdivision
 			pos += len; // process len point records
 
-			log.info("VoxelCell[][][] cells...");
+			Logger.info("VoxelCell[][][] cells...");
 			VoxelCell[][][] cells = new VoxelCell[ycellrange][xcellrange][zcellrange];
-			log.info("VoxelCell[][][] cells done.");
+			Logger.info("VoxelCell[][][] cells done.");
 
 			for (int i = 0; i < len; i++) {
 				double x = (xs[i] * xscale) + xoff;
@@ -327,7 +327,7 @@ public class Importer extends CancelableRemoteProxy {
 					int ycell = (int) Math.floor((y - yProjectedOrigin) / yProjectedCellsize) - ycellmin;
 					int zcell = (int) Math.floor((z - zProjectedOrigin) / zProjectedCellsize) - zcellmin;
 
-					//log.info("point cell " + xcell + " " + ycell + " " + zcell);
+					//Logger.info("point cell " + xcell + " " + ycell + " " + zcell);
 
 					VoxelCell voxelCell = cells[ycell][xcell][zcell];
 					if(voxelCell == null) {
@@ -378,7 +378,7 @@ public class Importer extends CancelableRemoteProxy {
 			voxeldb.commit();
 		}
 		voxeldb.invalidateLocalRange(true);
-		log.info(Timer.stop("import"));	
+		Logger.info(Timer.stop("import"));	
 	}
 
 	public static double floorMod(double x, double y) {

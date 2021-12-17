@@ -6,8 +6,8 @@ import java.time.DayOfWeek;
 import java.util.Arrays;
 import java.util.BitSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 
@@ -19,7 +19,7 @@ import util.Timer;
 import util.Util;
 
 public class Importer extends CancelableRemoteProxy {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
@@ -74,7 +74,7 @@ public class Importer extends CancelableRemoteProxy {
 					String filename = path.getFileName().toString().toLowerCase();
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(ext.trim().toLowerCase().equals("las") || ext.trim().toLowerCase().equals("laz")) {
-						//log.info("import file "+path);
+						//Logger.info("import file "+path);
 						setMessage("import file "+ path + "  imported files " + file_counter + ",   erroneous files " + file_error_counter);
 						if(isCanceled()) {
 							throw new RuntimeException("canceled");
@@ -82,12 +82,12 @@ public class Importer extends CancelableRemoteProxy {
 						importFile(path);
 						file_counter++;
 					} else {
-						//log.info("skip file "+path);	
+						//Logger.info("skip file "+path);	
 					}
 				} catch(Exception e) {
 					file_error_counter++;
 					e.printStackTrace();
-					log.error(e);
+					Logger.error(e);
 				}
 
 			}
@@ -107,7 +107,7 @@ public class Importer extends CancelableRemoteProxy {
 	}
 
 	private void importFile(Path filename) throws IOException {
-		log.info("import " + filename);
+		Logger.info("import " + filename);
 		Timer.start("import");
 
 		Las las = null;
@@ -116,19 +116,19 @@ public class Importer extends CancelableRemoteProxy {
 		int fileEPSG = 0;
 		if(filename.toString().toLowerCase().endsWith("las")) {
 			las = new Las(filename);
-			log.info(las);			
+			Logger.info(las);			
 			fileEPSG = las.readEPSG();			
 		} else if(filename.toString().toLowerCase().endsWith("laz")) {
 			laz = new Laz(filename);
 			isLas = false;
-			log.info(laz);
+			Logger.info(laz);
 			fileEPSG = laz.readEPSG();
 		} else {
 			throw new RuntimeException("unknown extension");
 		}
 
 		if(fileEPSG != 0) {
-			log.info("fileEpsg " + fileEPSG);
+			Logger.info("fileEpsg " + fileEPSG);
 			if(pointcloud.hasCode()) {
 				//TODO
 			} else {
@@ -140,16 +140,16 @@ public class Importer extends CancelableRemoteProxy {
 						if(crs != null) {
 							String fileProj4 = crs.getParameterString();
 							if(fileProj4 != null && !fileProj4.isEmpty()) {
-								log.info("set proj4: " + fileProj4);
+								Logger.info("set proj4: " + fileProj4);
 								pointcloud.setProj4(fileProj4);
 							} else {
-								log.warn("could not get proj4 of epsg");
+								Logger.warn("could not get proj4 of epsg");
 							}
 						} else {
-							log.warn("could not get proj4 of epsg");
+							Logger.warn("could not get proj4 of epsg");
 						}
 					} catch(Exception e) {
-						log.warn("could not get proj4 of epsg: " + e);
+						Logger.warn("could not get proj4 of epsg: " + e);
 					}
 				}
 			}
@@ -203,7 +203,7 @@ public class Importer extends CancelableRemoteProxy {
 			int len = current_long_len >= record_count_max ? record_count_max : (int) current_long_len;
 			Timer.resume("get records");
 			CellTable recordTable = isLas ? las.getRecords(pos, len) : laz.getRecords(pos, len);
-			//log.info(Timer.stop("get records"));
+			//Logger.info(Timer.stop("get records"));
 
 			Timer.resume("convert records");
 
@@ -225,7 +225,7 @@ public class Importer extends CancelableRemoteProxy {
 			int[] xrange = Util.getRange(xs);
 			int[] yrange = Util.getRange(ys);
 
-			log.info("xyrange "+Arrays.toString(xrange) + " " + Arrays.toString(yrange));
+			Logger.info("xyrange "+Arrays.toString(xrange) + " " + Arrays.toString(yrange));
 
 			double xscale = las_scale_factor[0];
 			double yscale = las_scale_factor[1];
@@ -239,7 +239,7 @@ public class Importer extends CancelableRemoteProxy {
 			double ymin = (yrange[0] * yscale) + yoff;
 			double ymax = (yrange[1] * yscale) + yoff;
 
-			log.info(xmin+" "+ymin+" "+xmax+" "+ymax+"     "+(xmax-xmin)+" "+(ymax-ymin));
+			Logger.info(xmin+" "+ymin+" "+xmax+" "+ymax+"     "+(xmax-xmin)+" "+(ymax-ymin));
 
 
 			int xcellmin = (int) (Math.floor(xmin / xcellsize) - xcelloffset);
@@ -276,7 +276,7 @@ public class Importer extends CancelableRemoteProxy {
 			int xcellrange = xcellmax - xcellmin + 1;
 			int ycellrange = ycellmax - ycellmin + 1;
 			long totalCellCount = ((long) xcellrange) * ((long) ycellrange);
-			log.info("cell "+xcellmin+" "+ycellmin+" "+xcellmax+" "+ycellmax+"     "+xcellrange+" "+ycellrange + "   " + totalCellCount);
+			Logger.info("cell "+xcellmin+" "+ycellmin+" "+xcellmax+" "+ycellmax+"     "+xcellrange+" "+ycellrange + "   " + totalCellCount);
 			int maxCellCountPerBatch = 1024*1024;
 			if(totalCellCount > maxCellCountPerBatch) {
 				subdividedLen = len / 2;
@@ -299,7 +299,7 @@ public class Importer extends CancelableRemoteProxy {
 					cellcnt[ycell][xcell]++;
 				}
 			}
-			//log.info(Timer.stop("cell count"));
+			//Logger.info(Timer.stop("cell count"));
 
 			CellTable[][] cells = new CellTable[ycellrange][xcellrange];
 			boolean useIntensity = intensity != null && selector.intensity;
@@ -321,7 +321,7 @@ public class Importer extends CancelableRemoteProxy {
 				for (int cx = 0; cx < xcellrange; cx++) {
 					int cnt = cellcnt[cy][cx];
 					if(cnt > 0) {
-						//log.info(x+" "+y+"  cnt "+cnt);
+						//Logger.info(x+" "+y+"  cnt "+cnt);
 						//cellcnt[y][x] = 0;
 						CellTable cell = new CellTable(cx, cy, cz, 0, new int[cnt], new int[cnt], new int[cnt]);
 						if(useIntensity) {
@@ -362,7 +362,7 @@ public class Importer extends CancelableRemoteProxy {
 					}
 				}
 			}
-			//log.info(Timer.stop("cell init")+"  "+cellTotalCount+" cells of "+(ycellrange * xcellrange));
+			//Logger.info(Timer.stop("cell init")+"  "+cellTotalCount+" cells of "+(ycellrange * xcellrange));
 
 
 
@@ -379,8 +379,8 @@ public class Importer extends CancelableRemoteProxy {
 					//int yloc = (int) Math.round(floorMod(y, ycellsize) * ycellscale); // floor for y values below zero, not correct, may round over cell bound
 					int xloc = (int) (floorMod(x, xcellsize) * xcellscale); // floor for x values below zero, then positive local floor
 					int yloc = (int) (floorMod(y, ycellsize) * ycellscale); // floor for y values below zero, then positive local floor
-					//log.info(xs[i]+" "+x+" "+xcell+"    "+xloc);
-					//log.info(ys[i]+" "+y+" "+ycell+"    "+yloc);		
+					//Logger.info(xs[i]+" "+x+" "+xcell+"    "+xloc);
+					//Logger.info(ys[i]+" "+y+" "+ycell+"    "+yloc);		
 					//int cnt = cellcnt[ycell][xcell]++;
 					CellTable cellTable = cells[ycell][xcell];
 					int cnt = cellTable.rows++;
@@ -394,7 +394,7 @@ public class Importer extends CancelableRemoteProxy {
 					}
 					if(useReturnNumber) {
 						cellTable.returnNumber[cnt] = returnNumber[i];
-						//log.info("set returnNumber " + returnNumber[i]);
+						//Logger.info("set returnNumber " + returnNumber[i]);
 					} 
 					if(useReturns) {
 						cellTable.returns[cnt] = returns[i];
@@ -415,7 +415,7 @@ public class Importer extends CancelableRemoteProxy {
 						cellTable.gpsTime[cnt] = gpsTime[i];
 						/*long gps = gpsTime[i];
 						if(i<10) {
-							log.info(gps+"   "+refDateTime.plusNanos(gps));
+							Logger.info(gps+"   "+refDateTime.plusNanos(gps));
 						}*/
 					}
 					if(useRed) {
@@ -431,7 +431,7 @@ public class Importer extends CancelableRemoteProxy {
 				}
 			}
 
-			//log.info(Timer.stop("convert records"));
+			//Logger.info(Timer.stop("convert records"));
 
 			for (int y = 0; y < ycellrange; y++) {
 				for (int x = 0; x < xcellrange; x++) {
@@ -443,14 +443,14 @@ public class Importer extends CancelableRemoteProxy {
 						int tz = 0;
 						//Timer.resume("get old CellTable");
 						CellTable oldCellTable = pointcloud.getCellTable(tx, ty, tz);
-						//log.info(Timer.stop("get old CellTable"));
+						//Logger.info(Timer.stop("get old CellTable"));
 						if(oldCellTable != null) {
 							//Timer.resume("merge CellTable");
 							cellTable = CellTable.merge(oldCellTable, cellTable);
 							/*if(cellTable.returnNumber != null && cellTable.returnNumber.length > 0) {
-								log.info("cellTable.returnNumber " + cellTable.returnNumber[0]);								
+								Logger.info("cellTable.returnNumber " + cellTable.returnNumber[0]);								
 							}*/
-							//log.info(Timer.stop("merge CellTable"));
+							//Logger.info(Timer.stop("merge CellTable"));
 						}
 						//Timer.resume("create tile");
 						int t = 0;
@@ -459,28 +459,28 @@ public class Importer extends CancelableRemoteProxy {
 						/*pointcloud.getGriddb();
 						CellTable newCellTable = pointcloud.getCellTable(GridDB.tileToCell(tile), new AttributeSelector(true));
 						if(newCellTable.returnNumber != null && newCellTable.returnNumber.length > 0) {
-							log.info("newCellTable.returnNumber " + newCellTable.returnNumber[0]);								
+							Logger.info("newCellTable.returnNumber " + newCellTable.returnNumber[0]);								
 						}
 						PointTable newPointTable = pointcloud.cellTableToPointTable(newCellTable);
 						if(newPointTable.returnNumber != null && newPointTable.returnNumber.length > 0) {
-							log.info("newPointTable.returnNumber " + newPointTable.returnNumber[0]);								
+							Logger.info("newPointTable.returnNumber " + newPointTable.returnNumber[0]);								
 						}*/
 
-						//log.info(Timer.stop("create tile"));
-						//log.info(tile);
+						//Logger.info(Timer.stop("create tile"));
+						//Logger.info(tile);
 						//Timer.resume("write tile");
 						pointcloud.writeTile(tile);
-						//log.info(Timer.stop("write tile"));
+						//Logger.info(Timer.stop("write tile"));
 
 
 						/*double px = (pointcloud.getCelloffset().x + x) * pointcloud.getCellsize();
 						double py = (pointcloud.getCelloffset().y + y) * pointcloud.getCellsize();
-						log.info("tps" + px + "   " + py);
+						Logger.info("tps" + px + "   " + py);
 						Stream<PointTable> tps = pointcloud.getPointTables(px, py, px + 100, py + 100, new AttributeSelector(true));
 						tps.forEach(pt -> {
-							log.info("pt");
+							Logger.info("pt");
 							if(pt.returnNumber != null && pt.returnNumber.length > 0) {
-								log.info("pt.returnNumber " + pt.returnNumber[0]);								
+								Logger.info("pt.returnNumber " + pt.returnNumber[0]);								
 							}
 						});*/
 					}
@@ -489,9 +489,9 @@ public class Importer extends CancelableRemoteProxy {
 			pointcloud.commit();
 
 		}
-		//log.info("done");
-		log.info(Timer.stop("import"));	
-		//log.info(Timer.toStringAll());
+		//Logger.info("done");
+		Logger.info(Timer.stop("import"));	
+		//Logger.info(Timer.toStringAll());
 	}
 
 	public static double floorMod(double x, double y) {

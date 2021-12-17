@@ -9,10 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -28,9 +25,7 @@ import util.Web;
 import vectordb.VectorDB;
 
 public class VectordbsHandler extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
-	public static final Marker MARKER_API = MarkerManager.getMarker("API");
-
+	
 	HashMap<String, VectordbHandler> methodMap = new HashMap<String, VectordbHandler>();
 
 	private final Broker broker;
@@ -56,7 +51,7 @@ public class VectordbsHandler extends AbstractHandler {
 	private void addMethod(VectordbHandler handler, String apiMethod) {
 		String name = apiMethod;
 		if (methodMap.containsKey(name)) {
-			log.warn("method name already exists overwrite '" + name + "'  " + methodMap.get(name) + "  " + handler);
+			Logger.warn("method name already exists overwrite '" + name + "'  " + methodMap.get(name) + "  " + handler);
 		}
 		methodMap.put(name, handler);
 	}
@@ -65,22 +60,22 @@ public class VectordbsHandler extends AbstractHandler {
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		Response baseResponse = (Response) response;
 		baseRequest.setHandled(true);
-		//log.info("vectordb request " + target);
+		//Logger.info("vectordb request " + target);
 
 		String currTarget = target.charAt(0) == '/' ? target.substring(1) : target;
-		//log.info(MARKER_API, Web.getRequestLogString("API", currTarget, baseRequest));
-		//log.info("currTarget " + currTarget);
+		//Logger.info(MARKER_API, Web.getRequestLogString("API", currTarget, baseRequest));
+		//Logger.info("currTarget " + currTarget);
 		int nameSepIndex = currTarget.indexOf('/');
 		String name = nameSepIndex < 0 ? currTarget : currTarget.substring(0, nameSepIndex); 
-		//log.info("name " + name);
+		//Logger.info("name " + name);
 		String subTarget = nameSepIndex < 0 ? "" : currTarget.substring(nameSepIndex + 1);
-		//log.info("subTarget " + subTarget);
+		//Logger.info("subTarget " + subTarget);
 
 		int methodSepIndex = subTarget.indexOf('/');
 		String method = methodSepIndex < 0 ? subTarget : subTarget.substring(0, methodSepIndex); 
-		//log.info("method " + method);
+		//Logger.info("method " + method);
 		String subsubTarget = methodSepIndex < 0 ? "" : subTarget.substring(methodSepIndex + 1);
-		//log.info("subsubTarget " + subsubTarget);
+		//Logger.info("subsubTarget " + subsubTarget);
 
 		UserIdentity userIdentity = Web.getUserIdentity(baseRequest);
 		//UserIdentity userIdentity = null;
@@ -110,17 +105,17 @@ public class VectordbsHandler extends AbstractHandler {
 				handler.handle(vectordb, subsubTarget, baseRequest, (Response) response, userIdentity);
 			} catch (Exception e) {
 				e.printStackTrace();
-				log.error(e);
+				Logger.error(e);
 				try {
 					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 					response.setContentType("text/plain;charset=utf-8");
 					response.getWriter().println(e.getMessage());
 				} catch(Exception e1) {
-					log.error(e1);
+					Logger.error(e1);
 				}
 			}
 		} else {
-			log.error("access not allowed for user");
+			Logger.error("access not allowed for user");
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 			response.setContentType("text/plain;charset=utf-8");
 			response.getWriter().println("access not allowed for user");
@@ -138,7 +133,7 @@ public class VectordbsHandler extends AbstractHandler {
 			handleRootPOST(request, response, userIdentity);
 			return;
 		default:
-			log.error("HTTP method not allowed");
+			Logger.error("HTTP method not allowed");
 			response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 			response.setContentType("text/plain;charset=utf-8");
 			response.getWriter().println("HTTP method not allowed");
@@ -172,7 +167,7 @@ public class VectordbsHandler extends AbstractHandler {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}		
@@ -204,7 +199,7 @@ public class VectordbsHandler extends AbstractHandler {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}		

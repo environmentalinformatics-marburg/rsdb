@@ -6,8 +6,8 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 
 import broker.Informal;
@@ -18,7 +18,7 @@ import util.collections.vec.Vec;
 import util.yaml.YamlMap;
 
 public class PointdbConfig {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private LinkedHashSet<Path> importDirectories = new LinkedHashSet<Path>();
 	private LinkedHashSet<Path> importFiles = new LinkedHashSet<Path>();
@@ -74,7 +74,7 @@ public class PointdbConfig {
 				pc.classified_vegetation = true;
 				break;
 			default:
-				log.warn("unknown classification: " + c + "  in "+yamlMap);
+				Logger.warn("unknown classification: " + c + "  in "+yamlMap);
 			}
 		}
 		//yamlMap.optFunBoolean("classified", c->{pc.classified_ground = c; pc.classified_vegetation = c;});

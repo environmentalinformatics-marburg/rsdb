@@ -1,7 +1,7 @@
 package remotetask.pointdb;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import broker.acl.EmptyACL;
 import pointdb.PointDB;
@@ -17,7 +17,7 @@ import remotetask.Param;
 @Param(name="rect", type="number_rect", desc="Extent to process.", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
 @Param(name="mask_band",  type="integer", desc="Band number of mask in RasterDB layer, no mask if left empty.", example="1", required=false)
 public class Task_index_raster extends Abstract_task_index_raster {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public Task_index_raster(Context ctx) {
 		super(ctx, getDpFactory(ctx));

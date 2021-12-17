@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.las.Las;
 import pointdb.las.Laz;
@@ -14,7 +14,7 @@ import pointdb.base.Point;
 import pointdb.base.TileKey;
 
 public class Loader {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	/**
 	 * block size in points
@@ -37,17 +37,17 @@ public class Loader {
 		boolean isLas = true;
 		if(filename.toString().toLowerCase().endsWith("las")) {
 			las = new Las(filename);
-			log.info(las);
+			Logger.info(las);
 		} else if(filename.toString().toLowerCase().endsWith("laz")) {
 			laz = new Laz(filename);
 			isLas = false;
-			log.info(laz);
+			Logger.info(laz);
 		} else {
 			throw new RuntimeException("unknown extension");
 		}
 		
-		//log.info("utm offset "+las.offset[0]+"  "+las.offset[1]);
-		//log.info("utm min "+las.min[0]+"  "+las.min[1]);
+		//Logger.info("utm offset "+las.offset[0]+"  "+las.offset[1]);
+		//Logger.info("utm min "+las.min[0]+"  "+las.min[1]);
 		
 		double[] las_scale_factor = isLas ? las.scale_factor : laz.scale_factor;
 		double[] las_offset = isLas ? las.offset : laz.offset;
@@ -72,19 +72,19 @@ public class Loader {
 		final double UTM_LIMIT_Y_MAX = 10_000_000;
 
 		if(las_min_x<UTM_LIMIT_X_MIN) {
-			log.warn("las_min_x out of UTM range "+las_min_x+" -> changed to "+UTM_LIMIT_X_MIN);
+			Logger.warn("las_min_x out of UTM range "+las_min_x+" -> changed to "+UTM_LIMIT_X_MIN);
 			las_min_x = UTM_LIMIT_X_MIN;
 		}
 		if(las_min_y<UTM_LIMIT_Y_MIN) {
-			log.warn("las_min_y out of UTM range "+las_min_y+" -> changed to "+UTM_LIMIT_Y_MIN);
+			Logger.warn("las_min_y out of UTM range "+las_min_y+" -> changed to "+UTM_LIMIT_Y_MIN);
 			las_min_y = UTM_LIMIT_Y_MIN;
 		}
 		if(UTM_LIMIT_X_MAX<las_max_x) {
-			log.warn("las_max_x out of UTM range "+las_max_x+" -> changed to "+UTM_LIMIT_X_MAX);
+			Logger.warn("las_max_x out of UTM range "+las_max_x+" -> changed to "+UTM_LIMIT_X_MAX);
 			las_max_x = UTM_LIMIT_X_MAX;
 		}
 		if(UTM_LIMIT_Y_MAX<las_max_y) {
-			log.warn("las_max_y out of UTM range "+las_max_y+" -> changed to "+UTM_LIMIT_Y_MAX);
+			Logger.warn("las_max_y out of UTM range "+las_max_y+" -> changed to "+UTM_LIMIT_Y_MAX);
 			las_max_y = UTM_LIMIT_Y_MAX;
 		}		
 
@@ -113,9 +113,9 @@ public class Loader {
 		int loader_max_x = tiles_x*PdbConst.LOCAL_TILE_SIZE;
 		int loader_max_y = tiles_y*PdbConst.LOCAL_TILE_SIZE;
 
-		//log.info("las diff "+las_diff_x+"  "+las_diff_y);
-		//log.info("tiles "+tiles_x+"  "+tiles_y);
-		//log.info("loader max "+loader_max_x+"  "+loader_max_y);
+		//Logger.info("las diff "+las_diff_x+"  "+las_diff_y);
+		//Logger.info("tiles "+tiles_x+"  "+tiles_y);
+		//Logger.info("loader max "+loader_max_x+"  "+loader_max_y);
 
 
 
@@ -127,8 +127,8 @@ public class Loader {
 			int[] intFactors = new int[]{las_factor_x, las_factor_y, las_factor_z};
 			Point[] block_points = isLas ? las.read(curr_block_pos, curr_block_size, intDiffs, intFactors) : laz.read(curr_block_pos, curr_block_size, intDiffs, intFactors);
 
-			//log.info("points "+points.length);
-			//log.info("point "+points[0]);
+			//Logger.info("points "+points.length);
+			//Logger.info("point "+points[0]);
 
 			filter(block_points, 0, 0, loader_max_x-1, loader_max_y-1);
 
@@ -160,7 +160,7 @@ public class Loader {
 						}
 					}
 				}
-				log.info("block "+block_point_min_x/1000+" "+block_point_min_y/1000+" "+block_point_max_x/1000+" "+block_point_max_y/1000);
+				Logger.info("block "+block_point_min_x/1000+" "+block_point_min_y/1000+" "+block_point_max_x/1000+" "+block_point_max_y/1000);
 			}*/
 
 			loadBlock2(block_points,block_tile_min_x, block_tile_min_y, block_tiles_x, block_tiles_y);
@@ -175,7 +175,7 @@ public class Loader {
 
 
 	private void loadBlock2(Point[] points, int tile_min_x, int tile_min_y, int tiles_x, int tiles_y) {
-		log.info("loadBlock2 with "+tiles_x+" x "+tiles_y+" tiles");
+		Logger.info("loadBlock2 with "+tiles_x+" x "+tiles_y+" tiles");
 		int[][] point_count = new int[tiles_y][tiles_x];
 
 		for(Point p:points) {
@@ -191,7 +191,7 @@ public class Loader {
 			for(int x=0;x<tiles_x;x++) {
 				if(point_count[y][x]>0) {
 					tile[y][x] = new Point[point_count[y][x]];
-					//log.info(point_count[y][x]);
+					//Logger.info(point_count[y][x]);
 					point_count[y][x] = 0;
 				}
 			}
@@ -215,7 +215,7 @@ public class Loader {
 					int key_x = (tile_min_x+x)*PdbConst.UTM_TILE_SIZE;
 					int key_y = (tile_min_y+y)*PdbConst.UTM_TILE_SIZE;
 					TileKey tileKey = new TileKey(key_x, key_y);
-					//log.info("insert "+t.length+"  at "+tileKey);
+					//Logger.info("insert "+t.length+"  at "+tileKey);
 					pointdb.insertPoints(tileKey, tile_points);					
 				}
 			}
@@ -265,14 +265,14 @@ public class Loader {
 		double[] las_max = isLas ? las.max : laz.max;
 		long las_number_of_point_records = isLas ? las.number_of_point_records : laz.number_of_point_records;
 
-		log.info("scale "+Arrays.toString(las_scale_factor));
+		Logger.info("scale "+Arrays.toString(las_scale_factor));
 		final double DEFAULT_SCALE_1000 = 0.001d;
 		int[] intScaleCorrection = null;
 		if(las_scale_factor[0]!=DEFAULT_SCALE_1000 || las_scale_factor[1]!=DEFAULT_SCALE_1000 || las_scale_factor[2]!=DEFAULT_SCALE_1000) {
 			try {
 				intScaleCorrection = new int[]{calcScaleCorrection(las_scale_factor[0]), calcScaleCorrection(las_scale_factor[1]), calcScaleCorrection(las_scale_factor[2])};
 			} catch(Exception e) {
-				log.error("scale not implemented "+Arrays.toString(las_scale_factor));
+				Logger.error("scale not implemented "+Arrays.toString(las_scale_factor));
 				return -2;
 			}
 		}
@@ -299,8 +299,8 @@ public class Loader {
 			int local_max_x = (int) ((las_max[0]-las_offset[0]+1)*PdbConst.LOCAL_SCALE_FACTOR);
 			int local_max_y = (int) ((las_max[1]-las_offset[1]+1)*PdbConst.LOCAL_SCALE_FACTOR);
 
-			log.info("projection offset "+las_offset[0]+" "+las_offset[1]);
-			log.info("projection range  "+las_min[0]+" "+las_min[1]+"  -  "+las_max[0]+" "+las_max[1]);
+			Logger.info("projection offset "+las_offset[0]+" "+las_offset[1]);
+			Logger.info("projection range  "+las_min[0]+" "+las_min[1]+"  -  "+las_max[0]+" "+las_max[1]);
 
 
 			filter(points, local_min_x, local_min_y, local_max_x, local_max_y);
@@ -315,7 +315,7 @@ public class Loader {
 	}
 
 	private void filter(Point[] points, int local_min_x, int local_min_y, int local_max_x, int local_max_y) {
-		//log.info("filter range "+local_min_x+" "+local_min_y+"  -  "+local_max_x+" "+local_max_y);
+		//Logger.info("filter range "+local_min_x+" "+local_min_y+"  -  "+local_max_x+" "+local_max_y);
 		final int len = points.length;
 		int removeCounter = 0;
 		for (int i = 0; i < len; i++) {
@@ -323,13 +323,13 @@ public class Loader {
 			int px = p.x;
 			int py = p.y;
 			if(px<local_min_x || py<local_min_y || local_max_x<px || local_max_y<py) {
-				//log.info("remove "+p);
+				//Logger.info("remove "+p);
 				points[i] = null; // remove point
 				removeCounter++;
 			}
 		}
 		if(removeCounter>0) {
-			log.info("removed points out of range: "+removeCounter);
+			Logger.info("removed points out of range: "+removeCounter);
 		}
 	}
 
@@ -392,7 +392,7 @@ public class Loader {
 
 	public void loadBlock(Point[] points, int offset_x, int offset_y, int local_offset_x, int local_offset_y, int local_offset_z) {
 		final Range range = Range.of(points).add(local_offset_x, local_offset_y).divCorr(PdbConst.LOCAL_TILE_SIZE).add(offset_x, offset_y);
-		//log.info(range);
+		//Logger.info(range);
 
 		final int rx = range.range_x();
 		final int ry = range.range_y();
@@ -406,7 +406,7 @@ public class Loader {
 				point_count[x][y]++;
 			}
 		}
-		//log.info(Arrays.toString(point_count));
+		//Logger.info(Arrays.toString(point_count));
 		Point[][][] tile = new Point[rx][ry][];
 		for(int x=0;x<rx;x++) {
 			for(int y=0;y<ry;y++) {
@@ -414,7 +414,7 @@ public class Loader {
 				point_count[x][y] = 0;
 			}
 		}
-		//log.info(Arrays.toString(tile));
+		//Logger.info(Arrays.toString(tile));
 		for(Point point:points) {
 			if(point!=null) {
 				int dx = point.x+local_offset_x;
@@ -428,7 +428,7 @@ public class Loader {
 				tile[x][y][point_count[x][y]++] = p;
 			}
 		}
-		//log.info(Arrays.toString(tile));
+		//Logger.info(Arrays.toString(tile));
 		for(int x=0;x<rx;x++) {
 			for(int y=0;y<ry;y++) {
 				Point[] t = tile[x][y];
@@ -438,7 +438,7 @@ public class Loader {
 					int key_x = tx*PdbConst.UTM_TILE_SIZE;
 					int key_y = ty*PdbConst.UTM_TILE_SIZE;
 					TileKey tileKey = new TileKey(key_x, key_y);
-					//log.info("insert "+t.length+"  at "+tileKey);
+					//Logger.info("insert "+t.length+"  at "+tileKey);
 					pointdb.insertPoints(tileKey, t);
 				}
 			}
@@ -458,7 +458,7 @@ public class Loader {
 
 		final double DEFAULT_SCALE = 0.001d;
 		if(las.scale_factor[0]!=DEFAULT_SCALE || las.scale_factor[0]!=DEFAULT_SCALE || las.scale_factor[0]!=DEFAULT_SCALE) {
-			log.error("scale not implemented "+Arrays.toString(las.scale_factor));
+			Logger.error("scale not implemented "+Arrays.toString(las.scale_factor));
 			return -2;
 		}
 
@@ -480,10 +480,10 @@ public class Loader {
 
 		long curr_block_pos = 0;
 		long filePointCount = las.number_of_point_records;
-		//log.info("points "+filePointCount);
+		//Logger.info("points "+filePointCount);
 		while(curr_block_pos<filePointCount) {
 
-			//log.info("next block..."+curr_block_pos);
+			//Logger.info("next block..."+curr_block_pos);
 
 			int curr_block_size = (curr_block_pos+MAX_BLOCK_SIZE<=filePointCount)?MAX_BLOCK_SIZE:(int)(filePointCount-curr_block_pos);
 			Point[] points = las.read(curr_block_pos, curr_block_size);
@@ -566,7 +566,7 @@ public class Loader {
 					final double db_point_utm_x = db_offset_x  + (((double)tile_local_point.x)/PdbConst.LOCAL_SCALE_FACTOR);
 
 					if( (db_point_utm_x != file_point_utm_x) ) {
-						log.error("wrong point "+file_point_utm_x+"  ->  "+db_point_utm_x+"   file offset "+las.offset[0]+"  db offset "+db_offset_x+"   file raw point/1000 "+points[i].x/1000d+"   db raw point "+tile_local_point.x/1000d);
+						Logger.error("wrong point "+file_point_utm_x+"  ->  "+db_point_utm_x+"   file offset "+las.offset[0]+"  db offset "+db_offset_x+"   file raw point/1000 "+points[i].x/1000d+"   db raw point "+tile_local_point.x/1000d);
 					}
 				}
 			}
@@ -600,7 +600,7 @@ public class Loader {
 
 			curr_block_pos+=curr_block_size;
 
-			//log.info("commit...");
+			//Logger.info("commit...");
 			pointdb.commit();
 		}		
 

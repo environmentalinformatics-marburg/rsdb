@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.GeoReference;
 import util.Serialisation;
@@ -20,7 +20,7 @@ import util.frame.ShortFrame;
  *
  */
 public class Tiff {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private final DataOutput out; 
 
@@ -158,6 +158,6 @@ public class Tiff {
 				dataCnt += target.length;
 			}
 		}
-		log.info("data written "+dataCnt+"      "+ (stripByteCount * samplesPerPixel));
+		Logger.info("data written "+dataCnt+"      "+ (stripByteCount * samplesPerPixel));
 	}
 }

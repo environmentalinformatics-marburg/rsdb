@@ -9,8 +9,8 @@ import java.util.zip.ZipOutputStream;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
 import broker.Broker;
@@ -36,7 +36,7 @@ import util.tiff.TiffBand;
 import util.tiff.TiffWriter;
 
 public class APIHandler_raster {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	//private final Broker broker;
 
@@ -67,7 +67,7 @@ public class APIHandler_raster {
 		double req_ymin = Double.parseDouble(ext[1]);
 		double req_xmax = Double.parseDouble(ext[2]);
 		double req_ymax = Double.parseDouble(ext[3]);
-		log.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax);
+		Logger.info("req "+req_xmin+" "+req_ymin+" "+req_xmax+" "+req_ymax);
 		
 		
 		TimeSlice timeSlice = null;
@@ -152,7 +152,7 @@ public class APIHandler_raster {
 		double proc_ymax_excluding = req_ymin + Math.floor((req_ymax - req_ymin) / res) * res + res;
 		double proc_xmax = Math.nextDown(proc_xmax_excluding);
 		double proc_ymax = Math.nextDown(proc_ymax_excluding);
-		log.info("proc "+proc_xmin+" "+proc_ymin+" "+proc_xmax+" "+proc_ymax);
+		Logger.info("proc "+proc_xmin+" "+proc_ymin+" "+proc_xmax+" "+proc_ymax);
 
 		int width = 0;
 		int height = 0;

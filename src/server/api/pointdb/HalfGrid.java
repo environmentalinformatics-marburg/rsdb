@@ -3,8 +3,8 @@ package server.api.pointdb;
 import java.util.Arrays;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import pointdb.base.GeoPoint;
 import pointdb.base.Rect;
@@ -17,7 +17,7 @@ import util.collections.vec.Vec;
  *
  */
 public class HalfGrid {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private int xmin;
 	private int xmax;
@@ -170,7 +170,7 @@ public class HalfGrid {
 					}
 				}
 
-				//log.info("cnt"+cnt);
+				//Logger.info("cnt"+cnt);
 
 				if(cnt>=25) {
 
@@ -201,8 +201,8 @@ public class HalfGrid {
 		int oymin = ymin/2;
 		int oymax = ymax/2;
 		RasterGrid rasterGrid = new RasterGrid(oxmin, oxmax, oymin, oymax);
-		//log.info("halfGrid "+this);
-		//log.info("rasterGrid "+rasterGrid);
+		//Logger.info("halfGrid "+this);
+		//Logger.info("rasterGrid "+rasterGrid);
 		int oxrange = rasterGrid.range_x;
 		int oyrange = rasterGrid.range_y;
 
@@ -303,13 +303,13 @@ public class HalfGrid {
 									data[y][x] = sum/cnt;
 								}
 							} catch(Exception e) {
-								//log.warn(e);
+								//Logger.warn(e);
 								data[y][x] = sum/cnt;
 							}
 						}
 
 						interpolated[y][x] = true;
-						//log.info("ws "+ws);
+						//Logger.info("ws "+ws);
 						break;
 					}
 				}
@@ -337,7 +337,7 @@ public class HalfGrid {
 
 		double[][] data = rasterGrid.data;
 
-		//log.info("grid "+oxrange+" "+oyrange);
+		//Logger.info("grid "+oxrange+" "+oyrange);
 
 		double[] acc = new double[25];
 		for(int y=0;y<oyrange;y++) {
@@ -512,7 +512,7 @@ public class HalfGrid {
 						coarseGrid[y][x] = p;
 					}
 				} else {
-					//log.info(coarseGrid[y][x]+" at "+(xmin+x*win_size)/2+" "+(ymin+y*win_size)/2);
+					//Logger.info(coarseGrid[y][x]+" at "+(xmin+x*win_size)/2+" "+(ymin+y*win_size)/2);
 				}
 			}
 		}
@@ -547,7 +547,7 @@ public class HalfGrid {
 
 					checkWindow(x*win_size,y*win_size,win_size,reg);
 				} catch(Exception e) {
-					log.warn(e+"   "+cnt+"  "+Arrays.toString(ry));
+					Logger.warn(e+"   "+cnt+"  "+Arrays.toString(ry));
 				}
 
 			}
@@ -564,7 +564,7 @@ public class HalfGrid {
 				GeoPoint p = row[x];
 				if(p!=null) {
 					double z = reg[0]+reg[1]*p.x+reg[2]*p.y;
-					//log.info("z  "+z+"  "+p.z);
+					//Logger.info("z  "+z+"  "+p.z);
 					if(Math.abs(p.z-z)>max_diff) {
 						row[x] = null;
 					}

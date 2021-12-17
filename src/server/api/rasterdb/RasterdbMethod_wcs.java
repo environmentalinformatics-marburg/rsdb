@@ -19,8 +19,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -54,7 +54,7 @@ import util.tiff.TiffBand;
 import util.tiff.TiffWriter;
 
 public class RasterdbMethod_wcs extends RasterdbMethod {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static Driver GDAL_MEM_DRIVER = null;
 
@@ -72,7 +72,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		request.setHandled(true);
 
 		/*if(!"WCS".equals(request.getParameter("SERVICE"))) {
-			log.error("no WCS");
+			Logger.error("no WCS");
 			return;
 		}*/		
 
@@ -98,7 +98,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			handle_GetCoverage(rasterdb, target, request, response, userIdentity);
 			break;			
 		default:
-			log.error("unknown request "+reqParam);
+			Logger.error("unknown request "+reqParam);
 			return;
 		}
 	}
@@ -141,7 +141,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 	private static final AtomicLong memFileIdCounter = new AtomicLong(0);
 
 	public void handle_GetCoverage(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		//log.info("handle");
+		//Logger.info("handle");
 		Timer.start("WCS processing");
 		int dstWidth = Web.getInt(request, "WIDTH", -1);
 		int dstHeight = Web.getInt(request, "HEIGHT", -1);
@@ -155,8 +155,8 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 
 		GeoReference ref = rasterdb.ref();
 		Range2d range2d = ref.bboxToRange2d(extent2d.xmin, extent2d.ymin, extent2d.xmax, extent2d.ymax);
-		//log.info(extent2d);
-		//log.info(range2d);
+		//Logger.info(extent2d);
+		//Logger.info(range2d);
 
 		int timestamp = 0;
 		if(Web.has(request, "TIME")) {
@@ -170,7 +170,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 						timeSlice = new TimeSlice(timestampRange[0], timeText);
 					}
 				}catch(Exception e) {
-					//log.warn("could not parse timestamp: " + timeText);
+					//Logger.warn("could not parse timestamp: " + timeText);
 					throw new RuntimeException("tim slice not found");
 				}
 			}
@@ -200,14 +200,14 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		boolean direct = (tiffdataType == TiffDataType.INT16 || tiffdataType == TiffDataType.FLOAT32) && ScaleDownMax2.validScaleDownMax2(srcRange.getWidth(), srcRange.getHeight(), dstWidth, dstHeight);
 		//boolean direct = false;
 		if(direct) {
-			//log.info("direct");
+			//Logger.info("direct");
 			directConvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
 		} else {
-			log.info("GDAL");
+			Logger.info("GDAL");
 			GDALconvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
 		}
-		//log.info(Timer.stop("raster convert"));
-		log.info(Timer.stop("WCS processing"));
+		//Logger.info(Timer.stop("raster convert"));
+		Logger.info(Timer.stop("WCS processing"));
 
 		Timer.start("WCS transfer");
 		resceiver.setStatus(HttpServletResponse.SC_OK);
@@ -215,7 +215,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		long tiffSize = tiffWriter.exactSizeOfWriteAuto();
 		resceiver.setContentLength(tiffSize);
 		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));
-		log.info(Timer.stop("WCS transfer") + "  " + (tiffSize >= 1024*1024 ? ((tiffSize / (1024*1024)) + " MBytes") : (tiffSize + " Bytes") ) + "  " + dstWidth + " x " + dstHeight + " pixel  " + processingBands.size() + " bands of " + tiffdataType);
+		Logger.info(Timer.stop("WCS transfer") + "  " + (tiffSize >= 1024*1024 ? ((tiffSize / (1024*1024)) + " MBytes") : (tiffSize + " Bytes") ) + "  " + dstWidth + " x " + dstHeight + " pixel  " + processingBands.size() + " bands of " + tiffdataType);
 	}
 
 	private void directConvert(BandProcessor processor, List<TimeBand> processingBands, TiffDataType tiffdataType, int dstWidth, int dstHeight, TiffWriter tiffWriter) {

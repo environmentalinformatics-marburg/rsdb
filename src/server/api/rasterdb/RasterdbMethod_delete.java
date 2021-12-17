@@ -5,8 +5,8 @@ import java.util.Iterator;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -18,7 +18,7 @@ import rasterdb.RasterDB;
 import util.Web;
 
 public class RasterdbMethod_delete extends RasterdbMethod {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public RasterdbMethod_delete(Broker broker) {
 		super(broker, "delete");	
@@ -26,7 +26,7 @@ public class RasterdbMethod_delete extends RasterdbMethod {
 
 	@Override
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.info(request);
+		Logger.info(request);
 		request.setHandled(true);
 		try {
 			JSONObject json = new JSONObject(Web.requestContentToString(request));
@@ -41,7 +41,7 @@ public class RasterdbMethod_delete extends RasterdbMethod {
 					if(!rasterdb_name.equals(rasterdb.config.getName())) {
 						throw new RuntimeException("wrong parameters for delete rasterdb: " + rasterdb_name);
 					}
-					log.info("delete rasterdb " + rasterdb_name);
+					Logger.info("delete rasterdb " + rasterdb_name);
 					broker.deleteRasterdb(rasterdb.config.getName());
 					break;
 				}				
@@ -57,7 +57,7 @@ public class RasterdbMethod_delete extends RasterdbMethod {
 			jsonResponse.endObject();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);			
+			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
 			response.setContentType(MIME_JSON);

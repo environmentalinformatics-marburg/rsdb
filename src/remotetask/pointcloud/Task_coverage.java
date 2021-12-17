@@ -3,8 +3,8 @@ package remotetask.pointcloud;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -35,7 +35,7 @@ import util.Range2d;
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) RasterDB operation mode. (RasterUnit only, default false)", example="false", required=false)
 public class Task_coverage extends RemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -95,7 +95,7 @@ public class Task_coverage extends RemoteTask {
 		double cellsize = pointcloud.getCellsize();
 		double pointcloud_xmin = (celloffset.x + cellrange.xmin) * cellsize;
 		double pointcloud_ymin = (celloffset.y + cellrange.ymin) * cellsize;		
-		log.info("set coverage raster to pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin);
+		Logger.info("set coverage raster to pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin);
 		double raster_pixel_size = cellsize;
 		rasterdb.setPixelSize(raster_pixel_size, raster_pixel_size, pointcloud_xmin, pointcloud_ymin);
 
@@ -118,7 +118,7 @@ public class Task_coverage extends RemoteTask {
 		if(cellrange == null) {
 			return;
 		}
-		log.info("cellRange: " + cellrange);
+		Logger.info("cellRange: " + cellrange);
 		runCoverage(rasterUnitStorage, geoReference, t, band, cellrange);
 	}
 
@@ -126,15 +126,15 @@ public class Task_coverage extends RemoteTask {
 		if(cellrange == null) {
 			return;
 		}
-		log.info("pre  " + cellrange);
+		Logger.info("pre  " + cellrange);
 		cellrange = pointcloud.getCellRange2dOfSubset(cellrange);
-		log.info("post " + cellrange);
+		Logger.info("post " + cellrange);
 		if(cellrange == null) {
 			return;
 		}
 		int cellrangeY = cellrange.getHeight();
 		if(cellrangeY > 4096) {
-			log.info("subdiv Y " + cellrangeY);
+			Logger.info("subdiv Y " + cellrangeY);
 			int middleY = (int) ((((long)cellrange.ymin) + ((long)cellrange.ymax)) / 2);
 			runCoverage(rasterUnitStorage, ref, t, band, new Range2d(cellrange.xmin, cellrange.ymin, cellrange.xmax, middleY));
 			runCoverage(rasterUnitStorage, ref, t, band, new Range2d(cellrange.xmin, middleY + 1, cellrange.xmax, cellrange.ymax));
@@ -143,7 +143,7 @@ public class Task_coverage extends RemoteTask {
 
 		int cellrangeX = cellrange.getWidth();
 		if(cellrangeX > 4096) {
-			log.info("subdiv X " + cellrangeX);
+			Logger.info("subdiv X " + cellrangeX);
 			int middleX = (int) ((((long)cellrange.xmin) + ((long)cellrange.xmax)) / 2);
 			runCoverage(rasterUnitStorage, ref, t, band, new Range2d(cellrange.xmin, cellrange.ymin, middleX, cellrange.ymax));
 			runCoverage(rasterUnitStorage, ref, t, band, new Range2d(middleX + 1, cellrange.ymin, cellrange.xmax, cellrange.ymax));
@@ -157,16 +157,16 @@ public class Task_coverage extends RemoteTask {
 		double pointcloud_ymin = (celloffset.y + cellrange.ymin) * cellsize;
 		double pointcloud_xmax = (celloffset.x + cellrange.xmax + 1) * cellsize - cellscale1d;
 		double pointcloud_ymax = (celloffset.y + cellrange.ymax + 1) * cellsize - cellscale1d;		
-		log.info("local pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin+"   pointcloud_xmax " + pointcloud_xmax + " pointcloud_ymax " + pointcloud_ymax);
+		Logger.info("local pointcloud_xmin " + pointcloud_xmin + " pointcloud_ymin " + pointcloud_ymin+"   pointcloud_xmax " + pointcloud_xmax + " pointcloud_ymax " + pointcloud_ymax);
 		int raster_xmin = ref.geoXToPixel(pointcloud_xmin);
 		int raster_ymin = ref.geoYToPixel(pointcloud_ymin);
 		int raster_xmax = ref.geoXToPixel(pointcloud_xmax);
 		int raster_ymax = ref.geoYToPixel(pointcloud_ymax);
-		log.info("raster_xmin " + raster_xmin + " raster_ymin " + raster_ymin+"   raster_xmax " + raster_xmax + " raster_ymax " + raster_ymax);
+		Logger.info("raster_xmin " + raster_xmin + " raster_ymin " + raster_ymin+"   raster_xmax " + raster_xmax + " raster_ymax " + raster_ymax);
 
 
 		int cellCount = pointcloud.countCells(t, pointcloud_xmin, pointcloud_ymin, pointcloud_xmax, pointcloud_ymax);
-		log.info("cell count "+cellCount);
+		Logger.info("cell count "+cellCount);
 		if(cellCount > 0) {			
 			TileCollection tileCollection = pointcloud.getTiles(t, pointcloud_xmin, pointcloud_ymin, pointcloud_xmax, pointcloud_ymax);
 			if(tileCollection != null) {
@@ -186,7 +186,7 @@ public class Task_coverage extends RemoteTask {
 				}
 				ProcessingShort.writeMerge(rasterUnitStorage, t, band, pixels, raster_ymin, raster_xmin);
 				rasterUnitStorage.commit();
-				log.info("committed");
+				Logger.info("committed");
 			}			
 		}
 	}

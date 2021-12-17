@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class IFD {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	/**
 	 * 64 bit unsigned integer
@@ -31,7 +31,7 @@ public class IFD {
 			throw new RuntimeException("position error not aligned: " + ifdBytePos);
 		}
 		int dataBytePos = ifdBytePos;
-		log.info("dataBytePos " + dataBytePos);
+		Logger.info("dataBytePos " + dataBytePos);
 		int imageDataBytePos = ifdBytePos;
 
 		for (int i = 0; i < ifds.length; i++) {
@@ -52,12 +52,12 @@ public class IFD {
 			boolean hasNextIfd = i < ifds.length - 1;
 			IFD ifd = ifds[i];			
 			short ifdTableLen = (short) ifd.list.size();
-			log.info("ifdTableLen " + ifdTableLen);
+			Logger.info("ifdTableLen " + ifdTableLen);
 			out.writeShort(ifdTableLen);
 			int ifdTableByteSize = 2 + ifdTableLen * IFD_TIFF_ENTRY_SIZE + 4;
 			dataBytePos += ifdTableByteSize;
 			for(IFD_Entry e : ifd.list) {
-				log.info("dataBytePos " + dataBytePos);
+				Logger.info("dataBytePos " + dataBytePos);
 				e.writeIFD_entryTIFF(out, dataBytePos, imageDataBytePos);
 				dataBytePos += e.data_sizeTIFF();
 				if(dataBytePos % 2 == 1) {
@@ -71,7 +71,7 @@ public class IFD {
 			}
 			ifdBytePos += ifdTableByteSize;
 			for(IFD_Entry e : ifd.list) {
-				log.info("filepos " + raf.getFilePointer() + "  " + ifdBytePos);
+				Logger.info("filepos " + raf.getFilePointer() + "  " + ifdBytePos);
 				e.write_dataTIFF(out);
 				ifdBytePos += e.data_sizeTIFF();
 				if(ifdBytePos % 2 == 1) {
@@ -92,7 +92,7 @@ public class IFD {
 			throw new RuntimeException("position error not aligned: " + ifdBytePos);
 		}
 		long dataBytePos = ifdBytePos;
-		log.info("dataBytePos " + dataBytePos);
+		Logger.info("dataBytePos " + dataBytePos);
 		long imageDataBytePos = ifdBytePos;
 
 		for (int i = 0; i < ifds.length; i++) {
@@ -113,12 +113,12 @@ public class IFD {
 			boolean hasNextIfd = i < ifds.length - 1;
 			IFD ifd = ifds[i];			
 			long ifdTableLen = ifd.list.size();
-			log.info("ifdTableLen " + ifdTableLen);
+			Logger.info("ifdTableLen " + ifdTableLen);
 			out.writeLong(ifdTableLen);
 			long ifdTableByteSize = 8 + ifdTableLen * IFD_BIGTIFF_ENTRY_SIZE + 8;
 			dataBytePos += ifdTableByteSize;
 			for(IFD_Entry e : ifd.list) {
-				log.info("dataBytePos " + dataBytePos);
+				Logger.info("dataBytePos " + dataBytePos);
 				e.writeIFD_entryBigTIFF(out, dataBytePos, imageDataBytePos);
 				dataBytePos += e.data_sizeBigTIFF();
 				if(dataBytePos % 2 == 1) {
@@ -132,7 +132,7 @@ public class IFD {
 			}
 			ifdBytePos += ifdTableByteSize;
 			for(IFD_Entry e : ifd.list) {
-				log.info("filepos " + raf.getFilePointer() + "  " + ifdBytePos);
+				Logger.info("filepos " + raf.getFilePointer() + "  " + ifdBytePos);
 				e.write_dataBigTIFF(out);
 				ifdBytePos += e.data_sizeBigTIFF();
 				if(ifdBytePos % 2 == 1) {
@@ -217,7 +217,7 @@ public class IFD {
 		}
 		for(IFD_Entry e:list) {
 			e.writeIFD_entryBigTIFF(out, data_pos, image_data_pos);
-			//log.info("bigTIFF write tag " + Util.hex(e.id) + "  " + e.getClass().getSimpleName());
+			//Logger.info("bigTIFF write tag " + Util.hex(e.id) + "  " + e.getClass().getSimpleName());
 			data_pos += e.data_sizeBigTIFF();
 			if(data_pos % 2 == 1) {
 				data_pos++;
@@ -227,7 +227,7 @@ public class IFD {
 		out.writeLong(0x00_00_00_00__00_00_00_00l); // end of IFDs marker
 		for(IFD_Entry e:list) {
 			e.write_dataBigTIFF(out);
-			//log.info("bigTIFF write tag data " + Util.hex(e.id) + "  " + e.getClass().getSimpleName());
+			//Logger.info("bigTIFF write tag data " + Util.hex(e.id) + "  " + e.getClass().getSimpleName());
 			pos += e.data_sizeBigTIFF();
 			if(pos % 2 == 1) {
 				out.writeByte(0);

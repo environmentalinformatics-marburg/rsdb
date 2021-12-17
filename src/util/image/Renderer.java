@@ -1,7 +1,7 @@
 package util.image;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Timer;
 import util.frame.DoubleFrame;
@@ -9,7 +9,7 @@ import util.frame.FloatFrame;
 import util.frame.ShortFrame;
 
 public class Renderer {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public static ImageBufferARGB renderRgbShort(ShortFrame frameR, ShortFrame frameG, ShortFrame frameB, short naR, short naG, short naB, int width, int height, double gamma, double[] range, boolean syncBands) {
 		Timer.start("prep");
@@ -30,17 +30,17 @@ public class Renderer {
 			double rgamma = RangerDouble.getGamma(rrange, gamma);
 			double ggamma = RangerDouble.getGamma(grange, gamma);
 			double bgamma = RangerDouble.getGamma(brange, gamma);
-			//log.info("brange: "+Arrays.toString(brange));
-			//log.info("gamma "+rgamma+"  "+ggamma+" "+bgamma);
+			//Logger.info("brange: "+Arrays.toString(brange));
+			//Logger.info("gamma "+rgamma+"  "+ggamma+" "+bgamma);
 			rlut = Lut.getGammaLUT256s(rrange[0], rrange[1], rgamma);
 			glut = Lut.getGammaLUT256s(grange[0], grange[1], ggamma);
 			blut = Lut.getGammaLUT256s(brange[0], brange[1], bgamma);
 		}
-		//log.info(Timer.stop("prep"));
+		//Logger.info(Timer.stop("prep"));
 		Timer.start("tonemapping3");
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frameR.width, frameR.height);
 		DrawerShort.drawRGB3Parallel(imageBufferARGB, frameR.data, frameG.data, frameB.data, naR, naG, naB, rlut, glut, blut);
-		//log.info(Timer.stop("tonemapping3"));
+		//Logger.info(Timer.stop("tonemapping3"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}
@@ -63,7 +63,7 @@ public class Renderer {
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frameR.width, frameR.height);
 		Timer.start("tonemapping3");
 		DrawerShort.drawRB3Parallel(imageBufferARGB, frameR.data, frameB.data, naR, naB, rlut, blut);
-		log.info(Timer.stop("tonemapping3"));
+		Logger.info(Timer.stop("tonemapping3"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}
@@ -74,7 +74,7 @@ public class Renderer {
 		Timer.start("tonemapping3");
 		short[] lut = Lut.getGammaLUT256s(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
 		DrawerShort.drawGrey3Parallel(imageBufferARGB, frame.data, na, lut);
-		//log.info(Timer.stop("tonemapping3"));
+		//Logger.info(Timer.stop("tonemapping3"));
 		//convert(imageBufferARGB);
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;		
@@ -86,7 +86,7 @@ public class Renderer {
 		Timer.start("tonemapping3");
 		short[] lut = Lut.getGammaLUT256s(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
 		DrawerShort.drawPalette3Parallel(imageBufferARGB, frame.data, na, lut, palette);
-		//log.info(Timer.stop("tonemapping3"));
+		//Logger.info(Timer.stop("tonemapping3"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;		
 	}
@@ -113,7 +113,7 @@ public class Renderer {
 		Timer.start("tonemapping3 double");
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frameR.width, frameR.height);
 		DrawerDouble.drawRGB3Parallel(imageBufferARGB, frameR.data, frameG.data, frameB.data, rlut, glut, blut);
-		log.info(Timer.stop("tonemapping3 double"));
+		Logger.info(Timer.stop("tonemapping3 double"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}
@@ -136,7 +136,7 @@ public class Renderer {
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frameR.width, frameR.height);
 		Timer.start("tonemapping3 double");
 		DrawerDouble.drawRB3Parallel(imageBufferARGB, frameR.data, frameB.data, rlut, blut);
-		log.info(Timer.stop("tonemapping3 double"));
+		Logger.info(Timer.stop("tonemapping3 double"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}	
@@ -147,7 +147,7 @@ public class Renderer {
 		Timer.start("tonemapping3 double");
 		double[] lut = Lut.getGammaLUT256d(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
 		DrawerDouble.drawGrey3Parallel(imageBufferARGB, frame.data, lut);
-		//log.info(Timer.stop("tonemapping3 double"));
+		//Logger.info(Timer.stop("tonemapping3 double"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}
@@ -158,7 +158,7 @@ public class Renderer {
 		Timer.start("tonemapping3 double");
 		double[] lut = Lut.getGammaLUT256d(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
 		DrawerDouble.drawPalette3Parallel(imageBufferARGB, frame.data, lut, palette);
-		log.info(Timer.stop("tonemapping3 double"));
+		Logger.info(Timer.stop("tonemapping3 double"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}
@@ -185,7 +185,7 @@ public class Renderer {
 		Timer.start("tonemapping3 float");
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frameR.width, frameR.height);
 		DrawerFloat.drawRGB3Parallel(imageBufferARGB, frameR.data, frameG.data, frameB.data, rlut, glut, blut);
-		log.info(Timer.stop("tonemapping3 float"));
+		Logger.info(Timer.stop("tonemapping3 float"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}
@@ -208,7 +208,7 @@ public class Renderer {
 		Timer.start("tonemapping3 float");
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frameR.width, frameR.height);
 		DrawerFloat.drawRB3Parallel(imageBufferARGB, frameR.data, frameB.data, rlut, blut);
-		//log.info(Timer.stop("tonemapping3 float"));
+		//Logger.info(Timer.stop("tonemapping3 float"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}
@@ -219,7 +219,7 @@ public class Renderer {
 		Timer.start("tonemapping3 float");
 		float[] lut = Lut.getGammaLUT256f(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
 		DrawerFloat.drawGrey3Parallel(imageBufferARGB, frame.data, lut);
-		//log.info(Timer.stop("tonemapping3 float"));
+		//Logger.info(Timer.stop("tonemapping3 float"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}
@@ -230,7 +230,7 @@ public class Renderer {
 		Timer.start("tonemapping3 float");
 		float[] lut = Lut.getGammaLUT256f(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
 		DrawerFloat.drawPalette3Parallel(imageBufferARGB, frame.data, lut, palette);
-		//log.info(Timer.stop("tonemapping3 float"));
+		//Logger.info(Timer.stop("tonemapping3 float"));
 		ImageBufferARGB scaled = imageBufferARGB.width == width && imageBufferARGB.height == height ? imageBufferARGB : imageBufferARGB.scaled(width, height);
 		return scaled;
 	}

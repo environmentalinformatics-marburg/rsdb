@@ -4,8 +4,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.mapdb.Serializer;
 
 import me.lemire.integercompression.IntCompressor;
@@ -13,7 +13,7 @@ import util.Serialisation;
 
 public class PointsSerializerPlain extends Serializer<Point[]> {
 	@SuppressWarnings("unused")
-	private static final Logger log = LogManager.getLogger();
+	
 	
 	public static final Serializer<Point[]> DEFAULT = new PointsSerializerPlain();
 

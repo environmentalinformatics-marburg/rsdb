@@ -6,11 +6,11 @@ import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageOutputStreamSpi;
 import javax.imageio.spi.ImageWriterSpi;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 public class SpiUtil {
-	static final Logger log = LogManager.getLogger();
+	
 
 	private static final IIORegistry IIO_REGISTRY = IIORegistry.getDefaultInstance();
 	public static final ImageWriterSpi JPEG_IMAGE_WRITER_SPI = getJPEG_ImageWriterSpi();
@@ -30,7 +30,7 @@ public class SpiUtil {
 			}
 						
 		}
-		log.error("no JPEG ImageWriterSpi found");
+		Logger.error("no JPEG ImageWriterSpi found");
 		return null;
 	}
 	
@@ -42,7 +42,7 @@ public class SpiUtil {
 				return imageOutputStreamSpi;
 			}
 		}
-		log.error("no ImageOutputStreamSpi found");
+		Logger.error("no ImageOutputStreamSpi found");
 		return null;
 	}
 	

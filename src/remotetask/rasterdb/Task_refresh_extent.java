@@ -1,7 +1,7 @@
 package remotetask.rasterdb;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -16,7 +16,7 @@ import util.Range2d;
 @Description("Recalculate extent of RasterDB layer. This may be needed if cached extent info is out of date.")
 @Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="rasterdb1")
 public class Task_refresh_extent extends RemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -35,9 +35,9 @@ public class Task_refresh_extent extends RemoteTask {
 	public void process() {
 		try {
 			Range2d range = rasterdb.getLocalRange(true);
-			log.info("local range " + range);
+			Logger.info("local range " + range);
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 	}
 }

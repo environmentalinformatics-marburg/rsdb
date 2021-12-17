@@ -2,8 +2,8 @@ package rasterdb.node;
 
 import java.util.ArrayList;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.Band;
 import rasterdb.BandProcessor;
@@ -17,7 +17,7 @@ import rasterdb.ast.AstVisitor;
 import util.frame.DoubleFrame;
 
 public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {
-	static final Logger log = LogManager.getLogger();
+	
 
 	//private final BandProcessor processor;
 

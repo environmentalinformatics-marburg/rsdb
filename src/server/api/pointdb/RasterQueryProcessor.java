@@ -16,7 +16,7 @@ import pointdb.processing.tilepoint.TilePointProducer;
 import util.collections.vec.Vec;
 
 public class RasterQueryProcessor {
-	//private static final Logger log = LogManager.getLogger();
+	//
 	
 	public static class TypeEntry {
 		public final String name;

@@ -2,12 +2,12 @@ package rasterdb;
 
 import java.util.Iterator;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.locationtech.jts.util.NumberUtil;
 
 public class BandProcessing {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	/**
 	 * Get band of wavelength and fwhm or null if no exact match is found
@@ -43,14 +43,14 @@ public class BandProcessing {
 			if(band.has_wavelength()) {
 				//double diff = band.getAbsDiff(wavelength);
 				double diff = band.getRelevanceDiff(wavelength);
-				//log.info(diff + "   "+wavelength+ "   "  +band);
+				//Logger.info(diff + "   "+wavelength+ "   "  +band);
 				if(diff < minDiff) {
 					minBand = band;
 					minDiff = diff;
 				}
 			}
 		}
-		//log.info("GET "+minBand);
+		//Logger.info("GET "+minBand);
 		return minBand;
 	}
 	
@@ -211,7 +211,7 @@ public class BandProcessing {
 			}
 		}
 		if(rSet && bSet && !gSet) {
-			log.info("set green");
+			Logger.info("set green");
 			g = r;
 		}
 		return new Band[]{r, g, b};

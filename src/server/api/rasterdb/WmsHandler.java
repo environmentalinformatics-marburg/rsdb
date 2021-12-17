@@ -8,8 +8,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -31,7 +31,7 @@ import util.image.PureImage;
 import util.image.Renderer;
 
 public class WmsHandler extends AbstractHandler {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 
@@ -44,13 +44,13 @@ public class WmsHandler extends AbstractHandler {
 	@Override
 	public void handle(String target, Request request, HttpServletRequest internal, HttpServletResponse response)
 			throws IOException, ServletException {
-		//log.info(request);
+		//Logger.info(request);
 		request.setHandled(true);
 
 		try {
 
 			/*if(!"WMS".equals(request.getParameter("SERVICE"))) {
-			log.error("no WMS");
+			Logger.error("no WMS");
 			return;
 		}*/
 
@@ -80,7 +80,7 @@ public class WmsHandler extends AbstractHandler {
 
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);
+			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().println(e);
 		}
@@ -114,7 +114,7 @@ public class WmsHandler extends AbstractHandler {
 		 * @param interruptor nullable
 		 */
 		public static void checkInterrupted(Interruptor interruptor) {
-			//log.info("checkInterrupted " + interruptor);
+			//Logger.info("checkInterrupted " + interruptor);
 			if(interruptor != null && interruptor.interrupted) {
 				throw new InterruptorInterruptedException();
 			}
@@ -134,7 +134,7 @@ public class WmsHandler extends AbstractHandler {
 				if(wmsReqestCountText != null) {
 					try {
 						session = APIHandler_session.decodeSession(base64Session);
-						//log.info("session " + session);
+						//Logger.info("session " + session);
 						long wmsReqestCount = Long.parseLong(wmsReqestCountText);
 						currentInterruptor = new Interruptor(wmsReqestCount);
 						while(true) {
@@ -151,15 +151,15 @@ public class WmsHandler extends AbstractHandler {
 									}
 								} else {
 									if(prevInterruptor.id == currentInterruptor.id) {
-										log.warn("same id");
+										Logger.warn("same id");
 									}
-									log.info("****************************************** interrupted (not started) ***************************************");
+									Logger.info("****************************************** interrupted (not started) ***************************************");
 									return;
 								}
 							}
 						}
 					} catch(Exception e) {
-						log.warn(e);
+						Logger.warn(e);
 					}
 				}
 			}
@@ -170,13 +170,13 @@ public class WmsHandler extends AbstractHandler {
 			}
 
 			String layer = request.getParameter("LAYERS");
-			//log.info("layer "+layer);
+			//Logger.info("layer "+layer);
 			RasterDB rasterdb = broker.getRasterdb(layer);
 			if (!rasterdb.isAllowed(Web.getUserIdentity(request))) {
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 				response.setContentType("text/plain;charset=utf-8");
 				response.getWriter().println("access not allowed for user");
-				log.error("access not allowed for user");
+				Logger.error("access not allowed for user");
 				return;
 			}
 			int timestamp = 0;
@@ -186,7 +186,7 @@ public class WmsHandler extends AbstractHandler {
 					timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
 				} catch(Exception e) {
 					if(rasterdb.rasterUnit().timeKeysReadonly().isEmpty()) {
-						log.warn("empty rasterdb layer");
+						Logger.warn("empty rasterdb layer");
 						return;
 					} else {
 						throw e;
@@ -196,14 +196,14 @@ public class WmsHandler extends AbstractHandler {
 				timestamp = Integer.parseInt(timeText);
 			}
 			String[] bbox = request.getParameter("BBOX").split(",");
-			log.info("bbox "+Arrays.toString(bbox));
+			Logger.info("bbox "+Arrays.toString(bbox));
 			GeoReference ref = rasterdb.ref();
 			String modus = request.getParameter("modus");
 			boolean transposed = modus != null && modus.equals("openlayers") ? ref.wms_transposed : false;
 			Range2d range2d = ref.parseBboxToRange2d(bbox, transposed);
 			//Range2d range2d = ref.parseBboxToRange2d(bbox, ref.wms_transposed);
-			//log.info(range2d);
-			//log.info("geo xmin "+ref.pixelXToGeo(range2d.xmin)+"  ymin "+ref.pixelYToGeo(range2d.ymin)+"  xmax "+ref.pixelXToGeo(range2d.xmax)+"  ymax "+ref.pixelYToGeo(range2d.ymax));
+			//Logger.info(range2d);
+			//Logger.info("geo xmin "+ref.pixelXToGeo(range2d.xmin)+"  ymin "+ref.pixelYToGeo(range2d.ymin)+"  xmax "+ref.pixelXToGeo(range2d.xmax)+"  ymax "+ref.pixelYToGeo(range2d.ymax));
 			String widthText = request.getParameter("WIDTH");
 			int width = Integer.parseInt(widthText);
 			String heightText = request.getParameter("HEIGHT");
@@ -223,10 +223,10 @@ public class WmsHandler extends AbstractHandler {
 				String gammaText = null;
 				String palText = "grey";
 				String style = request.getParameter("STYLES");
-				//log.info("STYLES: |" + style + "|");
+				//Logger.info("STYLES: |" + style + "|");
 				if(style != null) {
 					String[] styles = style.trim().split("@");
-					//log.info("styles " + Arrays.toString(styles));
+					//Logger.info("styles " + Arrays.toString(styles));
 					if(styles.length > 0) {
 						style_product = styles[0];
 						for (int i = 1; i < styles.length; i++) {
@@ -242,7 +242,7 @@ public class WmsHandler extends AbstractHandler {
 							} else if(text.startsWith("pal_")) {
 								palText = text.substring(4);
 							} else {
-								log.warn("unknown style: " + text);
+								Logger.warn("unknown style: " + text);
 							}
 						}
 					}
@@ -251,31 +251,31 @@ public class WmsHandler extends AbstractHandler {
 					try {
 						double min = Double.parseDouble(minText);
 						double max = Double.parseDouble(maxText);
-						//log.info("minmax "+min+"  "+max);
+						//Logger.info("minmax "+min+"  "+max);
 						range = new double[]{min, max};
 					} catch (Exception e) {
-						log.warn(e);
+						Logger.warn(e);
 					}
 				}
 				if(gammaText != null) {
 					try {
 						gamma = Double.parseDouble(gammaText);
 					} catch (Exception e) {
-						log.warn(e);
+						Logger.warn(e);
 					}
 				}
 				palette = MonoColor.getPaletteDefaultNull(palText);
 			} // style processing end
 
 			if(Interruptor.isInterrupted(currentInterruptor)) {
-				log.info("****************************************** interrupted (pre load)*******************************************");
+				Logger.info("****************************************** interrupted (pre load)*******************************************");
 				return;
 			}
 			PureImage image = null;
 			if(style_product.equals("color") || style_product.isEmpty()) {
 				Timer.start("render");
 				image = Rasterizer.rasterizeRGB(processor, width, height, gamma, range, syncBands, currentInterruptor);
-				//log.info(Timer.stop("render"));
+				//Logger.info(Timer.stop("render"));
 			} else if(style_product.startsWith("band")) {
 				String s = style_product.substring(4);
 				int bandIndex = Integer.parseInt(s);
@@ -286,7 +286,7 @@ public class WmsHandler extends AbstractHandler {
 				} else {
 					image = Rasterizer.rasterizePalette(processor, band, width, height, gamma, range, palette, currentInterruptor);		
 				}
-				//log.info(Timer.stop("render"));
+				//Logger.info(Timer.stop("render"));
 			} else {
 				ErrorCollector errorCollector = new ErrorCollector();
 				DoubleFrame[] doubleFrames = DSL.process(style_product, errorCollector, processor);
@@ -295,7 +295,7 @@ public class WmsHandler extends AbstractHandler {
 				}
 				Timer.start("render");
 				Interruptor.checkInterrupted(currentInterruptor);
-				//log.info("frames " + doubleFrames.length);
+				//Logger.info("frames " + doubleFrames.length);
 				if(doubleFrames.length < 1) {
 					// nothing
 				} else if(doubleFrames.length == 1) {
@@ -309,14 +309,14 @@ public class WmsHandler extends AbstractHandler {
 				} else {
 					image = Renderer.renderRgbDouble(doubleFrames[0], doubleFrames[1], doubleFrames[2], width, height, gamma, range, syncBands);
 				}				
-				//log.info(Timer.stop("render"));
+				//Logger.info(Timer.stop("render"));
 			}
 			if(Interruptor.isInterrupted(currentInterruptor)) {
-				log.info("****************************************** interrupted (pre sent)*******************************************");
+				Logger.info("****************************************** interrupted (pre sent)*******************************************");
 				return;
 			}
 			Timer.start("compress/transfer");
-			//log.info("");
+			//Logger.info("");
 			response.setStatus(HttpServletResponse.SC_OK);
 			switch(format) {
 			case "image/jpeg": {
@@ -372,23 +372,23 @@ public class WmsHandler extends AbstractHandler {
 				}
 			}
 			}
-			//log.info(Timer.stop("compress/transfer"));
-			log.info(Timer.stop("full request"));
+			//Logger.info(Timer.stop("compress/transfer"));
+			Logger.info(Timer.stop("full request"));
 			if(Interruptor.isInterrupted(currentInterruptor)) {
-				log.info("****************************************** interrupted *******************************************");
+				Logger.info("****************************************** interrupted *******************************************");
 			}
 			//ImageRGBA.ofBufferedImage(bi).writePngUncompressed(response.getOutputStream());
 
 		} catch(InterruptorInterruptedException e) {
-			log.info("****************************************** interrupted (checked)*******************************************");
+			Logger.info("****************************************** interrupted (checked)*******************************************");
 			return;
 		} finally {
 			if(session != null && currentInterruptor != null) {
 				if(taskMap.remove(session, currentInterruptor)) {
-					//log.info("task removed");
+					//Logger.info("task removed");
 				}
 			}
-			//log.info("session map size " + taskMap.size() + " +++++++++++++++++++++++++++++++++++++");
+			//Logger.info("session map size " + taskMap.size() + " +++++++++++++++++++++++++++++++++++++");
 		}
 	}
 }

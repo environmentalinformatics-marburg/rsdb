@@ -5,8 +5,8 @@ import java.util.Iterator;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -32,7 +32,7 @@ import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 
 public class APIHandler_voxeldb {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	protected static final String MIME_JSON = "application/json";
 
@@ -47,7 +47,7 @@ public class APIHandler_voxeldb {
 	}
 
 	public void handle(String name, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		//log.info("get: " + name);
+		//Logger.info("get: " + name);
 		VoxelDB voxeldb = broker.getVoxeldb(name);
 		if(voxeldb == null) {
 			throw new RuntimeException("VoxelDB not found: " + name);
@@ -73,8 +73,8 @@ public class APIHandler_voxeldb {
 			int formatIndex = resource.lastIndexOf('.');
 			String resourceName = formatIndex < 0 ? resource : resource.substring(0, formatIndex);
 			/*String resourceFormat = formatIndex < 0 ? "" : resource.substring(formatIndex + 1);
-			log.info("resourceName: "+resourceName);
-			log.info("resourceFormat: "+resourceFormat);*/
+			Logger.info("resourceName: "+resourceName);
+			Logger.info("resourceFormat: "+resourceFormat);*/
 			String next = i < 0 ? "/" : target.substring(i);
 			if(next.equals("/")) {
 				switch(resourceName) {
@@ -142,7 +142,7 @@ public class APIHandler_voxeldb {
 					}
 				}
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 		if(unit == null && voxeldb.geoRef().hasEpsg()) {
@@ -155,7 +155,7 @@ public class APIHandler_voxeldb {
 					}
 				}
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 		}
 		if(unit != null) {
@@ -210,14 +210,14 @@ public class APIHandler_voxeldb {
 				json.key("storage_size");
 				json.value(storage_size);
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 			try {
 				long internal_free_size = voxeldb.getGriddb().storage().calculateInternalFreeSize();
 				json.key("storage_internal_free_size");
 				json.value(internal_free_size);
 			} catch(Exception e) {
-				log.warn(e);
+				Logger.warn(e);
 			}
 			long[] stats = voxeldb.getGriddb().storage().calculateTileSizeStats();
 			if(stats != null) {
@@ -287,7 +287,7 @@ public class APIHandler_voxeldb {
 					voxeldb.checkMod(userIdentity);
 					updateCatalog = true;
 					String title = meta.getString("title");
-					log.info("set title " + title);
+					Logger.info("set title " + title);
 					Builder informal = voxeldb.informal().toBuilder();
 					informal.title = title.trim();
 					voxeldb.setInformal(informal.build());
@@ -297,7 +297,7 @@ public class APIHandler_voxeldb {
 					voxeldb.checkMod(userIdentity);
 					updateCatalog = true;
 					String description = meta.getString("description");
-					log.info("set description " + description);
+					Logger.info("set description " + description);
 					Builder informal = voxeldb.informal().toBuilder();
 					informal.description = description.trim();
 					voxeldb.setInformal(informal.build());
@@ -307,7 +307,7 @@ public class APIHandler_voxeldb {
 					voxeldb.checkMod(userIdentity);
 					updateCatalog = true;
 					String corresponding_contact = meta.getString("corresponding_contact");
-					log.info("set corresponding_contact " + corresponding_contact);
+					Logger.info("set corresponding_contact " + corresponding_contact);
 					Builder informal = voxeldb.informal().toBuilder();
 					informal.corresponding_contact = corresponding_contact.trim();
 					voxeldb.setInformal(informal.build());
@@ -317,7 +317,7 @@ public class APIHandler_voxeldb {
 					voxeldb.checkMod(userIdentity);
 					updateCatalog = true;
 					String acquisition_date = meta.getString("acquisition_date");
-					log.info("set acquisition_date " + acquisition_date);
+					Logger.info("set acquisition_date " + acquisition_date);
 					Builder informal = voxeldb.informal().toBuilder();
 					informal.acquisition_date = acquisition_date.trim();
 					voxeldb.setInformal(informal.build());
@@ -327,7 +327,7 @@ public class APIHandler_voxeldb {
 					voxeldb.checkMod(userIdentity);
 					updateCatalog = true;
 					int epsg = Integer.parseInt(meta.get("epsg").toString().trim());
-					log.info("set epsg " + epsg);
+					Logger.info("set epsg " + epsg);
 					voxeldb.setEpsg(epsg);
 					break;
 				}
@@ -336,7 +336,7 @@ public class APIHandler_voxeldb {
 					updateCatalog = true;
 					updateCatalogPoints = true;
 					String proj4 = meta.getString("proj4").trim();
-					log.info("set proj4 "+proj4);
+					Logger.info("set proj4 "+proj4);
 					voxeldb.setProj4(proj4);
 					break;
 				}
@@ -378,7 +378,7 @@ public class APIHandler_voxeldb {
 					if(!voxeldb_name.equals(voxeldb.getName())) {
 						throw new RuntimeException("wrong parameters for delete voxeldb: " + voxeldb_name);
 					}
-					log.info("delete voxeldb " + voxeldb_name);
+					Logger.info("delete voxeldb " + voxeldb_name);
 					broker.deleteVoxeldb(voxeldb.getName());
 					voxeldb = null;
 					break;
@@ -405,7 +405,7 @@ public class APIHandler_voxeldb {
 			jsonResponse.endObject();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);			
+			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			response.getWriter().append(e.toString());
 		} finally {

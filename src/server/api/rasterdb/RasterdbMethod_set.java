@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -34,7 +34,7 @@ import util.JsonUtil;
 import util.Web;
 
 public class RasterdbMethod_set extends RasterdbMethod {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public RasterdbMethod_set(Broker broker) {
 		super(broker, "set");	
@@ -42,7 +42,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 
 	@Override
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		log.info(request);
+		Logger.info(request);
 		request.setHandled(true);
 		boolean updateCatalog = false;
 		boolean updateCatalogPoints = false;
@@ -57,7 +57,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					rasterdb.checkMod(userIdentity);
 					updateCatalog = true;
 					String title = meta.getString("title").trim();
-					log.info("set title " + title);
+					Logger.info("set title " + title);
 					Builder informal = rasterdb.informal().toBuilder();
 					informal.title = title;
 					rasterdb.setInformal(informal.build());
@@ -67,7 +67,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					rasterdb.checkMod(userIdentity);
 					updateCatalog = true;
 					String description = meta.getString("description").trim();
-					log.info("set description " + description);
+					Logger.info("set description " + description);
 					Builder informal = rasterdb.informal().toBuilder();
 					informal.description = description;
 					rasterdb.setInformal(informal.build());
@@ -77,7 +77,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					rasterdb.checkMod(userIdentity);
 					updateCatalog = true;
 					String corresponding_contact = meta.getString("corresponding_contact").trim();
-					log.info("set corresponding_contact " + corresponding_contact);
+					Logger.info("set corresponding_contact " + corresponding_contact);
 					Builder informal = rasterdb.informal().toBuilder();
 					informal.corresponding_contact = corresponding_contact;
 					rasterdb.setInformal(informal.build());
@@ -87,7 +87,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					rasterdb.checkMod(userIdentity);
 					updateCatalog = true;
 					String acquisition_date = meta.getString("acquisition_date").trim();
-					log.info("set acquisition_date " + acquisition_date);
+					Logger.info("set acquisition_date " + acquisition_date);
 					Builder informal = rasterdb.informal().toBuilder();
 					informal.acquisition_date = acquisition_date;
 					rasterdb.setInformal(informal.build());
@@ -98,7 +98,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					updateCatalog = true;
 					updateCatalogPoints = true;
 					String proj4 = meta.getString("proj4").trim();
-					log.info("set proj4 "+proj4);
+					Logger.info("set proj4 "+proj4);
 					rasterdb.setProj4(proj4);
 					break;
 				}
@@ -106,7 +106,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					rasterdb.checkMod(userIdentity);
 					updateCatalog = true;
 					String code = meta.getString("code").trim();
-					log.info("set code "+code);
+					Logger.info("set code "+code);
 					rasterdb.setCode(code);
 					break;
 				}
@@ -189,19 +189,19 @@ public class RasterdbMethod_set extends RasterdbMethod {
 							case "datatype": {
 								int bandDataType = ImportSpec.parseBandDataType(JsonUtil.getString(jsonBand, "datatype"));
 								if(bandDataType > 0 && bandDataType != builder.type) {
-									log.warn("band data type can be set at initial band creation only");
+									Logger.warn("band data type can be set at initial band creation only");
 								}
 								break;
 							}
 							default: {					
-								log.warn("unknown band key: "+bandKey);
+								Logger.warn("unknown band key: "+bandKey);
 								//throw new RuntimeException("unknown key: "+key);
 							}
 							}
 						}
 						rasterdb.setBand(builder.build(), true);
 					}
-					log.info(jsonBands);
+					Logger.info(jsonBands);
 					break;
 				}
 				case "time_slices": {
@@ -235,7 +235,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 						return new TimeSlice(id, timeSliceBuilder);
 					}).collect(Collectors.toList());
 					rasterdb.setTimeSlices(timeSlices);
-					log.info(jsonTimeSlices);
+					Logger.info(jsonTimeSlices);
 					break;
 				}				
 				case "associated": {
@@ -277,7 +277,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 			jsonResponse.endObject();
 		} catch(Exception e) {
 			e.printStackTrace();
-			log.error(e);			
+			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
 			response.setContentType(MIME_JSON);

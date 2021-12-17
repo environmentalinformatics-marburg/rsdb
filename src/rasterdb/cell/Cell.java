@@ -3,8 +3,8 @@ package rasterdb.cell;
 import java.io.IOException;
 import java.util.Collection;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import me.lemire.integercompression.FastPFOR;
 import rasterdb.Band;
@@ -16,7 +16,7 @@ import rasterunit.TileKey;
 import util.Range2d;
 
 public abstract class Cell<T> {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public final int pixel_len;
 	public final int cell_pixel_count;
@@ -91,7 +91,7 @@ public abstract class Cell<T> {
 	};
 
 	public T read(RasterUnitStorage storage, int t, Band band, Range2d pixelRange, int div) {
-		//log.info("read " + pixelRange);
+		//Logger.info("read " + pixelRange);
 		if(div < 1 || pixel_len / div < 1 || pixel_len % div != 0) {
 			throw new RuntimeException("invalid div for pixel_len   " + pixel_len + " / " + div);
 		}
@@ -246,44 +246,44 @@ public abstract class Cell<T> {
 		int wr = w / div;
 		int hr = h / div;
 		T target = createEmptyUninitialized(wr, hr);
-		//log.info("w h " + w +"  " + h +  " div  " + div  +  "   " + wr + "  " + hr + "   " + w % div + "   " + h % div);		
+		//Logger.info("w h " + w +"  " + h +  " div  " + div  +  "   " + wr + "  " + hr + "   " + w % div + "   " + h % div);		
 		copyDiv(data, div, band, target, 0, 0);
 		return target;
 	}*/
 	
 	public void decodeCell(Tile tile, T target, Range2d targetRange) {
 
-		//log.info("decodeCell target  " + targetRange.xmin + " " + targetRange.ymin + "   " + targetRange.xmax + " " + targetRange.ymax);
+		//Logger.info("decodeCell target  " + targetRange.xmin + " " + targetRange.ymin + "   " + targetRange.xmax + " " + targetRange.ymax);
 
 		int cxmin = cellToPixelMin(tile.x);
 		int cymin = cellToPixelMin(tile.y);
 		int cxmax = cellToPixelMax(tile.x);
 		int cymax = cellToPixelMax(tile.y);
 
-		//log.info("decodeCell cell    " + cxmin + " " + cymin + "   " + cxmax + " " + cymax);
+		//Logger.info("decodeCell cell    " + cxmin + " " + cymin + "   " + cxmax + " " + cymax);
 
 		int xCoveredMin = cxmin < targetRange.xmin ? targetRange.xmin : cxmin;
 		int yCoveredMin = cymin < targetRange.ymin ? targetRange.ymin : cymin;
 		int xCoveredMax = cxmax > targetRange.xmax ? targetRange.xmax : cxmax;
 		int yCoveredMax = cymax > targetRange.ymax ? targetRange.ymax : cymax;
 
-		//log.info("decodeCell covered " + xCoveredMin + " " + yCoveredMin + "   " + xCoveredMax + " " + yCoveredMax);
+		//Logger.info("decodeCell covered " + xCoveredMin + " " + yCoveredMin + "   " + xCoveredMax + " " + yCoveredMax);
 
 		int xTargetStart = xCoveredMin - targetRange.xmin;
 		int yTargetStart = yCoveredMin - targetRange.ymin;
 		int xTargetEnd = xCoveredMax - targetRange.xmin;
 		int yTargetEnd = yCoveredMax - targetRange.ymin;
 
-		//log.info("decodeCell xTarget " + xTargetStart + " - " + xTargetEnd + " :  " + (xTargetEnd - xTargetStart + 1));
-		//log.info("decodeCell yTarget " + yTargetStart + " - " + yTargetEnd + " :  " + (yTargetEnd - yTargetStart + 1));
+		//Logger.info("decodeCell xTarget " + xTargetStart + " - " + xTargetEnd + " :  " + (xTargetEnd - xTargetStart + 1));
+		//Logger.info("decodeCell yTarget " + yTargetStart + " - " + yTargetEnd + " :  " + (yTargetEnd - yTargetStart + 1));
 
 		int xCellStart = xCoveredMin - cxmin;
 		int yCellStart = yCoveredMin - cymin;
 		int xCellEnd = xCoveredMax - cxmin;
 		//int yCellEnd = yCoveredMax - cymin;
 
-		//log.info("decodeCell xCell   " + xCellStart + " - " + xCellEnd + " :  " + (xCellEnd - xCellStart + 1));
-		//log.info("decodeCell yCell   " + yCellStart + " - " + yCellEnd + " :  " + (yCellEnd - yCellStart + 1));
+		//Logger.info("decodeCell xCell   " + xCellStart + " - " + xCellEnd + " :  " + (xCellEnd - xCellStart + 1));
+		//Logger.info("decodeCell yCell   " + yCellStart + " - " + yCellEnd + " :  " + (yCellEnd - yCellStart + 1));
 
 		decodeCell(tile, xCellStart, yCellStart, xCellEnd, target, xTargetStart, yTargetStart, xTargetEnd, yTargetEnd);
 	}
@@ -294,7 +294,7 @@ public abstract class Cell<T> {
 		int cxmax = cellDivToPixelMax(tile.x, div);
 		int cymax = cellDivToPixelMax(tile.y, div);
 
-		//log.info("c " + cxmin + " " + cymin + " " + cxmax + " " + cymax);
+		//Logger.info("c " + cxmin + " " + cymin + " " + cxmax + " " + cymax);
 
 		int xCoveredMin = cxmin < targetRange.xmin ? targetRange.xmin : cxmin;
 		int yCoveredMin = cymin < targetRange.ymin ? targetRange.ymin : cymin;
@@ -311,7 +311,7 @@ public abstract class Cell<T> {
 		//int xCellEnd = (xCoveredMax - cxmin) * div + (div - 1);
 		//int yCellEnd = (yCoveredMax - cymin) * div + (div - 1);
 
-		//log.info("t " + xTargetStart + " " + yTargetStart + " " + xTargetEnd + " " + yTargetEnd);
+		//Logger.info("t " + xTargetStart + " " + yTargetStart + " " + xTargetEnd + " " + yTargetEnd);
 
 		decodeCellDiv(tile, xCellStart, yCellStart, div, target, band, xTargetStart, yTargetStart, xTargetEnd, yTargetEnd);
 	}

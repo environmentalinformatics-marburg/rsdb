@@ -7,8 +7,8 @@ import java.util.Arrays;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import rasterdb.GeoReference;
 import util.CharArrayWriterUnsync;
@@ -21,7 +21,7 @@ import util.tiff.GeoKeyDirectory;
 import util.tiff.IFD;
 
 public class TiffFile {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public static final int TIFFsignatureBE = 0x4d_4d_00_2a; // TIFF header signature big endian
 	public static final int TiffIFDOffsetBE = 0x00_00_00_08; // TIFF Offset to first IFD
@@ -145,7 +145,7 @@ public class TiffFile {
 		long maxTileOffset = Long.MAX_VALUE;				
 		long maxTileByteCount = Long.MAX_VALUE;
 
-		log.info("tileLen " + xtileLen + " x " + ytileLen + " = "+ tileLen);
+		Logger.info("tileLen " + xtileLen + " x " + ytileLen + " = "+ tileLen);
 
 		this.tiles = new TiffTile[bandCount][tileLen];
 		for (int b = 0; b < bandCount; b++) {
@@ -169,7 +169,7 @@ public class TiffFile {
 				scale *= 2;
 				int overviewTileWidth = tileWidth * scale;
 				int overviewTileHeight = tileHeight * scale;
-				log.info("overviewTileWidth " + overviewTileWidth);
+				Logger.info("overviewTileWidth " + overviewTileWidth);
 				//Range2d overviewRange = range.allignMaxToTiles(overviewTileWidth, overviewTileHeight);
 				Range2d overviewRange = range; // TODO check
 				int overviewWidth = overviewRange.getWidth();
@@ -180,7 +180,7 @@ public class TiffFile {
 				if(overviewTileLen == prevTileLen) {
 					break;
 				}
-				log.info("overviewTileLen " + overviewXtileLen + " x " + overviewYtileLen + " = "+ overviewTileLen);
+				Logger.info("overviewTileLen " + overviewXtileLen + " x " + overviewYtileLen + " = "+ overviewTileLen);
 
 				TiffTile[][] overviewTiles = new TiffTile[bandCount][overviewTileLen];
 				for (int b = 0; b < bandCount; b++) {
@@ -194,7 +194,7 @@ public class TiffFile {
 							btiles[i++] = tile;					
 						}
 					}
-					log.info("counter " + i + " of " + overviewTileLen);
+					Logger.info("counter " + i + " of " + overviewTileLen);
 				}
 				this.overviewtilesVec.add(overviewTiles);
 
@@ -206,7 +206,7 @@ public class TiffFile {
 				}
 				prevTileLen = overviewTileLen;
 			}
-			log.info("overviews: " + this.overviewtilesVec.size());
+			Logger.info("overviews: " + this.overviewtilesVec.size());
 		}
 	}
 
@@ -246,8 +246,8 @@ public class TiffFile {
 		long[] tileOffsets = Arrays.stream(tiles).flatMapToLong(bandTiles -> Arrays.stream(bandTiles).mapToLong(tile -> tile.pos)).toArray();
 		long[] tileByteCounts = Arrays.stream(tiles).flatMapToLong(bandTiles -> Arrays.stream(bandTiles).mapToLong(tile -> tile.len)).toArray();
 
-		log.info("tileOffsets " + Arrays.toString(tileOffsets));
-		log.info("tileByteCounts " + Arrays.toString(tileByteCounts));
+		Logger.info("tileOffsets " + Arrays.toString(tileOffsets));
+		Logger.info("tileByteCounts " + Arrays.toString(tileByteCounts));
 
 		ifd.add_SamplesPerPixel((short) bandCount);
 		ifd.add_SampleFormat(sampleFormats);
@@ -274,7 +274,7 @@ public class TiffFile {
 			ifd.add_XResolution(xRat[0], xRat[1]);
 			ifd.add_YResolution(yRat[0], yRat[1]);
 		} catch(Exception e) {
-			log.error(e);
+			Logger.error(e);
 		}
 
 		short epsgCode = (short) ref.getEPSG(0);
@@ -309,7 +309,7 @@ public class TiffFile {
 			String text = writer.toString();				
 			ifd.add_GDAL_METADATA(text);
 		} catch (Exception e) {
-			log.warn(e);
+			Logger.warn(e);
 		}
 
 		ifd.add_Orientation_top_left();
@@ -320,7 +320,7 @@ public class TiffFile {
 		while(it.hasNext()) {
 			scale *= 2;
 			int i = it.nextIndex();
-			log.info("overview i " + i + "  scale " + scale);
+			Logger.info("overview i " + i + "  scale " + scale);
 			TiffTile[][] tiles = it.next();
 			IFD overviewIfd = new IFD();
 			overviewIfd.add_NewSubfileType_reduced_resolution();
@@ -351,7 +351,7 @@ public class TiffFile {
 		overviewIfds.forEachIndexed((e, i) -> ifds[i + 1] = e);
 
 		long imageDataPos = bigTiff ? IFD.writeBigTIFF(raf.getFilePointer(), raf, raf, ifds) : IFD.writeTIFF((int) raf.getFilePointer(), raf, raf, ifds);
-		log.info("raf.getFilePointer " + raf.getFilePointer() + "   " + imageDataPos);
+		Logger.info("raf.getFilePointer " + raf.getFilePointer() + "   " + imageDataPos);
 		return imageDataPos;
 	}
 

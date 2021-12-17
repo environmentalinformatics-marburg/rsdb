@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import remotetask.pointcloud.task_pointcloud;
 import remotetask.pointdb.task_pointdb;
@@ -17,7 +17,7 @@ import remotetask.voxeldb.task_voxeldb;
 import util.collections.vec.Vec;
 
 public class RemoteTasks {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private static final Class<?>[] CONSTRUCTOR_ARGS = new Class[] {Context.class};
 	
@@ -77,12 +77,12 @@ public class RemoteTasks {
 				String name = clazz.getAnnotation(task_rasterdb.class).value();
 				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_rasterdbMap.containsKey(name)) {
-					log.warn("task with name already inserted, overwrite: " + name);
+					Logger.warn("task with name already inserted, overwrite: " + name);
 				}
 				task_rasterdbMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
-				log.error("could not put task: "+ clazz.getName() + e);
+				Logger.error("could not put task: "+ clazz.getName() + e);
 			}
 		}
 
@@ -91,12 +91,12 @@ public class RemoteTasks {
 				String name = clazz.getAnnotation(task_pointdb.class).value();
 				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_pointdbMap.containsKey(name)) {
-					log.warn("task with name already inserted, overwrite: " + name);
+					Logger.warn("task with name already inserted, overwrite: " + name);
 				}
 				task_pointdbMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
-				log.error("could not put task: "+ clazz.getName() + e);
+				Logger.error("could not put task: "+ clazz.getName() + e);
 			}
 		}
 
@@ -105,12 +105,12 @@ public class RemoteTasks {
 				String name = clazz.getAnnotation(task_pointcloud.class).value();
 				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_pointcloudMap.containsKey(name)) {
-					log.warn("task with name already inserted, overwrite: " + name);
+					Logger.warn("task with name already inserted, overwrite: " + name);
 				}
 				task_pointcloudMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
-				log.error("could not put task: "+ clazz.getName() + e);
+				Logger.error("could not put task: "+ clazz.getName() + e);
 			}
 		}
 		
@@ -119,12 +119,12 @@ public class RemoteTasks {
 				String name = clazz.getAnnotation(task_voxeldb.class).value();
 				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_voxeldbMap.containsKey(name)) {
-					log.warn("task with name already inserted, overwrite: " + name);
+					Logger.warn("task with name already inserted, overwrite: " + name);
 				}
 				task_voxeldbMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
-				log.error("could not put task: "+ clazz.getName() + e);
+				Logger.error("could not put task: "+ clazz.getName() + e);
 			}
 		}
 
@@ -133,17 +133,17 @@ public class RemoteTasks {
 				String name = clazz.getAnnotation(task_vectordb.class).value();
 				RemoteTaskInfo rti = createRTI(clazz, name);
 				if(task_vectordbMap.containsKey(name)) {
-					log.warn("task with name already inserted, overwrite: " + name);
+					Logger.warn("task with name already inserted, overwrite: " + name);
 				}
 				task_vectordbMap.put(name, rti);
 				inserted = true;
 			} catch(Exception e) {
-				log.error("could not put task: "+ clazz.getName() + e);
+				Logger.error("could not put task: "+ clazz.getName() + e);
 			}
 		}
 
 		if(!inserted) {
-			log.warn("could not put task: "+ clazz.getName());
+			Logger.warn("could not put task: "+ clazz.getName());
 		}
 	}
 	
@@ -163,12 +163,12 @@ public class RemoteTasks {
 	}
 	
 	private static Vec<RemoteTaskParameter> getParams(Class<?> clazz) {
-		//log.info("getParams");
+		//Logger.info("getParams");
 		Vec<RemoteTaskParameter> params = new Vec<RemoteTaskParameter>();
 		Param[] ps = clazz.getAnnotationsByType(Param.class);
 		for(Param p:ps) {
 			RemoteTaskParameter param = RemoteTaskParameter.of(p);
-			//log.info("add param");
+			//Logger.info("add param");
 			params.add(param);
 		}
 		return params;

@@ -6,7 +6,7 @@ import java.util.function.IntConsumer;
 import com.googlecode.javaewah.datastructure.BitSet;
 
 public class BitSetUtil {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private static final Field EWAH_DATA;
 

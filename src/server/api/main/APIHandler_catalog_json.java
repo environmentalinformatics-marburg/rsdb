@@ -13,7 +13,7 @@ import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_catalog_json extends APIHandler {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	public APIHandler_catalog_json(Broker broker) {
 		super(broker, "catalog.json");

@@ -3,13 +3,13 @@ package util.image;
 import java.util.Arrays;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.Timer;
 
 public class RangerShort {
-	static final Logger log = LogManager.getLogger();
+	
 
 	public static short[] range(short[][] data, short na) {
 		int height = data.length;
@@ -137,7 +137,7 @@ public class RangerShort {
 		if(min == Integer.MIN_VALUE || max == Integer.MIN_VALUE) {
 			Timer.start("Ranger");
 			short[] r = RangerShort.range(data, na);
-			//log.info(Timer.stop("Ranger"));
+			//Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];
@@ -167,7 +167,7 @@ public class RangerShort {
 		if(min == Integer.MIN_VALUE || max == Integer.MIN_VALUE) {
 			Timer.start("Ranger");
 			short[] r = RangerShort.rangeSync(data, na);
-			//log.info(Timer.stop("Ranger"));
+			//Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
 				max = r[1];

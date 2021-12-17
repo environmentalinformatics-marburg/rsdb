@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.locationtech.proj4j.CRSFactory;
@@ -36,7 +36,7 @@ import remotetask.Param;
 @Param(name="omit_attributes", type="string_array", desc="List of attributes that should no be imported. Possible case sensitive values: x, y, z, intensity, returnNumber, returns, scanDirectionFlag, edgeOfFlightLine, classification, scanAngleRank, gpsTime, red, green, blue (default no attribute, all attributes are imported)", example="red, green, blue", required=false)
 @Param(name="compression_level", type="integer", desc="Compression level, higher values are slower with better compression ratio, decompression speed is not impacted. Value of range -99 to 22 (default: 1)", example="22", required=false)
 public class Task_import extends CancelableRemoteProxyTask {
-	private static final Logger log = LogManager.getLogger();
+	
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
 	private final Broker broker;
@@ -97,7 +97,7 @@ public class Task_import extends CancelableRemoteProxyTask {
 						pointcloud.setProj4(crsParams);
 					}
 				} catch(Exception e) {
-					log.warn(e);
+					Logger.warn(e);
 				}
 			}			
 		} else if(proj4 != null) {  // no EPSG, set PROJ4

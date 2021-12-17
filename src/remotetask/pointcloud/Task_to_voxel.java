@@ -5,8 +5,8 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -29,7 +29,7 @@ import voxeldb.VoxelDB;
 @Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer.", example="pointcloud1")
 @Param(name="time_slice", type="string", desc="Name of the new voxeldb time slice to create. Only used if pointcloud does not contain time slice entries. (default: untitled)", example="January", required=false)
 public class Task_to_voxel extends CancelableRemoteTask {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -180,7 +180,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 					zmax = z;
 				}
 			}			
-			log.info("PointTable " + xmin + " " + ymin + " " + zmin + "   " + xmax + " "+ ymax + " " + zmax + "     " + len);
+			Logger.info("PointTable " + xmin + " " + ymin + " " + zmin + "   " + xmax + " "+ ymax + " " + zmax + "     " + len);
 
 			long vxmin = (long) Math.floor((xmin - xorigin) / xvoxelsize); 
 			long vymin = (long) Math.floor((ymin - yorigin) / yvoxelsize); 
@@ -207,7 +207,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 					int x = (int) (Math.floor((xs[i] - xorigin) / xvoxelsize) - vxmin);
 					int y = (int) (Math.floor((ys[i] - yorigin) / yvoxelsize) - vymin);
 					int z = (int) (Math.floor((zs[i] - zorigin) / zvoxelsize) - vzmin);
-					//log.info("  " + xs[i] + " " + ys[i] + " " + zs[i] +" -> " + x + " " + y + " " + z + "     " + xorigin +  "  " + xvoxelsize + " " + vxmin);
+					//Logger.info("  " + xs[i] + " " + ys[i] + " " + zs[i] +" -> " + x + " " + y + " " + z + "     " + xorigin +  "  " + xvoxelsize + " " + vxmin);
 					cnt[z][y][x]++;
 
 					if(x < ixmin) {
@@ -230,7 +230,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 					}
 					counter++;
 				}
-				log.info("i " + ixmin + " " + iymin + " " + izmin + "   " + ixmax + " "+ iymax + " " + izmax + "    " + counter);
+				Logger.info("i " + ixmin + " " + iymin + " " + izmin + "   " + ixmax + " "+ iymax + " " + izmax + "    " + counter);
 
 				int cxmin = (int) Math.floorDiv(vxmin, cellsize);
 				int cymin = (int) Math.floorDiv(vymin, cellsize);
@@ -241,7 +241,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 				for(int cz = czmin; cz <= czmax; cz++) {
 					for(int cy = cymin; cy <= cymax; cy++) {
 						for(int cx = cxmin; cx <= cxmax; cx++) {
-							log.info("cx " + cx + "  cy " + cy + "  cz " + cz);
+							Logger.info("cx " + cx + "  cy " + cy + "  cz " + cz);
 							VoxelCell oldVoxelCell = cellFactory.getVoxelCell(cx, cy, cz, t);							
 							int[][][] ccnt = oldVoxelCell == null ? new int[cellsize][cellsize][cellsize] : oldVoxelCell.cnt;
 
@@ -281,7 +281,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 										}
 									}
 								}
-								log.info("vc " + sxmin + " " + symin + " " + szmin + "   " + sxmax + " "+ symax + " " + szmax + "     " + sum);
+								Logger.info("vc " + sxmin + " " + symin + " " + szmin + "   " + sxmax + " "+ symax + " " + szmax + "     " + sum);
 							}*/
 
 							int cvxmin = (cx * cellsize);
@@ -296,7 +296,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 							int lvxmax = cvxmax >= vxmax ? (int) vxmax : cvxmax;
 							int lvymax = cvymax >= vymax ? (int) vymax : cvymax;
 							int lvzmax = cvzmax >= vzmax ? (int) vzmax : cvzmax;
-							log.info("lvxmin " + lvxmin + "  lvymin " + lvymin + "  lvzmin " + lvzmin + "  lvxmax " + lvxmax + "  lvymax " + lvymax + "  lvzmax " + lvzmax +  "  xr " + (lvxmax - lvxmin + 1) +  "  yr " + (lvymax - lvymin + 1) +  "  zr " + (lvzmax - lvzmin + 1));
+							Logger.info("lvxmin " + lvxmin + "  lvymin " + lvymin + "  lvzmin " + lvzmin + "  lvxmax " + lvxmax + "  lvymax " + lvymax + "  lvzmax " + lvzmax +  "  xr " + (lvxmax - lvxmin + 1) +  "  yr " + (lvymax - lvymin + 1) +  "  zr " + (lvzmax - lvzmin + 1));
 							for(int z = lvzmin; z <= lvzmax; z++) {
 								for(int y = lvymin; y <= lvymax; y++) {
 									for(int x = lvxmin; x <= lvxmax; x++) {
@@ -341,7 +341,7 @@ public class Task_to_voxel extends CancelableRemoteTask {
 										}
 									}
 								}
-								log.info("vc " + sxmin + " " + symin + " " + szmin + "   " + sxmax + " "+ symax + " " + szmax + "     " + sum);
+								Logger.info("vc " + sxmin + " " + symin + " " + szmin + "   " + sxmax + " "+ symax + " " + szmax + "     " + sum);
 							}*/
 
 							VoxelCell voxelCell = new VoxelCell(cx, cy, cz, ccnt);

@@ -9,14 +9,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.tinylog.Logger;
 
 import util.collections.vec.Vec;
 import util.tiff.file.TiffFile;
 
 public class TiffReader {
-	private static final Logger log = LogManager.getLogger();
+	
 
 	public interface Seek {
 		void seek(long pos) throws IOException;
@@ -279,9 +279,9 @@ public class TiffReader {
 
 	public int readIFDs(Vec<IFD_Entry> collector, RandomAccessFile raf, DataInput dataInput, boolean littleEndian) throws IOException {
 		long idfPos = raf.getFilePointer();
-		//log.info("idfPos " + idfPos);
+		//Logger.info("idfPos " + idfPos);
 		short ifdLen = dataInput.readShort();
-		log.info("IFD entries " + ifdLen);
+		Logger.info("IFD entries " + ifdLen);
 		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(ifdLen * 12);
 		if(littleEndian) {
 			byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -293,12 +293,12 @@ public class TiffReader {
 			short type = byteBuffer.getShort();
 			int count = byteBuffer.getInt();
 			int offset = byteBuffer.getInt();
-			//log.info("tag" + tag);
+			//Logger.info("tag" + tag);
 			IFD_Entry ifdEntry = IfdEntry.ofTIFF(tag, type, count, offset, dataInput, raf::seek, littleEndian);
 			collector.add(ifdEntry);
 		}
 		raf.seek(idfPos + 2 + ifdLen * 12);
-		//log.info("pos " + raf.getFilePointer());
+		//Logger.info("pos " + raf.getFilePointer());
 		int subtiffIFOOffset = dataInput.readInt();
 		return subtiffIFOOffset;
 	}
@@ -308,7 +308,7 @@ public class TiffReader {
 			int tiffSignature = raf.readInt();
 			if(tiffSignature == TiffFile.TIFFsignatureBE) {
 				int tiffIFOOffset = raf.readInt();
-				log.info("IFD offset " + tiffIFOOffset);				
+				Logger.info("IFD offset " + tiffIFOOffset);				
 				Vec<IFD_Entry> ifdEntries = new Vec<IFD_Entry>();
 				int nextIfdPos = tiffIFOOffset;
 				int IFDcount = 0;
@@ -318,13 +318,13 @@ public class TiffReader {
 					IFDcount++;
 				}
 				for(IFD_Entry ifdEntry : ifdEntries) {
-					log.info(ifdEntry);
+					Logger.info(ifdEntry);
 				}
-				log.info("IFDcount " + IFDcount);
+				Logger.info("IFDcount " + IFDcount);
 			} else if(tiffSignature == TiffFile.TIFFsignatureLEinBE) {
 				LittleEndianRafDataInput dataInput = new LittleEndianRafDataInput(raf);
 				int tiffIFOOffset = dataInput.readInt();
-				//log.info("IFD offset " + tiffIFOOffset);
+				//Logger.info("IFD offset " + tiffIFOOffset);
 				Vec<IFD_Entry> ifdEntries = new Vec<IFD_Entry>();
 				int nextIfdPos = tiffIFOOffset;
 				int IFDcount = 0;
@@ -334,9 +334,9 @@ public class TiffReader {
 					IFDcount++;
 				}
 				for(IFD_Entry ifdEntry : ifdEntries) {
-					log.info(ifdEntry);
+					Logger.info(ifdEntry);
 				}
-				log.info("IFDcount " + IFDcount);
+				Logger.info("IFDcount " + IFDcount);
 			} else {
 				throw new RuntimeException("invalid TIFF signature");
 			}

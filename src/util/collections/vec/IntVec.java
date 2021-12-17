@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 import java.util.function.DoubleConsumer;
 
 public class IntVec {
-	//private static final Logger log = LogManager.getLogger();
+	//
 
 	private static final int[] DEFAULT_SIZED_EMPTY_ARRAY = {};
 
