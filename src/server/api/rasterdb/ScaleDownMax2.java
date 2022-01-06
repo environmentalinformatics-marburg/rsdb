@@ -5,7 +5,7 @@ public class ScaleDownMax2 {
 		if(widthSrc == widthDst && heightSrc == heightDst) {
 			return true;
 		}
-		if(widthSrc <= widthDst || heightSrc <= heightDst) {
+		if(widthSrc < widthDst || heightSrc < heightDst) {
 			return false;
 		}
 		if(widthSrc < 2 || heightSrc < 2) {
@@ -16,12 +16,12 @@ public class ScaleDownMax2 {
 		}
 		return true;
 	}
-	
+
 	public static float[][] scaleDownMax2(float[][] src, int widthSrc, int heightSrc, int widthDst, int heightDst) {
 		if(widthSrc == widthDst && heightSrc == heightDst) {
 			return src;
 		}
-		if(widthSrc <= widthDst || heightSrc <= heightDst) {
+		if(widthSrc < widthDst || heightSrc < heightDst) {
 			throw new RuntimeException();
 		}
 		if(widthSrc < 2 || heightSrc < 2) {
@@ -67,34 +67,62 @@ public class ScaleDownMax2 {
 			}
 		}
 
-		for (int yDst = 0; yDst < heightDst; yDst++) {
-			int yDstSrcPos = yDstSrcPoss[yDst];
-			float[] srcY0 = src[yDstSrcPos];
-			float[] srcY1 = src[yDstSrcPos + 1];
-			float yFrac = yFracs[yDst];
-			float[] dstY = dst[yDst];
-			for (int xDst = 0; xDst < widthDst; xDst++) {
-				float xFrac = xFracs[xDst];
-				int xDstSrcPos = xDstSrcPoss[xDst];
-				//Logger.info(xDst + "  " + xDstSrcPos + "  " + xFrac);
-				float s00 = srcY0[xDstSrcPos];
-				float s01 = srcY0[xDstSrcPos + 1];
-				float s0 = s00 + (s01 - s00) * xFrac;
-				float s10 = srcY1[xDstSrcPos];
-				float s11 = srcY1[xDstSrcPos + 1];
-				float s1 = s10 + (s11 - s10) * xFrac;
-				float s = s0 + (s1 - s0) * yFrac;
-				dstY[xDst] = s;
+		if(widthSrc == widthDst) {
+			for (int yDst = 0; yDst < heightDst; yDst++) {
+				int yDstSrcPos = yDstSrcPoss[yDst];
+				float[] srcY0 = src[yDstSrcPos];
+				float[] srcY1 = src[yDstSrcPos + 1];
+				float yFrac = yFracs[yDst];
+				float[] dstY = dst[yDst];
+				for (int xDst = 0; xDst < widthDst; xDst++) {
+					float s0 = srcY0[xDst];
+					float s1 = srcY1[xDst];
+					float s = s0 + (s1 - s0) * yFrac;
+					dstY[xDst] = s;
+				}
+			}
+		} else if(heightSrc == heightDst) {		
+			for (int yDst = 0; yDst < heightDst; yDst++) {
+				float[] srcY = src[yDst];
+				float[] dstY = dst[yDst];
+				for (int xDst = 0; xDst < widthDst; xDst++) {
+					float xFrac = xFracs[xDst];
+					int xDstSrcPos = xDstSrcPoss[xDst];
+					float s0 = srcY[xDstSrcPos];
+					float s1 = srcY[xDstSrcPos + 1];
+					float s = s0 + (s1 - s0) * xFrac;					
+					dstY[xDst] = s;
+				}
+			}
+		} else {		
+			for (int yDst = 0; yDst < heightDst; yDst++) {
+				int yDstSrcPos = yDstSrcPoss[yDst];
+				float[] srcY0 = src[yDstSrcPos];
+				float[] srcY1 = src[yDstSrcPos + 1];
+				float yFrac = yFracs[yDst];
+				float[] dstY = dst[yDst];
+				for (int xDst = 0; xDst < widthDst; xDst++) {
+					float xFrac = xFracs[xDst];
+					int xDstSrcPos = xDstSrcPoss[xDst];
+					float s00 = srcY0[xDstSrcPos];
+					float s01 = srcY0[xDstSrcPos + 1];
+					float s0 = s00 + (s01 - s00) * xFrac;
+					float s10 = srcY1[xDstSrcPos];
+					float s11 = srcY1[xDstSrcPos + 1];
+					float s1 = s10 + (s11 - s10) * xFrac;
+					float s = s0 + (s1 - s0) * yFrac;
+					dstY[xDst] = s;
+				}
 			}
 		}
 		return dst;
 	}
-	
+
 	public static short[][] scaleDownMax2(short[][] src, int widthSrc, int heightSrc, int widthDst, int heightDst, short na) {
 		if(widthSrc == widthDst && heightSrc == heightDst) {
 			return src;
 		}
-		if(widthSrc <= widthDst || heightSrc <= heightDst) {
+		if(widthSrc < widthDst || heightSrc < heightDst) {
 			throw new RuntimeException();
 		}
 		if(widthSrc < 2 || heightSrc < 2) {
@@ -140,24 +168,53 @@ public class ScaleDownMax2 {
 			}
 		}
 
-		for (int yDst = 0; yDst < heightDst; yDst++) {
-			int yDstSrcPos = yDstSrcPoss[yDst];
-			short[] srcY0 = src[yDstSrcPos];
-			short[] srcY1 = src[yDstSrcPos + 1];
-			float yFrac = yFracs[yDst];
-			short[] dstY = dst[yDst];
-			for (int xDst = 0; xDst < widthDst; xDst++) {
-				float xFrac = xFracs[xDst];
-				int xDstSrcPos = xDstSrcPoss[xDst];
-				//Logger.info(xDst + "  " + xDstSrcPos + "  " + xFrac);
-				float s00 = srcY0[xDstSrcPos];
-				float s01 = srcY0[xDstSrcPos + 1];
-				float s0 = s00 + (s01 - s00) * xFrac;
-				float s10 = srcY1[xDstSrcPos];
-				float s11 = srcY1[xDstSrcPos + 1];
-				float s1 = s10 + (s11 - s10) * xFrac;
-				float s = s0 + (s1 - s0) * yFrac;
-				dstY[xDst] = s00 == na || s01 == na || s10 == na || s11 == na ? na : (short) s;
+		if(widthSrc == widthDst) {
+			for (int yDst = 0; yDst < heightDst; yDst++) {
+				int yDstSrcPos = yDstSrcPoss[yDst];
+				short[] srcY0 = src[yDstSrcPos];
+				short[] srcY1 = src[yDstSrcPos + 1];
+				float yFrac = yFracs[yDst];
+				short[] dstY = dst[yDst];
+				for (int xDst = 0; xDst < widthDst; xDst++) {
+					float s0 = srcY0[xDst];
+					float s1 = srcY1[xDst];
+					float s = s0 + (s1 - s0) * yFrac;
+					dstY[xDst] = s0 == na || s1 == na ? na : (short) s;
+				}
+			}
+		} else if(heightSrc == heightDst) {		
+			for (int yDst = 0; yDst < heightDst; yDst++) {
+				short[] srcY = src[yDst];
+				short[] dstY = dst[yDst];
+				for (int xDst = 0; xDst < widthDst; xDst++) {
+					float xFrac = xFracs[xDst];
+					int xDstSrcPos = xDstSrcPoss[xDst];
+					float s0 = srcY[xDstSrcPos];
+					float s1 = srcY[xDstSrcPos + 1];
+					float s = s0 + (s1 - s0) * xFrac;					
+					dstY[xDst] = s0 == na || s1 == na ? na : (short) s;
+				}
+			}
+		} else {
+			for (int yDst = 0; yDst < heightDst; yDst++) {
+				int yDstSrcPos = yDstSrcPoss[yDst];
+				short[] srcY0 = src[yDstSrcPos];
+				short[] srcY1 = src[yDstSrcPos + 1];
+				float yFrac = yFracs[yDst];
+				short[] dstY = dst[yDst];
+				for (int xDst = 0; xDst < widthDst; xDst++) {
+					float xFrac = xFracs[xDst];
+					int xDstSrcPos = xDstSrcPoss[xDst];
+					//Logger.info(xDst + "  " + xDstSrcPos + "  " + xFrac);
+					float s00 = srcY0[xDstSrcPos];
+					float s01 = srcY0[xDstSrcPos + 1];
+					float s0 = s00 + (s01 - s00) * xFrac;
+					float s10 = srcY1[xDstSrcPos];
+					float s11 = srcY1[xDstSrcPos + 1];
+					float s1 = s10 + (s11 - s10) * xFrac;
+					float s = s0 + (s1 - s0) * yFrac;
+					dstY[xDst] = s00 == na || s01 == na || s10 == na || s11 == na ? na : (short) s;
+				}
 			}
 		}
 		return dst;

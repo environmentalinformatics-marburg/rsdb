@@ -54,7 +54,7 @@ import util.tiff.TiffBand;
 import util.tiff.TiffWriter;
 
 public class RasterdbMethod_wcs extends RasterdbMethod {
-	
+
 
 	private static Driver GDAL_MEM_DRIVER = null;
 
@@ -203,7 +203,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			//Logger.info("direct");
 			directConvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
 		} else {
-			Logger.info("GDAL");
+			Logger.info("GDAL  " + tiffdataType + "   " + srcRange.getWidth() + " x " + srcRange.getHeight() + "  ->  " + dstWidth + " x " + dstHeight);
 			GDALconvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
 		}
 		//Logger.info(Timer.stop("raster convert"));
@@ -250,59 +250,112 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 		int gdalDataType = getGdalDatatypeFromTiffDatatype(tiffdataType);
 		Range2d srcRange = processor.getDstRange();
 
-		Dataset datasetSrc = GDAL_MEM_DRIVER.Create("src", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalDataType);
-		//Driver memDriver = gdal.GetDriverByName("GTiff");
-		//Dataset datasetSrc = memDriver.Create("c:/temp4/gdalfile/t17.tiff", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalconstConstants.GDT_UInt16);
+		String srcFilename = null;
+		Dataset datasetSrc = null;
 		Dataset datasetDst = null;
+		String dstFilename = null;
 
 		try {
-			int bandIndex = 1;
-			for(TimeBand timeband : processingBands) {
-				Band gdalBand = datasetSrc.GetRasterBand(bandIndex);
-				switch(tiffdataType) {
-				case INT16:	{
-					ShortFrame frame = processor.getShortFrame(timeband);
-					for(int y = 0; y < frame.height; y++) {
-						gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+			/*String srcFilenamePart = "src";
+			srcFilename = "/vsimem/" + srcFilenamePart + ".tif";*/
+			/*srcFilename = "/vsimem/rsdb_wcs_in_memory_input"+ memFileIdCounter.incrementAndGet() +".tif";
+			Logger.info(srcFilename);*/
+			srcFilename = ""; // parameter not usable
+			datasetSrc = GDAL_MEM_DRIVER.Create(srcFilename, srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalDataType);
+			//Driver memDriver = gdal.GetDriverByName("GTiff");
+			//Dataset datasetSrc = memDriver.Create("c:/temp4/gdalfile/t17.tiff", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalconstConstants.GDT_UInt16);
+
+			try {
+				int bandIndex = 1;
+				for(TimeBand timeband : processingBands) {
+					Band gdalBand = datasetSrc.GetRasterBand(bandIndex);
+					switch(tiffdataType) {
+					case INT16:	{
+						ShortFrame frame = processor.getShortFrame(timeband);
+						for(int y = 0; y < frame.height; y++) {
+							gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+						}
+						break;
 					}
-					break;
-				}
-				case FLOAT32:	{
-					FloatFrame frame = processor.getFloatFrame(timeband);
-					for(int y = 0; y < frame.height; y++) {
-						gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+					case FLOAT32:	{
+						FloatFrame frame = processor.getFloatFrame(timeband);
+						for(int y = 0; y < frame.height; y++) {
+							gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+						}
+						break;
 					}
-					break;
-				}
-				case FLOAT64: {
-					DoubleFrame frame = processor.getDoubleFrame(timeband);
-					for(int y = 0; y < frame.height; y++) {
-						gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+					case FLOAT64: {
+						DoubleFrame frame = processor.getDoubleFrame(timeband);
+						for(int y = 0; y < frame.height; y++) {
+							gdalBand.WriteRaster(0, y, frame.width, 1, frame.data[y]);
+						}
+						break;
 					}
-					break;
+					default:
+						throw new RuntimeException("unknown tiff data type");
+					}	
+					bandIndex++;
 				}
-				default:
-					throw new RuntimeException("unknown tiff data type");
-				}	
-				bandIndex++;
+
+				Vector<String> options = new Vector<String>();
+				options.add("-outsize");
+				options.add(""+dstWidth);
+				options.add(""+dstHeight);
+
+				options.add("-r");
+				options.add("cubic");
+				TranslateOptions translateOptions = new TranslateOptions(options);
+				dstFilename = "/vsimem/rsdb_wcs_in_memory_output"+ memFileIdCounter.incrementAndGet() +".tif";
+				datasetDst = gdal.Translate(dstFilename, datasetSrc, translateOptions);
+
+				/*Vector<String> v = gdal.ReadDirRecursive("/vsimem");
+				if(v.isEmpty()) {
+					Logger.info("dir FILES no");
+				}
+				for(String e:v) {
+					Logger.info("dir FILE |" + e + "|");
+				}*/
+
+			} finally {
+				/*if(srcFilename != null) { // srcFilename not usable
+					try {						
+						Dataset dataset2 = gdal.Open(srcFilename);
+						Logger.info(dataset2.getRasterXSize() + "  " + dataset2.getRasterYSize());
+						dataset2.delete();
+					} catch(Exception e) {
+						Logger.warn(e);
+					}
+				}*/	
+				if(datasetSrc != null) {					
+					/*try { // no FileList						
+						Vector<String> v = datasetSrc.GetFileList();
+						if(v.isEmpty()) {
+							Logger.info("src FILES no");
+						}
+						for(String e:v) {
+							Logger.info("src FILE |" + e + "|");
+						}
+					} catch(Exception e) {
+						Logger.warn(e);
+					}*/
+					try {
+						datasetSrc.delete();
+						datasetSrc = null;
+					} catch(Exception e) {
+						Logger.warn(e);
+					}
+				}			
+				/*if(srcFilename != null) { // srcFilename not usable
+					try {						
+						int unlinkRes = gdal.Unlink(srcFilename);
+						Logger.info("unlink [" + unlinkRes + "]  " + srcFilename);
+						srcFilename = null;
+					} catch(Exception e) {
+						Logger.warn(e);
+					}
+				}*/			
 			}
 
-			Vector<String> options = new Vector<String>();
-			options.add("-outsize");
-			options.add(""+dstWidth);
-			options.add(""+dstHeight);
-
-			options.add("-r");
-			options.add("cubic");
-			TranslateOptions translateOptions = new TranslateOptions(options);
-			datasetDst = gdal.Translate("/vsimem/rsdb_wcs_in_memory_output"+ memFileIdCounter.incrementAndGet() +".tif", datasetSrc, translateOptions);
-		} finally {
-			if(datasetSrc != null) {
-				datasetSrc.delete();
-			}
-		}
-
-		try {
 			int bandIndex = 1;
 			Short noDataValue = null;
 			for(TimeBand timeband : processingBands) {	
@@ -348,9 +401,73 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			}
 			tiffWriter.setNoDataValue(noDataValue);
 		} finally {
+			/*if(dstFilename != null) { // testing
+				try {						
+					Dataset dataset2 = gdal.Open(dstFilename);
+					Logger.info(dataset2.getRasterXSize() + "  " + dataset2.getRasterYSize());
+					dataset2.delete();
+				} catch(Exception e) {
+					Logger.warn(e);
+				}
+			}*/	
 			if(datasetDst != null) {
-				datasetDst.delete();
+				/*try {
+					Vector<String> v = datasetDst.GetFileList();
+					if(v.isEmpty()) {
+						Logger.info("dst FILES no");
+					}
+					for(String e:v) {
+						Logger.info("dst FILE |" + e + "|");
+					}
+				} catch(Exception e) {
+					Logger.warn(e);
+				}*/
+				try {
+					datasetDst.delete();
+					datasetDst = null;
+				} catch(Exception e) {
+					Logger.warn(e);
+				}
 			}
+			if(dstFilename != null) {
+				try {
+					int unlinkRes = gdal.Unlink(dstFilename);
+					if(unlinkRes != 0) {
+						Logger.warn("unlink [" + unlinkRes + "]  " + dstFilename);
+					}
+					dstFilename = null;
+				} catch(Exception e) {
+					Logger.warn(e);
+				}
+			}
+			if(datasetSrc != null) {					
+				/*try { // no FileList						
+					Vector<String> v = datasetSrc.GetFileList();
+					if(v.isEmpty()) {
+						Logger.info("src FILES no");
+					}
+					for(String e:v) {
+						Logger.info("src FILE |" + e + "|");
+					}
+				} catch(Exception e) {
+					Logger.warn(e);
+				}*/
+				try {
+					datasetSrc.delete();
+					datasetSrc = null;
+				} catch(Exception e) {
+					Logger.warn(e);
+				}
+			}			
+			/*if(srcFilename != null) { // srcFilename not usable
+				try {						
+					int unlinkRes = gdal.Unlink(srcFilename);
+					Logger.info("unlink [" + unlinkRes + "]  " + srcFilename);
+					srcFilename = null;
+				} catch(Exception e) {
+					Logger.warn(e);
+				}
+			}*/
 		}		
 	}
 
