@@ -7,9 +7,14 @@
           <v-icon v-if="tab.icon !== undefined">{{tab.icon}}</v-icon>
           {{tab.title}}
         </v-tab>
-        <span v-if="identity !== undefined && (identity.auth_method === 'login' || identity.auth_method === 'jws')" style="position: absolute; right: 5px; top: 5px;">
-          <a @click="local_logout">
-            <v-icon>meeting_room</v-icon>
+        <span style="position: absolute; right: 5px; top: 5px;">
+          <a href="about.html" target="_blank" style="margin-right: 20px;">
+          <v-icon color="grey lighten-2">assignment</v-icon>
+          About
+          </a>
+
+          <a @click="local_logout" v-if="identity !== undefined && (identity.auth_method === 'login' || identity.auth_method === 'jws')">
+            <v-icon color="grey lighten-2">meeting_room</v-icon>
             logout
           </a>
         </span>
