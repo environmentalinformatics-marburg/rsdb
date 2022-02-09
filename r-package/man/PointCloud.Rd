@@ -15,10 +15,10 @@ pointcloud <- remotesensing$pointcloud(name)
 
 # operate on opened pointcloud:
 
-pointcloud$points(ext, columns=NULL, filter=NULL, normalise=NULL)
-pointcloud$raster(ext, res=1, type="point_count", fill=10)
-pointcloud$volume(ext, res=1, zres=res)
-pointcloud$indices(areas, functions, omit_empty_areas=TRUE)
+pointcloud$points(ext, columns=NULL, filter=NULL, normalise=NULL, time_slice_id=NULL, time_slice_name=NULL)
+pointcloud$raster(ext, res=1, type="point_count", fill=10, time_slice_id=NULL, time_slice_name=NULL)
+pointcloud$volume(ext, res=1, zres=res, time_slice_id=NULL, time_slice_name=NULL)
+pointcloud$indices(areas, functions, omit_empty_areas=TRUE, time_slice_id=NULL, time_slice_name=NULL)
 
 pointcloud$name
 pointcloud$meta
@@ -29,6 +29,7 @@ pointcloud$description
 pointcloud$raster_list
 pointcloud$attribute_list
 pointcloud$index_list
+pointcloud$time_slices
 }
 \description{
 PointCloud class provides methods to access (LiDAR) point-clouds of Remote Sensing Database.
@@ -41,7 +42,7 @@ Use instance of \link{RemoteSensing} class to create instances of PointCloud.
 
 \describe{
 
-\item{$points(ext, columns=NULL, filter=NULL, normalise=NULL)}{Get pointcloud points.
+\item{$points(ext, columns=NULL, filter=NULL, normalise=NULL, time_slice_id=NULL, time_slice_name=NULL)}{Get pointcloud points.
 
 returns: data.frame
 
@@ -77,7 +78,7 @@ Multiple Normalisations may be combined by list of characters or by comma separa
 
 }
 
-\item{$raster(ext, res=1, type="point_count", fill=10)}{Process pointcloud to raster.
+\item{$raster(ext, res=1, type="point_count", fill=10, time_slice_id=NULL, time_slice_name=NULL)}{Process pointcloud to raster.
 
 returns: RasterLayer
 
@@ -97,7 +98,7 @@ For available types see "$raster_list".
 
 }
 
-\item{$volume(ext, res=1, zres=res)}{Process pointcloud to voxels (multiple layers of rasters).
+\item{$volume(ext, res=1, zres=res, time_slice_id=NULL, time_slice_name=NULL)}{Process pointcloud to voxels (multiple layers of rasters).
 
 returns: RasterStack
 
@@ -113,7 +114,7 @@ ext is of type 'bbox' or 'Extent' (rectangular area).
 
 }
 
-\item{$indices(areas, functions, omit_empty_areas=TRUE)}{calculate metrices at areas.
+\item{$indices(areas, functions, omit_empty_areas=TRUE, time_slice_id=NULL, time_slice_name=NULL)}{calculate metrices at areas.
 
 returns: data.frame
 
@@ -280,7 +281,14 @@ woellauer
 \if{latex}{\out{\hypertarget{method-points}{}}}
 \subsection{Method \code{points()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(ext, columns = NULL, filter = NULL, normalise = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(
+  ext,
+  columns = NULL,
+  filter = NULL,
+  normalise = NULL,
+  time_slice_id = NULL,
+  time_slice_name = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -289,7 +297,14 @@ woellauer
 \if{latex}{\out{\hypertarget{method-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PointCloud$raster(ext, res = 1, type = "point_count", fill = 10)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PointCloud$raster(
+  ext,
+  res = 1,
+  type = "point_count",
+  fill = 10,
+  time_slice_id = NULL,
+  time_slice_name = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -298,7 +313,13 @@ woellauer
 \if{latex}{\out{\hypertarget{method-volume}{}}}
 \subsection{Method \code{volume()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PointCloud$volume(ext, res = 1, zres = res)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PointCloud$volume(
+  ext,
+  res = 1,
+  zres = res,
+  time_slice_id = NULL,
+  time_slice_name = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -307,7 +328,13 @@ woellauer
 \if{latex}{\out{\hypertarget{method-indices}{}}}
 \subsection{Method \code{indices()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PointCloud$indices(areas, functions, omit_empty_areas = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PointCloud$indices(
+  areas,
+  functions,
+  omit_empty_areas = TRUE,
+  time_slice_id = NULL,
+  time_slice_name = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }

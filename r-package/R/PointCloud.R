@@ -282,10 +282,10 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' # operate on opened pointcloud:
 #'
-#' pointcloud$points(ext, columns=NULL, filter=NULL, normalise=NULL)
-#' pointcloud$raster(ext, res=1, type="point_count", fill=10)
-#' pointcloud$volume(ext, res=1, zres=res)
-#' pointcloud$indices(areas, functions, omit_empty_areas=TRUE)
+#' pointcloud$points(ext, columns=NULL, filter=NULL, normalise=NULL, time_slice_id=NULL, time_slice_name=NULL)
+#' pointcloud$raster(ext, res=1, type="point_count", fill=10, time_slice_id=NULL, time_slice_name=NULL)
+#' pointcloud$volume(ext, res=1, zres=res, time_slice_id=NULL, time_slice_name=NULL)
+#' pointcloud$indices(areas, functions, omit_empty_areas=TRUE, time_slice_id=NULL, time_slice_name=NULL)
 #'
 #' pointcloud$name
 #' pointcloud$meta
@@ -296,6 +296,7 @@ PointCloud_private <- list( #      *********** private *************************
 #' pointcloud$raster_list
 #' pointcloud$attribute_list
 #' pointcloud$index_list
+#' pointcloud$time_slices
 #'
 #' @format
 #' PointCloud \link{R6Class} object.
@@ -307,7 +308,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' \describe{
 #'
-#' \item{$points(ext, columns=NULL, filter=NULL, normalise=NULL)}{Get pointcloud points.
+#' \item{$points(ext, columns=NULL, filter=NULL, normalise=NULL, time_slice_id=NULL, time_slice_name=NULL)}{Get pointcloud points.
 #'
 #' returns: data.frame
 #'
@@ -344,7 +345,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' }
 #'
-#' \item{$raster(ext, res=1, type="point_count", fill=10)}{Process pointcloud to raster.
+#' \item{$raster(ext, res=1, type="point_count", fill=10, time_slice_id=NULL, time_slice_name=NULL)}{Process pointcloud to raster.
 #'
 #' returns: RasterLayer
 #'
@@ -364,7 +365,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' }
 #'
-#' \item{$volume(ext, res=1, zres=res)}{Process pointcloud to voxels (multiple layers of rasters).
+#' \item{$volume(ext, res=1, zres=res, time_slice_id=NULL, time_slice_name=NULL)}{Process pointcloud to voxels (multiple layers of rasters).
 #'
 #' returns: RasterStack
 #'
@@ -380,7 +381,7 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' }
 #'
-#' \item{$indices(areas, functions, omit_empty_areas=TRUE)}{calculate metrices at areas.
+#' \item{$indices(areas, functions, omit_empty_areas=TRUE, time_slice_id=NULL, time_slice_name=NULL)}{calculate metrices at areas.
 #'
 #' returns: data.frame
 #'
