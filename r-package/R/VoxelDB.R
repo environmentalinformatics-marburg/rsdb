@@ -234,6 +234,10 @@ active = list(
     ext <- raster::extent(ext3d$xmin, ext3d$xmax, ext3d$ymin, ext3d$ymax)
     return(ext)
   },
+  extent3d = function() {
+    ext3d <- private$meta_$extent
+    return(ext3d)
+  },
   xmin = function() {
     return(private$meta_$extent$xmin)
   },

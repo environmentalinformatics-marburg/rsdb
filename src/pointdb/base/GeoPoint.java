@@ -15,6 +15,7 @@ public class GeoPoint {
 	public final byte scanAngleRank;
 	/**
 	 * classifications:
+	 * <br> 0: not classified
 	 * <br> 1: Unclassified
 	 * <br> 2: Ground
 	 * <br> 3: Low Vegetation
@@ -182,6 +183,7 @@ public class GeoPoint {
 				|| classification == 4  // medium vegetation
 				|| classification == 5  // high vegetation 
 				|| classification == 13  // wire - guard
+				|| classification == 0 // not classified
 				|| classification == 1 // unassigned
 				|| classification == 20; // (non standard) vegetation
 	}

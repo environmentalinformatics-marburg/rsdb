@@ -377,6 +377,7 @@ public class CellTable {
 				|| classification == 4  // medium vegetation
 				|| classification == 5  // high vegetation 
 				|| classification == 13  // wire - guard
+				|| classification == 0 // not classified
 				//|| classification == 1 // unassigned
 				|| classification == 20; // (non standard) vegetation
 	}

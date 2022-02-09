@@ -13,7 +13,7 @@ PointCloud_public <- list( #      *********** public ***************************
     private$meta_ <- m$pointcloud
   },
 
-  points = function(ext, columns=NULL, filter=NULL, normalise=NULL) {
+  points = function(ext, columns=NULL, filter=NULL, normalise=NULL, time_slice_id=NULL, time_slice_name=NULL) {
     if(is(ext, "bbox")) {
       warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
       ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
@@ -54,6 +54,14 @@ PointCloud_public <- list( #      *********** public ***************************
       normaliseText <- paste0(normalise, collapse=",")
       param_list <- c(param_list, normalise=normaliseText)
     }
+    if(!is.null(time_slice_id)) {
+      stopifnot(is.character(time_slice_id))
+      param_list <- c(param_list, time_slice_id=time_slice_id)
+    }
+    if(!is.null(time_slice_name)) {
+      stopifnot(is.character(time_slice_name))
+      param_list <- c(param_list, time_slice_name=time_slice_name)
+    }
     #return(query_RDAT(private$url, "points.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
     path <- paste0("/pointclouds/", private$name_, "/points.rdat")
     query <- as.list(param_list)
@@ -61,7 +69,7 @@ PointCloud_public <- list( #      *********** public ***************************
     return(rdat)
   },
 
-  raster = function(ext, res=1, type="point_count", fill=10) {
+  raster = function(ext, res=1, type="point_count", fill=10, time_slice_id=NULL, time_slice_name=NULL) {
     if(is(ext, "bbox")) {
       warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
       ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
@@ -84,6 +92,14 @@ PointCloud_public <- list( #      *********** public ***************************
       stopifnot(length(fill) == 1)
       param_list <- c(param_list, fill=fill)
     }
+    if(!is.null(time_slice_id)) {
+      stopifnot(is.character(time_slice_id))
+      param_list <- c(param_list, time_slice_id=time_slice_id)
+    }
+    if(!is.null(time_slice_name)) {
+      stopifnot(is.character(time_slice_name))
+      param_list <- c(param_list, time_slice_name=time_slice_name)
+    }
     #return(query_RDAT(private$url, "raster.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
     path <- paste0("/pointclouds/", private$name_, "/raster.rdat")
     query <- as.list(param_list)
@@ -91,7 +107,7 @@ PointCloud_public <- list( #      *********** public ***************************
     return(rdat)
   },
 
-  volume = function(ext, res=1, zres=res) {
+  volume = function(ext, res=1, zres=res, time_slice_id=NULL, time_slice_name=NULL) {
     if(is(ext, "bbox")) {
       warning("convert sf::st_bbox to raster::extent by ignoring bbox crs")
       ext <- raster::extent(ext$xmin, ext$xmax, ext$ymin, ext$ymax) # convert bbox to Extent
@@ -109,6 +125,14 @@ PointCloud_public <- list( #      *********** public ***************************
       stopifnot(length(zres) == 1)
       param_list <- c(param_list, zres=zres)
     }
+    if(!is.null(time_slice_id)) {
+      stopifnot(is.character(time_slice_id))
+      param_list <- c(param_list, time_slice_id=time_slice_id)
+    }
+    if(!is.null(time_slice_name)) {
+      stopifnot(is.character(time_slice_name))
+      param_list <- c(param_list, time_slice_name=time_slice_name)
+    }
     #return(query_RDAT(private$url, "volume.rdat", param_list, curl = RCurl::dupCurlHandle(private$curlHandle)))
     path <- paste0("/pointclouds/", private$name_, "/volume.rdat")
     query <- as.list(param_list)
@@ -116,7 +140,7 @@ PointCloud_public <- list( #      *********** public ***************************
     return(rdat)
   },
 
-  indices = function(areas, functions, omit_empty_areas=TRUE) {
+  indices = function(areas, functions, omit_empty_areas=TRUE, time_slice_id=NULL, time_slice_name=NULL) {
     stopifnot(is(omit_empty_areas, "logical"))
     if(is(areas, "SpatialPolygons")) {
       areas <- convert_SpatialPolygons_to_named_matrix_list(areas)
@@ -154,6 +178,16 @@ PointCloud_public <- list( #      *********** public ***************************
     }
     translated_areas <- mapply(FUN=translate_area, areas, titles, SIMPLIFY=FALSE, USE.NAMES=FALSE)
     data <- list(areas=translated_areas, functions=functions, omit_empty_areas=omit_empty_areas)
+
+    if(!is.null(time_slice_id)) {
+      stopifnot(is.character(time_slice_id))
+      data <- c(data, time_slice_id=time_slice_id)
+    }
+    if(!is.null(time_slice_name)) {
+      stopifnot(is.character(time_slice_name))
+      data <- c(data, time_slice_name=time_slice_name)
+    }
+
     #return(post_json_get_rdat(data=data, private$url, method="indices.rdat", curl=RCurl::dupCurlHandle(private$curlHandle)))
     path <- paste0("/pointclouds/", private$name_, "/indices.rdat")
     query <- list()
@@ -203,6 +237,10 @@ PointCloud_active <- list( #      *********** active ***************************
 
   attribute_list = function() {
     return(private$meta_$attributes)
+  },
+
+  time_slices = function() {
+    return(private$meta_$time_slices)
   },
 
   index_list = function() {
