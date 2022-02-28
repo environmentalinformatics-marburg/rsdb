@@ -348,6 +348,10 @@ public class PointCloud implements AutoCloseable {
 	public double getCellsize() {
 		return cellsize;
 	}
+	
+	public int getCellLocalMax() {
+		return ((int) Math.floor(cellsize * cellscale)) - 1;
+	}
 
 	public DoublePoint getCelloffset() {
 		return celloffset;

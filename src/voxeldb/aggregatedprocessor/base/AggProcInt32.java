@@ -32,4 +32,8 @@ public abstract class AggProcInt32 extends AggProc {
 		}		
 		VoxelWriter.writeInt32(data, cellFactory.getvoxeldb().getName(), aggRef, aggRange, response, format);		
 	}
+	
+	public int[][][] getData() {
+		return dst;
+	}
 }

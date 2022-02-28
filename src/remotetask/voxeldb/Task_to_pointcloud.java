@@ -1,11 +1,7 @@
 package remotetask.voxeldb;
 
-import java.util.Collection;
-import java.util.Iterator;
-
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.TimeSlice;
@@ -20,7 +16,7 @@ import voxeldb.CellFactory;
 import voxeldb.VoxelDB;
 
 @task_voxeldb("to_pointcloud")
-@Description("Convert voxels to pointcloud. One (filled) voxel leads to one pointcloud point. Currently first timeslice only.")
+@Description("Convert voxels to pointcloud. One (filled) voxel leads to one pointcloud point.")
 @Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer. (target) (if layer exists, delete)", example="pointcloud1", required=false)
 public class Task_to_pointcloud extends RemoteTask {
@@ -54,10 +50,29 @@ public class Task_to_pointcloud extends RemoteTask {
 		
 		pointcloud.setProj4(voxeldb.geoRef().proj4);
 		pointcloud.setCodeEPSG(voxeldb.geoRef().epsg);
-		double cellscale = voxeldb.geoRef().voxelSizeX;
-		pointcloud.trySetCellscale(1d / cellscale);
-		pointcloud.trySetCellsize(cellsize * cellscale);
-		pointcloud.getOrSetCelloffset(0, 0);
+		double voxelSizeX = voxeldb.geoRef().voxelSizeX;
+		double voxelSizeY = voxeldb.geoRef().voxelSizeY;
+		double voxelSizeZ = voxeldb.geoRef().voxelSizeZ;
+		Logger.info("voxel size " + voxelSizeX + " " + voxelSizeY + " " + voxelSizeZ);
+		if(voxelSizeX != voxelSizeY) {
+			throw new RuntimeException("voxel to pointcloud transformation implemented for voxelSizeX = voxelSizeY only.   " + voxelSizeX + "   " + voxelSizeY);
+		}
+		
+		double pointcloudCellScale = 1d / voxelSizeX;
+		Logger.info("pointcloud cell scale " + pointcloudCellScale);
+		pointcloud.trySetCellscale(pointcloudCellScale);
+		
+		double pointcloudCellSize = cellsize * voxelSizeX;
+		Logger.info("pointcloud cell size " + pointcloudCellSize);
+		pointcloud.trySetCellsize(pointcloudCellSize);
+		
+		//double originX = voxeldb.geoRef().originX;
+		//double originY = voxeldb.geoRef().originY;
+		double originZ = voxeldb.geoRef().originZ;
+		//Logger.info("voxel origin " + originX + " " + originY + " " + originZ);
+		//pointcloud.getOrSetCelloffset(originX, originY);
+		int integerOriginZ = (int) Math.round(originZ / voxelSizeZ);
+		Logger.info("pointcloud integer origin z " + integerOriginZ);
 
 		CellFactory cf = CellFactory.ofCount(voxeldb);
 		for(TimeSlice timeSlice : voxeldb.timeMapReadonly.values()) {
@@ -87,7 +102,7 @@ public class Task_to_pointcloud extends RemoteTask {
 					}
 
 					for(int zi = 0; zi < cellsize; zi++) {
-						int z = voxelCell.z * cellsize + zi;  
+						int z = voxelCell.z * cellsize + zi + integerOriginZ;  
 						for(int y = 0; y < cellsize; y++) {
 							for(int x = 0; x < cellsize; x++) {
 								int v = cnt[zi][y][x];
@@ -147,9 +162,5 @@ public class Task_to_pointcloud extends RemoteTask {
 
 		pointcloud.close();
 		voxeldb.close();
-
-
 	}
-
-
 }
