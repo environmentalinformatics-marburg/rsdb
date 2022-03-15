@@ -38,6 +38,9 @@ public class YamlUtil {
 			PrintWriter out = new PrintWriter(fileWriter);
 			new Yaml().dump(yamlMap, out);
 			out.close();
+			if(out.checkError()) {
+				throw new RuntimeException("write error");	
+			}
 			Files.move(writepath, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
