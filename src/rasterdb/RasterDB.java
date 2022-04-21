@@ -1,6 +1,7 @@
 package rasterdb;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,19 +11,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.stream.Collectors;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 import org.locationtech.proj4j.CRSFactory;
+import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Associated;
@@ -38,6 +39,7 @@ import rasterunit.RasterUnitStorage;
 import rasterunit.TileStorage;
 import rasterunit.TileStorageConfig;
 import util.Range2d;
+import util.Util;
 import util.yaml.YamlMap;
 
 public class RasterDB implements AutoCloseable {
@@ -696,5 +698,41 @@ public class RasterDB implements AutoCloseable {
 		customWmsMap.clear();
 		customWmsMap.putAll(map);
 		writeMeta();
+	}
+	
+	public List<Path> getAttachmentFilenames() {		
+		File[] fullfiles = this.config.getAttachmentFolderPath().toFile().listFiles();
+		if(fullfiles == null) {
+			//throw new RuntimeException("data directory does not exist");
+			//Logger.warn("attachment directory does not exist");
+			return java.util.Collections.emptyList();
+		}
+		List<Path> files = Arrays.stream(fullfiles).map(file -> {
+			//return file.toPath();//.relativize(config.dataPath);
+			return this.config.getAttachmentFolderPath().relativize(file.toPath());
+		}).collect(Collectors.toList());
+		return files;		
+	}
+	
+	public Path getAttachmentFilePath(String targetFilename) {
+		List<Path> filenames = getAttachmentFilenames();
+		Path filenamePath = null; 
+		for(Path filename : filenames) {
+			if(filename.toString().equals(targetFilename)) {
+				filenamePath = filename;
+				break;
+			}				
+		}
+		if(filenamePath == null) {
+			throw new RuntimeException("file not found");
+		}
+		Path root = config.getAttachmentFolderPath();
+		Path filePath = root.resolve(filenamePath);
+		return filePath;
+	}
+	
+	public void removeAttachmentFile(String filename) throws IOException {
+		Path path = getAttachmentFilePath(filename);
+		Util.safeDeleteIfExists(this.config.getAttachmentFolderPath(), path);
 	}
 }

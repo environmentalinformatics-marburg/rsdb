@@ -97,6 +97,20 @@
                 </div>
             </div>
 
+            <div>
+                <v-divider class="meta-divider"></v-divider> 
+                <h3 class="subheading mb-0">
+                    <admin-rasterdb-dialog-attachment-files :meta="meta" @changed="refresh" /> Attachments  <a :href="urlPrefix + '../../rasterdb/' + meta.name + '/attachments.zip'" :download="meta.name + '_attachments.zip'"  target="_blank" title="Download attachments as ZIP-file." style="font-size: 0.7em" v-if="meta.attachment_filenames.length > 0"><v-icon color="blue">cloud_download</v-icon>(download)</a>
+                </h3>
+                <div class="meta-content" v-if="meta.attachment_filenames.length > 0">
+                    <table>
+                        <tr v-for="filename in meta.attachment_filenames" :key="filename">
+                            <td><a :href="urlPrefix + '../../rasterdb/' + meta.name + '/attachments/' + filename" target="_blank">{{filename}}</a></td>
+                        </tr>
+                    </table> 
+                </div>
+            </div>            
+
             <div v-if="meta.bands.length > 0">
                 <v-divider class="meta-divider"></v-divider>
                 <h3 class="subheading mb-0"> 
@@ -272,6 +286,7 @@ import adminRasterdbDialogCustom_wms from './admin-rasterdb-dialog-custom_wms'
 import adminRasterdbDialogBands from './admin-rasterdb-dialog-bands.vue'
 import adminRasterdbDialogWms from './admin-rasterdb-dialog-wms.vue'
 import adminRasterdbDialogWcs from './admin-rasterdb-dialog-wcs.vue'
+import adminRasterdbDialogAttachmentFiles from './admin-rasterdb-dialog-attachment-files.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
 export default {
@@ -288,6 +303,7 @@ export default {
         'admin-rasterdb-bands': adminRasterdbDialogBands,
         'admin-rasterdb-dialog-wms': adminRasterdbDialogWms,
         'admin-rasterdb-dialog-wcs': adminRasterdbDialogWcs,
+        'admin-rasterdb-dialog-attachment-files': adminRasterdbDialogAttachmentFiles,
         PulseLoader,
     },
     props: ['rasterdb'],
@@ -307,7 +323,7 @@ export default {
         refresh(more_details) {
             var self = this;
             this.$store.dispatch('rasterdbs/refresh');
-            var url = this.$store.getters.apiUrl('rasterdb/' + self.rasterdb + '/meta.json');
+            var url = this.$store.getters.apiUrl('rasterdb/' + self.rasterdb + '/meta.json?attachment_filenames');
             var params = {};
             if(more_details) {
                 params.tile_count = true;

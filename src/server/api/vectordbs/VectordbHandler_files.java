@@ -74,5 +74,4 @@ public class VectordbHandler_files extends VectordbHandler {
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType("text/plain;charset=utf-8");
 	}
-
 }

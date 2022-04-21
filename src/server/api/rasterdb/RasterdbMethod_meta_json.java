@@ -1,6 +1,8 @@
 package server.api.rasterdb;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.TreeSet;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,7 +29,7 @@ import util.Range2d;
 import util.TimeUtil;
 
 public class RasterdbMethod_meta_json extends RasterdbMethod {
-	
+
 
 	public RasterdbMethod_meta_json(Broker broker) {
 		super(broker, "meta.json");	
@@ -41,7 +43,9 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			boolean requestTileCount = request.getParameter("tile_count") != null;
 			boolean requestTileSizeStats = request.getParameter("tile_size_stats") != null;
 			boolean requestStorageSize = request.getParameter("storage_size") != null;
-			boolean requestInternalStorageInternalFreeSize = request.getParameter("storage_internal_free_size") != null;			
+			boolean requestInternalStorageInternalFreeSize = request.getParameter("storage_internal_free_size") != null;
+			boolean requestAttachment_filenames = request.getParameter("attachment_filenames") != null;
+
 
 			GeoReference ref = rasterdb.ref();
 
@@ -151,7 +155,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				json.endObject();
 			}
 			json.endArray();
-			
+
 			json.key("time_slices");
 			json.array();
 			TreeSet<Integer> timestamps = new TreeSet<Integer>();
@@ -285,6 +289,13 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				customWMS.writeJson(json);
 			});
 			json.endObject();
+			if(requestAttachment_filenames) {
+				json.key("attachment_filenames");
+				json.array();
+				List<Path> files = rasterdb.getAttachmentFilenames();			
+				files.stream().map(Path::toString).sorted(String.CASE_INSENSITIVE_ORDER).forEach(json::value);
+				json.endArray();
+			}
 			json.endObject(); // end full object
 		} catch(Exception e) {
 			e.printStackTrace();

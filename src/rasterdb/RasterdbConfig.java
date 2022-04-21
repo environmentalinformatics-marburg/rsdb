@@ -1,5 +1,6 @@
 package rasterdb;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -14,6 +15,8 @@ public class RasterdbConfig {
 	public String preferredStorageType = RasterDB.STORAGE_TYPE_TILE_STORAGE; // nullable
 	public String preferredPyramidType = RasterDB.PYRAMID_TYPE_COMPACT_DIV2; // nullable
 	public int preferredTilePixelLen = 256;
+	
+	private Path attachmentFolderPath;
 
 	private RasterdbConfig() {
 		fast_unsafe_import = false;
@@ -46,7 +49,9 @@ public class RasterdbConfig {
 			name = path.toString().trim();
 		} else {
 			name = filename;
-		}		
+		}
+		
+		this.attachmentFolderPath = path.resolve("attachments");
 	}
 
 	public Path getPath() {
@@ -63,5 +68,9 @@ public class RasterdbConfig {
 	
 	public boolean is_fast_unsafe_import() {
 		return fast_unsafe_import;
+	}
+	
+	public Path getAttachmentFolderPath() {
+		return this.attachmentFolderPath;		
 	}
 }

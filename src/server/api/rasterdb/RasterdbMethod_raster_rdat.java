@@ -10,7 +10,6 @@ import broker.Broker;
 import rasterdb.RasterDB;
 
 public class RasterdbMethod_raster_rdat extends RasterdbMethod {
-	//
 
 	public RasterdbMethod_raster_rdat(Broker broker) {
 		super(broker, "raster.rdat");	

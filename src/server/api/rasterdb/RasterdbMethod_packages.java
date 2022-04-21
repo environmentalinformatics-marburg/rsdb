@@ -19,24 +19,22 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import jakarta.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.osr.SpatialReference;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Broker;
 import broker.Informal;
 import broker.InformalProperties.Builder;
 import broker.TimeSlice;
+import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.Band;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
