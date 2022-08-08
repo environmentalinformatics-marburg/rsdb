@@ -2,16 +2,18 @@
     <span>
         <v-dialog v-model="dialog" lazy absolute width="800px">
             <v-card>
-                <v-card-title>
+                <v-card-actions style="background-color: #0000001a;">
                     <div class="headline">Task Console</div>
-                </v-card-title>
+                    <v-spacer></v-spacer>
+                    <v-btn title="Close task console. A running task will continue to run." icon><v-icon @click="dialog = false;">close</v-icon></v-btn>  
+                </v-card-actions>
                 <v-icon v-if="remote_task.status === 'READY'" color="yellow">directions_walk</v-icon>
                 <v-icon v-if="remote_task.status === 'RUNNING'" color="black">directions_run</v-icon>
                 <v-icon v-if="remote_task.status === 'DONE'" color="green">done</v-icon>
                 <v-icon v-if="remote_task.status === 'ERROR'" color="red">error</v-icon>
                 {{remote_task.status}}
                 <span style="padding-left: 50px;">
-                <span v-if="(remote_task.status === 'READY' || remote_task.status === 'RUNNING') && !remote_task.canceled && remote_task.cancelable"><v-btn icon @click="cancel(remote_task.id)"><v-icon>cancel</v-icon> cancel</v-btn></span>
+                <span v-if="(remote_task.status === 'READY' || remote_task.status === 'RUNNING') && !remote_task.canceled && remote_task.cancelable"><v-btn icon @click="cancel(remote_task.id)" title="Request cancelling of current task."><v-icon>cancel</v-icon> cancel</v-btn></span>
                 <span v-if="!remote_task.canceled && !remote_task.cancelable">---</span>
                 <span v-if="remote_task.canceled">cancel requested</span>
                 </span>

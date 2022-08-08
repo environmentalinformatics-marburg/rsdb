@@ -160,7 +160,7 @@ export default {
             this.$delete(this.custom_wms, id);
         },
 
-         wmsUrl(id) {
+        wmsUrl(id) {
             return this.identity === undefined || this.meta === undefined ? '[unknown]' : (this.identity.url_base + '/rasterdb/' + this.meta.name + '/wms/' + id);
         },
 

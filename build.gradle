@@ -47,9 +47,13 @@ eclipse {
 repositories {
     mavenCentral()
     
-    maven { // needed for compile group: 'com.github.aelstad', name: 'keccakj', version: '1.1.0'
+    /*maven { // needed for compile group: 'com.github.aelstad', name: 'keccakj', version: '1.1.0', server not always reachable
       url 'https://repository.mulesoft.org/nexus/content/repositories/public'
-    }
+    }*/
+    
+    flatDir { // local jar files, keccakj
+       dirs 'lib'
+   	}
 }
 
 dependencies {
@@ -92,7 +96,7 @@ dependencies {
 	
 	//implementation group: 'org.imintel', name: 'mbtiles4j', version: '1.0.6' // mbtiles currently not used
 	
-	implementation group: 'com.github.aelstad', name: 'keccakj', version: '1.1.0'		
+	//implementation group: 'com.github.aelstad', name: 'keccakj', version: '1.1.0' // server not always reachable			
 }
 
 sourceSets.main.java.srcDir 'src'

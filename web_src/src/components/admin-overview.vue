@@ -7,12 +7,13 @@
           <h1 class="headline mb-0">Remote Sensing Database</h1>
           <v-divider></v-divider>
           <v-card-title>
-            <span class="component"><a href="#/layers"><div><img src="images/layers.png" /></div><div class="component-text">Layers</div></a></span>
-            <span class="component"><a href="#/explorer"><div><img src="images/catalog2.png" /></div><div class="component-text">Map Explorer</div></a></span>
-            <span class="component"><a href="#/viewer"><div><img src="images/rasterdb_image.png" /></div><div class="component-text">Layer Viewer</div></a></span>
+            <span class="component"><a href="#/layers"><div><img src="images/layers.png" /></div><div class="component-text"><b>Layers</b></div></a></span>
+            <span class="component"><a href="#/explorer"><div><img src="images/catalog2.png" /></div><div class="component-text"><b>Map Explorer</b></div></a></span>
+            <span class="component"><a href="#/viewer"><div><img src="images/rasterdb_image.png" /></div><div class="component-text"><b>Layer Viewer</b></div></a></span>
             <!--<span class="component"><a href="#/upload"><div><img src="images/upload.png" /></div><div class="component-text">File Upload</div></a></span>-->
-            <span class="component"><a :href="old_interface_url" target="_blank"><div><img src="images/old_interface.png" /></div><div class="component-text">old web interface</div></a></span>
+            <!--<span class="component"><a :href="old_interface_url" target="_blank"><div><img src="images/old_interface.png" /></div><div class="component-text">old web interface</div></a></span>-->
           </v-card-title>
+          <v-divider style="padding-bottom: 100px;"></v-divider>
           <v-divider></v-divider>
           <v-card-title>
             <span class="component"><a :href="indices_processing_url" target="_blank"><div><img src="images/lidar_indices_processing.png" /></div><div class="component-text">LiDAR indices processing</div></a></span>
