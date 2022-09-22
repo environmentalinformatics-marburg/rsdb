@@ -782,13 +782,21 @@ public class PointCloud implements AutoCloseable {
 	public void check(UserIdentity userIdentity) {
 		acl.check(userIdentity);
 	}
+	
+	public void check(UserIdentity userIdentity, String location) {
+		acl.check(userIdentity, location);
+	}
 
 	public boolean isAllowedMod(UserIdentity userIdentity) {
 		return acl_mod.isAllowed(userIdentity);
 	}
-
+	
 	public void checkMod(UserIdentity userIdentity) {
 		acl_mod.check(userIdentity);
+	}
+
+	public void checkMod(UserIdentity userIdentity, String location) {
+		acl_mod.check(userIdentity, location);
 	}
 
 	public void setACL(ACL acl) {

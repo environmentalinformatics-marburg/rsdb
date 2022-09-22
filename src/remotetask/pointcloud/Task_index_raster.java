@@ -1,10 +1,7 @@
 package remotetask.pointcloud;
 
 
-import org.tinylog.Logger;
-
 import broker.TimeSlice;
-import broker.acl.EmptyACL;
 import pointcloud.PointCloud;
 import remotetask.Context;
 import remotetask.Description;
@@ -30,8 +27,8 @@ public class Task_index_raster extends Abstract_task_index_raster {
 	private static DataProvider2Factory getDpFactory(Context ctx) {
 		String name = ctx.task.getString("pointcloud");
 		PointCloud pointcloud = ctx.broker.getPointCloud(name);
-		pointcloud.check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		pointcloud.check(ctx.userIdentity, "pointdb parameter of pointcloud index_raster");
+		//EmptyACL.ADMIN.check(ctx.userIdentity); // modify rights are checked directly at target rasterdb
 		int t = 0;
 		String time_slice = ctx.task.optString("time_slice", null);
 		if(time_slice != null) {

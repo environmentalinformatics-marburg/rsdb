@@ -1,9 +1,6 @@
 package remotetask.pointdb;
 
 
-import org.tinylog.Logger;
-
-import broker.acl.EmptyACL;
 import pointdb.PointDB;
 import remotetask.Context;
 import remotetask.Description;
@@ -26,8 +23,8 @@ public class Task_index_raster extends Abstract_task_index_raster {
 	private static DataProvider2Factory getDpFactory(Context ctx) {
 		String name = ctx.task.getString("pointdb");
 		PointDB pointdb = ctx.broker.getPointdb(name);
-		pointdb.config.getAcl().check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		pointdb.config.getAcl().check(ctx.userIdentity, "pointdb parameter of pointdb index_raster");
+		// EmptyACL.ADMIN.check(ctx.userIdentity); // modify rights are checked directly at target rasterdb
 		return new DataProvider2FactoryPointdb(pointdb);
 	}	
 }

@@ -1,12 +1,11 @@
 package remotetask.rasterdb;
 
-
-import org.tinylog.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
+import broker.acl.ACL;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.RasterdbConfig;
@@ -14,6 +13,7 @@ import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
 import remotetask.RemoteTask;
+import util.JsonUtil;
 
 @task_rasterdb("create")
 @Description("Create new rasterdb layer.")
@@ -24,22 +24,37 @@ import remotetask.RemoteTask;
 @Param(name="proj4", desc="Projection.", format="PROJ4", example="+proj=utm +zone=32 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="tile_pixel_len", type="integer", desc="Tile width and height in pixels, defaults to 256. Note for band type 1=tile_int16 and 2=tile_float32 size 256 is supported only", example="256", required=false)
+@Param(name="acl", type="string_array" , desc="Zero, one or more 'read' right groups, task creator needs to be in at least in one of that groups, (default: admin role only)", format="group1, my_group2", example="my_read_group", required=false)
+@Param(name="acl_mod", type="string_array" , desc="Zero, one or more 'modify' right groups, task creator needs to be in at least in one of that groups, (default: admin role only)", format="my_group1, group2", example="my_write_group", required=false)
 public class Task_create extends RemoteTask {
 	
 	
 	private final Broker broker;
 	private final JSONObject task;
+	private final String rasterdbName;
+	private final ACL acl;
+	private final ACL acl_mod;
 	
 	public Task_create(Context ctx) {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		this.rasterdbName = task.getString("rasterdb");
+		//EmptyACL.ADMIN.check(ctx.userIdentity); // acl and acl_mod is checked, this is, if empty, admin only
+		if(broker.hasRasterdb(rasterdbName)) {
+			RasterDB rasterdb = broker.getRasterdb(rasterdbName);
+			rasterdb.checkMod(ctx.userIdentity);
+			rasterdb.close();
+		}
+		this.acl = ACL.of(JsonUtil.optStringTrimmedList(task, "acl"));
+		acl.check(ctx.userIdentity, "acl parameter of task rasterdb create");
+		this.acl_mod = ACL.of(JsonUtil.optStringTrimmedList(task, "acl_mod"));
+		acl_mod.check(ctx.userIdentity, "acl_mod parameter of task rasterdb create");
 	}
 
 	@Override
 	public void process() {
-		String name = task.getString("rasterdb");
+
 		
 		double pixel_size_x = GeoReference.NO_PIXEL_SIZE;
 		double pixel_size_y = GeoReference.NO_PIXEL_SIZE;
@@ -99,7 +114,7 @@ public class Task_create extends RemoteTask {
 			}
 		}
 		
-		RasterdbConfig config = broker.createRasterdbConfig(name);
+		RasterdbConfig config = broker.createRasterdbConfig(rasterdbName);
 		if(task.has("storage_type")) {
 			String storage_type = task.getString("storage_type");
 			config.preferredStorageType = storage_type;
@@ -110,7 +125,10 @@ public class Task_create extends RemoteTask {
 			config.preferredTilePixelLen = tile_pixel_len;
 		}		
 		
-		RasterDB rasterdb = broker.createNewRasterdb(config);		
+		RasterDB rasterdb = broker.createNewRasterdb(config);
+		
+		rasterdb.setACL(acl);
+		rasterdb.setACL_mod(acl_mod);
 		
 		rasterdb.setPixelSize(pixel_size_x, pixel_size_y, offset_x, offset_y);
 		

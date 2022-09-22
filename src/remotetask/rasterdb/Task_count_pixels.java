@@ -2,8 +2,6 @@ package remotetask.rasterdb;
 
 import java.util.Collection;
 
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;

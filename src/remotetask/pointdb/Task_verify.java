@@ -34,8 +34,7 @@ public class Task_verify extends CancelableRemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("pointdb");
 		pointdb = broker.getPointdb(name);
-		pointdb.config.getAcl().check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		pointdb.config.getAcl().check(ctx.userIdentity);	
 	}
 
 	@Override

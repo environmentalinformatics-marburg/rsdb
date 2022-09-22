@@ -4,8 +4,6 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
 
 import broker.Broker;
@@ -35,7 +33,6 @@ public class Task_verify extends CancelableRemoteTask {
 		String name = task.getString("pointcloud");
 		pointcloud = broker.getPointCloud(name);
 		pointcloud.check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
 	}
 
 	@Override

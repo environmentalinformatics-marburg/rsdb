@@ -44,8 +44,6 @@ public class Task_export extends CancelableRemoteProxyTask {
 		String name = task.getString("rasterdb");
 		rasterdb = broker.getRasterdb(name);
 		rasterdb.check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
-
 
 		JSONArray rect_Text = task.optJSONArray("rect");
 		if(rect_Text != null) {

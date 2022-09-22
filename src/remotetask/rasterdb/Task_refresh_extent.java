@@ -28,7 +28,7 @@ public class Task_refresh_extent extends RemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");
 		this.rasterdb =  broker.getRasterdb(name);
-		rasterdb.check(ctx.userIdentity);
+		rasterdb.check(ctx.userIdentity); // no deep modify --> acl read is used
 	}
 
 	@Override

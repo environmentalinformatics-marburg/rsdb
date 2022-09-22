@@ -33,8 +33,7 @@ public class Task_rebuild extends CancelableRemoteProxyTask {
 		this.task = ctx.task;
 		String name = task.getString("pointcloud");
 		src = broker.getPointCloud(name);
-		src.check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity);
 		storage_type = task.optString("storage_type", "TileStorage");
 		Logger.info("set storage type: " + storage_type);
 		compression_level = task.optInt("compression_level", Integer.MIN_VALUE);

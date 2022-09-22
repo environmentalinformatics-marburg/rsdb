@@ -30,8 +30,7 @@ public class Task_rebuild extends CancelableRemoteProxyTask {
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");
 		src = broker.getRasterdb(name);
-		src.check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity);
 		storage_type = task.optString("storage_type", RasterDB.STORAGE_TYPE_TILE_STORAGE);
 		pyramid_type = task.optString("pyramid_type", RasterDB.PYRAMID_TYPE_COMPACT_DIV2);
 		if(pyramid_type != null && !RasterDB.isValidPyramidTypeString(pyramid_type)) {

@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
@@ -26,12 +25,11 @@ public class Task_rename extends RemoteProxyTask {
 
 	public Task_rename(Context ctx) {
 		super(ctx);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String vectordb = task.getString("vectordb");
 		this.src = broker.getVectorDB(vectordb);
-		src.check(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity);
 		this.dst = task.getString("new_name");
 	}
 

@@ -44,7 +44,8 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 	@Override
 	public void process() throws IOException {
 		String rasterdb_name = task.getString("rasterdb");
-		RasterDB rasterdb = broker.getRasterdb(rasterdb_name);		
+		RasterDB rasterdb = broker.getRasterdb(rasterdb_name);
+		rasterdb.checkMod(ctx.userIdentity, "task index_raster");
 		JSONArray indices_text = task.getJSONArray("indices");
 		Band maskBand = null;
 		if(task.has("mask_band")) {

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
+import util.CarpException;
 
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
@@ -14,8 +14,8 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import broker.Broker;
 
 public abstract class APIHandler extends AbstractHandler {
-	
-	
+
+
 	protected static final String MIME_JSON = "application/json";
 
 	protected final Broker broker;
@@ -37,9 +37,20 @@ public abstract class APIHandler extends AbstractHandler {
 			try {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.setContentType("text/plain;charset=utf-8");
-				if(e instanceof RuntimeException) {
+				if(e instanceof CarpException) {
 					response.getWriter().println(e.getMessage());
-				} else {
+				} else if(e instanceof RuntimeException) {
+					Throwable cause = e.getCause();
+					if(cause != null) {
+						if(cause instanceof CarpException || cause instanceof RuntimeException) {
+							response.getWriter().println(cause.getMessage());
+						} else{
+							response.getWriter().println(e.getClass().getSimpleName()+":    "+e.getMessage());
+						}
+					} else {
+						response.getWriter().println(e.getMessage());
+					}
+				} else{
 					response.getWriter().println(e.getClass().getSimpleName()+":    "+e.getMessage());
 				}
 			} catch(Exception e1) {
@@ -53,7 +64,7 @@ public abstract class APIHandler extends AbstractHandler {
 	public String getAPIMethod() {
 		return apiMethod;
 	}
-	
+
 	public Broker getBroker() {
 		return broker;
 	}

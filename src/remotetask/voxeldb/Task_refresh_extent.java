@@ -28,7 +28,7 @@ public class Task_refresh_extent extends RemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("voxeldb");
 		this.voxeldb =  broker.getVoxeldb(name);
-		voxeldb.check(ctx.userIdentity);
+		voxeldb.check(ctx.userIdentity);   // no deep modify --> acl read is used
 	}
 
 	@Override

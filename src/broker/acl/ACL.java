@@ -1,5 +1,6 @@
 package broker.acl;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -9,7 +10,6 @@ import org.json.JSONWriter;
 import util.CarpException;
 
 public abstract class ACL {
-	//
 
 	public static final String ROLE_ADMIN = "admin";
 
@@ -19,7 +19,7 @@ public abstract class ACL {
 	public abstract Object toYaml();
 
 	public abstract void writeJSON(JSONWriter json);
-	
+
 	public abstract void collectRoles(Collection<String> collector);
 
 	/**
@@ -38,7 +38,25 @@ public abstract class ACL {
 	 */
 	public void check(UserIdentity userIdentity) {
 		if (!isAllowed(userIdentity)) {
-			throw new CarpException("not allowed for: " + userIdentity);
+			Principal principal = userIdentity.getUserPrincipal();
+			if(principal != null) {
+				String name = principal.getName();
+				throw new CarpException("not allowed for account: " + (name != null ? name : userIdentity));
+			} else {
+				throw new CarpException("not allowed for: " + userIdentity);
+			}
+		}
+	}
+	
+	public void check(UserIdentity userIdentity, String location) {
+		if (!isAllowed(userIdentity)) {
+			Principal principal = userIdentity.getUserPrincipal();
+			if(principal != null) {
+				String name = principal.getName();
+				throw new CarpException("not allowed for account: " + (name != null ? name : userIdentity) + " at " + location);
+			} else {
+				throw new CarpException("not allowed for: " + userIdentity + " at " + location);
+			}
 		}
 	}
 
@@ -61,7 +79,7 @@ public abstract class ACL {
 		}
 		return new ArrayACL(roles.toArray(new String[0]));
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {

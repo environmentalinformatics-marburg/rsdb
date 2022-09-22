@@ -26,12 +26,11 @@ public class Task_rename extends RemoteProxyTask {
 
 	public Task_rename(Context ctx) {
 		super(ctx);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String pointcloud = task.getString("pointcloud");
 		this.src = broker.getPointCloud(pointcloud);
-		src.check(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity);
 		this.dst = task.getString("new_name");
 	}
 
