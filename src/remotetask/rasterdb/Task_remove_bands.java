@@ -25,7 +25,7 @@ public class Task_remove_bands extends RemoteTask {
 		//this.args = args;
 		String name = ctx.task.getString("rasterdb");
 		this.rasterdb =  ctx.broker.getRasterdb(name);
-		rasterdb.checkMod(ctx.userIdentity);
+		rasterdb.checkMod(ctx.userIdentity, "task rasterdb remove bands");
 		this.bands = JsonUtil.getIntArray(ctx.task, "bands");
 	}	
 

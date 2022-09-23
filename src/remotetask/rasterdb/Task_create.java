@@ -28,7 +28,6 @@ import util.JsonUtil;
 @Param(name="acl_mod", type="string_array" , desc="Zero, one or more 'modify' right groups, task creator needs to be in at least in one of that groups, (default: admin role only)", format="my_group1, group2", example="my_write_group", required=false)
 public class Task_create extends RemoteTask {
 	
-	
 	private final Broker broker;
 	private final JSONObject task;
 	private final String rasterdbName;
@@ -43,7 +42,7 @@ public class Task_create extends RemoteTask {
 		//EmptyACL.ADMIN.check(ctx.userIdentity); // acl and acl_mod is checked, this is, if empty, admin only
 		if(broker.hasRasterdb(rasterdbName)) {
 			RasterDB rasterdb = broker.getRasterdb(rasterdbName);
-			rasterdb.checkMod(ctx.userIdentity);
+			rasterdb.checkMod(ctx.userIdentity, "task rasterdb create of existing name");
 			rasterdb.close();
 		}
 		this.acl = ACL.of(JsonUtil.optStringTrimmedList(task, "acl"));

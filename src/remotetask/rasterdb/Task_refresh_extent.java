@@ -16,7 +16,6 @@ import util.Range2d;
 @Description("Recalculate extent of RasterDB layer. This may be needed if cached extent info is out of date.")
 @Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="rasterdb1")
 public class Task_refresh_extent extends RemoteTask {
-	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -28,7 +27,7 @@ public class Task_refresh_extent extends RemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");
 		this.rasterdb =  broker.getRasterdb(name);
-		rasterdb.check(ctx.userIdentity); // no deep modify --> acl read is used
+		rasterdb.check(ctx.userIdentity, "task rasterdb refresh_extent"); // no deep modify --> acl read is used
 	}
 
 	@Override

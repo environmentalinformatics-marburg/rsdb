@@ -523,7 +523,11 @@ public class RasterDB implements AutoCloseable {
 	}
 
 	public void check(UserIdentity userIdentity) {
-		acl.check(userIdentity);
+		acl.check(userIdentity, "rasterdb " + this.config.getName() + " read");
+	}
+	
+	public void check(UserIdentity userIdentity, String location) {
+		acl.check(userIdentity, "rasterdb " + this.config.getName() + " read" + " at " + location);
 	}
 
 	public boolean isAllowedMod(UserIdentity userIdentity) {

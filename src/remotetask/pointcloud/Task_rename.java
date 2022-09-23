@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import pointcloud.PointCloud;
 import remotetask.Context;
 import remotetask.Description;
@@ -30,7 +29,7 @@ public class Task_rename extends RemoteProxyTask {
 		this.task = ctx.task;
 		String pointcloud = task.getString("pointcloud");
 		this.src = broker.getPointCloud(pointcloud);
-		src.checkMod(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity, "task pointcloud rename");
 		this.dst = task.getString("new_name");
 	}
 

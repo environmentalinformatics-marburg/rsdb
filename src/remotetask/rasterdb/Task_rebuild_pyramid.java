@@ -15,7 +15,6 @@ import remotetask.RemoteTask;
 @Description("Recreate pyramid of scaled down rasters for visualisation.")
 @Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="rasterdb1")
 public class Task_rebuild_pyramid extends RemoteTask {
-	//
 	
 	private final Broker broker;
 	private final JSONObject task;
@@ -27,7 +26,7 @@ public class Task_rebuild_pyramid extends RemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");
 		this.rasterdb =  broker.getRasterdb(name);
-		rasterdb.checkMod(ctx.userIdentity);
+		rasterdb.checkMod(ctx.userIdentity, "task rasterdb rebuild_pyramid");
 	}
 
 	@Override

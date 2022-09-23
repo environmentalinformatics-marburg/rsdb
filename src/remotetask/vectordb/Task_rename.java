@@ -16,7 +16,6 @@ import vectordb.VectorDB;
 @Param(name="vectordb", type="layer_id", desc="ID of VectorDB layer to rename.", example="vectordb1")
 @Param(name="new_name", type="layer_id", desc="ID of new VectorDB layer.", example="vectordbA")
 public class Task_rename extends RemoteProxyTask {
-	//
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -29,7 +28,7 @@ public class Task_rename extends RemoteProxyTask {
 		this.task = ctx.task;
 		String vectordb = task.getString("vectordb");
 		this.src = broker.getVectorDB(vectordb);
-		src.checkMod(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity, "task vectordb rename");
 		this.dst = task.getString("new_name");
 	}
 

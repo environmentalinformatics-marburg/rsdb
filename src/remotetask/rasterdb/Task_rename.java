@@ -16,7 +16,6 @@ import remotetask.RemoteProxyTask;
 @Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer to rename.", example="raster1")
 @Param(name="new_name", type="layer_id", desc="ID of new RasterDB layer.", example="rasterA")
 public class Task_rename extends RemoteProxyTask {
-	//
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -29,7 +28,7 @@ public class Task_rename extends RemoteProxyTask {
 		this.task = ctx.task;
 		String rasterdb = task.getString("rasterdb");
 		this.src = broker.getRasterdb(rasterdb);
-		src.checkMod(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity, "task rasterdb rename");
 		this.dst = task.getString("new_name");
 	}
 

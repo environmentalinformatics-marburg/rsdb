@@ -2,12 +2,10 @@ package remotetask.pointdb;
 
 import java.util.concurrent.atomic.LongAdder;
 
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import pointdb.PointDB;
 import pointdb.base.Tile;
 import pointdb.processing.tile.TileConsumer;
@@ -16,13 +14,11 @@ import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteTask;
 
 @task_pointdb("verify")
 @Description("Check point data.")
 @Param(name="pointdb", type="pointdb", desc="ID of PointDB layer.", example="pointdb1")
 public class Task_verify extends CancelableRemoteTask {
-	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -34,7 +30,7 @@ public class Task_verify extends CancelableRemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("pointdb");
 		pointdb = broker.getPointdb(name);
-		pointdb.config.getAcl().check(ctx.userIdentity);	
+		pointdb.config.getAcl().check(ctx.userIdentity, "task pointdb verify");	
 	}
 
 	@Override
@@ -43,7 +39,6 @@ public class Task_verify extends CancelableRemoteTask {
 		long total = pointdb.tileMetaMap.sizeLong();
 		setMessage("start processing " + total + " tiles");
 		TileProducer tileProducer = pointdb.tileProducer(null);
-
 
 		Consumer consumer = new Consumer(total, tileProducer);
 		tileProducer.produce(consumer);

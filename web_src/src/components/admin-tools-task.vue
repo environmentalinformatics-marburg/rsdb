@@ -161,7 +161,7 @@
     </div>
     </div>
     <admin-task-console :id="remote_task_id" />
-    <v-snackbar v-model="setError" :top="true">
+    <v-snackbar v-model="setError" :top="true" timeout="10000">
       {{setErrorMessage}}
       <v-btn flat class="pink--text" @click.native="setError = false">Close</v-btn>
     </v-snackbar>

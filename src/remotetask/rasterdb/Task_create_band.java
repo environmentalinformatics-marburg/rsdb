@@ -29,7 +29,7 @@ public class Task_create_band extends RemoteTask {
 		this.args = ctx.task;
 		String name = args.getString("rasterdb");
 		this.rasterdb =  broker.getRasterdb(name);
-		rasterdb.checkMod(ctx.userIdentity);
+		rasterdb.checkMod(ctx.userIdentity, "task rasterdb create_band of " + name);
 	}
 
 	@Override

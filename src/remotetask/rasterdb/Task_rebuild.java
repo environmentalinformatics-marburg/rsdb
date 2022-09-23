@@ -3,7 +3,6 @@ package remotetask.rasterdb;
 import org.json.JSONObject;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import rasterdb.RasterDB;
 import remotetask.CancelableRemoteProxyTask;
 import remotetask.Context;
@@ -16,7 +15,6 @@ import remotetask.Param;
 @Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="pyramid_type", desc="Pyramid type of new RasterDB. (default: compact_div2)", format="files_div4 or compact_div2", example="files_div4", required=false)
 public class Task_rebuild extends CancelableRemoteProxyTask {
-	//
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -30,7 +28,7 @@ public class Task_rebuild extends CancelableRemoteProxyTask {
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");
 		src = broker.getRasterdb(name);
-		src.checkMod(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity, "task rasterdb rebuild");
 		storage_type = task.optString("storage_type", RasterDB.STORAGE_TYPE_TILE_STORAGE);
 		pyramid_type = task.optString("pyramid_type", RasterDB.PYRAMID_TYPE_COMPACT_DIV2);
 		if(pyramid_type != null && !RasterDB.isValidPyramidTypeString(pyramid_type)) {

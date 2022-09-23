@@ -658,6 +658,10 @@ public class Broker implements AutoCloseable {
 		}
 		return openPointCloud(name);
 	}
+	
+	public boolean hasPointCloud(String name) {
+		return pointcloudConfigMap.containsKey(name);
+	}
 
 	public VoxelDB getVoxeldb(String name) {
 		VoxelDB voxeldb = voxeldbMap.get(name);
@@ -665,6 +669,10 @@ public class Broker implements AutoCloseable {
 			return voxeldb;
 		}
 		return openVoxeldb(name);
+	}
+	
+	public boolean hasVoxeldb(String name) {
+		return voxeldbConfigMap.containsKey(name);
 	}
 
 	private synchronized PointCloud openPointCloud(String name) { // guarantee to load each PointDB once only

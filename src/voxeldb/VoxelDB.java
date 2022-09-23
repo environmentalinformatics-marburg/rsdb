@@ -203,7 +203,11 @@ public class VoxelDB implements AutoCloseable {
 	}
 
 	public void check(UserIdentity userIdentity) {
-		acl.check(userIdentity);
+		acl.check(userIdentity, "voxeldb " + this.getName() + " read");
+	}
+	
+	public void check(UserIdentity userIdentity, String location) {
+		acl.check(userIdentity, "voxeldb " + this.getName() + " read" + " at " + location);
 	}
 
 	public boolean isAllowedMod(UserIdentity userIdentity) {
@@ -211,7 +215,11 @@ public class VoxelDB implements AutoCloseable {
 	}
 
 	public void checkMod(UserIdentity userIdentity) {
-		acl_mod.check(userIdentity);
+		acl_mod.check(userIdentity, "voxeldb " + this.getName() + " modify");
+	}
+	
+	public void checkMod(UserIdentity userIdentity, String location) {
+		acl_mod.check(userIdentity, "voxeldb " + this.getName() + " modify" + " at " + location);
 	}
 
 	public void setACL(ACL acl) {

@@ -5,9 +5,8 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.TimeSlice;
@@ -15,11 +14,11 @@ import broker.acl.EmptyACL;
 import pointcloud.AttributeSelector;
 import pointcloud.PointCloud;
 import pointcloud.PointTable;
+import rasterdb.RasterDB;
 import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteTask;
 import voxeldb.CellFactory;
 import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
@@ -28,27 +27,34 @@ import voxeldb.VoxelDB;
 @Description("Convert pointcloud to voxels.")
 @Param(name="pointcloud", type="pointcloud", desc="ID of PointDB layer.", example="pointcloud1")
 @Param(name="time_slice", type="string", desc="Name of the new voxeldb time slice to create. Only used if pointcloud does not contain time slice entries. (default: untitled)", example="January", required=false)
+@Param(name="voxeldb", type="layer_id", desc="ID of new VoxelDB layer. (target, default: [pointcloud]_voxels) ", example="pointcloud1_voxels", required=false)
+
 public class Task_to_voxel extends CancelableRemoteTask {
-	
 
 	private final Broker broker;
 	private final JSONObject task;
 	private final PointCloud pointcloud;
+	private final String voxeldb_name;
 
 	public Task_to_voxel(Context ctx) {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
 		String name = task.getString("pointcloud");
-		pointcloud = broker.getPointCloud(name);
-		pointcloud.check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		pointcloud = broker.getPointCloud(name);		
+		pointcloud.check(ctx.userIdentity, "task pointcloud to_voxel");
+		pointcloud.checkMod(ctx.userIdentity, "task pointcloud to_voxel"); // check needed as same ACLs are assigned to target voxeldb
+
+		this.voxeldb_name = task.optString("voxeldb", pointcloud.getName() + "_voxels");
+		if(broker.hasVoxeldb(voxeldb_name)) {
+			VoxelDB voxeldb = broker.getVoxeldb(voxeldb_name);
+			voxeldb.checkMod(ctx.userIdentity, "task pointcloud to_voxel of existing name");
+			voxeldb.close();
+		}		
 	}
 
 	@Override
 	public void process() {
-		String voxeldb_name = task.optString("voxeldb", pointcloud.getName() + "_voxels");
-
 		String storage_type = task.optString("storage_type", "TileStorage");
 		boolean transactions = task.optBoolean("transactions", false);
 		double voxel_size = task.optNumber("voxel_size", 1).doubleValue();		

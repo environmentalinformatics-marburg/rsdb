@@ -25,7 +25,7 @@ public class Task_remove_timestamps extends RemoteTask {
 		//this.args = args;
 		String name = ctx.task.getString("rasterdb");
 		this.rasterdb =  ctx.broker.getRasterdb(name);
-		rasterdb.checkMod(ctx.userIdentity);
+		rasterdb.checkMod(ctx.userIdentity, "task rasterdb remove_timestamps");
 		this.timestamps = JsonUtil.getIntArray(ctx.task, "timestamps");
 	}	
 

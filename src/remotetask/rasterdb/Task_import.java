@@ -26,11 +26,10 @@ import util.raster.GdalReader;
 @Param(name="update_pyramid", type="boolean", desc="Build pyramid of scaled down raster including imported data. Needed for visualisations. (default true. Use 'false' if you import multiple rasters for import speed up. After import, run task rebuild_pyramid once.)", example="false", required=false)
 @Param(name="update_catalog", type="boolean", desc="Update extent with new imported data. (default true. Use 'false' if you import multiple rasters for import speed up. After import, run task rebuild_pyramid once.)", example="false", required=false)
 public class Task_import extends RemoteProxyTask {
-	
 
 	public Task_import(Context ctx) {
 		super(ctx);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		EmptyACL.ADMIN.check(ctx.userIdentity, "task rasterdb import");
 	}
 
 	@Override

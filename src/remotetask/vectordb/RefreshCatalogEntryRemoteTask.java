@@ -20,7 +20,7 @@ public class RefreshCatalogEntryRemoteTask extends RemoteTask {
 		this.broker = ctx.broker;
 		String name = ctx.task.getString("vectordb");
 		this.vectordb =  broker.getVectorDB(name);
-		vectordb.checkMod(ctx.userIdentity);
+		vectordb.checkMod(ctx.userIdentity, "task vectordb refresh_catalog_entry");
 	}	
 
 	@Override

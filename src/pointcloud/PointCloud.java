@@ -780,11 +780,11 @@ public class PointCloud implements AutoCloseable {
 	}
 
 	public void check(UserIdentity userIdentity) {
-		acl.check(userIdentity);
+		acl.check(userIdentity, "pointcloud " + this.getName() + " read");
 	}
 	
 	public void check(UserIdentity userIdentity, String location) {
-		acl.check(userIdentity, location);
+		acl.check(userIdentity, "pointcloud " + this.getName() + " read " + " at " + location);
 	}
 
 	public boolean isAllowedMod(UserIdentity userIdentity) {
@@ -792,11 +792,11 @@ public class PointCloud implements AutoCloseable {
 	}
 	
 	public void checkMod(UserIdentity userIdentity) {
-		acl_mod.check(userIdentity);
+		acl_mod.check(userIdentity, "pointcloud " + this.getName() + " modifiy");
 	}
 
 	public void checkMod(UserIdentity userIdentity, String location) {
-		acl_mod.check(userIdentity, location);
+		acl_mod.check(userIdentity, "pointcloud " + this.getName() + " modify " + " at " + location);
 	}
 
 	public void setACL(ACL acl) {

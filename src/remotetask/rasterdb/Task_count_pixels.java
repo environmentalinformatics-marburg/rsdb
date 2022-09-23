@@ -26,6 +26,7 @@ import remotetask.Param;
 @Description("Count all pixels that are not NA. Just pixels of first band are counted.")
 @Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer.", example="raster1")
 public class Task_count_pixels extends CancelableRemoteTask {
+	
 	private final Broker broker;
 	private final JSONObject task;
 	private final RasterDB rasterdb;
@@ -36,7 +37,7 @@ public class Task_count_pixels extends CancelableRemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");
 		this.rasterdb =  broker.getRasterdb(name);
-		rasterdb.check(ctx.userIdentity);
+		rasterdb.check(ctx.userIdentity, "task rasterdb count_pixels");
 	}
 
 	@Override

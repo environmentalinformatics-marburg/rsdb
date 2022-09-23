@@ -22,20 +22,29 @@ import voxeldb.VoxelGeoRef;
 @Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer. (target) (if layer exists, delete)", example="pointcloud1", required=false)
 public class Task_to_pointcloud2 extends RemoteTask {
 
-
 	private final Broker broker;
 	private final JSONObject task;
+	private final VoxelDB voxeldb;	
+	private final String pointcloud_name;
 
 	public Task_to_pointcloud2(Context ctx) {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
+		String voxeldb_name = task.getString("voxeldb");
+		this.voxeldb = broker.getVoxeldb(voxeldb_name);
+		voxeldb.getACL().check(ctx.userIdentity, "task voxeldb rasterize");
+		voxeldb.getACL_mod().check(ctx.userIdentity, "task voxeldb rasterize"); // check needed as same ACLs are assigned to target rasterdb
+		this.pointcloud_name = task.optString("pointcloud", voxeldb.getName() + "_pointcloud");
+		if(broker.hasPointCloud(pointcloud_name)) {
+			PointCloud pointcloud = broker.getPointCloud(pointcloud_name);
+			pointcloud.checkMod(ctx.userIdentity, "task voxeldb to_pointcloud of existing name");
+			pointcloud.close();
+		}
 	}
 
 	@Override
 	public void process() {
-		String voxeldb_name = task.getString("voxeldb");
-		VoxelDB voxeldb = broker.getVoxeldb(voxeldb_name);
 		VoxelGeoRef voxelRef = voxeldb.geoRef();
 
 		double voxelSizeX = voxelRef.voxelSizeX;
@@ -49,7 +58,6 @@ public class Task_to_pointcloud2 extends RemoteTask {
 		int voxelCellSize = voxeldb.getCellsize();
 		int voxelCellSize_1 = voxelCellSize - 1;
 
-		String pointcloud_name = task.optString("pointcloud", voxeldb.getName() + "_pointcloud");			
 		String storage_type = task.optString("storage_type", "TileStorage");
 		boolean transactions = task.optBoolean("transactions", false);
 		setMessage("prepare pointcloud layer");

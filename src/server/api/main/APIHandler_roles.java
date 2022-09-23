@@ -3,24 +3,20 @@ package server.api.main;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.TreeSet;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.acl.EmptyACL;
+import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_roles extends APIHandler {
-	
 
 	public APIHandler_roles(Broker broker) {
 		super(broker, "roles");

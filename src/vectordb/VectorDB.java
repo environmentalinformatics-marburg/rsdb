@@ -644,7 +644,11 @@ public class VectorDB {
 	}
 
 	public void check(UserIdentity userIdentity) {
-		acl.check(userIdentity);
+		acl.check(userIdentity, "vectordb " + this.getName() + " read");
+	}
+	
+	public void check(UserIdentity userIdentity, String location) {
+		acl.check(userIdentity, "vectordb " + this.getName() + " read" + " at " + location);
 	}
 
 	public boolean isAllowedMod(UserIdentity userIdentity) {
@@ -652,8 +656,12 @@ public class VectorDB {
 	}
 
 	public void checkMod(UserIdentity userIdentity) {
-		acl_mod.check(userIdentity);
+		acl_mod.check(userIdentity, "vectordb " + this.getName() + " modify");
 	}
+	
+	public void checkMod(UserIdentity userIdentity, String location) {
+		acl_mod.check(userIdentity, "vectordb " + this.getName() + " modify" + " at " + location);
+	}	
 
 	public String getDatatag() {
 		return datatag;

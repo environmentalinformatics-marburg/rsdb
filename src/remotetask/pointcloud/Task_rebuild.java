@@ -1,11 +1,10 @@
 package remotetask.pointcloud;
 
 
-import org.tinylog.Logger;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import pointcloud.PointCloud;
 import pointcloud.Rebuild;
 import remotetask.CancelableRemoteProxyTask;
@@ -33,7 +32,7 @@ public class Task_rebuild extends CancelableRemoteProxyTask {
 		this.task = ctx.task;
 		String name = task.getString("pointcloud");
 		src = broker.getPointCloud(name);
-		src.checkMod(ctx.userIdentity);
+		src.checkMod(ctx.userIdentity, "task pointcloud rebuild");
 		storage_type = task.optString("storage_type", "TileStorage");
 		Logger.info("set storage type: " + storage_type);
 		compression_level = task.optInt("compression_level", Integer.MIN_VALUE);

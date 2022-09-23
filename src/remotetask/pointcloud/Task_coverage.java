@@ -3,14 +3,12 @@ package remotetask.pointcloud;
 import java.io.IOException;
 import java.util.Iterator;
 
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.Informal.Builder;
 import broker.TimeSlice;
-import broker.acl.EmptyACL;
 import pointcloud.DoublePoint;
 import pointcloud.PointCloud;
 import rasterdb.Band;
@@ -40,6 +38,7 @@ public class Task_coverage extends RemoteTask {
 	private final Broker broker;
 	private final JSONObject task;
 	private final PointCloud pointcloud;
+	private final String rasterdb_name;
 
 	public Task_coverage(Context ctx) {
 		super(ctx);
@@ -47,13 +46,18 @@ public class Task_coverage extends RemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("pointcloud");
 		pointcloud = broker.getPointCloud(name);
-		pointcloud.check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		pointcloud.check(ctx.userIdentity, "task pointcloud coverage");
+		pointcloud.checkMod(ctx.userIdentity, "task pointcloud coverage"); // check needed as same ACLs are assigned to target rasterdb
+		this.rasterdb_name = task.optString("rasterdb", pointcloud.getName() + "_coverage");
+		if(broker.hasRasterdb(rasterdb_name)) {
+			RasterDB rasterdb = broker.getRasterdb(rasterdb_name);
+			rasterdb.checkMod(ctx.userIdentity, "task pointcloud coverage of existing name");
+			rasterdb.close();
+		}
 	}
 
 	@Override
-	public void process() throws IOException {		
-		String rasterdb_name = task.optString("rasterdb", pointcloud.getName() + "_coverage");
+	public void process() throws IOException {
 		boolean transactions = true;
 		if(task.has("transactions")) {
 			transactions = task.getBoolean("transactions");
@@ -69,6 +73,8 @@ public class Task_coverage extends RemoteTask {
 		} else {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
 		}
+		rasterdb.setACL(pointcloud.getACL());
+		rasterdb.setACL_mod(pointcloud.getACL_mod());
 		startCoverage(rasterdb);
 		rasterdb.rebuildPyramid(true);
 		if(associate) {

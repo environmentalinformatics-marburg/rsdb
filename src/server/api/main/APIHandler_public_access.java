@@ -2,25 +2,19 @@ package server.api.main;
 
 import java.io.IOException;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
-import broker.Account;
-import broker.Account.Builder;
-import broker.PublicAccess.RasterDbWMS;
-import broker.AccountManager;
 import broker.Broker;
 import broker.PublicAccess;
+import broker.PublicAccess.RasterDbWMS;
 import broker.acl.EmptyACL;
+import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
-import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_public_access extends APIHandler {

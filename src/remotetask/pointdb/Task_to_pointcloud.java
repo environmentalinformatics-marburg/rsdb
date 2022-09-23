@@ -2,12 +2,10 @@ package remotetask.pointdb;
 
 import java.util.TreeSet;
 
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import pointcloud.CellTable;
 import pointcloud.DoublePoint;
 import pointcloud.PointCloud;
@@ -34,11 +32,11 @@ import util.collections.vec.Vec;
 @Param(name="storage_type", desc="Storage type of new PointCloud. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
 @Param(name="transactions", type="boolean", desc="Use power failer safe (and slow) PointCloud operation mode. (RasterUnit only, default false)", example="false", required=false)
 public class Task_to_pointcloud extends RemoteTask{
-	
 
 	private final Broker broker;
 	private final JSONObject task;
 	private final PointDB pointdb;
+	private final String pointcloud_name;
 
 	public static class Commiter implements AutoCloseable {
 		public static final int maxTileWriteCount = 512;
@@ -103,23 +101,30 @@ public class Task_to_pointcloud extends RemoteTask{
 			throw new RuntimeException("missing parameter 'pointdb'");
 		}
 		String pointdb_name = task.getString("pointdb");
-		pointdb = broker.getPointdb(pointdb_name);
-		pointdb.config.getAcl().check(ctx.userIdentity);
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		pointdb = broker.getPointdb(pointdb_name);		
+		pointdb.check(ctx.userIdentity, "task pointcloud to_pointcloud"); // check needed as same ACLs are assigned to target pointcloud, no ACL_mod in PointDB
+		
+		if(!task.has("pointcloud")) {
+			throw new RuntimeException("missing parameter 'pointcloud'");
+		}
+		this.pointcloud_name = task.getString("pointcloud");
+		if(broker.hasPointCloud(pointcloud_name)) {
+			PointCloud pointcloud = broker.getPointCloud(pointcloud_name);
+			pointcloud.checkMod(ctx.userIdentity, "task pointcloud to_pointcloud of existing name");
+			pointcloud.close();
+		}
 	}
 
 	@Override
 	public void process() {
 		try {			
-			if(!task.has("pointcloud")) {
-				throw new RuntimeException("missing parameter 'pointcloud'");
-			}
-			String pointcloud_name = task.getString("pointcloud");
 			String storage_type = task.optString("storage_type", "TileStorage");
 			boolean transactions = task.optBoolean("transactions", false);
 			setMessage("prepare pointcloud layer");
 			broker.deletePointCloud(pointcloud_name);
 			PointCloud pointcloud = broker.createNewPointCloud(pointcloud_name, storage_type, transactions);
+			pointcloud.setACL(pointdb.getACL());
+			pointcloud.setACL_mod(pointdb.getACL()); // no ACL_mod in PointDB
 
 			setMessage("verify pointdb layer");
 			Statistics stat = pointdb.tileMetaProducer(null).toStatistics();

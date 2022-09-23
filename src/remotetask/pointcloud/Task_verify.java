@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 import org.json.JSONObject;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import pointcloud.AttributeSelector;
 import pointcloud.CellTable;
 import pointcloud.PointCloud;
@@ -32,7 +31,7 @@ public class Task_verify extends CancelableRemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("pointcloud");
 		pointcloud = broker.getPointCloud(name);
-		pointcloud.check(ctx.userIdentity);
+		pointcloud.check(ctx.userIdentity, "task pointcloud verify");
 	}
 
 	@Override

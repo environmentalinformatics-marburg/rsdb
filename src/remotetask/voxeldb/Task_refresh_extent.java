@@ -1,6 +1,5 @@
 package remotetask.voxeldb;
 
-
 import org.tinylog.Logger;
 import org.json.JSONObject;
 
@@ -16,7 +15,6 @@ import voxeldb.VoxelDB;
 @Description("Recalculate extent of VoxelDB layer. This may be needed if cached extent info is out of date.")
 @Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer.", example="voxeldb1")
 public class Task_refresh_extent extends RemoteTask {
-	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -28,7 +26,7 @@ public class Task_refresh_extent extends RemoteTask {
 		this.task = ctx.task;
 		String name = task.getString("voxeldb");
 		this.voxeldb =  broker.getVoxeldb(name);
-		voxeldb.check(ctx.userIdentity);   // no deep modify --> acl read is used
+		voxeldb.check(ctx.userIdentity, "task voxeldb refresh_extent");   // no deep modify --> acl read is used
 	}
 
 	@Override

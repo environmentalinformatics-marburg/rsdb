@@ -6,7 +6,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import remotetask.CancelableRemoteProxyTask;
@@ -27,7 +26,6 @@ import util.tiff.file.TiledWriter.BandType;
 @Param(name="data_type", desc="Pixel data type (same data type for all bands).\n Types: INT16, FLOAT32.\n If left empty, smallest type fitting all bands with no loss in precision will be chosen.", format="INT16 or FLOAT32", example="FLOAT32", required=false)
 @Param(name="compression", desc="Type of TIFF compression. Types:\n NO: no compression (fast, high space demand),\n DEFLATE: zip-like compression (compatibility with many applications),\n ZSTD: Zstandard compression (fast, low storage demands, compatibility verified with recent GDAL based applications like Qgis).\n Default: NO", format="NO or DEFLATE or ZSTD", example="ZSTD", required=false)
 public class Task_export extends CancelableRemoteProxyTask {
-	//
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -43,7 +41,7 @@ public class Task_export extends CancelableRemoteProxyTask {
 		this.task = ctx.task;
 		String name = task.getString("rasterdb");
 		rasterdb = broker.getRasterdb(name);
-		rasterdb.check(ctx.userIdentity);
+		rasterdb.check(ctx.userIdentity, "task rasterdb export");
 
 		JSONArray rect_Text = task.optJSONArray("rect");
 		if(rect_Text != null) {

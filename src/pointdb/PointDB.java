@@ -4,12 +4,14 @@ import java.io.File;
 
 
 import org.tinylog.Logger;
+import org.eclipse.jetty.server.UserIdentity;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.DBMaker.Maker;
 
 import broker.Informal;
+import broker.acl.ACL;
 import pointdb.base.Point;
 import pointdb.base.PointdbConfig;
 import pointdb.base.Rect;
@@ -27,8 +29,7 @@ import util.Util;
  * @author woellauer
  *
  */
-public class PointDB {
-		
+public class PointDB {		
 
 	private final DB db;
 	private final DB dbMeta;
@@ -248,5 +249,21 @@ public class PointDB {
 
 	public Informal informal() {
 		return config.informal();
+	}
+	
+	public boolean isAllowed(UserIdentity userIdentity) {
+		return this.config.getAcl().isAllowed(userIdentity);
+	}
+
+	public void check(UserIdentity userIdentity) {
+		this.config.getAcl().check(userIdentity, "pointdb" + this.config.name + " read");
+	}
+	
+	public void check(UserIdentity userIdentity, String location) {
+		this.config.getAcl().check(userIdentity, "pointdb " + this.config.name + " read " + " at " + location);
+	}
+	
+	public ACL getACL() {
+		return config.getAcl();
 	}
 }

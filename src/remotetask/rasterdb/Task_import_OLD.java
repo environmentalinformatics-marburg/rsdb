@@ -23,7 +23,6 @@ import remotetask.RemoteTask;
 @Param(name="file", format="path", desc="Raster file to import. (located on server)", example="data/raster.tiff")
 @Param(name="band", type="integer", desc="Existing band number as import target.", example="1", required=false)
 public class Task_import_OLD extends RemoteTask {
-	
 
 	private final Broker broker;
 	private final JSONObject task;
@@ -32,7 +31,7 @@ public class Task_import_OLD extends RemoteTask {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
-		EmptyACL.ADMIN.check(ctx.userIdentity);
+		EmptyACL.ADMIN.check(ctx.userIdentity, "task rasterdb import_OLD");
 	}
 
 	@Override

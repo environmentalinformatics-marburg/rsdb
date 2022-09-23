@@ -26,27 +26,34 @@ import voxeldb.VoxelDB;
 @Param(name="voxeldb", type="voxeldb", desc="VoxelDB layer. (source)", example="voxeldb1")
 @Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer. (if layer exists, delete) (target, default: [voxeldb]_rasterized)", example="rasterdb1", required=false)
 public class Task_rasterize extends CancelableRemoteTask {
-	//
-
+	
 	private final Broker broker;
 	private final JSONObject task;
+	private final VoxelDB voxeldb;
+	private final String rasterdb_name;
 
 	public Task_rasterize(Context ctx) {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
+		String voxeldb_name = task.getString("voxeldb");
+		this.voxeldb = broker.getVoxeldb(voxeldb_name);
+		voxeldb.check(ctx.userIdentity, "task voxeldb rasterize");
+		voxeldb.checkMod(ctx.userIdentity, "task voxeldb rasterize"); // check needed as same ACLs are assigned to target rasterdb
+		this.rasterdb_name = task.optString("rasterdb", voxeldb.getName() + "_rasterized");
+		if(broker.hasRasterdb(rasterdb_name)) {
+			RasterDB rasterdb = broker.getRasterdb(rasterdb_name);
+			rasterdb.checkMod(ctx.userIdentity, "task voxeldb rasteriz of existing name");
+			rasterdb.close();
+		}
 	}
 
 	@Override
 	public void process() throws IOException {
-		String voxeldb_name = task.getString("voxeldb");
-		VoxelDB voxeldb = broker.getVoxeldb(voxeldb_name);
-
 		voxeldb.getLocalRange(true); // refresh local range
 
 		CellFactory cf = CellFactory.ofCount(voxeldb);
 
-		String rasterdb_name = task.optString("rasterdb", voxeldb.getName() + "_rasterized");
 		boolean transactions = true;
 		if(task.has("transactions")) {
 			transactions = task.getBoolean("transactions");
