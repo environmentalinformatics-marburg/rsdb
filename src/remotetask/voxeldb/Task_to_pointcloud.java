@@ -5,6 +5,7 @@ import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.TimeSlice;
+import broker.acl.ACL;
 import pointcloud.CellTable;
 import pointcloud.PointCloud;
 import rasterunit.Tile;
@@ -54,6 +55,10 @@ public class Task_to_pointcloud extends RemoteTask {
 		
 		pointcloud.setACL(voxeldb.getACL());
 		pointcloud.setACL_mod(voxeldb.getACL_mod());
+		if(ctx.userIdentity != null) {
+			String username = ctx.userIdentity.getUserPrincipal().getName();
+			pointcloud.setACL_owner(ACL.ofRole(username));
+		}
 		
 		pointcloud.setProj4(voxeldb.geoRef().proj4);
 		pointcloud.setCodeEPSG(voxeldb.geoRef().epsg);

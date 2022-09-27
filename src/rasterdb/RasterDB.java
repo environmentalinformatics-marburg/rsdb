@@ -268,9 +268,9 @@ public class RasterDB implements AutoCloseable {
 				if (yamlMap.contains("associated")) {
 					associated = Associated.ofYaml(yamlMap.getMap("associated"));
 				}
-				acl = ACL.of(yamlMap.optList("acl").asStrings());
-				acl_mod = ACL.of(yamlMap.optList("acl_mod").asStrings());
-				acl_owner = ACL.of(yamlMap.optList("acl_owner").asStrings());
+				acl = ACL.ofRoles(yamlMap.optList("acl").asStrings());
+				acl_mod = ACL.ofRoles(yamlMap.optList("acl_mod").asStrings());
+				acl_owner = ACL.ofRoles(yamlMap.optList("acl_owner").asStrings());
 				informal = Informal.ofYaml(yamlMap);
 				if(yamlMap.contains("local_extent")) {
 					local_extent = Range2d.ofYaml(yamlMap.getMap("local_extent"));

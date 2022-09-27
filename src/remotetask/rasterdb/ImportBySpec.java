@@ -67,7 +67,7 @@ public class ImportBySpec {
 			rasterdb.setInformal(spec.inf.build());
 			if(userIdentity != null) {
 				String username = userIdentity.getUserPrincipal().getName();
-				rasterdb.setACL_owner(ACL.of(username));
+				rasterdb.setACL_owner(ACL.ofRole(username));
 			}
 			rasterdb.setACL(spec.acl);
 			rasterdb.setACL_mod(spec.acl_mod);

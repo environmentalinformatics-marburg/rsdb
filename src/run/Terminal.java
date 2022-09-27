@@ -851,7 +851,7 @@ public class Terminal {
 				boolean recompress = true;
 				int comression_level = 100;
 				Timer.start("recompress");
-				Rebuild rebuild = new Rebuild(pointcloud, broker.getPointCloudRoot(), stroage_type, recompress, comression_level);
+				Rebuild rebuild = new Rebuild(pointcloud, broker.getPointCloudRoot(), stroage_type, recompress, comression_level, null);
 				rebuild.process();
 				Logger.info(Timer.stop("recompress"));
 			} catch (Exception e) {

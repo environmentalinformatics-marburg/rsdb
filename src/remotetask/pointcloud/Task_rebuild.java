@@ -41,7 +41,7 @@ public class Task_rebuild extends CancelableRemoteProxyTask {
 	@Override
 	public void process() throws Exception {
 		setMessage("prepare");
-		Rebuild rebuild = new Rebuild(src, broker.getPointCloudRoot(), storage_type, compression_level != Integer.MIN_VALUE, compression_level);
+		Rebuild rebuild = new Rebuild(src, broker.getPointCloudRoot(), storage_type, compression_level != Integer.MIN_VALUE, compression_level, ctx.userIdentity);
 		setMessage("rebuild");
 		setRemoteProxyAndRunAndClose(rebuild);
 		setMessage("done");

@@ -88,11 +88,11 @@ public class Task_import extends CancelableRemoteProxyTask {
 		}
 		
 		if(access_roles.length > 0) {
-			voxeldb.setACL(ACL.of(access_roles));
+			voxeldb.setACL(ACL.ofRoles(access_roles));
 		}
 		
 		if(modify_roles.length > 0) {
-			voxeldb.setACL(ACL.of(modify_roles));
+			voxeldb.setACL_mod(ACL.ofRoles(modify_roles));
 		}		
 
 		voxeldb.trySetVoxelsize(voxel_size);

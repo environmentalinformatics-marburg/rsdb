@@ -59,8 +59,12 @@ public abstract class ACL {
 			}
 		}
 	}
+	
+	public static ACL ofRole(String role) {
+		return new OneACL(role);
+	}
 
-	public static ACL of(String... roles) {
+	public static ACL ofRoles(String... roles) {
 		if (roles == null || roles.length == 0) {
 			return EmptyACL.ADMIN;
 		}
@@ -70,7 +74,7 @@ public abstract class ACL {
 		return new ArrayACL(roles);
 	}
 
-	public static ACL of(Collection<String> roles) {
+	public static ACL ofRoles(Collection<String> roles) {
 		if (roles == null || roles.size() == 0) {
 			return EmptyACL.ADMIN;
 		}

@@ -288,7 +288,8 @@ public class Catalog {
 				String proj4 = pointcloud.getProj4();
 				if(proj4.isEmpty()) {
 					Logger.warn("no poj4: " + pointcloud.getName());
-					return generateCatalogEntry(pointcloud.getName(), CatalogKey.TYPE_POINTCLOUD, null, pointcloud.getAssociated(), pointcloud.getACL(), pointcloud.getACL_mod(), pointcloud.informal(), null);
+					ACL acl_ownermod = AclUtil.union(pointcloud.getACL_owner(), pointcloud.getACL_mod());
+					return generateCatalogEntry(pointcloud.getName(), CatalogKey.TYPE_POINTCLOUD, null, pointcloud.getAssociated(), pointcloud.getACL(), acl_ownermod, pointcloud.informal(), null);
 				} else {
 					src.ImportFromProj4(proj4);				
 				}

@@ -343,14 +343,14 @@ public class APIHandler_voxeldb {
 				case "acl": {
 					EmptyACL.ADMIN.check(userIdentity);	
 					updateCatalog = true;									
-					ACL acl = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl"));
+					ACL acl = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl"));
 					voxeldb.setACL(acl);
 					break;
 				}
 				case "acl_mod": {
 					EmptyACL.ADMIN.check(userIdentity);	
 					updateCatalog = true;		
-					ACL acl_mod = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl_mod"));
+					ACL acl_mod = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl_mod"));
 					voxeldb.setACL_mod(acl_mod);
 					break;
 				}

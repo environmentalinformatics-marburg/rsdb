@@ -45,9 +45,9 @@ public class Task_create extends RemoteTask {
 			rasterdb.checkMod(ctx.userIdentity, "task rasterdb create of existing name");
 			rasterdb.close();
 		}		  
-		this.acl = ACL.of(JsonUtil.optStringTrimmedList(task, "acl"));
+		this.acl = ACL.ofRoles(JsonUtil.optStringTrimmedList(task, "acl"));
 		//acl.check(ctx.userIdentity, "acl parameter of task rasterdb create"); // acl and acl_mod check not needed: user will be owner of new rasterdb layer
-		this.acl_mod = ACL.of(JsonUtil.optStringTrimmedList(task, "acl_mod"));
+		this.acl_mod = ACL.ofRoles(JsonUtil.optStringTrimmedList(task, "acl_mod"));
 		//acl_mod.check(ctx.userIdentity, "acl_mod parameter of task rasterdb create"); // acl and acl_mod check not needed: user will be owner of new rasterdb layer
 	}
 
@@ -129,7 +129,7 @@ public class Task_create extends RemoteTask {
 		Logger.info(ctx.userIdentity);
 		if(ctx.userIdentity != null) {
 			String username = ctx.userIdentity.getUserPrincipal().getName();
-			rasterdb.setACL_owner(ACL.of(username));
+			rasterdb.setACL_owner(ACL.ofRole(username));
 		}
 		rasterdb.setACL(acl);
 		rasterdb.setACL_mod(acl_mod);

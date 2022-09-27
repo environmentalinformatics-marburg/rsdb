@@ -112,7 +112,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					break;
 				}
 				case "acl": {
-					ACL acl = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl"));
+					ACL acl = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl"));
 					if(!rasterdb.getACL().equals(acl)) {
 						rasterdb.checkOwner(userIdentity, "set rasterdb acl");	
 						updateCatalog = true;					
@@ -121,7 +121,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					break;
 				}
 				case "acl_mod": {
-					ACL acl_mod = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl_mod"));
+					ACL acl_mod = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl_mod"));
 					if(!rasterdb.getACL_mod().equals(acl_mod)) {
 						rasterdb.checkOwner(userIdentity, "set rasterdb acl_mod");
 						updateCatalog = true;
@@ -130,7 +130,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					break;
 				}
 				case "acl_owner": {
-					ACL acl_owner = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl_owner"));
+					ACL acl_owner = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl_owner"));
 					if(!rasterdb.getACL_owner().equals(acl_owner)) {
 						AclUtil.check(userIdentity, "set rasterdb acl_owner");
 						updateCatalog = true;

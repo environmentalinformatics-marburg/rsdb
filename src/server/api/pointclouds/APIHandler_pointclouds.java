@@ -66,7 +66,7 @@ public class APIHandler_pointclouds extends AbstractHandler {
 		json.key("pointclouds");
 		json.array();
 		for (String name : broker.getPointCloudNames()) {
-			if(broker.getPointCloudACL(name).isAllowed(userIdentity)) {
+			if(broker.isAllowedPointCloud(name, userIdentity)) {
 				json.object();
 				JsonUtil.put(json, "name", name);
 				Informal informal = broker.getPointCloudInformal(name);

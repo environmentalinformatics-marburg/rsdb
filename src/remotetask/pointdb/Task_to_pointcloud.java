@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.tinylog.Logger;
 
 import broker.Broker;
+import broker.acl.ACL;
 import pointcloud.CellTable;
 import pointcloud.DoublePoint;
 import pointcloud.PointCloud;
@@ -125,6 +126,10 @@ public class Task_to_pointcloud extends RemoteTask{
 			PointCloud pointcloud = broker.createNewPointCloud(pointcloud_name, storage_type, transactions);
 			pointcloud.setACL(pointdb.getACL());
 			pointcloud.setACL_mod(pointdb.getACL()); // no ACL_mod in PointDB
+			if(ctx.userIdentity != null) {
+				String username = ctx.userIdentity.getUserPrincipal().getName();
+				pointcloud.setACL_owner(ACL.ofRole(username));
+			}
 
 			setMessage("verify pointdb layer");
 			Statistics stat = pointdb.tileMetaProducer(null).toStatistics();

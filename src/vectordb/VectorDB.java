@@ -164,8 +164,8 @@ public class VectorDB {
 		if (!type.equals(TYPE)) {
 			throw new RuntimeException("wrong type: " + type);
 		}
-		acl = ACL.of(yamlMap.optList("acl").asStrings());
-		acl_mod = ACL.of(yamlMap.optList("acl_mod").asStrings());
+		acl = ACL.ofRoles(yamlMap.optList("acl").asStrings());
+		acl_mod = ACL.ofRoles(yamlMap.optList("acl_mod").asStrings());
 		informal = Informal.ofYaml(yamlMap);
 		dataFilename = yamlMap.optString("data_filename", "");
 		nameAttribute = yamlMap.optString("name_attribute", "");

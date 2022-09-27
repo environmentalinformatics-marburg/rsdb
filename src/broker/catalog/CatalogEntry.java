@@ -62,8 +62,8 @@ public class CatalogEntry {
 			}
 		}
 		Associated associated = json.has("associated") ? Associated.parseJSON(json.getJSONObject("associated")) : null;
-		ACL acl = ACL.of(JsonUtil.optStringList(json, "acl"));
-		ACL acl_mod = ACL.of(JsonUtil.optStringList(json, "acl_mod"));
+		ACL acl = ACL.ofRoles(JsonUtil.optStringList(json, "acl"));
+		ACL acl_mod = ACL.ofRoles(JsonUtil.optStringList(json, "acl_mod"));
 		String[] tags = JsonUtil.optStringArray(json, "tags");
 		String title = json.optString("title", "");
 		StructuredAccess structuredAccess = json.has("structured_access") ? StructuredAccess.parseJSON(json.getJSONObject("structured_access")) : null;

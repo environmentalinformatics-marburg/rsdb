@@ -22,6 +22,7 @@ import broker.InformalProperties;
 import broker.TimeSlice;
 import broker.Informal.Builder;
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import broker.group.PoiGroup;
 import broker.group.RoiGroup;
@@ -33,7 +34,7 @@ import util.Range2d;
 import util.Web;
 
 public class APIHandler_pointcloud {
-	
+
 
 	protected static final String MIME_JSON = "application/json";
 
@@ -247,12 +248,14 @@ public class APIHandler_pointcloud {
 		json.endArray();
 		json.key("modify");
 		json.value(pointcloud.isAllowedMod(userIdentity));
-		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
+		json.key("owner");
+		json.value(pointcloud.isAllowedOwner(userIdentity));
 		json.key("acl");
 		pointcloud.getACL().writeJSON(json);
-		json.key("acl_mod");
+		json.key("acl_mod");		
 		pointcloud.getACL_mod().writeJSON(json);
-		//}
+		json.key("acl_owner");
+		pointcloud.getACL_owner().writeJSON(json);
 		json.key("attributes");
 		json.value(pointcloud.getSelector().toArray());
 		json.key("associated");
@@ -404,17 +407,30 @@ public class APIHandler_pointcloud {
 					break;
 				}
 				case "acl": {
-					EmptyACL.ADMIN.check(userIdentity);	
-					updateCatalog = true;									
-					ACL acl = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl"));
-					pointcloud.setACL(acl);
+					ACL acl = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl"));
+					if(!pointcloud.getACL().equals(acl)) {
+						pointcloud.checkOwner(userIdentity, "set pointcloud acl");
+						updateCatalog = true;
+						pointcloud.setACL(acl);
+					}
 					break;
 				}
 				case "acl_mod": {
-					EmptyACL.ADMIN.check(userIdentity);	
-					updateCatalog = true;		
-					ACL acl_mod = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl_mod"));
-					pointcloud.setACL_mod(acl_mod);
+					ACL acl_mod = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl_mod"));
+					if(!pointcloud.getACL_mod().equals(acl_mod)) {
+						pointcloud.checkOwner(userIdentity, "set pointcloud acl_mod");
+						updateCatalog = true;
+						pointcloud.setACL_mod(acl_mod);
+					}
+					break;
+				}
+				case "acl_owner": {
+					ACL acl_owner = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl_owner"));
+					if(!pointcloud.getACL_owner().equals(acl_owner)) {
+						AclUtil.check(userIdentity, "set pointcloud acl_owner");
+						updateCatalog = true;							
+						pointcloud.setACL_owner(acl_owner);
+					}
 					break;
 				}
 				case "tags": {

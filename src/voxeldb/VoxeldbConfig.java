@@ -53,7 +53,7 @@ public class VoxeldbConfig {
 				try(InputStream in = new FileInputStream(metaFile)) {
 					map = YamlMap.ofObject(new Yaml().load(in));
 				}
-				return ACL.of(map.optList("acl").asStrings());
+				return ACL.ofRoles(map.optList("acl").asStrings());
 			}
 			return EmptyACL.ADMIN;
 		} catch (Exception e) {

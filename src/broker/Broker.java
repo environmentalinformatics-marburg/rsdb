@@ -16,9 +16,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.server.UserIdentity;
 import org.tinylog.Logger;
 
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import broker.catalog.Catalog;
 import broker.catalog.CatalogKey;
@@ -743,16 +745,16 @@ public class Broker implements AutoCloseable {
 		return getOrCreateVoxeldb(name, storageType, transactions);
 	}
 
-	public ACL getPointCloudACL(String name) {
+	public boolean isAllowedPointCloud(String name, UserIdentity userIdentity) {
 		PointCloud pointcloud = pointcloudMap.get(name);
 		if(pointcloud != null) {
-			return pointcloud.getACL();
+			return pointcloud.isAllowed(userIdentity);
 		}
 		PointCloudConfig pointcloudConfig = pointcloudConfigMap.get(name);
 		if(pointcloudConfig != null) {
-			return pointcloudConfig.readACL();
+			return pointcloudConfig.isAllowed(userIdentity);
 		}
-		return EmptyACL.ADMIN;
+		return AclUtil.isAllowed(userIdentity);
 	}
 
 	public ACL getVoxeldbACL(String name) {

@@ -115,8 +115,8 @@ public class VoxelDB implements AutoCloseable {
 
 				cellsize = yamlMap.getInt("cellsize");
 
-				acl = ACL.of(yamlMap.optList("acl").asStrings());
-				acl_mod = ACL.of(yamlMap.optList("acl_mod").asStrings());
+				acl = ACL.ofRoles(yamlMap.optList("acl").asStrings());
+				acl_mod = ACL.ofRoles(yamlMap.optList("acl_mod").asStrings());
 				associated = new Associated();
 				if(yamlMap.contains("associated")) {
 					associated = Associated.ofYaml(yamlMap.getMap("associated"));

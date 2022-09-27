@@ -77,7 +77,7 @@ public class AclUtil {
 		LinkedHashSet<String> roles = new LinkedHashSet<String>();
 		acl1.collectRoles(roles);
 		acl2.collectRoles(roles);
-		return ACL.of(roles);
+		return ACL.ofRoles(roles);
 	}
 	
 	public static ACL union(ACL acl1, ACL acl2, ACL acl3) {
@@ -85,6 +85,6 @@ public class AclUtil {
 		acl1.collectRoles(roles);
 		acl2.collectRoles(roles);
 		acl3.collectRoles(roles);
-		return ACL.of(roles);
+		return ACL.ofRoles(roles);
 	}
 }

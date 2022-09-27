@@ -309,11 +309,11 @@ public class ImportSpec {
 				break;
 			}
 			case "acl": {
-				acl = ACL.of(JsonUtil.optStringArray(specification, "acl"));
+				acl = ACL.ofRoles(JsonUtil.optStringArray(specification, "acl"));
 				break;
 			}
 			case "acl_mod": {
-				acl_mod = ACL.of(JsonUtil.optStringArray(specification, "acl_mod"));
+				acl_mod = ACL.ofRoles(JsonUtil.optStringArray(specification, "acl_mod"));
 				break;
 			}
 			case "timestamp": {

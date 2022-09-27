@@ -76,7 +76,7 @@ public class Task_coverage extends RemoteTask {
 		}
 		if(ctx.userIdentity != null) {
 			String username = ctx.userIdentity.getUserPrincipal().getName();
-			rasterdb.setACL_owner(ACL.of(username));
+			rasterdb.setACL_owner(ACL.ofRole(username));
 		}
 		rasterdb.setACL(pointcloud.getACL());
 		rasterdb.setACL_mod(pointcloud.getACL_mod());

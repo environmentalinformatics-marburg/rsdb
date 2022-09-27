@@ -78,7 +78,7 @@ public class PointdbConfig {
 			}
 		}
 		//yamlMap.optFunBoolean("classified", c->{pc.classified_ground = c; pc.classified_vegetation = c;});
-		pc.acl = ACL.of(yamlMap.optList("acl").asStrings());
+		pc.acl = ACL.ofRoles(yamlMap.optList("acl").asStrings());
 		pc.informal = Informal.ofYaml(yamlMap);
 		return pc;
 	}

@@ -8,9 +8,10 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Phaser;
 import java.util.function.Consumer;
 
-
+import org.eclipse.jetty.server.UserIdentity;
 import org.tinylog.Logger;
 
+import broker.acl.ACL;
 import griddb.Attribute;
 import griddb.Cell;
 import rasterunit.Tile;
@@ -26,13 +27,15 @@ public class Rebuild extends CancelableRemoteProxy {
 	private final String storage_type;
 	private final boolean recompress;
 	private final int compression_level;
+	private final UserIdentity userIdentity;
 
-	public Rebuild(PointCloud src, Path rootPath, String storage_type, boolean recompress, int compression_level) {
+	public Rebuild(PointCloud src, Path rootPath, String storage_type, boolean recompress, int compression_level, UserIdentity userIdentity) {
 		this.src = src;
 		this.rootPath = rootPath;
 		this.storage_type = storage_type;
 		this.recompress = recompress;
 		this.compression_level = compression_level;
+		this.userIdentity = userIdentity;
 	};
 
 	private static class TileProcessor implements Consumer<Tile> {
@@ -132,6 +135,10 @@ public class Rebuild extends CancelableRemoteProxy {
 			dst.setProj4(src.getProj4());
 			dst.setACL(src.getACL());
 			dst.setACL_mod(src.getACL_mod());
+			if(userIdentity != null) {
+				String username = userIdentity.getUserPrincipal().getName();
+				dst.setACL_owner(ACL.ofRole(username));
+			}
 			dst.setAssociatedRasterDB(src.getAssociated().getRasterDB());
 			dst.setInformal(src.informal());
 			dst.commitMeta();

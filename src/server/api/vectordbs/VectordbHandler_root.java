@@ -247,7 +247,7 @@ public class VectordbHandler_root extends VectordbHandler {
 					if(!isNewCreated) {
 						EmptyACL.ADMIN.check(userIdentity);
 					}
-					ACL acl = ACL.of(JsonUtil.optStringTrimmedList(json, "acl"));
+					ACL acl = ACL.ofRoles(JsonUtil.optStringTrimmedList(json, "acl"));
 					vectordb.setACL(acl);
 					updateCatalog = true;
 					writeMeta = true;
@@ -257,7 +257,7 @@ public class VectordbHandler_root extends VectordbHandler {
 					if(!isNewCreated) {
 						EmptyACL.ADMIN.check(userIdentity);
 					}
-					ACL acl_mod = ACL.of(JsonUtil.optStringTrimmedList(json, "acl_mod"));
+					ACL acl_mod = ACL.ofRoles(JsonUtil.optStringTrimmedList(json, "acl_mod"));
 					vectordb.setACL_mod(acl_mod);
 					updateCatalog = true;
 					writeMeta = true;

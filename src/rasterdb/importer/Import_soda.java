@@ -91,7 +91,7 @@ public class Import_soda {
 		spec.inf.acquisition_date = "(time series planned)";
 		spec.inf.corresponding_contact = corresponding_contact;
 		spec.inf.setTags("exploratories", "UAV", "soda", layerSubName);
-		spec.acl = ACL.of("be");
+		spec.acl = ACL.ofRole("be");
 		Logger.info(spec.bandSpecs);
 		BandSpec band1 = spec.bandSpecs.get(0);
 		band1.band_name = "Red";

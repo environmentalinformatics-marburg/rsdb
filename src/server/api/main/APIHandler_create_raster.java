@@ -58,7 +58,7 @@ public class APIHandler_create_raster extends APIHandler {
 		RasterDB rasterdb = create_new ? broker.createNewRasterdb(name, transaction, storage_type): broker.createOrGetRasterdb(name, transaction, storage_type);
 		if(userIdentity != null) {
 			String username = userIdentity.getUserPrincipal().getName();
-			rasterdb.setACL_owner(ACL.of(username));
+			rasterdb.setACL_owner(ACL.ofRole(username));
 		}
 		
 		if(proj4 != null && !proj4.isEmpty()) {

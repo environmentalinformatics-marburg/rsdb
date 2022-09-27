@@ -102,7 +102,7 @@ public class Import_sequoia {
 		spec.inf.acquisition_date = "(time series)";
 		spec.inf.corresponding_contact = corresponding_contact;
 		spec.inf.setTags("exploratories", "UAV", "sequoia", "reflectance", layerSubName);
-		spec.acl = ACL.of("be", "exploratories_cartography");
+		spec.acl = ACL.ofRoles("be", "exploratories_cartography");
 		Logger.info(spec.bandSpecs);
 
 		switch(spec.bandSpecs.size()) {

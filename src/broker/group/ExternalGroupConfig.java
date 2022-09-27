@@ -27,7 +27,7 @@ public class ExternalGroupConfig {
 		String file = yamlMap.getString("file");
 		String name = yamlMap.optString("name", file);
 		Informal informal = Informal.ofYaml(yamlMap);
-		ACL acl = ACL.of(yamlMap.optList("acl").asStrings());
+		ACL acl = ACL.ofRoles(yamlMap.optList("acl").asStrings());
 		return new ExternalGroupConfig(name, informal, file, acl);
 	}
 }

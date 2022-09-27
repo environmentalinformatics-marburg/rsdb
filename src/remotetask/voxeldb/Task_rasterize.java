@@ -68,7 +68,7 @@ public class Task_rasterize extends CancelableRemoteTask {
 		}
 		if(ctx.userIdentity != null) {
 			String username = ctx.userIdentity.getUserPrincipal().getName();
-			rasterdb.setACL_owner(ACL.of(username));
+			rasterdb.setACL_owner(ACL.ofRole(username));
 		}
 		rasterdb.setProj4(voxeldb.geoRef().proj4);
 		rasterdb.setCode("EPSG:" + voxeldb.geoRef().epsg);
