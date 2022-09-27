@@ -12,6 +12,7 @@ import org.tinylog.Logger;
 import broker.Broker;
 import broker.PublicAccess;
 import broker.PublicAccess.RasterDbWMS;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
@@ -39,7 +40,7 @@ public class APIHandler_public_access extends APIHandler {
 	}
 
 	private void handleGET(String target, Request request, Response response) throws IOException {		
-		EmptyACL.ADMIN.check(Web.getUserIdentity(request));
+		AclUtil.check(Web.getUserIdentity(request), "get public URL list");
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
@@ -68,7 +69,7 @@ public class APIHandler_public_access extends APIHandler {
 	}
 
 	private void handlePOST(String target, Request request, Response response) throws IOException {
-		EmptyACL.ADMIN.check(Web.getUserIdentity(request));
+		AclUtil.check(Web.getUserIdentity(request), "change public access URLs");
 		try {
 			JSONObject json = new JSONObject(Web.requestContentToString(request));
 			JSONArray actions = json.getJSONArray("actions");

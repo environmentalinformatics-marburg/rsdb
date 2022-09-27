@@ -3,12 +3,11 @@ package remotetask.rasterdb;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
+import broker.acl.AclUtil;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.importer.RasterDBimporter;
@@ -31,7 +30,7 @@ public class Task_import_OLD extends RemoteTask {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
-		EmptyACL.ADMIN.check(ctx.userIdentity, "task rasterdb import_OLD");
+		AclUtil.check(ctx.userIdentity, "task rasterdb import_OLD");
 	}
 
 	@Override

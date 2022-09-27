@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.acl.ACL;
 import pointdb.PointDB;
 import pointdb.Rasterizer;
 import rasterdb.RasterDB;
@@ -54,6 +55,10 @@ public class Task_rasterize extends RemoteTask {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions, storage_type);
 		} else {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
+		}
+		if(ctx.userIdentity != null) {
+			String username = ctx.userIdentity.getUserPrincipal().getName();
+			rasterdb.setACL_owner(ACL.of(username));
 		}
 		rasterdb.setACL(pointdb.getACL());
 		rasterdb.setACL_mod(pointdb.getACL()); // no ACL_mod in PointDB

@@ -223,11 +223,15 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			rasterdb.associated.writeJSON(json);			
 			json.key("modify");
 			json.value(rasterdb.isAllowedMod(userIdentity));
+			json.key("owner");
+			json.value(rasterdb.isAllowedOwner(userIdentity));
 			//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
 			json.key("acl");
 			rasterdb.getACL().writeJSON(json);
 			json.key("acl_mod");
 			rasterdb.getACL_mod().writeJSON(json);
+			json.key("acl_owner");
+			rasterdb.getACL_owner().writeJSON(json);
 			//}			
 			if(request.getParameter("tilekeys") != null) {
 				json.key("tilekeys");

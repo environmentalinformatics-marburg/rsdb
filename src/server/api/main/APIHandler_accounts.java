@@ -16,6 +16,7 @@ import broker.Account;
 import broker.Account.Builder;
 import broker.AccountManager;
 import broker.Broker;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import server.api.APIHandler;
 import util.JsonUtil;
@@ -49,7 +50,7 @@ public class APIHandler_accounts extends APIHandler {
 	}
 
 	private void handleGET(String target, Request request, Response response) throws IOException {		
-		EmptyACL.ADMIN.check(Web.getUserIdentity(request));
+		AclUtil.check(Web.getUserIdentity(request), "get accounts details");
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
@@ -77,7 +78,7 @@ public class APIHandler_accounts extends APIHandler {
 	}
 
 	private void handlePOST(String target, Request request, Response response) throws IOException {
-		EmptyACL.ADMIN.check(Web.getUserIdentity(request));
+		AclUtil.check(Web.getUserIdentity(request), "change accounts");
 		try {
 			JSONObject json = new JSONObject(Web.requestContentToString(request));
 			JSONArray actions = json.getJSONArray("actions");

@@ -25,7 +25,7 @@ public class APIHandler_roles extends APIHandler {
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
 		Logger.info("request roles");
-		UserIdentity userIdentity = Web.getUserIdentity(request);
+		//UserIdentity userIdentity = Web.getUserIdentity(request);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MIME_JSON);
 		
@@ -38,9 +38,10 @@ public class APIHandler_roles extends APIHandler {
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("roles");
+		/*// List all roles for all users
 		if(!EmptyACL.ADMIN.isAllowed(userIdentity)) {
 			roles = Arrays.stream(roles).filter(role -> userIdentity.isUserInRole(role, null)).toArray(String[]::new);
-		}
+		}*/
 		json.value(roles);
 		json.endObject();		
 	}

@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.acl.ACL;
 import pointcloud.PointCloud;
 import pointcloud.Rasterizer;
 import rasterdb.RasterDB;
@@ -74,7 +75,10 @@ public class Task_rasterize extends CancelableRemoteProxyTask {
 		} else {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
 		}
-		
+		if(ctx.userIdentity != null) {
+			String username = ctx.userIdentity.getUserPrincipal().getName();
+			rasterdb.setACL_owner(ACL.of(username));
+		}
 		rasterdb.setACL(pointcloud.getACL());
 		rasterdb.setACL_mod(pointcloud.getACL_mod());
 

@@ -18,8 +18,9 @@ public class ArrayACL extends ACL {
 		if(userIdentity == null || userIdentity.isUserInRole(ACL.ROLE_ADMIN, null)) {
 			return true;
 		}
+		String username = userIdentity.getUserPrincipal().getName();
 		for(String role:roles) {
-			if(userIdentity.isUserInRole(role, null)) {
+			if(username.equals(role) || userIdentity.isUserInRole(role, null)) {
 				return true;
 			}
 		}

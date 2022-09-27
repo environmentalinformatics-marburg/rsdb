@@ -16,7 +16,9 @@ public class OneACL extends ACL {
 
 	@Override
 	public boolean isAllowed(UserIdentity userIdentity) {
-		return userIdentity == null || userIdentity.isUserInRole(ACL.ROLE_ADMIN, null)
+		return userIdentity == null 
+				|| userIdentity.isUserInRole(ACL.ROLE_ADMIN, null)
+				|| userIdentity.getUserPrincipal().getName().equals(role)
 				|| userIdentity.isUserInRole(role, null);
 	}
 

@@ -1,6 +1,7 @@
 package broker;
 
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import javax.security.auth.Subject;
@@ -95,5 +96,10 @@ public class Account implements UserIdentity, Principal {
 	
 	public boolean checkCredentials(Object credentials) {
 		return this.credential.check(credentials);
+	}
+
+	@Override
+	public String toString() {
+		return "Account [user=" + user + ", roles=" + Arrays.toString(roles) + ", managed=" + managed + "]";
 	}
 }

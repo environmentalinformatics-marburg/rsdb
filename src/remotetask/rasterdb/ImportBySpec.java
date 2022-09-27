@@ -2,11 +2,12 @@ package remotetask.rasterdb;
 
 import java.nio.file.Path;
 
-
+import org.eclipse.jetty.server.UserIdentity;
 import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.TimeSlice;
+import broker.acl.ACL;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import util.raster.GdalReader;
@@ -14,17 +15,17 @@ import util.raster.GdalReader;
 public class ImportBySpec {
 	
 
-	public static ImportProcessor importPerpare(Broker broker, Path path, String rasterdbID, ImportSpec spec) {
+	public static ImportProcessor importPerpare(Broker broker, Path path, String rasterdbID, ImportSpec spec, UserIdentity userIdentity) {
 		if(path == null) {
 			throw new RuntimeException("no path");
 		}
 		Logger.info(path);
 		GdalReader gdalreader = new GdalReader(path.toString());	
-		return importPerpare(broker, gdalreader, rasterdbID, spec);
+		return importPerpare(broker, gdalreader, rasterdbID, spec, userIdentity);
 	}
 
 
-	public static ImportProcessor importPerpare(Broker broker, GdalReader gdalreader, String rasterdbID, ImportSpec spec) {
+	public static ImportProcessor importPerpare(Broker broker, GdalReader gdalreader, String rasterdbID, ImportSpec spec, UserIdentity userIdentity) {
 		if(broker == null) {
 			throw new RuntimeException("no broker");
 		}
@@ -64,6 +65,10 @@ public class ImportBySpec {
 		if(spec.strategy.isCreate()) {
 			rasterdb = broker.createNewRasterdb(rasterdbID, true, spec.storage_type);
 			rasterdb.setInformal(spec.inf.build());
+			if(userIdentity != null) {
+				String username = userIdentity.getUserPrincipal().getName();
+				rasterdb.setACL_owner(ACL.of(username));
+			}
 			rasterdb.setACL(spec.acl);
 			rasterdb.setACL_mod(spec.acl_mod);
 		} else {

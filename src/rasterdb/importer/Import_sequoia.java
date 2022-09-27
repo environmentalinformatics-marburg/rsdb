@@ -157,7 +157,7 @@ public class Import_sequoia {
 		}
 		}
 
-		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, layerName, spec);
+		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, layerName, spec, null);
 		importProcessor.process();
 	}
 }

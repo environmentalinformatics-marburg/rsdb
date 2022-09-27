@@ -108,7 +108,7 @@ public class Import_soda {
 		band3.visualisation = "blue";
 		band3.no_data_value = 0d;
 		
-		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, layerName, spec);
+		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, layerName, spec, null);
 		importProcessor.process();		
 	}
 }

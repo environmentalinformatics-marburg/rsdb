@@ -8,9 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
 
 import broker.Broker;
+import broker.acl.ACL;
 import rasterdb.RasterDB;
 import server.api.APIHandler;
 import util.Web;
@@ -23,7 +25,8 @@ public class APIHandler_create_raster extends APIHandler {
 	}
 
 	@Override
-	protected void handle(String target, Request request, Response response) throws IOException {		
+	protected void handle(String target, Request request, Response response) throws IOException {	
+		UserIdentity userIdentity = Web.getUserIdentity(request);
 		String name = request.getParameter("name");
 		if(name==null) {
 			throw new RuntimeException("missing name parameter");
@@ -53,6 +56,10 @@ public class APIHandler_create_raster extends APIHandler {
 		boolean create_new = Web.getBoolean(request, "create_new", true);
 		
 		RasterDB rasterdb = create_new ? broker.createNewRasterdb(name, transaction, storage_type): broker.createOrGetRasterdb(name, transaction, storage_type);
+		if(userIdentity != null) {
+			String username = userIdentity.getUserPrincipal().getName();
+			rasterdb.setACL_owner(ACL.of(username));
+		}
 		
 		if(proj4 != null && !proj4.isEmpty()) {
 			rasterdb.setProj4(proj4);

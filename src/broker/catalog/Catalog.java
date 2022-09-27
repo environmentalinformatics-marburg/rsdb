@@ -38,6 +38,7 @@ import broker.Broker;
 import broker.Informal;
 import broker.StructuredAccess;
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import pointcloud.DoublePoint;
 import pointcloud.PointCloud;
@@ -81,18 +82,16 @@ public class Catalog {
 			return null;
 		}
 		try {
-			if((!rasterdb.hasRasterUnit()) || rasterdb.rasterUnit().isEmpty()) {
-				return null;
-			}
 			double[][] points = null;
-			if(generateHull) {
+			if(generateHull && rasterdb.hasRasterUnit() && !rasterdb.rasterUnit().isEmpty()) {
 				GeoReference ref = rasterdb.ref();
 				SpatialReference src = new SpatialReference("");
 				if(ref.has_proj4()) {
 					src.ImportFromProj4(ref.proj4);
 				} else {
+					ACL acl_ownermod = AclUtil.union(rasterdb.getACL_owner(), rasterdb.getACL_mod());
 					Logger.warn("no poj4: "+rasterdb.config.getName());
-					return generateCatalogEntry(rasterdb.config.getName(), CatalogKey.TYPE_RASTERDB, null, rasterdb.associated, rasterdb.getACL(), rasterdb.getACL_mod(), rasterdb.informal(), null);
+					return generateCatalogEntry(rasterdb.config.getName(), CatalogKey.TYPE_RASTERDB, null, rasterdb.associated, rasterdb.getACL(), acl_ownermod, rasterdb.informal(), null);
 				}
 
 				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);
@@ -583,7 +582,7 @@ public class Catalog {
 	public void writeJSON(JSONWriter json, UserIdentity userIdentity, boolean withACL) {
 		json.array();
 		for(CatalogEntry entry:map.values()) {
-			if(userIdentity == null || entry.acl.isAllowed(userIdentity))
+			if(AclUtil.isAllowed(entry.acl, entry.acl_mod, userIdentity))
 				entry.writeJSON(json, withACL);			
 		}
 		json.endArray();
@@ -647,7 +646,7 @@ public class Catalog {
 	public String[] getTags(UserIdentity userIdentity) {
 		HashSet<String> collector = new HashSet<String>();
 		for(CatalogEntry e:map.values()) {
-			if(e.acl.isAllowed(userIdentity)) {
+			if(AclUtil.isAllowed(e.acl, e.acl_mod, userIdentity)) {
 				for(String tag:e.tags) {
 					collector.add(tag);
 				}
@@ -739,7 +738,7 @@ public class Catalog {
 		return map.keySet().stream()
 				.filter(key -> key.type.equals(type))
 				.map(key -> map.get(key))
-				.filter(entry -> entry.acl.isAllowed(userIdentity))
+				.filter(entry -> AclUtil.isAllowed(entry.acl, entry.acl_mod, userIdentity))
 				.sorted(CATALOG_ENTRY_COMPARATOR);
 	}
 

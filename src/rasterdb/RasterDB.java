@@ -31,6 +31,7 @@ import broker.Informal;
 import broker.TimeSlice;
 import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import rasterdb.tile.Processing;
 import rasterdb.tile.TilePixel;
@@ -43,13 +44,12 @@ import util.Util;
 import util.yaml.YamlMap;
 
 public class RasterDB implements AutoCloseable {
-	
 
 	private static final String TYPE = "RasterDB";
 
 	public static final String PYRAMID_TYPE_FILES_DIV4 = "files_div4";
 	public static final String PYRAMID_TYPE_COMPACT_DIV2 = "compact_div2";
-	
+
 	public static final String STORAGE_TYPE_TILE_STORAGE = "TileStorage";
 
 	private final ConcurrentSkipListMap<Integer, TimeSlice> timeMap = new ConcurrentSkipListMap<Integer, TimeSlice>();
@@ -57,7 +57,7 @@ public class RasterDB implements AutoCloseable {
 
 	private final ConcurrentSkipListMap<Integer, Band> bandMap;
 	public final  NavigableMap<Integer, Band> bandMapReadonly;
-	
+
 	private final ConcurrentSkipListMap<String, CustomWMS> customWmsMap = new ConcurrentSkipListMap<String, CustomWMS>();
 	public final NavigableMap<String, CustomWMS> customWmsMapReadonly = Collections.unmodifiableNavigableMap(customWmsMap);
 
@@ -73,6 +73,7 @@ public class RasterDB implements AutoCloseable {
 	public int version = 1;
 	private ACL acl = EmptyACL.ADMIN;
 	private ACL acl_mod = EmptyACL.ADMIN;
+	private ACL acl_owner = EmptyACL.ADMIN;
 
 	private boolean calcExactLocalRange = true;
 	private Range2d local_extent = null;
@@ -95,14 +96,14 @@ public class RasterDB implements AutoCloseable {
 		bandMapReadonly = Collections.unmodifiableNavigableMap(bandMap);
 
 		this.metaPath = path.resolve("meta.yaml");
-		
+
 		// *** Set config properties for new RasterDB, will be overwritten from meta if RasterDB already exists.
 		this.storageType = config.preferredStorageType == null ? STORAGE_TYPE_TILE_STORAGE : config.preferredStorageType;
 		this.tilePixelLen = config.preferredTilePixelLen;
 		//Logger.info("tilePixelLen " + tilePixelLen);
 		this.pyramidType = config.preferredPyramidType;
 		// ***
-		
+
 		readMeta(); // possibly overwrite config properties from meta
 		//Logger.info("tilePixelLen " + tilePixelLen);
 	}
@@ -206,6 +207,7 @@ public class RasterDB implements AutoCloseable {
 			map.put("associated", associated.toYaml());
 			map.put("acl", acl.toYaml());
 			map.put("acl_mod", acl_mod.toYaml());
+			map.put("acl_owner", acl_owner.toYaml());
 			informal.writeYaml(map);
 			if(local_extent != null) {
 				map.put("local_extent", local_extent.toYaml());
@@ -268,6 +270,7 @@ public class RasterDB implements AutoCloseable {
 				}
 				acl = ACL.of(yamlMap.optList("acl").asStrings());
 				acl_mod = ACL.of(yamlMap.optList("acl_mod").asStrings());
+				acl_owner = ACL.of(yamlMap.optList("acl_owner").asStrings());
 				informal = Informal.ofYaml(yamlMap);
 				if(yamlMap.contains("local_extent")) {
 					local_extent = Range2d.ofYaml(yamlMap.getMap("local_extent"));
@@ -336,7 +339,7 @@ public class RasterDB implements AutoCloseable {
 	public synchronized void setBand(Band band, boolean replaceIfExisting) {
 		if (bandMap.containsKey(band.index)) {
 			if(replaceIfExisting) {
-			Logger.warn("replace band" + band);
+				Logger.warn("replace band" + band);
 			} else {
 				throw new RuntimeException("band already existing: " + band.toString());
 			}
@@ -482,7 +485,7 @@ public class RasterDB implements AutoCloseable {
 	public Band getBandByNumber(int band_number) {
 		return bandMap.get(band_number);
 	}
-	
+
 	public Band getBandByNumberThrow(int band_number) {
 		Band band = bandMap.get(band_number);
 		if(band == null) {
@@ -507,6 +510,10 @@ public class RasterDB implements AutoCloseable {
 	public ACL getACL_mod() {
 		return acl_mod;
 	}
+	
+	public ACL getACL_owner() {
+		return acl_owner;
+	}
 
 	public void setACL(ACL acl) {
 		this.acl = acl;
@@ -517,29 +524,46 @@ public class RasterDB implements AutoCloseable {
 		this.acl_mod = acl_mod;
 		writeMeta();	
 	}
+	
+	public void setACL_owner(ACL acl_owner) {
+		this.acl_owner = acl_owner;
+		writeMeta();	
+	}
 
 	public boolean isAllowed(UserIdentity userIdentity) {
-		return acl.isAllowed(userIdentity);
+		return AclUtil.isAllowed(acl_owner, acl_mod, acl, userIdentity);
 	}
 
 	public void check(UserIdentity userIdentity) {
-		acl.check(userIdentity, "rasterdb " + this.config.getName() + " read");
+		AclUtil.check(acl_owner, acl_mod, acl, userIdentity, "rasterdb " + this.config.getName() + " read");
 	}
-	
+
 	public void check(UserIdentity userIdentity, String location) {
-		acl.check(userIdentity, "rasterdb " + this.config.getName() + " read" + " at " + location);
+		AclUtil.check(acl_owner, acl_mod, acl, userIdentity, "rasterdb " + this.config.getName() + " read" + " at " + location);
 	}
 
 	public boolean isAllowedMod(UserIdentity userIdentity) {
-		return acl_mod.isAllowed(userIdentity);
+		return AclUtil.isAllowed(acl_owner, acl_mod, userIdentity);
 	}
 
 	public void checkMod(UserIdentity userIdentity) {
-		acl_mod.check(userIdentity, "rasterdb " + this.config.getName() + " modify");
+		AclUtil.check(acl_owner, acl_mod, userIdentity, "rasterdb " + this.config.getName() + " modify");
+	}
+
+	public void checkMod(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, acl_mod, userIdentity, "rasterdb " + this.config.getName() + " modify" + " at " + location);
 	}
 	
-	public void checkMod(UserIdentity userIdentity, String location) {
-		acl_mod.check(userIdentity, "rasterdb " + this.config.getName() + " modify" + " at " + location);
+	public boolean isAllowedOwner(UserIdentity userIdentity) {
+		return AclUtil.isAllowed(acl_owner, userIdentity);
+	}
+
+	public void checkOwner(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, userIdentity, "rasterdb " + this.config.getName() + " modify");
+	}
+
+	public void checkOwner(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, userIdentity, "rasterdb " + this.config.getName() + " modify" + " at " + location);
 	}
 
 	public RasterUnitStorage rasterUnit() {
@@ -682,7 +706,7 @@ public class RasterDB implements AutoCloseable {
 		this.associated = associated;
 		writeMeta();
 	}
-	
+
 	public static boolean isValidPyramidTypeString(String pyramidType) {
 		if(pyramidType == null || pyramidType.isEmpty()) {
 			return false;
@@ -707,7 +731,7 @@ public class RasterDB implements AutoCloseable {
 		customWmsMap.putAll(map);
 		writeMeta();
 	}
-	
+
 	public List<Path> getAttachmentFilenames() {		
 		File[] fullfiles = this.config.getAttachmentFolderPath().toFile().listFiles();
 		if(fullfiles == null) {
@@ -721,7 +745,7 @@ public class RasterDB implements AutoCloseable {
 		}).collect(Collectors.toList());
 		return files;		
 	}
-	
+
 	public Path getAttachmentFilePath(String targetFilename) {
 		List<Path> filenames = getAttachmentFilenames();
 		Path filenamePath = null; 
@@ -738,7 +762,7 @@ public class RasterDB implements AutoCloseable {
 		Path filePath = root.resolve(filenamePath);
 		return filePath;
 	}
-	
+
 	public void removeAttachmentFile(String filename) throws IOException {
 		Path path = getAttachmentFilePath(filename);
 		Util.safeDeleteIfExists(this.config.getAttachmentFolderPath(), path);

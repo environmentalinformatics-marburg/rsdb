@@ -4,8 +4,6 @@ import java.security.Principal;
 
 import javax.security.auth.Subject;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
 
 public class FastUserIdentity implements UserIdentity {

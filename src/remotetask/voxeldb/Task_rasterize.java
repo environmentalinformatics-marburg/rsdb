@@ -6,6 +6,7 @@ import org.json.JSONObject;
 
 import broker.Broker;
 import broker.TimeSlice;
+import broker.acl.ACL;
 import rasterdb.Band;
 import rasterdb.BandProcessor;
 import rasterdb.RasterDB;
@@ -64,6 +65,10 @@ public class Task_rasterize extends CancelableRemoteTask {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions, storage_type);
 		} else {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
+		}
+		if(ctx.userIdentity != null) {
+			String username = ctx.userIdentity.getUserPrincipal().getName();
+			rasterdb.setACL_owner(ACL.of(username));
 		}
 		rasterdb.setProj4(voxeldb.geoRef().proj4);
 		rasterdb.setCode("EPSG:" + voxeldb.geoRef().epsg);

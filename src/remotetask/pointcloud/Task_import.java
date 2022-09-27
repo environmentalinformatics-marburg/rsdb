@@ -4,15 +4,14 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
-import org.tinylog.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
+import broker.acl.AclUtil;
 import pointcloud.AttributeSelector;
 import pointcloud.DoubleRect;
 import pointcloud.Importer;
@@ -46,7 +45,7 @@ public class Task_import extends CancelableRemoteProxyTask {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
-		EmptyACL.ADMIN.check(ctx.userIdentity, "task pointcloud import");
+		AclUtil.check(ctx.userIdentity, "task pointcloud import");
 	}
 
 	@Override

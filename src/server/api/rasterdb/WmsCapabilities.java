@@ -83,7 +83,7 @@ public class WmsCapabilities {
 		for (String name : broker.getRasterdbNames()) {
 			Logger.info("load " + name);
 			RasterDB rasterdb = broker.getRasterdb(name);
-			if(rasterdb.getACL().isAllowed(userIdentity)) {
+			if(rasterdb.isAllowed(userIdentity)) {
 				// int default_epsg = 4326; // WGS-84 / geographisch 2D weltweites System für
 				// GPS-Geräte, OpenStreetMap Datenbank
 				String default_epsg = "EPSG:3857"; // WGS 84 / Pseudo-Mercator Google Maps, OpenStreetMap und andere

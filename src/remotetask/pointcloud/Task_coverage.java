@@ -8,6 +8,7 @@ import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.Informal.Builder;
+import broker.acl.ACL;
 import broker.TimeSlice;
 import pointcloud.DoublePoint;
 import pointcloud.PointCloud;
@@ -72,6 +73,10 @@ public class Task_coverage extends RemoteTask {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions, storage_type);
 		} else {
 			rasterdb = broker.createNewRasterdb(rasterdb_name, transactions);	
+		}
+		if(ctx.userIdentity != null) {
+			String username = ctx.userIdentity.getUserPrincipal().getName();
+			rasterdb.setACL_owner(ACL.of(username));
 		}
 		rasterdb.setACL(pointcloud.getACL());
 		rasterdb.setACL_mod(pointcloud.getACL_mod());

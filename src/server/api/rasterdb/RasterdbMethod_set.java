@@ -25,6 +25,7 @@ import broker.InformalProperties;
 import broker.TimeSlice;
 import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import rasterdb.Band;
 import rasterdb.CustomWMS;
@@ -34,7 +35,7 @@ import util.JsonUtil;
 import util.Web;
 
 public class RasterdbMethod_set extends RasterdbMethod {
-	
+
 
 	public RasterdbMethod_set(Broker broker) {
 		super(broker, "set");	
@@ -111,17 +112,30 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					break;
 				}
 				case "acl": {
-					EmptyACL.ADMIN.check(userIdentity);	
-					updateCatalog = true;
 					ACL acl = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl"));
-					rasterdb.setACL(acl);
+					if(!rasterdb.getACL().equals(acl)) {
+						rasterdb.checkOwner(userIdentity, "set rasterdb acl");	
+						updateCatalog = true;					
+						rasterdb.setACL(acl);
+					}
 					break;
 				}
 				case "acl_mod": {
-					EmptyACL.ADMIN.check(userIdentity);	
-					updateCatalog = true;
 					ACL acl_mod = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl_mod"));
-					rasterdb.setACL_mod(acl_mod);
+					if(!rasterdb.getACL_mod().equals(acl_mod)) {
+						rasterdb.checkOwner(userIdentity, "set rasterdb acl_mod");
+						updateCatalog = true;
+						rasterdb.setACL_mod(acl_mod);
+					}
+					break;
+				}
+				case "acl_owner": {
+					ACL acl_owner = ACL.of(JsonUtil.optStringTrimmedList(meta, "acl_owner"));
+					if(!rasterdb.getACL_owner().equals(acl_owner)) {
+						AclUtil.check(userIdentity, "set rasterdb acl_owner");
+						updateCatalog = true;
+						rasterdb.setACL_owner(acl_owner);
+					}
 					break;
 				}
 				case "tags": {
@@ -208,14 +222,14 @@ public class RasterdbMethod_set extends RasterdbMethod {
 					rasterdb.checkMod(userIdentity);
 					JSONArray jsonTimeSlices = meta.getJSONArray("time_slices");
 					int timeSlicesLen = jsonTimeSlices.length();
-					
+
 					Map<Integer, TimeSliceBuilder> changeMap = new LinkedHashMap<Integer, TimeSliceBuilder>();
-					
+
 					for (int i = 0; i < timeSlicesLen; i++) {
 						JSONObject jsonTimeSlice = jsonTimeSlices.getJSONObject(i);
 						int id = jsonTimeSlice.getInt("id");
 						String name = jsonTimeSlice.getString("name").trim();
-						
+
 						TimeSliceBuilder timeSliceBuilder = changeMap.get(id);
 						if(timeSliceBuilder == null) {
 							TimeSlice timeSlice = rasterdb.timeMapReadonly.get(id);
@@ -226,7 +240,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 							}
 							changeMap.put(id, timeSliceBuilder);
 						}
-						
+
 						timeSliceBuilder.name = name;
 					}
 					List<TimeSlice> timeSlices = changeMap.entrySet().stream().map(e -> {
@@ -293,7 +307,7 @@ public class RasterdbMethod_set extends RasterdbMethod {
 			}
 		}		
 	}
-	
+
 	private HashMap<String, CustomWMS> parseCustomWMS(JSONObject json) {
 		HashMap<String, CustomWMS> map = new HashMap<String, CustomWMS>();
 		Iterator<String> it = json.keys();

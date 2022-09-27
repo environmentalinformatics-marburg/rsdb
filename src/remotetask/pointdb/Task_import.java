@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 import org.json.JSONObject;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
+import broker.acl.AclUtil;
 import pointdb.PointDB;
 import remotetask.Context;
 import remotetask.Description;
@@ -28,7 +28,7 @@ public class Task_import extends RemoteTask {
 		super(ctx);
 		this.broker = ctx.broker;
 		this.task = ctx.task;
-		EmptyACL.ADMIN.check(ctx.userIdentity, "task pointdb import");
+		AclUtil.check(ctx.userIdentity, "task pointdb import");
 	}
 
 	@Override

@@ -56,7 +56,7 @@ public class APIHandler_import extends APIHandler {
 		
 		String id = specification.getString("id");
 		UserIdentity userIdentity = Web.getUserIdentity(request);
-		if(!EmptyACL.ADMIN.isAllowed(userIdentity) && broker.hasRasterdb(id)) {
+		if(broker.hasRasterdb(id)) {
 			Logger.info("not admin");
 			RasterDB rasterdb = broker.getRasterdb(id);
 			rasterdb.checkMod(userIdentity);
@@ -65,7 +65,7 @@ public class APIHandler_import extends APIHandler {
 
 		ImportSpec spec = new ImportSpec();
 		spec.parse(specification);
-		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, id, spec);
+		ImportProcessor importProcessor = ImportBySpec.importPerpare(broker, path, id, spec, userIdentity);
 		
 		Context ctx = new Context(broker, null, userIdentity);
 		RemoteProxyTask remoteProxyTask = RemoteTaskExecutor.insertToExecute(importProcessor, ctx);

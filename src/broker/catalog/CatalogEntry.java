@@ -20,7 +20,7 @@ public class CatalogEntry {
 	public final double[][] points; // nullable
 	public final Associated associated; // nullable
 	public final ACL acl; // not null
-	public final ACL acl_mod; // not null
+	public final ACL acl_mod; // not null, includes acl_owner and acl_mod
 	public final String[] tags;  // not null
 	public final String title; // may be empty
 	public final StructuredAccess structuredAccess; // nullable

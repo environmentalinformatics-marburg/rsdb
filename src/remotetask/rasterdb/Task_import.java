@@ -2,10 +2,9 @@ package remotetask.rasterdb;
 
 import java.io.IOException;
 
-
 import org.tinylog.Logger;
 
-import broker.acl.EmptyACL;
+import broker.acl.AclUtil;
 import rasterdb.RasterDB;
 import remotetask.Context;
 import remotetask.Description;
@@ -29,7 +28,7 @@ public class Task_import extends RemoteProxyTask {
 
 	public Task_import(Context ctx) {
 		super(ctx);
-		EmptyACL.ADMIN.check(ctx.userIdentity, "task rasterdb import");
+		AclUtil.check(ctx.userIdentity, "task rasterdb import");
 	}
 
 	@Override
@@ -75,7 +74,7 @@ public class Task_import extends RemoteProxyTask {
 		Logger.info(spec);
 		
 		
-		ImportProcessor importProcessor = ImportBySpec.importPerpare(ctx.broker, gdalreader, rasterdbID, spec);
+		ImportProcessor importProcessor = ImportBySpec.importPerpare(ctx.broker, gdalreader, rasterdbID, spec, ctx.userIdentity);
 		setRemoteProxy(importProcessor);
 		importProcessor.process();
 	}
