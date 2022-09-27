@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import broker.Broker;
+import broker.acl.ACL;
 import broker.catalog.CatalogKey;
 import util.JsonUtil;
 import util.Util;
@@ -184,11 +185,14 @@ public class VectordbsHandler extends AbstractHandler {
 				String key = it.next();
 				switch(key) {
 				case "create_vectordb": {
-					//EmptyACL.ADMIN.check(userIdentity);
 					JSONObject props = json.getJSONObject(key);
 					Util.checkProps(CREATE_VECTORDB_PROPS_MANDATORY, CREATE_VECTORDB_PROPS, props);
 					String name = JsonUtil.getString(props, "name");
 					VectorDB vectordb = broker.createVectordb(name);
+					if(userIdentity != null) {
+						String username = userIdentity.getUserPrincipal().getName();
+						vectordb.setACL_owner(ACL.ofRole(username));
+					}
 					vectordbHandler_root.updateVectordbProps(vectordb, props, userIdentity, true);
 					break;
 				}

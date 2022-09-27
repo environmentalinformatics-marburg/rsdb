@@ -812,11 +812,11 @@ public class PointCloud implements AutoCloseable {
 	}
 
 	public void checkOwner(UserIdentity userIdentity) {
-		AclUtil.check(acl_owner, userIdentity, "pointcloud " + this.getName() + " modify");
+		AclUtil.check(acl_owner, userIdentity, "pointcloud " + this.getName() + " owner");
 	}
 
 	public void checkOwner(UserIdentity userIdentity, String location) {
-		AclUtil.check(acl_owner, userIdentity, "pointcloud " + this.getName() + " modify" + " at " + location);
+		AclUtil.check(acl_owner, userIdentity, "pointcloud " + this.getName() + " owner" + " at " + location);
 	}
 
 	public void setACL(ACL acl) {

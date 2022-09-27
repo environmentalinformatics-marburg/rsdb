@@ -559,11 +559,11 @@ public class RasterDB implements AutoCloseable {
 	}
 
 	public void checkOwner(UserIdentity userIdentity) {
-		AclUtil.check(acl_owner, userIdentity, "rasterdb " + this.config.getName() + " modify");
+		AclUtil.check(acl_owner, userIdentity, "rasterdb " + this.config.getName() + " owner");
 	}
 
 	public void checkOwner(UserIdentity userIdentity, String location) {
-		AclUtil.check(acl_owner, userIdentity, "rasterdb " + this.config.getName() + " modify" + " at " + location);
+		AclUtil.check(acl_owner, userIdentity, "rasterdb " + this.config.getName() + " owner" + " at " + location);
 	}
 
 	public RasterUnitStorage rasterUnit() {

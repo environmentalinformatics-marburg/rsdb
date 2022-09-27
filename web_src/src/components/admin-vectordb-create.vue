@@ -10,7 +10,9 @@
                 </v-card-title>
 
                 <v-card-text>
-                    On the newly created vector layer you can upload vecor data at the then shown <i>"vector layer details page"</i> - section <i>"Actions"</i> - button <i>"Files"</i>.                   
+                    On the newly created vector layer you can <b>upload vecor data</b> 
+                    <br>at the then shown <i>"vector layer details page"</i> 
+                    - section <i>"Actions"</i> - button <i>"Files"</i>.                   
                 </v-card-text>
 
                 <v-card-text>
@@ -29,14 +31,15 @@
                     <br>Specified roles can <b>modify</b> layer data.
                     <multiselect v-model="selectedRolesMod" :options="acl_roles" multiple :taggable="true" @tag="createAclModRole" placeholder="select roles" tagPlaceholder="Press enter to create a role"/>
 
-                    <br><i>Note: Only users that have one of the the read/modify roles are able to view/change created vector layer!</i>
-                    <br><span style="color: red;" v-if="!name">ERROR: You need to specify a name for the new layer.</span>
-                    <br><span style="color: red;" v-if="selectedRoles.length == 0 || selectedRolesMod.length == 0">ERROR: You need to specify at least one role for read and for modify.</span>                </v-card-text>
+                    <br>You will be the <b>owner</b> of the new layer.
+                    <br><br><i>Note: Besides you (the owner) and admin, only users that have one of the the read/modify/owner roles are able to view/change created vector layer!</i>
+                    <br><br><span style="color: red;" v-if="!name">ERROR: You need to specify a name for the new layer.</span>
+                    <br><br><span style="color: blue;" v-if="selectedRoles.length == 0">Hint: You should specify at least one role for read to allow others to access the new layer.</span>                </v-card-text>
 
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn class="grey--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
-                    <v-btn class="green--text darken-1" flat="flat" @click.native="execute()" :disabled="!name || selectedRoles.length == 0 || selectedRolesMod.length == 0">Create</v-btn>
+                    <v-btn class="green--text darken-1" flat="flat" @click.native="execute()" :disabled="!name">Create</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>

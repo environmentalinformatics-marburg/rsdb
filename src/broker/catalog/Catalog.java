@@ -326,13 +326,14 @@ public class Catalog {
 		if(vectordb == null) {
 			return null;
 		}
+		ACL acl_ownermod = AclUtil.union(vectordb.getACL_owner(), vectordb.getACL_mod());
 		try {
 			double[][] points = null;
 			if(generateHull) {
 				points = vectordb.getPoints();
 				SpatialReference src = vectordb.getSpatialReference();
 				if(points == null || points.length == 0 || src == null) {
-					return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, null, null, vectordb.getACL(), vectordb.getACL_mod(), vectordb.informal(), vectordb.getStructuredAccess());
+					return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, null, null, vectordb.getACL(), acl_ownermod, vectordb.informal(), vectordb.getStructuredAccess());
 				}
 				int len = points.length;
 				Coordinate[] coordinates = new Coordinate[len];
@@ -343,11 +344,11 @@ public class Catalog {
 				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);
 				ct.TransformPoints(points);
 			}
-			return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, points, null, vectordb.getACL(), vectordb.getACL_mod(), vectordb.informal(), vectordb.getStructuredAccess());
+			return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, points, null, vectordb.getACL(), acl_ownermod, vectordb.informal(), vectordb.getStructuredAccess());
 		} catch(Exception e) {
 			e.printStackTrace();
 			Logger.warn(e);
-			return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, null, null, vectordb.getACL(), vectordb.getACL_mod(), vectordb.informal(), vectordb.getStructuredAccess());
+			return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, null, null, vectordb.getACL(), acl_ownermod, vectordb.informal(), vectordb.getStructuredAccess());
 		}
 	}
 

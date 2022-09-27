@@ -38,6 +38,7 @@ import org.yaml.snakeyaml.Yaml;
 import broker.Informal;
 import broker.StructuredAccess;
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import broker.group.Poi;
 import broker.group.Roi;
@@ -66,6 +67,7 @@ public class VectorDB {
 	private Informal informal = Informal.EMPTY;
 	private ACL acl = EmptyACL.ADMIN;
 	private ACL acl_mod = EmptyACL.ADMIN;
+	private ACL acl_owner = EmptyACL.ADMIN;
 
 	private String dataFilename = "";
 	private String nameAttribute = "";
@@ -143,6 +145,7 @@ public class VectorDB {
 		map.put("type", TYPE);
 		map.put("acl", acl.toYaml());
 		map.put("acl_mod", acl_mod.toYaml());
+		map.put("acl_owner", acl_owner.toYaml());
 		informal.writeYaml(map);
 		map.put("data_filename", dataFilename);
 		map.put("name_attribute", nameAttribute);
@@ -166,6 +169,7 @@ public class VectorDB {
 		}
 		acl = ACL.ofRoles(yamlMap.optList("acl").asStrings());
 		acl_mod = ACL.ofRoles(yamlMap.optList("acl_mod").asStrings());
+		acl_owner = ACL.ofRoles(yamlMap.optList("acl_owner").asStrings());
 		informal = Informal.ofYaml(yamlMap);
 		dataFilename = yamlMap.optString("data_filename", "");
 		nameAttribute = yamlMap.optString("name_attribute", "");
@@ -628,6 +632,46 @@ public class VectorDB {
 	public ACL getACL_mod() {
 		return acl_mod;
 	}
+	
+	public ACL getACL_owner() {
+		return acl_owner;
+	}
+	
+	public boolean isAllowed(UserIdentity userIdentity) {
+		return AclUtil.isAllowed(acl_owner, acl_mod, acl, userIdentity);
+	}
+
+	public void check(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, acl_mod, acl, userIdentity, "vectordb " + this.getName() + " read");
+	}
+	
+	public void check(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, acl_mod, acl, userIdentity,  "vectordb " + this.getName() + " read " + " at " + location);
+	}
+
+	public boolean isAllowedMod(UserIdentity userIdentity) {
+		return AclUtil.isAllowed(acl_owner, acl_mod, userIdentity);
+	}
+	
+	public void checkMod(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, acl_mod, userIdentity, "vectordb " + this.getName() + " modifiy");
+	}
+
+	public void checkMod(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, acl_mod, userIdentity, "vectordb " + this.getName() + " modify " + " at " + location);
+	}
+	
+	public boolean isAllowedOwner(UserIdentity userIdentity) {
+		return AclUtil.isAllowed(acl_owner, userIdentity);
+	}
+
+	public void checkOwner(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, userIdentity, "vectordb " + this.getName() + " owner");
+	}
+
+	public void checkOwner(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, userIdentity, "vectordb " + this.getName() + " owner" + " at " + location);
+	}
 
 	public void setACL(ACL acl) {
 		this.acl = acl;
@@ -638,31 +682,12 @@ public class VectorDB {
 		this.acl_mod = acl_mod;
 		writeMeta();	
 	}
-
-	public boolean isAllowed(UserIdentity userIdentity) {
-		return acl.isAllowed(userIdentity);
-	}
-
-	public void check(UserIdentity userIdentity) {
-		acl.check(userIdentity, "vectordb " + this.getName() + " read");
+	
+	public void setACL_owner(ACL acl_owner) {
+		this.acl_owner = acl_owner;
+		writeMeta();		
 	}
 	
-	public void check(UserIdentity userIdentity, String location) {
-		acl.check(userIdentity, "vectordb " + this.getName() + " read" + " at " + location);
-	}
-
-	public boolean isAllowedMod(UserIdentity userIdentity) {
-		return acl_mod.isAllowed(userIdentity);
-	}
-
-	public void checkMod(UserIdentity userIdentity) {
-		acl_mod.check(userIdentity, "vectordb " + this.getName() + " modify");
-	}
-	
-	public void checkMod(UserIdentity userIdentity, String location) {
-		acl_mod.check(userIdentity, "vectordb " + this.getName() + " modify" + " at " + location);
-	}	
-
 	public String getDatatag() {
 		return datatag;
 	}

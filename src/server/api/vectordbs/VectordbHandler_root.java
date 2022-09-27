@@ -6,21 +6,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.InformalProperties;
 import broker.Informal.Builder;
+import broker.InformalProperties;
 import broker.acl.ACL;
-import broker.acl.EmptyACL;
+import broker.acl.AclUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import util.JsonUtil;
 import util.Util;
 import util.Web;
@@ -28,7 +26,7 @@ import vectordb.VectorDB;
 import vectordb.style.Style;
 
 public class VectordbHandler_root extends VectordbHandler {
-	
+
 
 	public VectordbHandler_root(Broker broker) {
 		super(broker, "");
@@ -48,12 +46,14 @@ public class VectordbHandler_root extends VectordbHandler {
 
 			json.key("modify");
 			json.value(vectordb.isAllowedMod(userIdentity));
-			//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
+			json.key("owner");
+			json.value(vectordb.isAllowedOwner(userIdentity));
 			json.key("acl");
 			vectordb.getACL().writeJSON(json);
 			json.key("acl_mod");
 			vectordb.getACL_mod().writeJSON(json);
-			//}
+			json.key("acl_owner");
+			vectordb.getACL_owner().writeJSON(json);
 
 			vectordb.informal().writeJson(json);
 
@@ -140,7 +140,7 @@ public class VectordbHandler_root extends VectordbHandler {
 	}
 
 	private final static Set<String> POST_PROPS_MANDATORY = Util.of();
-	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "corresponding_contact", "acquisition_date", "name_attribute", "structured_access", "name", "properties", "style");
+	private final static Set<String> POST_PROPS = Util.of("data_filename", "title", "description", "tags", "acl", "acl_mod", "acl_owner", "corresponding_contact", "acquisition_date", "name_attribute", "structured_access", "name", "properties", "style");
 
 	private final static Set<String> STRUCTURED_ACCESS_PROPS_MANDATORY = Util.of();
 	private final static Set<String> STRUCTURED_ACCESS_PROPS = Util.of("poi", "roi");
@@ -244,23 +244,39 @@ public class VectordbHandler_root extends VectordbHandler {
 					break;
 				}
 				case "acl": {
-					if(!isNewCreated) {
-						EmptyACL.ADMIN.check(userIdentity);
-					}
 					ACL acl = ACL.ofRoles(JsonUtil.optStringTrimmedList(json, "acl"));
-					vectordb.setACL(acl);
-					updateCatalog = true;
-					writeMeta = true;
+					if(!vectordb.getACL().equals(acl)) {
+						if(!isNewCreated) {
+							vectordb.checkOwner(userIdentity, "set vectordb acl_mod");
+						}
+						vectordb.setACL(acl);
+						updateCatalog = true;
+						writeMeta = true;
+					}
 					break;
 				}
 				case "acl_mod": {
-					if(!isNewCreated) {
-						EmptyACL.ADMIN.check(userIdentity);
-					}
 					ACL acl_mod = ACL.ofRoles(JsonUtil.optStringTrimmedList(json, "acl_mod"));
-					vectordb.setACL_mod(acl_mod);
-					updateCatalog = true;
-					writeMeta = true;
+					if(!vectordb.getACL_mod().equals(acl_mod)) {
+						if(!isNewCreated) {
+							vectordb.checkOwner(userIdentity, "set vectordb acl_mod");
+						}
+						vectordb.setACL_mod(acl_mod);
+						updateCatalog = true;
+						writeMeta = true;
+					}
+					break;
+				}
+				case "acl_owner": {
+					ACL acl_owner = ACL.ofRoles(JsonUtil.optStringTrimmedList(json, "acl_owner"));
+					if(!vectordb.getACL_owner().equals(acl_owner)) {
+						if(!isNewCreated) {
+							AclUtil.check(userIdentity, "set vectordb acl_owner");
+						}
+						vectordb.setACL_owner(acl_owner);
+						updateCatalog = true;
+						writeMeta = true;
+					}
 					break;
 				}
 				case "structured_access": {

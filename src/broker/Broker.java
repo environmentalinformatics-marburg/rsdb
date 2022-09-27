@@ -127,8 +127,9 @@ public class Broker implements AutoCloseable {
 			try {
 				VectorDB vectordb = this.getVectorDB(entry.name);
 				Poi[] pois = vectordb.getPOIs().toArray(Poi[]::new);
+				ACL acl_read = AclUtil.union(vectordb.getACL_owner(), vectordb.getACL_mod(), vectordb.getACL());
 				VectordbDetails details = vectordb.getDetails();
-				PoiGroup poiGroup = new PoiGroup(vectordb.getName(), vectordb.informal(), vectordb.getACL(), details.epsg, details.proj4, pois);
+				PoiGroup poiGroup = new PoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, pois);
 				map.put(poiGroup.name, poiGroup);
 			} catch(Exception e) {
 				Logger.warn(e);
@@ -156,8 +157,9 @@ public class Broker implements AutoCloseable {
 			try {
 				VectorDB vectordb = this.getVectorDB(entry.name);
 				Roi[] rois = vectordb.getROIs().toArray(Roi[]::new);
+				ACL acl_read = AclUtil.union(vectordb.getACL_owner(), vectordb.getACL_mod(), vectordb.getACL());
 				VectordbDetails details = vectordb.getDetails();
-				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), vectordb.getACL(), details.epsg, details.proj4, rois);
+				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, rois);
 				map.put(roiGroup.name, roiGroup);
 			} catch(Exception e) {
 				Logger.warn(e);
