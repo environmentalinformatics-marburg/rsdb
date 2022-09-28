@@ -66,7 +66,7 @@ public class APIHandler_voxeldbs extends AbstractHandler {
 		json.key("voxeldbs");
 		json.array();
 		for (String name : broker.getVoxeldbNames()) {
-			if(broker.getVoxeldbACL(name).isAllowed(userIdentity)) {
+			if(broker.isAllowedVoxeldb(name, userIdentity)) {
 				json.object();
 				JsonUtil.put(json, "name", name);
 				Informal informal = broker.getVoxeldbInformal(name);

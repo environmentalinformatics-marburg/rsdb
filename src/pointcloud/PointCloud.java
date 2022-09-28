@@ -757,10 +757,18 @@ public class PointCloud implements AutoCloseable {
 
 	public File getMetaFile() {
 		return griddb.metaFile;
-	}
+	}	
 
 	public String getName() {
 		return config.name;
+	}
+	
+	public ReadonlyNavigableSetView<TileKey> getTileKeys() {
+		return griddb.getTileKeys();
+	}
+
+	public boolean isEmpty() {
+		return griddb.isEmpty();
 	}
 
 	public ACL getACL() {
@@ -773,14 +781,6 @@ public class PointCloud implements AutoCloseable {
 	
 	public ACL getACL_owner() {
 		return acl_owner;
-	}
-
-	public ReadonlyNavigableSetView<TileKey> getTileKeys() {
-		return griddb.getTileKeys();
-	}
-
-	public boolean isEmpty() {
-		return griddb.isEmpty();
 	}
 
 	public boolean isAllowed(UserIdentity userIdentity) {

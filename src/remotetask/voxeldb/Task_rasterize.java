@@ -79,6 +79,10 @@ public class Task_rasterize extends CancelableRemoteTask {
 
 		rasterdb.setACL(voxeldb.getACL());
 		rasterdb.setACL_mod(voxeldb.getACL_mod());
+		if(ctx.userIdentity != null) {
+			String username = ctx.userIdentity.getUserPrincipal().getName();
+			rasterdb.setACL_owner(ACL.ofRole(username));
+		}
 
 		rasterdb.writeMeta();
 

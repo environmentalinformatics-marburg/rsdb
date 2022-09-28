@@ -19,9 +19,9 @@ public class ExternalGroupConfig {
 		this.acl = acl;
 	}
 	
-	public ExternalGroupConfig(String name, Informal informal, String filename) {
+	/*public ExternalGroupConfig(String name, Informal informal, String filename) {
 		this(name, informal, filename, EmptyACL.ADMIN);
-	}
+	}*/
 
 	public static ExternalGroupConfig ofYAML(YamlMap yamlMap) {
 		String file = yamlMap.getString("file");

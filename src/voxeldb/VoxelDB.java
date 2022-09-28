@@ -18,6 +18,7 @@ import broker.Informal;
 import broker.TimeSlice;
 import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import griddb.Encoding;
 import griddb.GridDB;
@@ -56,6 +57,7 @@ public class VoxelDB implements AutoCloseable {
 	private int cellsize = 100;
 	private ACL acl = EmptyACL.ADMIN;
 	private ACL acl_mod = EmptyACL.ADMIN;
+	private ACL acl_owner = EmptyACL.ADMIN;
 	private Associated associated = new Associated();
 	private Informal informal = Informal.EMPTY;
 	private int version_major = CURRENT_VERSION_MAJOR;
@@ -117,6 +119,7 @@ public class VoxelDB implements AutoCloseable {
 
 				acl = ACL.ofRoles(yamlMap.optList("acl").asStrings());
 				acl_mod = ACL.ofRoles(yamlMap.optList("acl_mod").asStrings());
+				acl_owner = ACL.ofRoles(yamlMap.optList("acl_owner").asStrings());
 				associated = new Associated();
 				if(yamlMap.contains("associated")) {
 					associated = Associated.ofYaml(yamlMap.getMap("associated"));
@@ -181,15 +184,7 @@ public class VoxelDB implements AutoCloseable {
 	public String getName() {
 		return config.name;
 	}
-
-	public ACL getACL() {
-		return acl;
-	}
-
-	public ACL getACL_mod() {
-		return acl_mod;
-	}
-
+	
 	public ReadonlyNavigableSetView<TileKey> getTileKeys() {
 		return griddb.getTileKeys();
 	}
@@ -198,28 +193,52 @@ public class VoxelDB implements AutoCloseable {
 		return griddb.isEmpty();
 	}
 
+	public ACL getACL() {
+		return acl;
+	}
+
+	public ACL getACL_mod() {
+		return acl_mod;
+	}
+	
+	public ACL getACL_owner() {
+		return acl_owner;
+	}
+
 	public boolean isAllowed(UserIdentity userIdentity) {
-		return acl.isAllowed(userIdentity);
+		return AclUtil.isAllowed(acl_owner, acl_mod, acl, userIdentity);
 	}
 
 	public void check(UserIdentity userIdentity) {
-		acl.check(userIdentity, "voxeldb " + this.getName() + " read");
+		AclUtil.check(acl_owner, acl_mod, acl, userIdentity, "voxeldb " + this.getName() + " read");
 	}
 	
 	public void check(UserIdentity userIdentity, String location) {
-		acl.check(userIdentity, "voxeldb " + this.getName() + " read" + " at " + location);
+		AclUtil.check(acl_owner, acl_mod, acl, userIdentity,  "voxeldb " + this.getName() + " read " + " at " + location);
 	}
 
 	public boolean isAllowedMod(UserIdentity userIdentity) {
-		return acl_mod.isAllowed(userIdentity);
-	}
-
-	public void checkMod(UserIdentity userIdentity) {
-		acl_mod.check(userIdentity, "voxeldb " + this.getName() + " modify");
+		return AclUtil.isAllowed(acl_owner, acl_mod, userIdentity);
 	}
 	
+	public void checkMod(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, acl_mod, userIdentity, "voxeldb " + this.getName() + " modifiy");
+	}
+
 	public void checkMod(UserIdentity userIdentity, String location) {
-		acl_mod.check(userIdentity, "voxeldb " + this.getName() + " modify" + " at " + location);
+		AclUtil.check(acl_owner, acl_mod, userIdentity, "voxeldb " + this.getName() + " modify " + " at " + location);
+	}
+	
+	public boolean isAllowedOwner(UserIdentity userIdentity) {
+		return AclUtil.isAllowed(acl_owner, userIdentity);
+	}
+
+	public void checkOwner(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, userIdentity, "voxeldb " + this.getName() + " owner");
+	}
+
+	public void checkOwner(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, userIdentity, "voxeldb " + this.getName() + " owner" + " at " + location);
 	}
 
 	public void setACL(ACL acl) {
@@ -229,6 +248,11 @@ public class VoxelDB implements AutoCloseable {
 
 	public void setACL_mod(ACL acl_mod) {
 		this.acl_mod = acl_mod;
+		griddb.writeMeta();		
+	}
+	
+	public void setACL_owner(ACL acl_owner) {
+		this.acl_owner = acl_owner;
 		griddb.writeMeta();		
 	}
 

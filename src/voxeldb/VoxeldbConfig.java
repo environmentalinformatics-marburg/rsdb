@@ -5,12 +5,13 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-
+import org.eclipse.jetty.server.UserIdentity;
 import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Informal;
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import util.yaml.YamlMap;
 
@@ -42,8 +43,8 @@ public class VoxeldbConfig {
 			return filename;
 		}		
 	}
-
-	public ACL readACL() {
+	
+	public boolean isAllowed(UserIdentity userIdentity) {
 		String fileMetaName = "voxeldb.yml";
 		Path metaPath = path.resolve(fileMetaName);
 		File metaFile = metaPath.toFile();
@@ -53,13 +54,16 @@ public class VoxeldbConfig {
 				try(InputStream in = new FileInputStream(metaFile)) {
 					map = YamlMap.ofObject(new Yaml().load(in));
 				}
-				return ACL.ofRoles(map.optList("acl").asStrings());
+				ACL acl = ACL.ofRoles(map.optList("acl").asStrings());
+				ACL acl_mod = ACL.ofRoles(map.optList("acl_mod").asStrings());
+				ACL acl_owner = ACL.ofRoles(map.optList("acl_owner").asStrings());
+				return AclUtil.isAllowed(acl_owner, acl_mod, acl, userIdentity);
 			}
-			return EmptyACL.ADMIN;
+			return AclUtil.isAllowed(userIdentity);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Logger.warn(e);
-			return EmptyACL.ADMIN;
+			return AclUtil.isAllowed(userIdentity);
 		}
 	}
 

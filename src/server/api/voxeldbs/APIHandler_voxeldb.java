@@ -22,6 +22,7 @@ import broker.InformalProperties;
 import broker.Informal.Builder;
 import broker.TimeSlice;
 import broker.acl.ACL;
+import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import util.Extent3d;
 import util.JsonUtil;
@@ -32,7 +33,7 @@ import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
 
 public class APIHandler_voxeldb {
-	
+
 
 	protected static final String MIME_JSON = "application/json";
 
@@ -187,7 +188,7 @@ public class APIHandler_voxeldb {
 		json.endObject();
 
 		json.endObject();
-		
+
 		if(extent) {
 			Range3d local_range = voxeldb.getLocalRange(false);
 			if(local_range != null) {
@@ -253,12 +254,14 @@ public class APIHandler_voxeldb {
 
 		json.key("modify");
 		json.value(voxeldb.isAllowedMod(userIdentity));
-		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
+		json.key("owner");
+		json.value(voxeldb.isAllowedOwner(userIdentity));
 		json.key("acl");
 		voxeldb.getACL().writeJSON(json);
 		json.key("acl_mod");
 		voxeldb.getACL_mod().writeJSON(json);
-		//}
+		json.key("acl_owner");
+		voxeldb.getACL_owner().writeJSON(json);
 		json.key("attributes");
 		json.array();
 		voxeldb.getGriddb().getAttributes().forEach(attribute -> json.value(attribute.name));
@@ -341,19 +344,32 @@ public class APIHandler_voxeldb {
 					break;
 				}
 				case "acl": {
-					EmptyACL.ADMIN.check(userIdentity);	
-					updateCatalog = true;									
 					ACL acl = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl"));
-					voxeldb.setACL(acl);
+					if(!voxeldb.getACL().equals(acl)) {
+						voxeldb.checkOwner(userIdentity, "set voxeldb acl");
+						updateCatalog = true;
+						voxeldb.setACL(acl);
+					}
 					break;
 				}
 				case "acl_mod": {
-					EmptyACL.ADMIN.check(userIdentity);	
-					updateCatalog = true;		
 					ACL acl_mod = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl_mod"));
-					voxeldb.setACL_mod(acl_mod);
+					if(!voxeldb.getACL_mod().equals(acl_mod)) {
+						voxeldb.checkOwner(userIdentity, "set voxeldb acl_mod");	
+						updateCatalog = true;
+						voxeldb.setACL_mod(acl_mod);
+					}
 					break;
 				}
+				case "acl_owner": {
+					ACL acl_owner = ACL.ofRoles(JsonUtil.optStringTrimmedList(meta, "acl_owner"));
+					if(!voxeldb.getACL_owner().equals(acl_owner)) {
+						AclUtil.check(userIdentity, "set voxeldb acl_owner");	
+						updateCatalog = true;
+						voxeldb.setACL_owner(acl_owner);
+					}
+					break;
+				}				
 				case "tags": {
 					voxeldb.checkMod(userIdentity);
 					updateCatalog = true;

@@ -33,8 +33,7 @@ public class Task_to_pointcloud extends RemoteTask {
 		this.task = ctx.task;
 		String voxeldb_name = task.getString("voxeldb");
 		this.voxeldb = broker.getVoxeldb(voxeldb_name);
-		voxeldb.getACL().check(ctx.userIdentity, "task voxeldb rasterize");
-		voxeldb.getACL_mod().check(ctx.userIdentity, "task voxeldb rasterize"); // check needed as same ACLs are assigned to target rasterdb
+		voxeldb.check(ctx.userIdentity, "task voxeldb to_pointcloud");
 		this.pointcloud_name = task.optString("pointcloud", voxeldb.getName() + "_pointcloud");
 		if(broker.hasPointCloud(pointcloud_name)) {
 			PointCloud pointcloud = broker.getPointCloud(pointcloud_name);

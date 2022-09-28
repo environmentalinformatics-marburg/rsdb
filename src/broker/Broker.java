@@ -21,7 +21,6 @@ import org.tinylog.Logger;
 
 import broker.acl.ACL;
 import broker.acl.AclUtil;
-import broker.acl.EmptyACL;
 import broker.catalog.Catalog;
 import broker.catalog.CatalogKey;
 import broker.group.ExternalGroupConfig;
@@ -60,7 +59,7 @@ public class Broker implements AutoCloseable {
 	private static final Path vectordb_root = Paths.get("vectordb");
 	private static final Path voxeldb_root = Paths.get("voxeldb");
 
-	private static final Path REALM_PROPERTIES_PATH = Paths.get("realm.properties");
+	//private static final Path REALM_PROPERTIES_PATH = Paths.get("realm.properties");
 
 	ConcurrentSkipListMap<String, RasterdbConfig> rasterdbConfigMap = new ConcurrentSkipListMap<String, RasterdbConfig>();
 	ConcurrentSkipListMap<String, PointCloudConfig> pointcloudConfigMap = new ConcurrentSkipListMap<String, PointCloudConfig>();
@@ -758,17 +757,17 @@ public class Broker implements AutoCloseable {
 		}
 		return AclUtil.isAllowed(userIdentity);
 	}
-
-	public ACL getVoxeldbACL(String name) {
+	
+	public boolean isAllowedVoxeldb(String name, UserIdentity userIdentity) {
 		VoxelDB voxeldb = voxeldbMap.get(name);
 		if(voxeldb != null) {
-			return voxeldb.getACL();
+			return voxeldb.isAllowed(userIdentity);
 		}
 		VoxeldbConfig voxeldbConfig = voxeldbConfigMap.get(name);
 		if(voxeldbConfig != null) {
-			return voxeldbConfig.readACL();
+			return voxeldbConfig.isAllowed(userIdentity);
 		}
-		return EmptyACL.ADMIN;
+		return AclUtil.isAllowed(userIdentity);
 	}
 
 	public Informal getPointCloudInformal(String name) {

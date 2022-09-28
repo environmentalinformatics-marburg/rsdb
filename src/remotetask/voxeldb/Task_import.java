@@ -20,6 +20,7 @@ import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
 import util.JsonUtil;
+import util.collections.SwitchingCollection;
 import voxeldb.Importer;
 import voxeldb.VoxelDB;
 
@@ -85,7 +86,7 @@ public class Task_import extends CancelableRemoteProxyTask {
 			voxeldb = broker.createNewVoxeldb(voxeldb_name, storage_type, transactions);			
 		} else {
 			voxeldb = broker.getOrCreateVoxeldb(voxeldb_name, storage_type, transactions);
-		}
+		}		
 		
 		if(access_roles.length > 0) {
 			voxeldb.setACL(ACL.ofRoles(access_roles));
@@ -93,7 +94,16 @@ public class Task_import extends CancelableRemoteProxyTask {
 		
 		if(modify_roles.length > 0) {
 			voxeldb.setACL_mod(ACL.ofRoles(modify_roles));
-		}		
+		}
+		
+		SwitchingCollection<String> roleCollector = new SwitchingCollection<String>();
+		voxeldb.getACL_owner().collectRoles(roleCollector);
+		if(roleCollector.isEmpty()) { // vague check if voxeldb is new created
+			if(ctx.userIdentity != null) {
+				String username = ctx.userIdentity.getUserPrincipal().getName();
+				voxeldb.setACL_owner(ACL.ofRole(username));
+			}
+		}
 
 		voxeldb.trySetVoxelsize(voxel_size);
 		voxeldb.trySetCellsize(cell_size);

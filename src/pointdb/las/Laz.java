@@ -154,7 +154,7 @@ public class Laz {
 		byte returnNumber = lasPoint.getReturnNumber();
 		byte returns = lasPoint.getNumberOfReturns();
 		byte scanAngleRank = lasPoint.getScanAngleRank();
-		byte classification = lasPoint.getClassification();
+		byte classification = (byte) lasPoint.getClassification(); // convert to unsigned byte, range of classification is 0 to 31 and 0 to 255 for newer LAS versions
 		byte classificationFlags = 0; // TODO
 		return new Point(x, y, z, intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
 	}
@@ -167,7 +167,7 @@ public class Laz {
 		byte returnNumber = lasPoint.getReturnNumber();
 		byte returns = lasPoint.getNumberOfReturns();
 		byte scanAngleRank = lasPoint.getScanAngleRank();
-		byte classification = lasPoint.getClassification();
+		byte classification = (byte) lasPoint.getClassification(); // convert to unsigned byte, range of classification is 0 to 31 and 0 to 255 for newer LAS versions
 		byte classificationFlags = 0; // TODO
 		return new Point(x, y, z, intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
 	}
@@ -180,7 +180,7 @@ public class Laz {
 		byte returnNumber = lasPoint.getReturn_number();
 		byte returns = lasPoint.getNumber_of_returns();
 		byte scanAngleRank = lasPoint.getScan_angle_rank();
-		byte classification = lasPoint.getClassification();
+		byte classification = (byte) lasPoint.getClassification(); // convert to unsigned byte, range of classification is 0 to 31 and 0 to 255 for newer LAS versions
 		byte classificationFlags = 0; // TODO
 		return new Point(x, y, z, intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
 	}
@@ -227,7 +227,7 @@ public class Laz {
 			if(mutablePoint.getEdge_of_flight_line() != 0) {
 				edgeOfFlightLine.set(cnt);
 			}
-			classification[cnt] = mutablePoint.getClassification();
+			classification[cnt] = (byte) mutablePoint.getClassification(); // convert to unsigned byte, range of classification is 0 to 31 and 0 to 255 for newer LAS versions
 			scanAngleRank[cnt] = mutablePoint.getScan_angle_rank();
 			red[cnt] = mutablePoint.get_R();
 			green[cnt] = mutablePoint.get_G();
@@ -297,7 +297,7 @@ public class Laz {
 			if(lasPoint.getEdgeOfFlightLine() != 0) {
 				edgeOfFlightLine.set(cnt);
 			}
-			classification[cnt] = lasPoint.getClassification();
+			classification[cnt] = (byte) lasPoint.getClassification(); // convert to unsigned byte, range of classification is 0 to 31 and 0 to 255 for newer LAS versions
 			scanAngleRank[cnt] = lasPoint.getScanAngleRank();
 
 			cnt++;

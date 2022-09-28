@@ -5,11 +5,7 @@ import java.util.Arrays;
 
 import javax.security.auth.Subject;
 
-
-import org.tinylog.Logger;
-
 public class FastRolesUserIdentity extends FastUserIdentity {
-	
 
 	private final String[] roles;
 

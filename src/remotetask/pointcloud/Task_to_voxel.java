@@ -10,6 +10,7 @@ import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.TimeSlice;
+import broker.acl.ACL;
 import broker.acl.EmptyACL;
 import pointcloud.AttributeSelector;
 import pointcloud.PointCloud;
@@ -43,7 +44,6 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		String name = task.getString("pointcloud");
 		pointcloud = broker.getPointCloud(name);		
 		pointcloud.check(ctx.userIdentity, "task pointcloud to_voxel");
-		pointcloud.checkMod(ctx.userIdentity, "task pointcloud to_voxel"); // check needed as same ACLs are assigned to target voxeldb
 
 		this.voxeldb_name = task.optString("voxeldb", pointcloud.getName() + "_voxels");
 		if(broker.hasVoxeldb(voxeldb_name)) {
@@ -63,6 +63,10 @@ public class Task_to_voxel extends CancelableRemoteTask {
 		VoxelDB voxeldb = broker.createNewVoxeldb(voxeldb_name, storage_type, transactions);
 		voxeldb.setACL(pointcloud.getACL());
 		voxeldb.setACL_mod(pointcloud.getACL_mod());
+		if(ctx.userIdentity != null) {
+			String username = ctx.userIdentity.getUserPrincipal().getName();
+			voxeldb.setACL_owner(ACL.ofRole(username));
+		}
 		voxeldb.setProj4(pointcloud.getProj4());
 		voxeldb.setEpsg(pointcloud.getEPSGcode());
 		voxeldb.trySetVoxelsize(voxel_size);		
