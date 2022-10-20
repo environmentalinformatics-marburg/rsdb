@@ -222,17 +222,19 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		response.setContentType("application/xml");		
 		PrintWriter out = response.getWriter();		
 		try {
-			xml_root(rasterdb, out);
+			String requestUrl = request.getRequestURL().toString();
+			Logger.info("WMS requesUrl   " + requestUrl);
+			xml_root(rasterdb, requestUrl, out);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private void xml_root(RasterDB rasterdb, PrintWriter out) throws ParserConfigurationException, TransformerException {
+	private void xml_root(RasterDB rasterdb, String requestUrl, PrintWriter out) throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		Document doc = docBuilder.newDocument();
-		doc.appendChild(getCapabilities(rasterdb, doc));
+		doc.appendChild(getCapabilities(rasterdb, requestUrl, doc));
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -258,7 +260,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		return e;
 	}
 
-	private Node getCapabilities(RasterDB rasterdb, Document doc) {
+	private Node getCapabilities(RasterDB rasterdb, String requestUrl, Document doc) {
 		Element rootElement = doc.createElementNS(NS_URL, "WMS_Capabilities");
 		rootElement.setAttribute("version", "1.3.0");
 		rootElement.setAttribute("xmlns:xlink", NS_XLINK);
@@ -269,13 +271,37 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		addElement(eService, "Abstract", "WMS service"); // not shown by qgis
 
 		Element eCapability = addElement(rootElement, "Capability");
-		//addRequest(eCapability);
+		
+		addRequest(eCapability, requestUrl);
 
 		for (WmsStyle style : WmsCapabilities.getWmsStyles(rasterdb)) {
 			addRootLayer(rasterdb, eCapability, style.name, style.title);
 		}
 
 		return rootElement;
+	}
+
+	private void addRequest(Element eCapability, String requestUrl) {
+		Element eRootRequest = addElement(eCapability, "Request");
+		
+		Element eGetCapabilities = addElement(eRootRequest, "GetCapabilities");
+		addElement(eGetCapabilities, "Format", "application/vnd.ogc.wms_xml");
+		addElement(eGetCapabilities, "Format", "text/xml");
+		Element eGetCapabilitiesDCPType = addElement(eGetCapabilities, "DCPType");
+		Element eGetCapabilitiesDCPTypeHTTP = addElement(eGetCapabilitiesDCPType, "HTTP");
+		Element eGetCapabilitiesDCPTypeHTTPGet = addElement(eGetCapabilitiesDCPTypeHTTP, "Get");		
+		Element eGetCapabilitiesDCPTypeHTTPGetOnlineResource = addElement(eGetCapabilitiesDCPTypeHTTPGet, "OnlineResource");
+		eGetCapabilitiesDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
+		eGetCapabilitiesDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
+		
+		Element eGetMap = addElement(eRootRequest, "GetMap");
+		addElement(eGetMap, "Format", "image/png"); // TODO add more formats
+		Element eGetMapDCPType = addElement(eGetMap, "DCPType");
+		Element eGetMapDCPTypeHTTP = addElement(eGetMapDCPType, "HTTP");
+		Element eGetMapDCPTypeHTTPGet = addElement(eGetMapDCPTypeHTTP, "Get");		
+		Element eGetMapDCPTypeHTTPGetOnlineResource = addElement(eGetMapDCPTypeHTTPGet, "OnlineResource");
+		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
+		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
 	private void addRootLayer(RasterDB rasterdb, Element eCapability, String name, String title) {

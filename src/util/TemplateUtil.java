@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +28,7 @@ public class TemplateUtil {
 	private static Template createTemplate(String filename) {
 		String text;
 		try {
-			text = new String(Files.readAllBytes(Paths.get("mustache", filename)), Charset.forName("UTF-8"));
+			text = new String(Files.readAllBytes(Paths.get("mustache", filename)), StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}		

@@ -3,23 +3,19 @@ package broker.group;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
-
 
 import org.tinylog.Logger;
 
 import com.opencsv.CSVReader;
 
+import util.Table;
 import util.Util;
+import util.collections.vec.Vec;
 
-public class Poi {
-	
-
-	private static final Charset UTF8 = Charset.forName("UTF-8");
+public class Poi {	
 
 	public final String name;
 	public final double x;
@@ -32,16 +28,16 @@ public class Poi {
 	}
 
 	public static Poi[] readPoiCsv(String filename) throws IOException {
-		InputStreamReader in = new InputStreamReader(new FileInputStream(filename),UTF8);
+		InputStreamReader in = new InputStreamReader(new FileInputStream(filename), StandardCharsets.UTF_8);
 		CSVReader reader = new CSVReader(in);
 		try {
-			List<String[]> lines = reader.readAll();
+			Vec<String[]> lines = Table.readRowList(reader);
 			Iterator<String[]> it = lines.iterator();
 			String[] header = it.next();
 			if(header.length!=3 || !header[0].equals("name") || !header[1].equals("x") || !header[2].equals("y")) {
 				throw new RuntimeException("wrong header in csv file "+filename);
 			}
-			ArrayList<Poi> poiList = new ArrayList<Poi>(lines.size());
+			Vec<Poi> poiList = new Vec<Poi>(lines.size());
 			while(it.hasNext()) {
 				String[] row = it.next();
 				String id = row[0];

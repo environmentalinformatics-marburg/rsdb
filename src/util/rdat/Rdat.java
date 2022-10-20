@@ -3,11 +3,11 @@ package util.rdat;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import util.Serialisation;
 
 public class Rdat {
-	private static final Charset UTF_8 = Charset.forName("UTF-8");	
 	
 	public final static int TYPE_SIGNED_INT = 1;
 	public final static int TYPE_UNSIGNED_INT = 2;
@@ -48,7 +48,7 @@ public class Rdat {
 
 
 	private static byte[] stringToBytes(String text) {
-		return text.getBytes(UTF_8);
+		return text.getBytes(StandardCharsets.UTF_8);
 	}
 	
 	private static byte[] stringToSizedBytes(String text) {

@@ -11,9 +11,10 @@ import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.PublicAccess;
+import broker.PublicAccess.RasterDbAbstract;
+import broker.PublicAccess.RasterDbWCS;
 import broker.PublicAccess.RasterDbWMS;
 import broker.acl.AclUtil;
-import broker.acl.EmptyACL;
 import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
 import util.Web;
@@ -54,8 +55,9 @@ public class APIHandler_public_access extends APIHandler {
 			json.key("type");
 			json.value(publicAccess.type);
 			switch(publicAccess.type) {
-			case RasterDbWMS.TYPE: {
-				RasterDbWMS a = (RasterDbWMS) publicAccess;
+			case RasterDbWMS.TYPE:
+			case RasterDbWCS.TYPE: {
+				RasterDbAbstract a = (PublicAccess.RasterDbAbstract) publicAccess;
 				json.key("rasterdb");
 				json.value(a.rasterdb);
 				break;
@@ -88,6 +90,11 @@ public class APIHandler_public_access extends APIHandler {
 						publicAccess = new RasterDbWMS(id, rasterdb);
 						break;
 					}
+					case RasterDbWCS.TYPE: {
+						String rasterdb = action.getString("rasterdb");
+						publicAccess = new RasterDbWCS(id, rasterdb);
+						break;
+					}					
 					default:
 						throw new RuntimeException("unknown type");
 					}

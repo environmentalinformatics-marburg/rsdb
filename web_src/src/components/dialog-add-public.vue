@@ -23,7 +23,7 @@
           />
           <hr>    
         </v-card-text>
-        <v-card-text v-if="type === 'RasterDB_WMS'">
+        <v-card-text v-if="type === 'RasterDB_WMS' || type === 'RasterDB_WCS'">
           Connected <b>RasterDB</b> layer
           <multiselect v-model="rasterdb" :options="rasterdbs" :searchable="true" :show-labels="false" placeholder="pick a rasterdb" :allowEmpty="false">
             <template slot="singleLabel" slot-scope="{option}">
@@ -65,7 +65,7 @@ components: {
 data() {
     return {
         show: false,
-        types: ['RasterDB_WMS'],   
+        types: ['RasterDB_WMS', 'RasterDB_WCS'],   
         type: undefined,
         id: '',
         rasterdb: undefined,
@@ -79,7 +79,7 @@ computed: {
     if(this.type === undefined || this.type === null) {
       return false;
     }
-    if(this.type === 'RasterDB_WMS' && (this.rasterdb === undefined || this.rasterdb === null)) {
+    if((this.type === 'RasterDB_WMS' || this.type === 'RasterDB_WCS') && (this.rasterdb === undefined || this.rasterdb === null)) {
       return false;
     }
     return true;
@@ -102,7 +102,7 @@ methods: {
           id: this.id, 
           type: this.type,
         };
-        if(this.type === 'RasterDB_WMS') {
+        if(this.type === 'RasterDB_WMS' || this.type === 'RasterDB_WCS') {
           action.rasterdb = this.rasterdb;
         }  
         let data = {actions: [action]};

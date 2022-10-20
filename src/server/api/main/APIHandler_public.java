@@ -12,22 +12,24 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import broker.PublicAccess;
+import broker.PublicAccess.RasterDbWCS;
 import broker.PublicAccess.RasterDbWMS;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.RasterDB;
+import server.api.rasterdb.RasterdbMethod_wcs;
 import server.api.rasterdb.RasterdbMethod_wms;
 
 public class APIHandler_public extends AbstractHandler {
-	
-	
+
+
 	protected static final String MIME_JSON = "application/json";
-	
+
 	protected final Broker broker;
-	
+
 	private HashMap<String, PublicAccessHandler> handlerMap = new HashMap<String, PublicAccessHandler>();
-	
+
 	private abstract static class PublicAccessHandler {
 		public void handle(String id, String target, Request baseRequest, Response response) throws IOException {
 			response.setStatus(HttpServletResponse.SC_OK);
@@ -39,15 +41,15 @@ public class APIHandler_public extends AbstractHandler {
 			json.endObject();	
 		}
 	}
-	
+
 	private static class WmsProxyHandler extends PublicAccessHandler {
-		
+
 		private final RasterDB rasterdb;
-		private final Broker broker;
+		//private final Broker broker;
 		private final RasterdbMethod_wms handler;
-		
+
 		public WmsProxyHandler(Broker broker, RasterDB rasterdb) {
-			this.broker = broker;
+			//this.broker = broker;
 			this.rasterdb = rasterdb;
 			this.handler = new RasterdbMethod_wms(broker);
 		}
@@ -57,13 +59,31 @@ public class APIHandler_public extends AbstractHandler {
 			handler.handle(rasterdb, target, baseRequest, response, null);
 		}		
 	}
-	
+
+	private static class WcsProxyHandler extends PublicAccessHandler {
+
+		private final RasterDB rasterdb;
+		//private final Broker broker;
+		private final RasterdbMethod_wcs handler;
+
+		public WcsProxyHandler(Broker broker, RasterDB rasterdb) {
+			//this.broker = broker;
+			this.rasterdb = rasterdb;
+			this.handler = new RasterdbMethod_wcs(broker);
+		}
+
+		@Override
+		public void handle(String id, String target, Request baseRequest, Response response) throws IOException {
+			handler.handle(rasterdb, target, baseRequest, response, null);
+		}		
+	}
+
 	public APIHandler_public(Broker broker) {
 		this.broker = broker;
 		broker.publicAccessManager().changeListenerAdd(this::refresh);
 		refresh();
 	}
-	
+
 	public void refresh() {
 		Logger.info("refresh");
 		HashMap<String, PublicAccessHandler> idMap = new HashMap<String, PublicAccessHandler>();
@@ -75,7 +95,7 @@ public class APIHandler_public extends AbstractHandler {
 		});
 		this.handlerMap = idMap;
 	}
-	
+
 	private PublicAccessHandler toIdHandler(String id, PublicAccess publicAccess) {
 		PublicAccessHandler handler = null;
 		switch(publicAccess.type) {
@@ -83,6 +103,12 @@ public class APIHandler_public extends AbstractHandler {
 			RasterDbWMS p = (RasterDbWMS) publicAccess;
 			RasterDB rasterdb = broker.getRasterdb(p.rasterdb);
 			handler = new WmsProxyHandler(broker, rasterdb);
+			break;
+		}
+		case RasterDbWCS.TYPE: {
+			RasterDbWCS p = (RasterDbWCS) publicAccess;
+			RasterDB rasterdb = broker.getRasterdb(p.rasterdb);
+			handler = new WcsProxyHandler(broker, rasterdb);
 			break;
 		}
 		default:
@@ -121,12 +147,12 @@ public class APIHandler_public extends AbstractHandler {
 		}		
 	}
 
-    private void handleRoot(Request baseRequest, HttpServletResponse response) throws IOException {
+	private void handleRoot(Request baseRequest, HttpServletResponse response) throws IOException {
 		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		response.setContentType("text/plain;charset=utf-8");
 		response.getWriter().println("missing id");		
 	}
-    
+
 	private void handleId(String id, String next, Request baseRequest, Response response) throws IOException {		
 		PublicAccessHandler idHandler = handlerMap.get(id);
 		if(idHandler == null) {

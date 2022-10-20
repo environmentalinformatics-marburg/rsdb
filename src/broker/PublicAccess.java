@@ -9,27 +9,46 @@ import util.yaml.YamlMap;
 
 public abstract class PublicAccess {
 	
-
-	public static class RasterDbWMS extends PublicAccess {
-		public static final String TYPE = "RasterDB_WMS";
+	public static abstract class RasterDbAbstract extends PublicAccess {
 		
 		public String rasterdb;
 
-		public RasterDbWMS(String id, String rasterdb) {
-			super(id, TYPE);
+		public RasterDbAbstract(String id, String rasterdb, String type) {
+			super(id, type);
 			this.rasterdb = rasterdb;
+		}
+		
+		@Override
+		public LinkedHashMap<String, Object> toMap() {
+			LinkedHashMap<String, Object> map = super.toMap();
+			map.put("rasterdb", rasterdb);
+			return map;
+		}
+	}	
+
+	public static class RasterDbWMS extends RasterDbAbstract {
+		public static final String TYPE = "RasterDB_WMS";
+		
+		public RasterDbWMS(String id, String rasterdb) {
+			super(id, rasterdb, TYPE);
 		}
 		
 		public static RasterDbWMS ofYAML(String id, YamlMap map) {
 			String rasterdb = map.getString("rasterdb");
 			return new RasterDbWMS(id, rasterdb);
 		}
-
-		@Override
-		public LinkedHashMap<String, Object> toMap() {
-			LinkedHashMap<String, Object> map = super.toMap();
-			map.put("rasterdb", rasterdb);
-			return map;
+	}
+	
+	public static class RasterDbWCS extends RasterDbAbstract {
+		public static final String TYPE = "RasterDB_WCS";
+		
+		public RasterDbWCS(String id, String rasterdb) {
+			super(id, rasterdb, TYPE);
+		}
+		
+		public static RasterDbWCS ofYAML(String id, YamlMap map) {
+			String rasterdb = map.getString("rasterdb");
+			return new RasterDbWCS(id, rasterdb);
 		}
 	}
 	
@@ -47,6 +66,12 @@ public abstract class PublicAccess {
 		switch(type) {
 		case RasterDbWMS.TYPE:
 			publicAccess = RasterDbWMS.ofYAML(id, map);
+			break;
+		case RasterDbWCS.TYPE:
+			publicAccess = RasterDbWCS.ofYAML(id, map);
+			break;	
+		case "unknown":
+			Logger.warn("missing type");
 			break;
 		default:
 			Logger.warn("unknown type: " + type);			

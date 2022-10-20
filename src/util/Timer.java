@@ -85,7 +85,7 @@ public final class Timer implements AutoCloseable, Serializable, Iterable<Timer>
 	 */
 	public static Timer stop(String name) {
 		return TIMERS.stop(name);
-	}
+	}	
 	
 	public static Timer resume(String name) {
 		return TIMERS.resume(name); 
@@ -144,7 +144,7 @@ public final class Timer implements AutoCloseable, Serializable, Iterable<Timer>
 	 * @param name
 	 * @return
 	 */
-	public Timer remove(String name) {
+	public static Timer remove(String name) {
 		return TIMERS.remove(name);
 	}
 

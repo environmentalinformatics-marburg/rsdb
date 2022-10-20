@@ -47,17 +47,23 @@
             Public URLs allow access to user defined parts of RSDB without login. Public URLs can be accessed by anyone knowing the URL. Choosing a long random ID prevents guessing the correct public ID.
           </p>
           <p>
-          The public URL is build from the "server base URL" and the "public URL entry ID" listed above. 
-          <br>e.g server base url <b>http://127.0.0.1:8080</b> and ID <b>ABCD1</b> results in public URL <b>http://127.0.0.1:8080/ABCD1</b>
+          The public URL is build from the "server base URL", "/public/" and the "public URL entry ID" listed above. 
+          <br>e.g server base url <b>http://127.0.0.1:8080</b> and ID <b>ABCD1</b> results in public URL <b>http://127.0.0.1:8080/public/ABCD1</b>
           </p>
-          <h4>Type: RasterDB_WMS</h4>
-          The public URL is the WMS URL usable e.g. in QGIS or some Web GIS.
-          <br>At the RasterDB layer detail page <b>custom WMS IDs</b> with user defined properties can be added. Ths custom IDs can also be accessed with public URLs by adding that custom ID to the public URL.
-          <br>e.g <br>server base url <b>http://127.0.0.1:8080</b> 
-          <br>public URL ID <b>ABCD1</b> 
-          <br>custom WMS ID <b>MY_WMS</b> on the set RasterDB layer results in
-          <br><b>http://127.0.0.1:8080/ABCD1/MY_WMS</b>
 
+          <!--<p>-->
+            <h4>Type: <span class="type">RasterDB_WMS</span></h4>
+            The public URL is the <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="blank">WMS</a> URL usable e.g. in <a href="https://qgis.org" target="blank">QGIS</a> or other (web) GIS.
+            <br>At the RasterDB layer detail page <b>custom WMS IDs</b> with user defined properties can be added. Ths custom IDs can also be accessed with public URLs by adding that custom ID to the public URL.
+            <br>e.g <br>server base url <b>http://127.0.0.1:8080</b> 
+            <br>public URL ID <b>ABCD1</b> 
+            <br>custom WMS ID <b>MY_WMS</b> on the set RasterDB layer results in
+            <br><b>http://127.0.0.1:8080/public/ABCD1/MY_WMS</b>
+          <!--</p>-->
+          <!--<p>--><br><br>
+            <h4>Type: <span class="type">RasterDB_WCS</span></h4>
+            The public URL is the <a href="https://en.wikipedia.org/wiki/Web_Coverage_Service" target="blank">WCS</a> URL usable e.g. in <a href="https://qgis.org" target="blank">QGIS</a> or other (web) GIS.
+          <!--</p>-->
 
         </v-card>
       </v-flex>
@@ -135,7 +141,7 @@ export default {
       }
     },
     publicUrl(id) {
-      return (this.identity === undefined ? '[unknown base URL]' : this.identity.url_base) + '/' + id;
+      return (this.identity === undefined ? '[unknown base URL]' : this.identity.url_base) + '/public/' + id;
     },
     onUrlCopy(url) {
       copyTextToClipboard(url);
@@ -199,5 +205,10 @@ function copyTextToClipboard(text) {
 <style scoped> 
 .access-table th, .access-table td{
   padding: 15px;
+}
+
+.type {
+  color: #060f8e;
+  background-color: #0000000a;
 }
 </style>

@@ -52,4 +52,14 @@ public class SwitchingCollection<E> extends AbstractCollection<E> implements Ite
 	public E next() {
 		return null;
 	}
+
+	@Override
+	public Object[] toArray() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public <T> T[] toArray(T[] a) {
+		throw new UnsupportedOperationException();
+	}
 }

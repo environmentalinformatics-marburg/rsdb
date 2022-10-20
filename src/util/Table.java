@@ -3,18 +3,24 @@ package util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
-
 import org.tinylog.Logger;
 
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+
+import util.collections.vec.Vec;
 
 /**
  * Helper class to read csv files and get data as a table
@@ -22,9 +28,7 @@ import com.opencsv.CSVReader;
  *
  */
 public class Table {
-	
 
-	private static final Charset UTF8 = Charset.forName("UTF-8");
 	private static final String UTF8_BOM = "\uFEFF";
 
 	public static class ColumnReader {
@@ -230,49 +234,128 @@ public class Table {
 	public static Table readCSV(Path filename, char separator) {
 		return readCSV(filename.toFile(),separator);
 	}
-	
+
 	public static Table readCSV(String filename, char separator) {
 		return readCSV(new File(filename), separator);
 	}
-
+	
 	/**
 	 * create a Table Object from CSV-File
 	 * @param filename
 	 * @return
 	 */
 	public static Table readCSV(File file, char separator) {
+		try(FileInputStream in = new FileInputStream(file)) {			
+			return readCSV(in, separator);			
+		} catch(Exception e) {
+			Logger.error(e);
+			return null;
+		}
+	}
+	
+	public static Table readCSV(InputStream in, char separator) {
+		try(InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+			return readCSV(reader, separator);			
+		} catch(Exception e) {
+			Logger.error(e);
+			return null;
+		}
+	}
+	
+	public static Table readCSV(Reader reader, char separator) {
 		try {
 			Table table = new Table();
-
-			//CSVReader reader = new CSVReader(new FileReader(filename),separator);
-			InputStreamReader in = new InputStreamReader(new FileInputStream(file),UTF8);
-			CSVReader reader = new CSVReader(in,separator);
-
-			List<String[]> list = reader.readAll();
-			
-			reader.close();
-			
-			String[] columnsNames = list.get(0);
-			if(columnsNames.length>0) { // filter UTF8 BOM
-				if(columnsNames[0].startsWith(UTF8_BOM)) {
-					columnsNames[0] = columnsNames[0].substring(1, columnsNames[0].length());
+			try(CSVReader csvReader = buildCSVReader(reader, separator)) {
+				//List<String[]> list = reader.readAll(); // very slow because of linkedlist for indexed access
+				if(Table.readHeader(table, csvReader)) {
+					table.readRows(csvReader);
 				}
-			}			
-			table.updateNames(columnsNames);			
-
-			//Logger.info("names: "+Arrays.toString(table.names)+"   in "+filename);
-
-			table.rows = new String[list.size()-1][];
-
-			for(int i=1;i<list.size();i++) {
-				table.rows[i-1] = list.get(i);
 			}
-
 			return table;
 		} catch(Exception e) {
 			Logger.error(e);
 			return null;
 		}
+	}
+
+	public static Table readCSVThrow(Reader reader, char separator) throws Exception {
+		Table table = new Table();
+		try(CSVReader csvReader = buildCSVReader(reader, separator)) {
+			//List<String[]> list = reader.readAll(); // very slow because of linkedlist for indexed access
+			if(Table.readHeader(table, csvReader)) {
+				table.readRows(csvReader);
+			}
+		}
+		return table;	 	
+	}
+	
+	public static Table readCSVFirstDataRow(String filename, char separator) {
+		try {
+			return readCSVFirstDataRow(new FileReader(filename), separator);
+		} catch(Exception e) {
+			Logger.error(e);
+			return null;
+		}
+	}
+	
+	public static Table readCSVFirstDataRow(Reader reader, char separator) {
+		try {
+			Table table = new Table();
+			try(CSVReader csvReader = buildCSVReader(reader, separator)) {
+				if(Table.readHeader(table, csvReader)) {
+					String[] dataRow = csvReader.readNext();
+					if(dataRow != null) {
+						table.rows = new String[][] {dataRow};
+					} else {
+						return null;
+					}	
+				} else {
+					return null;
+				}
+			}
+			return table;
+		} catch(Exception e) {
+			Logger.error(e);
+			return null;
+		}
+	}
+	
+	static CSVReader buildCSVReader(Reader reader, char separator) {
+		CSVParser csvParser = new CSVParserBuilder().withSeparator(separator).build();
+		return new CSVReaderBuilder(reader).withCSVParser(csvParser).build();
+	}
+
+	static boolean readHeader(Table table, CSVReader csvReader) throws IOException {
+		String[] curRow = csvReader.readNextSilently();
+		if(curRow != null) {
+			String[] columnsNames = curRow;
+			if(columnsNames.length>0) { // filter UTF8 BOM
+				if(columnsNames[0].startsWith(UTF8_BOM)) {
+					columnsNames[0] = columnsNames[0].substring(1, columnsNames[0].length());
+				}
+			}			
+			table.updateNames(columnsNames);
+			//Logger.info("names: "+Arrays.toString(table.names)+"   in "+filename);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private void readRows(CSVReader reader) throws IOException {
+		Vec<String[]> dataRowList = readRowList(reader);				
+		String[][] tabeRows = dataRowList.toArray(new String[0][]);
+		this.rows = tabeRows;
+	}
+	
+	public static Vec<String[]> readRowList(CSVReader reader) throws IOException {
+		Vec<String[]> dataRowList = new Vec<String[]>();
+		String[] curRow = reader.readNextSilently();
+		while(curRow != null){
+			dataRowList.add(curRow);
+			curRow = reader.readNextSilently();
+		}				
+		return dataRowList;
 	}
 	
 	public void updateNames(String[] columnNames) {
@@ -296,29 +379,6 @@ public class Table {
 		
 		this.names = columnNames;
 		this.nameMap = map;
-	}
-
-	public static Table readCSVFirstDataRow(String filename, char separator) {
-		try {
-			Table table = new Table();
-
-			CSVReader reader = new CSVReader(new FileReader(filename),separator);
-
-			String[] headerRow = reader.readNext();
-			String[] dataRow = reader.readNext();
-
-			reader.close();
-			
-			table.updateNames(headerRow);
-
-			table.rows = new String[1][];
-			table.rows[0] = dataRow;			
-
-			return table;
-		} catch(Exception e) {
-			Logger.error(e);
-			return null;
-		}
 	}
 
 	/**

@@ -1,14 +1,13 @@
 package broker.group;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-
-import org.tinylog.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.tinylog.Logger;
 
 import pointdb.base.Point2d;
 import pointdb.base.PolygonUtil;
@@ -31,7 +30,7 @@ public class Roi {
 	
 	public static Roi[] readRoiGeoJSON(Path filename) throws IOException {
 		//Logger.info("read "+filename);
-		String jsonText = new String(Files.readAllBytes(filename),Charset.forName("UTF-8"));
+		String jsonText = new String(Files.readAllBytes(filename), StandardCharsets.UTF_8);
 		JSONObject json = new JSONObject(jsonText);
 		if(!json.getString("type").equals("FeatureCollection")) {
 			throw new RuntimeException("type expected 'FeatureCollection' found: "+json.getString("type")+" in "+filename);

@@ -97,12 +97,12 @@
         <tr><td><b>access roles</b></td><td>
           <multiselect v-model="specification.acl" :options="acl_roles" multiple :taggable="true" @tag="createAclRole" placeholder="select roles" tagPlaceholder="Press enter to create a role"/>
         </td>
-        <td><v-icon style="color: grey;" title="note">event_note</v-icon> select a role that that you <i>have</i>, to view uploaded (meta-)data (if you are not admin).</td>
+        <td><v-icon style="color: grey;" title="note">event_note</v-icon> select roles that are able to view uploaded (meta-)data (in addition to you (the owner)).</td>
         </tr>
         <tr><td><b>modify roles</b></td><td>
           <multiselect v-model="specification.acl_mod" :options="acl_roles" multiple :taggable="true" @tag="createAclModRole" placeholder="select roles" tagPlaceholder="Press enter to create a role"/>
         </td>
-        <td><v-icon style="color: grey;" title="note">event_note</v-icon> select a role that that you <i>have</i>, to modify uploaded (meta-)data (if you are not admin).</td>
+        <td><v-icon style="color: grey;" title="note">event_note</v-icon> select roles that are able to modify uploaded (meta-)data (in addition to you (the owner)).</td>
         </tr>
       </table>
 
@@ -291,10 +291,10 @@
       <v-checkbox label="update catalog" v-model="specification.update_catalog" />
 
       <div v-if="create && (specification === undefined || specification.acl === undefined || specification.acl.length === 0)" style="color: red;">
-        <v-icon style="color: red;">warning</v-icon> No access role specified. ==> Only admin can view imported raster.
+        <v-icon style="color: red;">warning</v-icon> No access role specified. ==> Only you (the owner of the layer) and admin are able to view the layer.
       </div>
       <div v-if="create && (specification === undefined || specification.acl_mod === undefined || specification.acl_mod.length === 0)" style="color: red;">
-        <v-icon style="color: red;">warning</v-icon> No modify role specified. ==> Only admin can modify imported raster and reimport raster with same id.
+        <v-icon style="color: red;">warning</v-icon> No modify role specified. ==> Only you (the owner of the layer) and admin are able modify imported raster and reimport raster with same id.
       </div>
       <br><v-btn  :disabled="importState === 'importing' || (!create && importState !== 'init')" @click="start_import()"><v-icon>cloud_upload</v-icon> &gt;&gt; import &lt;&lt;</v-btn> <span v-show="importState === 'done' && create"><v-icon style="color: grey;" title="note">event_note</v-icon> press again to reimport (e.g. with changed meta data)</span>
  
