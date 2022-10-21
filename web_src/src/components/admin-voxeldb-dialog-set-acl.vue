@@ -9,14 +9,30 @@
                     <div class="headline">Set access control of <i>VoxelDB</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
                 <v-divider></v-divider>
-               <v-card-text>
+                <v-card-text>
                     Specified roles can <b>read</b> layer data.
-                    <multiselect v-model="selectedRoles" :options="acl_roles" multiple :taggable="true" @tag="createAclRole" placeholder="select roles" tagPlaceholder="Press enter to create a role"/>
+                    <multiselect v-if="meta.owner" v-model="selectedRoles" :options="acl_roles" multiple :taggable="true" @tag="createAclRole" placeholder="select roles" tagPlaceholder="Press enter to create a role"/>
                 </v-card-text>
                 <v-card-text>
                     Specified roles can <b>modify</b> layer data.
-                    <multiselect v-model="selectedRolesMod" :options="acl_roles" multiple :taggable="true" @tag="createAclModRole" placeholder="select roles" tagPlaceholder="Press enter to create a role"/>
+                    <multiselect v-if="meta.owner" v-model="selectedRolesMod" :options="acl_roles" multiple :taggable="true" @tag="createAclModRole" placeholder="select roles" tagPlaceholder="Press enter to create a role"/>
                 </v-card-text>
+                <v-card-text>
+                    Specified roles are <b>owner</b> of the layer.
+                    <multiselect v-if="isAdmin" v-model="selectedRolesOwner" :options="acl_roles" multiple :taggable="true" @tag="createAclOwnerRole" placeholder="select roles" tagPlaceholder="Press enter to create a role"/>
+                    <div v-else-if="meta.acl_owner.length > 0">
+                        <span v-for="role in meta.acl_owner" :key="role" class="roles">{{role}}</span>
+                    </div>
+                    <div v-else style="color: #0000008f;">(none)</div>
+                </v-card-text>
+                <v-card-text>
+                    <p>Select roles from the lists or type <b>new roles</b>, add with enter key.</p>
+                    <p><b>Read roles</b> are allowed to read only. Changeable by users with role of owner. 
+                    <br><b>Modify roles</b> are allowed to read and modify. Changeable by users with role of owner. 
+                    <br><b>Owner roles</b> are allowed to read, modify and change permissions. Changeable by admin users only.</p>                      
+                    <p>Type a <b>username</b> to assign specifically that user to the lists, any user has a role of the username.</p>                    
+                    <p><a href="https://github.com/environmentalinformatics-marburg/rsdb/wiki/Access-control" target="_blank"><v-icon>arrow_forward</v-icon> Access control documentation.</a></p>
+                </v-card-text>                
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn class="green--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
@@ -33,7 +49,7 @@
 
 <script>
 
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import axios from 'axios'
 
 import Multiselect from 'vue-multiselect'
@@ -56,6 +72,7 @@ export default {
             setErrorMessage: undefined,
             selectedRoles: [],
             selectedRolesMod: [],
+            selectedRolesOwner: [],
             availableRoles: [],
             createdAclRoles: [],
         }
@@ -65,6 +82,9 @@ export default {
         ...mapState({
             urlPrefix: state => state.identity.urlPrefix,
         }),
+        ...mapGetters({
+            isAdmin: 'identity/isAdmin',
+        }),         
         acl_roles() {
             return this.availableRoles.concat(this.createdAclRoles);
         },
@@ -79,11 +99,16 @@ export default {
             this.createdAclRoles.push(newAclModRole);
             this.selectedRolesMod.push(newAclModRole);
         },
+        createAclOwnerRole(newAclOwnerRole) {
+            this.createdAclRoles.push(newAclOwnerRole);
+            this.selectedRolesOwner.push(newAclOwnerRole);
+        },        
         
         refresh() {
             var self = this;
             this.selectedRoles = this.meta.acl;
             this.selectedRolesMod = this.meta.acl_mod;
+            this.selectedRolesOwner = this.meta.acl_owner;
 
             axios.get(this.urlPrefix + '../../api/roles')
                 .then(function(response) {
@@ -102,6 +127,7 @@ export default {
                 voxeldb: {
                     acl: self.selectedRoles,
                     acl_mod: self.selectedRolesMod,
+                    acl_owner: self.selectedRolesOwner,
                 }
             }).then(function(response) {
                 console.log(response);

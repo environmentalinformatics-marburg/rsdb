@@ -35,6 +35,18 @@
           </multiselect>
           <hr>          
         </v-card-text>
+        <v-card-text v-if="type === 'VectorDB_WFS' || type === 'VectorDB_WMS'">
+          Connected <b>VectorDB</b> layer
+          <multiselect v-model="vectordb" :options="vectordbs" :searchable="true" :show-labels="false" placeholder="pick a vectordb" :allowEmpty="false">
+            <template slot="singleLabel" slot-scope="{option}">
+              {{option}}
+            </template>
+            <template slot="option" slot-scope="{option}">
+              {{option}}
+            </template>
+          </multiselect>
+          <hr>          
+        </v-card-text>
         <v-card-text>
           {{postMessage}}
         </v-card-text>
@@ -65,10 +77,11 @@ components: {
 data() {
     return {
         show: false,
-        types: ['RasterDB_WMS', 'RasterDB_WCS'],   
+        types: ['RasterDB_WMS', 'RasterDB_WCS', 'VectorDB_WFS', 'VectorDB_WMS'],   
         type: undefined,
         id: '',
         rasterdb: undefined,
+        vectordb: undefined,
     }
 },
 computed: {
@@ -79,7 +92,8 @@ computed: {
     if(this.type === undefined || this.type === null) {
       return false;
     }
-    if((this.type === 'RasterDB_WMS' || this.type === 'RasterDB_WCS') && (this.rasterdb === undefined || this.rasterdb === null)) {
+    if((this.type === 'RasterDB_WMS' || this.type === 'RasterDB_WCS') && (this.rasterdb === undefined || this.rasterdb === null)
+    || (this.type === 'VectorDB_WFS' || this.type === 'VectorDB_WMS') && (this.vectordb === undefined || this.vectordb === null)) {
       return false;
     }
     return true;
@@ -91,6 +105,13 @@ computed: {
     var r = this.$store.state.rasterdbs.data.map(e => e.name);
     return r === undefined ? [] : r.slice().sort(function(a, b) { return a.localeCompare(b);});
   },
+  vectordbs() {
+      if(this.$store.state.vectordbs.data === undefined) {
+        return [];
+      }
+      var r = this.$store.state.vectordbs.data.map(e => e.name);
+      return r === undefined ? [] : r.slice().sort(function(a, b) { return a.localeCompare(b);});
+    },  
 },    
 methods: {
   async commit() {
@@ -104,6 +125,9 @@ methods: {
         };
         if(this.type === 'RasterDB_WMS' || this.type === 'RasterDB_WCS') {
           action.rasterdb = this.rasterdb;
+        }
+        if(this.type === 'VectorDB_WFS' || this.type === 'VectorDB_WMS') {
+          action.vectordb = this.vectordb;
         }  
         let data = {actions: [action]};
         var url = this.$store.getters.apiUrl('api/public_access');             
@@ -137,6 +161,7 @@ methods: {
   
   refresh() {
     this.$store.dispatch('rasterdbs/refresh');
+    this.$store.dispatch('vectordbs/refresh');
   },  
 },
 watch: {

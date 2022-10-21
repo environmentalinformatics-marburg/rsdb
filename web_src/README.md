@@ -20,7 +20,18 @@ npm run build
 npm run lint
 ```
 
-### download google fonts and icons
+### download/update google fonts and icons
+
+By command line:
+```bash
+npm install -g get-google-fonts@latest
+get-google-fonts -i "https://fonts.googleapis.com/css?family=Roboto:100:300,400,500,700,900|Material+Icons"
+```
+Downloads fonts to folder 'fonts' in current directory. Copy files to folder: '...rsdb/web_src/public/fonts'
+
+
+Or by node commands:
+ (not working anymore ?)
 
 ```bash
 npm install get-google-fonts

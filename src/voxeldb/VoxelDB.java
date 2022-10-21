@@ -147,6 +147,7 @@ public class VoxelDB implements AutoCloseable {
 				map.put("cellsize", cellsize);
 				map.put("acl", acl.toYaml());
 				map.put("acl_mod", acl_mod.toYaml());
+				map.put("acl_owner", acl_owner.toYaml());
 				map.put("associated", associated.toYaml());
 				informal.writeYaml(map);
 				map.put("ref", geoRef.toYaml());

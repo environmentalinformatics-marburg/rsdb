@@ -30,7 +30,8 @@
                     <p><b>Read roles</b> are allowed to read only. Changeable by users with role of owner. 
                     <br><b>Modify roles</b> are allowed to read and modify. Changeable by users with role of owner. 
                     <br><b>Owner roles</b> are allowed to read, modify and change permissions. Changeable by admin users only.</p>                      
-                    <p>Type a <b>username</b> to assign specifically that user to the lists, any user has a role of the username.</p>                    
+                    <p>Type a <b>username</b> to assign specifically that user to the lists, any user has a role of the username.</p>
+                    <p><a href="https://github.com/environmentalinformatics-marburg/rsdb/wiki/Access-control" target="_blank"><v-icon>arrow_forward</v-icon> Access control documentation.</a></p>
                 </v-card-text>                
                 <v-card-actions>
                     <v-spacer></v-spacer>

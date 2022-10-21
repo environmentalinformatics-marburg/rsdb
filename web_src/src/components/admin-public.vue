@@ -64,7 +64,14 @@
             <h4>Type: <span class="type">RasterDB_WCS</span></h4>
             The public URL is the <a href="https://en.wikipedia.org/wiki/Web_Coverage_Service" target="blank">WCS</a> URL usable e.g. in <a href="https://qgis.org" target="blank">QGIS</a> or other (web) GIS.
           <!--</p>-->
-
+          <!--<p>--><br><br>
+            <h4>Type: <span class="type">VectorDB_WFS</span></h4>
+            The public URL is the <a href="https://en.wikipedia.org/wiki/Web_Feature_Service" target="blank">WFS</a> URL usable e.g. in <a href="https://qgis.org" target="blank">QGIS</a> or other (web) GIS.
+          <!--</p>-->
+          <!--<p>--><br><br>
+            <h4>Type: <span class="type">VectorDB_WMS</span></h4>
+            The public URL is the <a href="https://en.wikipedia.org/wiki/Web_Map_Service" target="blank">WMS</a> URL of a rasterized visualization usable e.g. in <a href="https://qgis.org" target="blank">QGIS</a> or other (web) GIS.
+          <!--</p>-->          
         </v-card>
       </v-flex>
     </v-layout>

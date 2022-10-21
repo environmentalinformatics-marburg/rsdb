@@ -14,12 +14,17 @@ import broker.Broker;
 import broker.PublicAccess;
 import broker.PublicAccess.RasterDbWCS;
 import broker.PublicAccess.RasterDbWMS;
+import broker.PublicAccess.VectorDbWFS;
+import broker.PublicAccess.VectorDbWMS;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.RasterDB;
 import server.api.rasterdb.RasterdbMethod_wcs;
 import server.api.rasterdb.RasterdbMethod_wms;
+import server.api.vectordbs.VectordbHandler_wfs;
+import server.api.vectordbs.VectordbHandler_wms;
+import vectordb.VectorDB;
 
 public class APIHandler_public extends AbstractHandler {
 
@@ -42,13 +47,13 @@ public class APIHandler_public extends AbstractHandler {
 		}
 	}
 
-	private static class WmsProxyHandler extends PublicAccessHandler {
+	private static class RasterDBWmsProxyHandler extends PublicAccessHandler {
 
 		private final RasterDB rasterdb;
 		//private final Broker broker;
 		private final RasterdbMethod_wms handler;
 
-		public WmsProxyHandler(Broker broker, RasterDB rasterdb) {
+		public RasterDBWmsProxyHandler(Broker broker, RasterDB rasterdb) {
 			//this.broker = broker;
 			this.rasterdb = rasterdb;
 			this.handler = new RasterdbMethod_wms(broker);
@@ -60,13 +65,13 @@ public class APIHandler_public extends AbstractHandler {
 		}		
 	}
 
-	private static class WcsProxyHandler extends PublicAccessHandler {
+	private static class RasterDBWcsProxyHandler extends PublicAccessHandler {
 
 		private final RasterDB rasterdb;
 		//private final Broker broker;
 		private final RasterdbMethod_wcs handler;
 
-		public WcsProxyHandler(Broker broker, RasterDB rasterdb) {
+		public RasterDBWcsProxyHandler(Broker broker, RasterDB rasterdb) {
 			//this.broker = broker;
 			this.rasterdb = rasterdb;
 			this.handler = new RasterdbMethod_wcs(broker);
@@ -75,6 +80,42 @@ public class APIHandler_public extends AbstractHandler {
 		@Override
 		public void handle(String id, String target, Request baseRequest, Response response) throws IOException {
 			handler.handle(rasterdb, target, baseRequest, response, null);
+		}		
+	}
+	
+	private static class VectorDBWfsProxyHandler extends PublicAccessHandler {
+
+		private final VectorDB vecotordb;
+		//private final Broker broker;
+		private final VectordbHandler_wfs handler;
+
+		public VectorDBWfsProxyHandler(Broker broker, VectorDB rasterdb) {
+			//this.broker = broker;
+			this.vecotordb = rasterdb;
+			this.handler = new VectordbHandler_wfs(broker);
+		}
+
+		@Override
+		public void handle(String id, String target, Request baseRequest, Response response) throws IOException {
+			handler.handle(vecotordb, target, baseRequest, response, null);
+		}		
+	}
+	
+	private static class VectorDBWmsProxyHandler extends PublicAccessHandler {
+
+		private final VectorDB vecotordb;
+		//private final Broker broker;
+		private final VectordbHandler_wms handler;
+
+		public VectorDBWmsProxyHandler(Broker broker, VectorDB rasterdb) {
+			//this.broker = broker;
+			this.vecotordb = rasterdb;
+			this.handler = new VectordbHandler_wms(broker);
+		}
+
+		@Override
+		public void handle(String id, String target, Request baseRequest, Response response) throws IOException {
+			handler.handle(vecotordb, target, baseRequest, response, null);
 		}		
 	}
 
@@ -102,13 +143,25 @@ public class APIHandler_public extends AbstractHandler {
 		case RasterDbWMS.TYPE: {
 			RasterDbWMS p = (RasterDbWMS) publicAccess;
 			RasterDB rasterdb = broker.getRasterdb(p.rasterdb);
-			handler = new WmsProxyHandler(broker, rasterdb);
+			handler = new RasterDBWmsProxyHandler(broker, rasterdb);
 			break;
 		}
 		case RasterDbWCS.TYPE: {
 			RasterDbWCS p = (RasterDbWCS) publicAccess;
 			RasterDB rasterdb = broker.getRasterdb(p.rasterdb);
-			handler = new WcsProxyHandler(broker, rasterdb);
+			handler = new RasterDBWcsProxyHandler(broker, rasterdb);
+			break;
+		}
+		case VectorDbWFS.TYPE: {
+			VectorDbWFS p = (VectorDbWFS) publicAccess;
+			VectorDB vectordb = broker.getVectorDB(p.vectordb);
+			handler = new VectorDBWfsProxyHandler(broker, vectordb);
+			break;
+		}
+		case VectorDbWMS.TYPE: {
+			VectorDbWMS p = (VectorDbWMS) publicAccess;
+			VectorDB vectordb = broker.getVectorDB(p.vectordb);
+			handler = new VectorDBWmsProxyHandler(broker, vectordb);
 			break;
 		}
 		default:

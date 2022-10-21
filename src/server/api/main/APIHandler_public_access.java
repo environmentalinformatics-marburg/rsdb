@@ -14,6 +14,9 @@ import broker.PublicAccess;
 import broker.PublicAccess.RasterDbAbstract;
 import broker.PublicAccess.RasterDbWCS;
 import broker.PublicAccess.RasterDbWMS;
+import broker.PublicAccess.VectorDbAbstract;
+import broker.PublicAccess.VectorDbWFS;
+import broker.PublicAccess.VectorDbWMS;
 import broker.acl.AclUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
@@ -62,6 +65,13 @@ public class APIHandler_public_access extends APIHandler {
 				json.value(a.rasterdb);
 				break;
 			}
+			case VectorDbWFS.TYPE:
+			case VectorDbWMS.TYPE: {
+				VectorDbAbstract a = (PublicAccess.VectorDbAbstract) publicAccess;
+				json.key("vectordb");
+				json.value(a.vectordb);
+				break;
+			}
 			}
 			json.endObject();
 		});		
@@ -94,7 +104,17 @@ public class APIHandler_public_access extends APIHandler {
 						String rasterdb = action.getString("rasterdb");
 						publicAccess = new RasterDbWCS(id, rasterdb);
 						break;
-					}					
+					}
+					case VectorDbWFS.TYPE: {
+						String vectordb = action.getString("vectordb");
+						publicAccess = new VectorDbWFS(id, vectordb);
+						break;
+					}
+					case VectorDbWMS.TYPE: {
+						String vectordb = action.getString("vectordb");
+						publicAccess = new VectorDbWMS(id, vectordb);
+						break;
+					}
 					default:
 						throw new RuntimeException("unknown type");
 					}
