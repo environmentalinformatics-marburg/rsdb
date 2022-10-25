@@ -45,6 +45,7 @@ import broker.group.Roi;
 import pointdb.base.Point2d;
 import server.api.vectordbs.VectordbDetails;
 import util.Extent2d;
+import util.GeoUtil;
 import util.Util;
 import util.collections.ReadonlyList;
 import util.collections.vec.Vec;
@@ -54,14 +55,6 @@ import vectordb.style.Style;
 public class VectorDB {
 	
 	private static final String TYPE = "vectordb";
-
-	public static final SpatialReference WEB_MERCATOR_SPATIAL_REFERENCE = new SpatialReference("");
-	public static final int WEB_MERCATOR_EPSG = 3857;
-	private static final CRSFactory CRS_FACTORY = new CRSFactory();
-
-	static {
-		WEB_MERCATOR_SPATIAL_REFERENCE.ImportFromEPSG(3857);
-	}
 
 	private final VectordbConfig config;
 	private Informal informal = Informal.EMPTY;
@@ -273,8 +266,8 @@ public class VectorDB {
 		}
 		SpatialReference refDst = null;
 		if(epsg >= 0) {
-			if(epsg == WEB_MERCATOR_EPSG) {
-				refDst = WEB_MERCATOR_SPATIAL_REFERENCE;
+			if(epsg == GeoUtil.EPSG_WEB_MERCATOR) {
+				refDst = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
 			} else {
 				refDst = new SpatialReference("");
 				refDst.ImportFromEPSG(epsg);			
@@ -427,8 +420,8 @@ public class VectorDB {
 
 			if(epsg >= 0) {
 				SpatialReference refDst;
-				if(epsg == WEB_MERCATOR_EPSG) {
-					refDst = WEB_MERCATOR_SPATIAL_REFERENCE;
+				if(epsg == GeoUtil.EPSG_WEB_MERCATOR) {
+					refDst = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
 				} else {
 					refDst = new SpatialReference("");
 					refDst.ImportFromEPSG(epsg);			
@@ -721,7 +714,7 @@ public class VectorDB {
 					}
 				}
 				if(!details.proj4.isEmpty()) {
-					String epsg = CRS_FACTORY.readEpsgFromParameters(details.proj4);
+					String epsg = GeoUtil.CRS_FACTORY.readEpsgFromParameters(details.proj4);
 					details.epsg = epsg == null ? "" : epsg;
 				}
 				details.attributes = attributes.readonlyWeakView();

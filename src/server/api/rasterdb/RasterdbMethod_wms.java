@@ -2,6 +2,7 @@ package server.api.rasterdb;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -19,6 +20,8 @@ import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.osr.CoordinateTransformation;
+import org.gdal.osr.SpatialReference;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -34,6 +37,7 @@ import rasterdb.TimeBand;
 import rasterdb.dsl.DSL;
 import rasterdb.dsl.ErrorCollector;
 import server.api.rasterdb.WmsCapabilities.WmsStyle;
+import util.GeoUtil;
 import util.Range2d;
 import util.TimeUtil;
 import util.Web;
@@ -43,7 +47,6 @@ import util.image.MonoColor;
 import util.image.Renderer;
 
 public class RasterdbMethod_wms extends RasterdbMethod {
-	
 
 	public RasterdbMethod_wms(Broker broker) {
 		super(broker, "wms");	
@@ -88,7 +91,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		double gamma = Double.NaN;
 		boolean gamma_auto_sync = false;
 		int[] palette = null;
-		String format = "png";
+		String format = "image/png";
 
 		if(!target.isEmpty()) {
 			Logger.info("target |" + target + "|");
@@ -131,34 +134,20 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 
 
 		String layers = Web.getString(request, "LAYERS", "color");
-		String[] layerList = layers.split(",");
+		String[] layerList = layers.split(",", -1);
 		if(layerList.length > 1) {
-			Logger.warn("multiple layers specified in LAYERS. Using first layer only.");
+			Logger.warn("multiple layers specified in LAYERS. Using first layer only. " + Arrays.toString(layerList));
 		}
-		String layer = layerList[0];
+		String layer = layerList.length == 0 ? "color" : layerList[0];
 
-		String[] lparams = layer.split("/");
-		String bandText = lparams[0];
+		String[] lparams = layer.split("/", -1);
+		String bandText = lparams.length == 0 ? "color" : lparams[0];
 		int timestamp = lparams.length > 1 ? Integer.parseInt(lparams[1]) : rasterdb.rasterUnit().timeKeysReadonly().isEmpty() ? 0 : rasterdb.rasterUnit().timeKeysReadonly().last();
-
-		String styles = Web.getString(request, "STYLES");
-		if(styles != null && !styles.isEmpty()) {
-			String[] stylesList = styles.split(",");
-			if(stylesList.length > 1) {
-				Logger.warn("styles for multiple layers specified in STYLES. Using styles of first layer only.");
-			}
-			String style = stylesList[0];
-			String[] sParams = style.split("/");
-			for(String sParam : sParams) {
-				String[] args = sParam.split(" ");
-				switch(args[0]) {
-				
-				default:
-					Logger.warn("unknown style type: " + args[0]);
-				}
-			}
+		if(layerList.length > 2) {
+			Logger.warn("Only the two layer parameters 'bandText' or 'bandText/timestamp' are supported. " + Arrays.toString(lparams));
 		}
 
+		//String styles = Web.getString(request, "STYLES"); // STYLES parameter not used		
 
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");
@@ -193,23 +182,25 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		}
 
 		switch(format) {
-		case "jpg": {
+		case "image/jpeg": // Official type from standard. set GetCapabilities.
+		case "jpg": {  // needed for customWMS format selection
 			response.setContentType("image/jpeg");
 			image.writeJpg(response.getOutputStream(), 0.7f);
 			break;
 		}
-		case "jpg:small": {
+		case "jpg:small": {  // needed for customWMS format selection
 			response.setContentType("image/jpeg");
 			image.writeJpg(response.getOutputStream(), 0.3f);
 			break;
 		}
-		case "png:uncompressed": {
+		case "png:uncompressed": {  // needed for customWMS format selection
 			response.setContentType("image/png");
 			image.writePng(response.getOutputStream(), 0);
 			break;
 		}
-		case "png":
-		case "png:compressed":
+		case "image/png": // Official type from standard. set GetCapabilities.
+		case "png":  // obsolete, needed for old code ??
+		case "png:compressed": // needed for customWMS format selection
 		default: {
 			response.setContentType("image/png");
 			image.writePngCompressed(response.getOutputStream());
@@ -269,9 +260,10 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		addElement(eService, "Name", "OWS:WMS");
 		addElement(eService, "Title", "Remote Sensing Database"); // not shown by qgis
 		addElement(eService, "Abstract", "WMS service"); // not shown by qgis
+		addElement(eService, "LayerLimit", "1"); // only one layer should be specified at GetMap LAYERS parameter
 
 		Element eCapability = addElement(rootElement, "Capability");
-		
+
 		addRequest(eCapability, requestUrl);
 
 		for (WmsStyle style : WmsCapabilities.getWmsStyles(rasterdb)) {
@@ -283,9 +275,9 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 
 	private void addRequest(Element eCapability, String requestUrl) {
 		Element eRootRequest = addElement(eCapability, "Request");
-		
+
 		Element eGetCapabilities = addElement(eRootRequest, "GetCapabilities");
-		addElement(eGetCapabilities, "Format", "application/vnd.ogc.wms_xml");
+		//addElement(eGetCapabilities, "Format", "application/vnd.ogc.wms_xml"); // non standard ??
 		addElement(eGetCapabilities, "Format", "text/xml");
 		Element eGetCapabilitiesDCPType = addElement(eGetCapabilities, "DCPType");
 		Element eGetCapabilitiesDCPTypeHTTP = addElement(eGetCapabilitiesDCPType, "HTTP");
@@ -293,9 +285,10 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		Element eGetCapabilitiesDCPTypeHTTPGetOnlineResource = addElement(eGetCapabilitiesDCPTypeHTTPGet, "OnlineResource");
 		eGetCapabilitiesDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
 		eGetCapabilitiesDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
-		
+
 		Element eGetMap = addElement(eRootRequest, "GetMap");
-		addElement(eGetMap, "Format", "image/png"); // TODO add more formats
+		addElement(eGetMap, "Format", "image/png");
+		addElement(eGetMap, "Format", "image/jpeg");
 		Element eGetMapDCPType = addElement(eGetMap, "DCPType");
 		Element eGetMapDCPTypeHTTP = addElement(eGetMapDCPType, "HTTP");
 		Element eGetMapDCPTypeHTTPGet = addElement(eGetMapDCPTypeHTTP, "Get");		
@@ -308,18 +301,50 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		Element eRootLayer = addElement(eCapability, "Layer");
 
 
-
-		String code = rasterdb.ref().optCode("EPSG:3857");
+		GeoReference ref = rasterdb.ref();
+		String code = ref.optCode("EPSG:3857");
 		addElement(eRootLayer, "Name", name);
 		addElement(eRootLayer, "Title", title);
-		addElement(eRootLayer, "CRS", code);
-		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
-		eBoundingBox.setAttribute("CRS", code);
+
 		Range2d localRange = rasterdb.getLocalRange(false);
 		if(localRange == null) {
 			return;
 		}
-		GeoReference ref = rasterdb.ref();
+
+
+		if(ref.has_code()) {
+			try {
+				int epsg = ref.getEPSG(0);
+				if(epsg != 0) {
+					SpatialReference layerSr = GeoUtil.spatialReferenceFromEPSG(epsg);
+					CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(layerSr, GeoUtil.WGS84_SPATIAL_REFERENCE);
+					double[] p1 = ct.TransformPoint(ref.pixelXToGeo(localRange.xmin), ref.pixelYToGeo(localRange.ymin));
+					double[] p2 = ct.TransformPoint(ref.pixelXToGeo(localRange.xmax + 1), ref.pixelYToGeo(localRange.ymax + 1));
+					double westBoundLongitude = p1[0];
+					double eastBoundLongitude = p2[0];
+					double southBoundLatitude = p1[1];
+					double northBoundLatitude = p2[1];
+					if(Double.isFinite(westBoundLongitude) 
+							&& Double.isFinite(eastBoundLongitude) 
+							&& Double.isFinite(southBoundLatitude) 
+							&& Double.isFinite(northBoundLatitude)
+							&& westBoundLongitude != eastBoundLongitude
+							&& southBoundLatitude != northBoundLatitude) {
+						Element eEX_GeographicBoundingBox = addElement(eRootLayer, "EX_GeographicBoundingBox");		
+						addElement(eEX_GeographicBoundingBox, "westBoundLongitude", "" + westBoundLongitude);
+						addElement(eEX_GeographicBoundingBox, "eastBoundLongitude", "" + eastBoundLongitude);		
+						addElement(eEX_GeographicBoundingBox, "southBoundLatitude", "" + southBoundLatitude);
+						addElement(eEX_GeographicBoundingBox, "northBoundLatitude", "" + northBoundLatitude);
+					}
+				}
+			} catch(Exception e) {
+				Logger.warn(e);
+			}
+		}
+
+		addElement(eRootLayer, "CRS", code);
+		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
+		eBoundingBox.setAttribute("CRS", code);
 		//boolean transposed = ref.wms_transposed;
 		boolean transposed = false;
 		if (transposed) {

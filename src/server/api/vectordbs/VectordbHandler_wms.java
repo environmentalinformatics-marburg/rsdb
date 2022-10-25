@@ -27,6 +27,7 @@ import org.w3c.dom.Node;
 
 import broker.Broker;
 import util.Extent2d;
+import util.GeoUtil;
 import util.Web;
 import util.image.ImageBufferARGB;
 import vectordb.Renderer;
@@ -85,8 +86,8 @@ public class VectordbHandler_wms extends VectordbHandler {
 					int epsg = Integer.parseInt(crs.substring(5));
 					//Logger.info(epsg);
 					if(epsg >= 0) {					
-						if(epsg == VectorDB.WEB_MERCATOR_EPSG) {
-							refDst = VectorDB.WEB_MERCATOR_SPATIAL_REFERENCE;
+						if(epsg == GeoUtil.EPSG_WEB_MERCATOR) {
+							refDst = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
 						} else {
 							refDst = new SpatialReference("");
 							refDst.ImportFromEPSG(epsg);			
