@@ -13,6 +13,7 @@ import org.mapdb.DataIO.DataOutputByteArray;
 
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
+import util.BufferedDataOuputStream;
 import util.Receiver;
 
 public class RdatPointDataFrame {
@@ -70,10 +71,14 @@ public class RdatPointDataFrame {
 			throw new RuntimeException("no columns");
 		}
 
-		DataOutputByteArray out = new DataOutputByteArray();
+		/*DataOutputByteArray out = new DataOutputByteArray();
 		write_RDAT_POINT_DATA_FRAME(out, points, columnWriterList, pointdb.config.getProj4());		
 		response.setContentType("application/octet-stream");
-		response.getOutputStream().write(out.buf,0,out.pos);		
+		response.getOutputStream().write(out.buf,0,out.pos);*/		
+		response.setContentType("application/octet-stream");
+		try(BufferedDataOuputStream out = new BufferedDataOuputStream(response.getOutputStream())) {
+			write_RDAT_POINT_DATA_FRAME(out, points, columnWriterList, pointdb.config.getProj4());	
+		}
 	}
 
 	private static void write_RDAT_POINT_DATA_FRAME(DataOutput out, Collection<GeoPoint> points, ArrayList<ColumnWriter> columnWriterList, String proj4) throws IOException {

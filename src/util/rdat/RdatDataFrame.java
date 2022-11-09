@@ -12,6 +12,7 @@ import java.util.function.ToIntFunction;
 
 import org.mapdb.DataIO.DataOutputByteArray;
 
+import util.BufferedDataOuputStream;
 import util.Receiver;
 import util.collections.vec.Vec;
 
@@ -180,10 +181,14 @@ public class RdatDataFrame<T> {
 	}
 
 	public void write(Receiver receiver, Collection<T> coll) throws IOException {
-		DataOutputByteArray out = new DataOutputByteArray();
+		/*DataOutputByteArray out = new DataOutputByteArray();
 		write(out, coll);	
 		receiver.setContentType("application/octet-stream");
-		receiver.getOutputStream().write(out.buf,0,out.pos);
+		receiver.getOutputStream().write(out.buf,0,out.pos);*/
+		receiver.setContentType("application/octet-stream");
+		try(BufferedDataOuputStream out = new BufferedDataOuputStream(receiver.getOutputStream())) {
+			write(out, coll);
+		}
 	}
 
 	public void write(DataOutput out, Collection<T> coll) throws IOException {

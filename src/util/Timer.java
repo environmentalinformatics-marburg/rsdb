@@ -130,6 +130,10 @@ public final class Timer implements AutoCloseable, Serializable, Iterable<Timer>
 		long e = diff%10;
 		return diff/1000+"."+h+z+e+" s";
 	}
+	
+	public double timespan() {
+		return (end - begin) / 1000d;
+	}
 
 	/**
 	 * All timers to text separated by newline.

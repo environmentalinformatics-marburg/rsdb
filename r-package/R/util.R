@@ -2,7 +2,7 @@
 #'
 #' Creates an \link{extent} that covers the square over the circle at point x,y with radius r.
 #'
-#' Extents are used to query data from \link{RasterDB} and from \link{PointDB}.
+#' Extents are used to query data from \link{RasterDB} , from \link{PointCloud} and from \link{PointDB}.   
 #'
 #' @param x first coordinate
 #' @param y second coordinate
@@ -19,7 +19,7 @@ extent_radius <- function(x, y, r) {
 #'
 #' Creates an \link{extent} that covers the square with center point x,y and with diameter (edge length) d.
 #'
-#' Extents are used to query data from \link{RasterDB} and from \link{PointDB}.
+#' Extents are used to query data from \link{RasterDB} , from \link{PointCloud} and from \link{PointDB}. 
 #'
 #' @param x first coordinate
 #' @param y second coordinate

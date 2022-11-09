@@ -257,10 +257,10 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		rootElement.setAttribute("xmlns:xlink", NS_XLINK);
 
 		Element eService = addElement(rootElement, "Service");
-		addElement(eService, "Name", "OWS:WMS");
-		addElement(eService, "Title", "Remote Sensing Database"); // not shown by qgis
-		addElement(eService, "Abstract", "WMS service"); // not shown by qgis
-		addElement(eService, "LayerLimit", "1"); // only one layer should be specified at GetMap LAYERS parameter
+		addElement(eService, "Name", "WMS");
+		addElement(eService, "Title", "Remote Sensing Database");
+		addElement(eService, "Abstract", "WMS service"); 
+		addElement(eService, "LayerLimit", "1"); // only one layer should be specified at GetMap LAYERS parameter, ignored by (most?) clients
 
 		Element eCapability = addElement(rootElement, "Capability");
 
@@ -358,6 +358,10 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			eBoundingBox.setAttribute("maxx", "" + ref.pixelXToGeo(localRange.xmax + 1));
 			eBoundingBox.setAttribute("maxy", "" + ref.pixelYToGeo(localRange.ymax + 1));
 		}
+		if(ref.has_pixel_size()) {
+			eBoundingBox.setAttribute("resx", "" + ref.pixel_size_x);
+			eBoundingBox.setAttribute("resy", "" + ref.pixel_size_y);
+		}
 
 		/*ReadonlyNavigableSetView<Integer> timekeys = rasterdb.rasterUnit().timeKeysReadonly();
 		for(Integer timeKey:timekeys) {
@@ -371,6 +375,33 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		TreeSet<Integer> timestamps = new TreeSet<Integer>();
 		timestamps.addAll(rasterdb.rasterUnit().timeKeysReadonly());
 		timestamps.addAll(rasterdb.timeMapReadonly.keySet());
+
+		/*if(!timestamps.isEmpty()) { // TIME-paramter not used by clients ?
+			StringBuilder content = new StringBuilder();
+			boolean following = false;
+			String last = null;
+			for(Integer timestamp : timestamps) {
+				if(following) {
+					content.append(',');
+				} else {
+					following = true;
+				}
+				TimeSlice timeSlice = rasterdb.timeMapReadonly.get(timestamp);
+				if(timeSlice == null) {
+					last = TimeUtil.toPrettyText(timestamp);
+				} else {
+					last = timeSlice.name;
+				}
+				content.append(last);
+			}
+			Element eDimension = addElement(eRootLayer, "Dimension", content.toString());
+			eDimension.setAttribute("name", "time");
+			eDimension.setAttribute("units", ""); // no unit
+			if(last != null) {
+				eDimension.setAttribute("default", last);
+			}
+		}*/
+
 		for(Integer timestamp:timestamps) {
 			Element eTimeLayer = addElement(eRootLayer, "Layer");
 			addElement(eTimeLayer, "Name", name + "/" + timestamp);
