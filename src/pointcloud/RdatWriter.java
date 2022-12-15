@@ -245,5 +245,4 @@ public class RdatWriter {
 		}
 		df.write(receiver, pointTables);
 	}
-
 }

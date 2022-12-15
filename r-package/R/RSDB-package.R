@@ -3,7 +3,7 @@
 #'
 #' Central class is \code{\link{RemoteSensing}} that connects to remote sensing database.
 #' Methods of \code{\link{RemoteSensing}} provide access to raster (\code{\link{RasterDB}}),
-#' to point clouds (\code{\link{PointCloud}}), (deprecated \code{\link{PointDB}}), to vector (\code{\link{VectorDB}}), to region of interest (ROI) and to poin of interest (POI) (at \code{\link{RemoteSensing}}) layers and meta data.
+#' to point clouds (\code{\link{PointCloud}}), to voxels (\code{\link{VoxelDB}}), (deprecated \code{\link{PointDB}}), to vector (\code{\link{VectorDB}}), to region of interest (ROI) and to poin of interest (POI) (at \code{\link{RemoteSensing}}) layers and meta data.
 #'
 #' @name RSDB-package
 #' @docType package

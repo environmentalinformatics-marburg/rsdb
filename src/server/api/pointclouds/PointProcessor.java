@@ -1,13 +1,11 @@
 package server.api.pointclouds;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
+import org.tinylog.Logger;
 
 import pointcloud.AttributeSelector;
 import pointcloud.CellTable.ChainedFilterFunc;
@@ -19,7 +17,6 @@ import pointdb.processing.geopoint.GeoPointFilter;
 import pointdb.processing.geopoint.Normalise;
 import pointdb.subsetdsl.Region;
 import util.Receiver;
-import util.Util;
 import util.Web;
 
 public class PointProcessor {

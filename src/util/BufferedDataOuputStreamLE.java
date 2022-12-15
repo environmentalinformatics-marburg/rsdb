@@ -3,13 +3,13 @@ package util;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
-
-	public BufferedDataOuputStream(OutputStream out) {
+public class BufferedDataOuputStreamLE extends BufferedDataOuputStreamBasic {
+	
+	public BufferedDataOuputStreamLE(OutputStream out) {
 		super(out);
 	}
 	
-	public BufferedDataOuputStream(OutputStream out, int size) {
+	public BufferedDataOuputStreamLE(OutputStream out, int size) {
 		super(out, size);
 	}
 
@@ -17,8 +17,8 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 		if(buf.length < pos + 2) {
 			flushAlways();
 		}
-		buf[pos++] = (byte) (v >>> 8);
 		buf[pos++] = (byte) v;
+		buf[pos++] = (byte) (v >>> 8);
 	}
 
 	@Override
@@ -26,16 +26,16 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 		if(buf.length < pos + 2) {
 			flushAlways();
 		}
-		buf[pos++] = (byte) (v >>> 8);
-		buf[pos++] = (byte) v;		
+		buf[pos++] = (byte) v;
+		buf[pos++] = (byte) (v >>> 8);		
 	}
 
 	public void putChar(char v) throws IOException {
 		if(buf.length < pos + 2) {
 			flushAlways();
 		}
-		buf[pos++] = (byte) (v >>> 8);
 		buf[pos++] = (byte) v;
+		buf[pos++] = (byte) (v >>> 8);
 	}
 
 	@Override
@@ -43,18 +43,18 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 		if(buf.length < pos + 2) {
 			flushAlways();
 		}
-		buf[pos++] = (byte) (v >>> 8);
-		buf[pos++] = (byte) v;			
+		buf[pos++] = (byte) v;
+		buf[pos++] = (byte) (v >>> 8);			
 	}
 
 	public void putInt(int v) throws IOException {
 		if(buf.length < pos + 4) {
 			flushAlways();
 		}
-		buf[pos++] = (byte) (v >>> 24);
+		buf[pos++] = (byte) v; 
+		buf[pos++] = (byte) (v >>> 8); 
 		buf[pos++] = (byte) (v >>> 16);
-		buf[pos++] = (byte) (v >>> 8);
-		buf[pos++] = (byte) v;	
+		buf[pos++] = (byte) (v >>> 24); 	
 	}
 
 	@Override
@@ -62,10 +62,10 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 		if(buf.length < pos + 4) {
 			flushAlways();
 		}
-		buf[pos++] = (byte) (v >>> 24);
+		buf[pos++] = (byte) v; 
+		buf[pos++] = (byte) (v >>> 8); 
 		buf[pos++] = (byte) (v >>> 16);
-		buf[pos++] = (byte) (v >>> 8);
-		buf[pos++] = (byte) v;	
+		buf[pos++] = (byte) (v >>> 24); 
 	}
 
 	public void putFloat(float f) throws IOException {
@@ -73,10 +73,10 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 			flushAlways();
 		}
 		int v = Float.floatToRawIntBits(f);
-		buf[pos++] = (byte) (v >>> 24);
+		buf[pos++] = (byte) v; 
+		buf[pos++] = (byte) (v >>> 8); 
 		buf[pos++] = (byte) (v >>> 16);
-		buf[pos++] = (byte) (v >>> 8);
-		buf[pos++] = (byte) v;
+		buf[pos++] = (byte) (v >>> 24); 
 	}
 
 	@Override
@@ -85,24 +85,24 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 			flushAlways();
 		}
 		int v = Float.floatToRawIntBits(f);
-		buf[pos++] = (byte) (v >>> 24);
+		buf[pos++] = (byte) v; 
+		buf[pos++] = (byte) (v >>> 8); 
 		buf[pos++] = (byte) (v >>> 16);
-		buf[pos++] = (byte) (v >>> 8);
-		buf[pos++] = (byte) v;			
+		buf[pos++] = (byte) (v >>> 24); 			
 	}
 
 	public void putLong(long v) throws IOException {
 		if(buf.length < pos + 8) {
 			flushAlways();
 		}
-		buf[pos++] = (byte) (v >>> 56);
-		buf[pos++] = (byte) (v >>> 48);
-		buf[pos++] = (byte) (v >>> 40);
-		buf[pos++] = (byte) (v >>> 32);
-		buf[pos++] = (byte) (v >>> 24);
-		buf[pos++] = (byte) (v >>> 16);
-		buf[pos++] = (byte) (v >>> 8);
 		buf[pos++] = (byte) v;
+		buf[pos++] = (byte) (v >>> 8);
+		buf[pos++] = (byte) (v >>> 16);
+		buf[pos++] = (byte) (v >>> 24);
+		buf[pos++] = (byte) (v >>> 32); 
+		buf[pos++] = (byte) (v >>> 40); 
+		buf[pos++] = (byte) (v >>> 48); 
+		buf[pos++] = (byte) (v >>> 56); 
 	}
 
 	@Override
@@ -110,14 +110,14 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 		if(buf.length < pos + 8) {
 			flushAlways();
 		}
-		buf[pos++] = (byte) (v >>> 56);
-		buf[pos++] = (byte) (v >>> 48);
-		buf[pos++] = (byte) (v >>> 40);
-		buf[pos++] = (byte) (v >>> 32);
-		buf[pos++] = (byte) (v >>> 24);
-		buf[pos++] = (byte) (v >>> 16);
+		buf[pos++] = (byte) v;
 		buf[pos++] = (byte) (v >>> 8);
-		buf[pos++] = (byte) v;		
+		buf[pos++] = (byte) (v >>> 16);
+		buf[pos++] = (byte) (v >>> 24);
+		buf[pos++] = (byte) (v >>> 32); 
+		buf[pos++] = (byte) (v >>> 40); 
+		buf[pos++] = (byte) (v >>> 48); 
+		buf[pos++] = (byte) (v >>> 56); 	
 	}
 
 	public void putDouble(double d) throws IOException {
@@ -125,14 +125,14 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 			flushAlways();
 		}
 		long v = Double.doubleToRawLongBits(d);
-		buf[pos++] = (byte) (v >>> 56);
-		buf[pos++] = (byte) (v >>> 48);
-		buf[pos++] = (byte) (v >>> 40);
-		buf[pos++] = (byte) (v >>> 32);
-		buf[pos++] = (byte) (v >>> 24);
-		buf[pos++] = (byte) (v >>> 16);
-		buf[pos++] = (byte) (v >>> 8);
 		buf[pos++] = (byte) v;
+		buf[pos++] = (byte) (v >>> 8);
+		buf[pos++] = (byte) (v >>> 16);
+		buf[pos++] = (byte) (v >>> 24);
+		buf[pos++] = (byte) (v >>> 32); 
+		buf[pos++] = (byte) (v >>> 40); 
+		buf[pos++] = (byte) (v >>> 48); 
+		buf[pos++] = (byte) (v >>> 56); 
 	}
 
 	@Override
@@ -141,13 +141,13 @@ public class BufferedDataOuputStream extends BufferedDataOuputStreamBasic {
 			flushAlways();
 		}
 		long v = Double.doubleToRawLongBits(d);
-		buf[pos++] = (byte) (v >>> 56);
-		buf[pos++] = (byte) (v >>> 48);
-		buf[pos++] = (byte) (v >>> 40);
-		buf[pos++] = (byte) (v >>> 32);
-		buf[pos++] = (byte) (v >>> 24);
-		buf[pos++] = (byte) (v >>> 16);
+		buf[pos++] = (byte) v;
 		buf[pos++] = (byte) (v >>> 8);
-		buf[pos++] = (byte) v;		
+		buf[pos++] = (byte) (v >>> 16);
+		buf[pos++] = (byte) (v >>> 24);
+		buf[pos++] = (byte) (v >>> 32); 
+		buf[pos++] = (byte) (v >>> 40); 
+		buf[pos++] = (byte) (v >>> 48); 
+		buf[pos++] = (byte) (v >>> 56); 	
 	}	
 }

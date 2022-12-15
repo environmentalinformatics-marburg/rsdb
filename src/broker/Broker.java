@@ -131,7 +131,7 @@ public class Broker implements AutoCloseable {
 				PoiGroup poiGroup = new PoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, pois);
 				map.put(poiGroup.name, poiGroup);
 			} catch(Exception e) {
-				Logger.warn(e);
+				Logger.warn(e.getMessage());
 			}
 		});
 
@@ -161,7 +161,7 @@ public class Broker implements AutoCloseable {
 				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, rois);
 				map.put(roiGroup.name, roiGroup);
 			} catch(Exception e) {
-				Logger.warn(e);
+				Logger.warn(e.getMessage());
 			}
 		});
 

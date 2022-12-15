@@ -27,8 +27,8 @@ public class APIHandler_create_raster extends APIHandler {
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {	
 		UserIdentity userIdentity = Web.getUserIdentity(request);
-		String name = request.getParameter("name");
-		if(name==null) {
+		String rasterdbName = request.getParameter("name");
+		if(rasterdbName==null) {
 			throw new RuntimeException("missing name parameter");
 		}
 		boolean transaction = true;
@@ -54,13 +54,28 @@ public class APIHandler_create_raster extends APIHandler {
 		}
 		
 		boolean create_new = Web.getBoolean(request, "create_new", true);
+		boolean newRasterdb = true;
 		
-		RasterDB rasterdb = create_new ? broker.createNewRasterdb(name, transaction, storage_type): broker.createOrGetRasterdb(name, transaction, storage_type);
-		if(userIdentity != null) {
-			String username = userIdentity.getUserPrincipal().getName();
-			rasterdb.setACL_owner(ACL.ofRole(username));
+		if(broker.hasRasterdb(rasterdbName)) {
+			newRasterdb = false;
+			RasterDB rasterdb = broker.getRasterdb(rasterdbName);
+			rasterdb.checkMod(userIdentity, "task rasterdb create of existing name");
+			rasterdb.close();
 		}
 		
+		RasterDB rasterdb;
+		if(create_new) {
+			rasterdb = broker.createNewRasterdb(rasterdbName, transaction, storage_type);
+			newRasterdb = true;
+		} else {
+			rasterdb = broker.createOrGetRasterdb(rasterdbName, transaction, storage_type);
+		}
+		if(newRasterdb) {
+			if(userIdentity != null) {
+				String username = userIdentity.getUserPrincipal().getName();
+				rasterdb.setACL_owner(ACL.ofRole(username));
+			}			
+		}
 		if(proj4 != null && !proj4.isEmpty()) {
 			rasterdb.setProj4(proj4);
 		}
@@ -77,7 +92,7 @@ public class APIHandler_create_raster extends APIHandler {
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("result");
-		json.value("created raster "+name);
+		json.value("created raster "+rasterdbName);
 		json.endObject();
 	}
 }

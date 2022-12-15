@@ -5,6 +5,21 @@
 npm install
 ```
 
+### New node.js versions
+Set env variable before running build commands
+
+Windows
+```
+set NODE_OPTIONS=--openssl-legacy-provider
+```
+
+
+Ubuntu
+```bash
+export NODE_OPTIONS=--openssl-legacy-provider
+```
+
+
 ### Compiles and hot-reloads for development
 ```bash
 npm run serve
