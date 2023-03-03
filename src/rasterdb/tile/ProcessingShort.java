@@ -14,7 +14,6 @@ import rasterunit.TileKey;
 import util.Range2d;
 
 public class ProcessingShort {
-	//
 
 	public static short[][] readPixels(int div, RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange) {
 		switch(div) {

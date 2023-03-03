@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-
-import org.tinylog.Logger;
-
 import rasterdb.Band;
 import rasterdb.tile.Processing.Commiter;
 import rasterunit.BandKey;
@@ -17,7 +14,6 @@ import rasterunit.TileKey;
 import util.Range2d;
 
 public class ProcessingFloat {
-	
 	
 	public static float[][] readPixels(int div, RasterUnitStorage pyramid_rasterUnit, int t, Band band, Range2d pixelRange) {
 		switch(div) {
