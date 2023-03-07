@@ -78,7 +78,7 @@ public class Cell {
 		for (int i = 0; i < column_count; i++) {
 			byteBuffer.put(columns[i]);
 		}
-		Logger.info("compress: " + result.length);
+		//Logger.info("compress: " + result.length);
 		byte[] result_compressed = Zstd.compress(result, compression_level);
 		//Logger.info("compressed "+result.length+" -> "+result_compressed.length);
 		return result_compressed;

@@ -12,9 +12,9 @@ import remotetask.pointdb.task_pointdb;
 import remotetask.rasterdb.task_rasterdb;
 import remotetask.vectordb.task_vectordb;
 
-public abstract class RemoteTask implements Runnable, MessageProxy {
+public abstract class RemoteTask implements Runnable, MessageProxy {	
 	
-	
+	private final int MAX_LOG_MESSAGE_LINES = 1000;
 	private ConcurrentLinkedQueue<String> logMessages = new ConcurrentLinkedQueue<String>();
 	
 	private static final AtomicLong cnt = new AtomicLong(0);
@@ -62,6 +62,8 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 			status = Status.ERROR;
 			setMessage("Error: " + e.getMessage());
 			Logger.error(e.getMessage());
+			Logger.error(e);
+			e.printStackTrace(new PrintLineStreamAdapter(s -> log(s)));
 			e.printStackTrace();
 		} catch(Throwable e) {
 			status = Status.ERROR;
@@ -134,7 +136,10 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 	}
 	
 	protected void log(String message) {
-		//logMessages.add(message);
+		if(logMessages.size() > MAX_LOG_MESSAGE_LINES) {
+			logMessages.poll();
+		}
+		logMessages.add(message);
 		Logger.info(message);
 	}
 

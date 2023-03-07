@@ -1,7 +1,7 @@
 <template>
     <span>
         <v-dialog v-model="dialog" lazy absolute width="800px">
-            <v-card>
+            <v-card style="padding: 4px;">
                 <v-card-actions style="background-color: #0000001a;">
                     <div class="headline">Task Console</div>
                     <v-spacer></v-spacer>
@@ -20,7 +20,9 @@
                 <br>
                 id: {{id}}, time {{(remote_task.runtime/1000).toFixed()}} s
                 <br>
-                {{remote_task.message}}
+                <div style="color: rgb(199, 200, 225); background-color: #403e4b; padding-left: 10px; padding-right: 10px; padding-top: 3px; padding-bottom: 3px;">
+                    {{remote_task.message}}
+                </div>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <span v-if="status === 'error'">error {{setErrorMessage}} <v-btn class="green--text darken-1" flat="flat" @click.native="dialog = false">Close</v-btn></span>
@@ -40,18 +42,52 @@
                     {{remote_task.identity}}
                 </div>                
                 <hr>
-                <b>Log Messages</b>
-                <div v-for="(line, i) in log" :key="i">{{line}}</div>
+                <b>Log Messages</b> <v-btn @click="onLogCopy" small title="Copy log messages to clipboard."><v-icon>content_copy</v-icon>Copy to clipboard</v-btn>
+                <div style="color: rgb(199, 200, 225); background-color: #403e4b; padding-left: 10px; padding-right: 10px; padding-top: 3px; padding-bottom: 3px;">
+                    <div v-for="(line, i) in log" :key="i">
+                        {{line}}
+                    </div>
+                </div>
             </v-card>
         </v-dialog>
         <v-snackbar v-model="setError" :top="true">
             {{setErrorMessage}}
             <v-btn flat class="pink--text" @click.native="setError = false" >Close</v-btn>
         </v-snackbar>
+        <v-snackbar v-model="snackbarCopiedToClipboard" top :timeout="2000">
+            Log messages copied to clipboard.
+            <v-btn color="pink" flat @click="snackbarCopiedToClipboard = false">Close</v-btn>
+        </v-snackbar>        
     </span>
 </template>
 
 <script>
+
+//derived from http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+function copyTextToClipboard(text) {
+	var textArea = document.createElement("textarea");
+	textArea.style.position = 'fixed';
+	textArea.style.top = 0;
+	textArea.style.left = 0;
+	textArea.style.width = '2em';
+	textArea.style.height = '2em';
+	textArea.style.padding = 0;
+	textArea.style.border = 'none';
+	textArea.style.outline = 'none';
+	textArea.style.boxShadow = 'none';
+	textArea.style.background = 'transparent';
+	textArea.value = text;
+	document.body.appendChild(textArea);
+	textArea.select();
+	try {
+		var successful = document.execCommand('copy');
+		var msg = successful ? 'successful' : 'unsuccessful';
+		console.log('copying text command was ' + msg);
+	} catch (e) {
+		console.log('ERROR unable to copy: '+e);
+	}
+	document.body.removeChild(textArea);
+}
 
 import { mapState } from 'vuex'
 import axios from 'axios'
@@ -67,6 +103,7 @@ export default {
             remote_task: {},
             status: 'init',
             log: [],
+            snackbarCopiedToClipboard: false,
         }
     },
     methods: {
@@ -141,6 +178,13 @@ export default {
                 console.log(error);
             } finally {
                 //this.refresh();
+            }
+        },
+        onLogCopy() {
+            if(this.log && this.log.length > 0) {
+                const text = this.log.join('\n');
+                copyTextToClipboard(text);
+                this.snackbarCopiedToClipboard = true;
             }
         },
     },
