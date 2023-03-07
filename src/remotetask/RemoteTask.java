@@ -135,7 +135,7 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 		return false;
 	}
 	
-	protected void log(String message) {
+	public void log(String message) {
 		if(logMessages.size() > MAX_LOG_MESSAGE_LINES) {
 			logMessages.poll();
 		}

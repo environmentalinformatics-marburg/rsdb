@@ -15,6 +15,7 @@ import pointdb.las.Las;
 import pointdb.las.Laz;
 import rasterunit.Tile;
 import remotetask.CancelableRemoteProxy;
+import remotetask.PrintLineStreamAdapter;
 import util.Timer;
 import util.Util;
 
@@ -31,8 +32,8 @@ public class Importer extends CancelableRemoteProxy {
 
 	private static final int READ_MAX_BYTES = 1_000_000_000;
 	
-	private int file_counter = 0;
-	private int file_error_counter = 0;
+	public int file_counter = 0;
+	public int file_error_counter = 0;
 
 	
 	public Importer(PointCloud pointcloud, DoubleRect filterRect, AttributeSelector selector, int compression_level) {
@@ -75,7 +76,7 @@ public class Importer extends CancelableRemoteProxy {
 					String ext = filename.substring(filename.lastIndexOf('.')+1);
 					if(ext.trim().toLowerCase().equals("las") || ext.trim().toLowerCase().equals("laz")) {
 						//Logger.info("import file "+path);
-						setMessage("import file "+ path + "  imported files " + file_counter + ",   erroneous files " + file_error_counter);
+						setMessage("import file "+ path + " :: imported files " + file_counter + ",   erroneous files " + file_error_counter);
 						if(isCanceled()) {
 							throw new RuntimeException("canceled");
 						}
@@ -88,6 +89,7 @@ public class Importer extends CancelableRemoteProxy {
 					file_error_counter++;
 					e.printStackTrace();
 					Logger.error(e);
+					e.printStackTrace(new PrintLineStreamAdapter(s -> log(s)));
 				}
 
 			}

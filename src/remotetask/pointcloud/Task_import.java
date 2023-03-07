@@ -120,6 +120,7 @@ public class Task_import extends CancelableRemoteProxyTask {
 		Path root = Paths.get(source);
 		setMessage("start import");
 		importer.importDirectory(root);
+		setMessage("finished. imported files " + importer.file_counter + ",   erroneous files " + importer.file_error_counter);
 		pointcloud.getGriddb().storage().flush();
 		setMessage("finished import");
 	}

@@ -3,8 +3,7 @@ package remotetask;
 
 import org.tinylog.Logger;
 
-public abstract class RemoteProxy implements AutoCloseable {
-	
+public abstract class RemoteProxy implements AutoCloseable {	
 	
 	private MessageProxy messageProxy = MessageProxy.MESSAGE_PROXY_NULL;
 	
@@ -14,6 +13,10 @@ public abstract class RemoteProxy implements AutoCloseable {
 	
 	protected final void setMessage(String message) {
 		messageProxy.setMessage(message);
+	}
+	
+	protected final void log(String message) {
+		messageProxy.log(message);
 	}
 	
 	public String getName() {		

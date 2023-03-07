@@ -229,9 +229,15 @@ public class Laz {
 			}
 			classification[cnt] = (byte) mutablePoint.getClassification(); // convert to unsigned byte, range of classification is 0 to 31 and 0 to 255 for newer LAS versions
 			scanAngleRank[cnt] = mutablePoint.getScan_angle_rank();
-			red[cnt] = mutablePoint.get_R();
+			/*red[cnt] = mutablePoint.get_R(); // may throw null pointer exception
 			green[cnt] = mutablePoint.get_G();
-			blue[cnt] = mutablePoint.get_B();
+			blue[cnt] = mutablePoint.get_B();*/
+			if(mutablePoint.haveRgb()) {
+				char[] rgb = mutablePoint.getRgb();
+				red[cnt] = rgb[0];
+				green[cnt] = rgb[1];
+				blue[cnt] = rgb[2];
+			}
 
 			cnt++;
 		}
