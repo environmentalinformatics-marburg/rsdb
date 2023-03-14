@@ -26,10 +26,14 @@ public class PointProcessor {
 	public static interface PointTableTransformFunc extends Function<PointTable, PointTable>{
 	}
 
-	public static void process(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String format, Receiver receiver, Request request, AttributeSelector selector, String[] columns) throws IOException {
+	public static void process(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String file_format, Receiver receiver, Request request, AttributeSelector selector, String[] columns) throws IOException {
+		String data_format = request.getParameter("format");
+		
+		Logger.info("process points  data format: " + data_format);
+			
 		boolean useRawPoints = false;
 
-		if(useRawPoints) { // processings: just polygon filter
+		if(useRawPoints || "xzy_rgb".equals(data_format)) { // processings: just polygon filter,  workaround for xzy_rgb to include RGB in processing
 			Logger.info("useRawPoints");
 
 			AttributeSelector queryAttributeSelector = selector == null ? new AttributeSelector(true) : selector;
@@ -45,7 +49,7 @@ public class PointProcessor {
 				pointTables = pointTables.map(pointTable -> PointTable.applyMask(pointTable, filterByPolygonFunc.apply(pointTable)));
 			}
 
-			switch(format) {
+			switch(file_format) {
 			case "xyz": {
 				PointTableWriter.writeXYZ(pointTables, receiver);
 				break;
@@ -55,7 +59,7 @@ public class PointProcessor {
 				break;
 			}
 			case "js": {
-				PointTableWriter.writeJs(pointTables.toArray(PointTable[]::new), request, receiver);
+				PointTableWriter.writeJs(pointTables.toArray(PointTable[]::new), data_format, receiver);
 				break;
 			}
 			case "rdat": {
@@ -63,7 +67,7 @@ public class PointProcessor {
 				break;
 			}
 			default:
-				throw new RuntimeException("unknown format: "+format);
+				throw new RuntimeException("unknown format: "+file_format);
 			}
 		} else {			
 			DataProvider2 dp2 = new DataProvider2(pointcloud, t, region);
@@ -89,7 +93,7 @@ public class PointProcessor {
 			double xnorm = 0;
 			double ynorm = 0;
 			String proj4 = pointcloud.getProj4();
-			server.api.pointdb.PointProcessor.process(dp2, normalise, filter, sort, columns, format, xnorm, ynorm, proj4, receiver);
+			server.api.pointdb.PointProcessor.process(dp2, normalise, filter, sort, columns, file_format, xnorm, ynorm, proj4, receiver);
 		}
 	}	
 }

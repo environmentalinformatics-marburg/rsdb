@@ -68,7 +68,7 @@ import util.Table.ColumnReaderString;
 import util.Util;
 
 public class RSDBServer {
-	
+
 	private static final long DATA_TRANSFER_TIMEOUT_MILLISECONDS = 2*60*60*1000; // set timeout to 2 hours
 	private static final int BIND_BACKLOG_SIZE = 50;
 
@@ -199,22 +199,17 @@ public class RSDBServer {
 
 	public static Server createServer(Broker broker) {
 
-		final int http_port = broker.brokerConfig.server().port;		
-		Util.checkPortNotListening(http_port);
+		final int http_port = broker.brokerConfig.server().port;	
+		final boolean use_http = broker.brokerConfig.server().useHTTP();
+		final boolean use_https = broker.brokerConfig.server().useHTTPS();
 
-		//Server server = new Server(new QueuedThreadPool(7)); //min 7
+		if(use_http) {
+			Util.checkPortNotListening(http_port);
+		}
+
 		Server server = new Server();
 
-		/*RequestLog requestLog = new RequestLog() {			
-			@Override
-			public void log(Request request, Response response) {
-				Logger.info(MARKER_REQ, Web.getRequestLogString("REQ",request.getRequestURL().toString(),request));
-				//Logger.info("*** request   "+user+" "+request.getLocalAddr()+" "+request.getRequestURL()+"  "+request.getQueryString()+"  "+response.getStatus());
-			}
-		};
-		server.setRequestLog(requestLog);*/
-
-		ServerConnector httpServerConnector = createHttpConnector(server, http_port, createBaseHttpConfiguration());		
+		ServerConnector httpServerConnector = use_http ? createHttpConnector(server, http_port, createBaseHttpConfiguration()) : null;		
 
 		ServerConnector jwsServerConnector = null;
 		if(broker.brokerConfig.server().useJwsPort()) {
@@ -230,36 +225,84 @@ public class RSDBServer {
 		}
 
 		if(KEYSTORE_FILE.exists()) {
-			ServerConnector httpsServerConnector;
-			if(useHTTP2) {
-				httpsServerConnector = createHttps2Connector(server, broker.brokerConfig.server().secure_port, broker.brokerConfig.server().keystore_password, createBaseHttpsConfiguration(broker.brokerConfig.server().secure_port));
-			} else {
-				httpsServerConnector = createHttpsConnector(server, broker.brokerConfig.server().secure_port, broker.brokerConfig.server().keystore_password, createBaseHttpsConfiguration(broker.brokerConfig.server().secure_port));
+			ServerConnector httpsServerConnector = null;
+			if(use_https) {
+				if(useHTTP2) {
+					httpsServerConnector = createHttps2Connector(server, broker.brokerConfig.server().secure_port, broker.brokerConfig.server().keystore_password, createBaseHttpsConfiguration(broker.brokerConfig.server().secure_port));
+				} else {
+					httpsServerConnector = createHttpsConnector(server, broker.brokerConfig.server().secure_port, broker.brokerConfig.server().keystore_password, createBaseHttpsConfiguration(broker.brokerConfig.server().secure_port));
+				}
 			}
 
 			if(broker.brokerConfig.server().useJwsPort()) {
-				Connector[] connectors = new Connector[]{httpServerConnector, httpsServerConnector, jwsServerConnector};
-				server.setConnectors(connectors);
-				server.setAttribute("digest-http-connector", httpServerConnector.getPort());
-				server.setAttribute("basic-https-connector", httpsServerConnector.getPort());
-				server.setAttribute("jws-https-connector", jwsServerConnector.getPort());
+				if(use_http) {
+					if(use_https) {
+						Connector[] connectors = new Connector[]{httpServerConnector, httpsServerConnector, jwsServerConnector};
+						server.setConnectors(connectors);
+						server.setAttribute("digest-http-connector", httpServerConnector.getPort());
+						server.setAttribute("basic-https-connector", httpsServerConnector.getPort());
+						server.setAttribute("jws-https-connector", jwsServerConnector.getPort());
+					} else {
+						Connector[] connectors = new Connector[]{httpServerConnector, jwsServerConnector};
+						server.setConnectors(connectors);
+						server.setAttribute("digest-http-connector", httpServerConnector.getPort());
+						server.setAttribute("jws-https-connector", jwsServerConnector.getPort());
+					}
+				} else {
+					if(use_https) {
+						Connector[] connectors = new Connector[]{httpsServerConnector, jwsServerConnector};
+						server.setConnectors(connectors);
+						server.setAttribute("basic-https-connector", httpsServerConnector.getPort());
+						server.setAttribute("jws-https-connector", jwsServerConnector.getPort());
+					} else {
+						Connector[] connectors = new Connector[]{jwsServerConnector};
+						server.setConnectors(connectors);
+						server.setAttribute("jws-https-connector", jwsServerConnector.getPort());
+					}
+				}
 			} else {
-				Connector[] connectors = new Connector[]{httpServerConnector, httpsServerConnector};
-				server.setConnectors(connectors);
-				server.setAttribute("digest-http-connector", httpServerConnector.getPort());
-				server.setAttribute("basic-https-connector", httpsServerConnector.getPort());
+				if(use_http) {
+					if(use_https) {
+						Connector[] connectors = new Connector[]{httpServerConnector, httpsServerConnector};
+						server.setConnectors(connectors);
+						server.setAttribute("digest-http-connector", httpServerConnector.getPort());
+						server.setAttribute("basic-https-connector", httpsServerConnector.getPort());
+					} else {
+						Connector[] connectors = new Connector[]{httpServerConnector};
+						server.setConnectors(connectors);
+						server.setAttribute("digest-http-connector", httpServerConnector.getPort());
+					}
+				} else {
+					if(use_https) {
+						Connector[] connectors = new Connector[]{httpsServerConnector};
+						server.setConnectors(connectors);
+						server.setAttribute("basic-https-connector", httpsServerConnector.getPort());
+					} else {
+						throw new RuntimeException("HTTP port not set and no other port (for HTTPS or for JSW) is specified. Can not start server without ports.");
+					}
+				}
 			}
 
 		} else {
 			if(broker.brokerConfig.server().useJwsPort()) {
-				Connector[] connectors = new Connector[]{httpServerConnector, jwsServerConnector};
-				server.setConnectors(connectors);
-				server.setAttribute("digest-http-connector", httpServerConnector.getPort());
-				server.setAttribute("jws-http-connector", jwsServerConnector.getPort());
-			} else {				
-				Connector[] connectors = new Connector[]{httpServerConnector};
-				server.setConnectors(connectors);
-				server.setAttribute("digest-http-connector", httpServerConnector.getPort());
+				if(use_http) {
+					Connector[] connectors = new Connector[]{httpServerConnector, jwsServerConnector};
+					server.setConnectors(connectors);
+					server.setAttribute("digest-http-connector", httpServerConnector.getPort());
+					server.setAttribute("jws-http-connector", jwsServerConnector.getPort());
+				} else {
+					Connector[] connectors = new Connector[]{jwsServerConnector};
+					server.setConnectors(connectors);
+					server.setAttribute("jws-http-connector", jwsServerConnector.getPort());					
+				}
+			} else {
+				if(use_http) {
+					Connector[] connectors = new Connector[]{httpServerConnector};
+					server.setConnectors(connectors);
+					server.setAttribute("digest-http-connector", httpServerConnector.getPort());
+				} else {
+					throw new RuntimeException("HTTP port not set and no other port (for HTTPD or for JSW) is specified. Can not start server without ports.");
+				}
 			}
 		}
 
@@ -378,7 +421,9 @@ public class RSDBServer {
 		}
 		System.out.println();
 		//System.out.println("Stop server directly with key combination '"+toBold("Ctrl-C")+"'");
-		System.out.println("Stop RSDB server with linux shell command: "+toBold("curl --proxy '' --request POST http://localhost:"+broker.brokerConfig.server().port+"/shutdown?token=rsdb"));
+		if(broker.brokerConfig.server().useHTTP()) {
+			System.out.println("Stop RSDB server with linux shell command: "+toBold("curl --proxy '' --request POST http://localhost:"+broker.brokerConfig.server().port+"/shutdown?token=rsdb"));
+		}
 		System.out.println("-------------------------------------------------------------------");
 	}
 

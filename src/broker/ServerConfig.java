@@ -42,6 +42,14 @@ public class ServerConfig {
 		String http_authentication = yamlMap.optString("http_authentication", DEFAULT_HTTP_AUTHENTICATION);
 		String url_prefix = yamlMap.optString("url_prefix", DEFAULT_URL_PREFIX);
 		return new ServerConfig(port, secure_port, login, jws_port, keystore_password, http_authentication, url_prefix);
+	}	
+	
+	public boolean useHTTP() {
+		return port > 0;
+	}
+	
+	public boolean useHTTPS() {
+		return secure_port > 0;
 	}
 	
 	public boolean useJwsPort() {

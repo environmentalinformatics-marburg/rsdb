@@ -73,6 +73,7 @@ public class PointTableWriter {
 		receiver.setContentType("application/octet-stream");
 		switch(format) {
 		case "xzy": {
+			Logger.info("write in points in format xzy");
 			@SuppressWarnings("resource")
 			ByteArrayOut byteOut = new ByteArrayOut((int) (4 + pointCount*(3*4)));
 			byteOut.putIntRaw(pointCount);
@@ -91,6 +92,7 @@ public class PointTableWriter {
 			break;
 		}
 		case "xzy_classification": {
+			Logger.info("write in points in format xzy_classification");
 			@SuppressWarnings("resource")
 			ByteArrayOut byteOut = new ByteArrayOut((int) (4 + pointCount*(3*4 + 1)));
 			byteOut.putIntRaw(pointCount);
@@ -118,6 +120,7 @@ public class PointTableWriter {
 			break;
 		}
 		case "xzy_rgb": {
+			Logger.info("write in points in format xzy_rgb");
 			@SuppressWarnings("resource")
 			ByteArrayOut byteOut = new ByteArrayOut((int) (4 + pointCount*(3*4 + 3*2)));
 			byteOut.putIntRaw(pointCount);
@@ -151,12 +154,12 @@ public class PointTableWriter {
 		}		
 	}
 
-	static void writeJs(PointTable[] pointTables, Request request, Receiver receiver) throws IOException {
+	static void writeJs(PointTable[] pointTables, String data_format, Receiver receiver) throws IOException {
+		Logger.info("writeJs");
 		int maxPoints = 5_500_000;
-		int maxSamplePoints = 5_000_000;
-		String format = request.getParameter("format");
-		if(format == null) {
-			format = "xzy_classification";
+		int maxSamplePoints = 5_000_000;		
+		if(data_format == null) {
+			data_format = "xzy_classification";
 		}
 		int pointCount = 0;
 		for(PointTable p:pointTables) {
@@ -164,15 +167,16 @@ public class PointTableWriter {
 		}
 		boolean useAllPoints = pointCount <= maxPoints;
 		if(useAllPoints) {
-			writeJsAllPoints(pointTables, receiver, format, pointCount);
+			writeJsAllPoints(pointTables, receiver, data_format, pointCount);
 		} else {
 			double samplingFactor = ((double)pointCount) / maxSamplePoints;
 			Logger.info("sample " + maxSamplePoints + " of " + pointCount+ " sampling factor " + samplingFactor);
-			writeJsSamplePoints(pointTables, receiver, format, samplingFactor);
+			writeJsSamplePoints(pointTables, receiver, data_format, samplingFactor);
 		}		
 	}
 
 	private static void writeJsSamplePoints(PointTable[] pointTables, Receiver receiver, String format, double samplingFactor) throws IOException {
+		Logger.info("writeJsSamplePoints");
 		int samplePointCount = 0;
 		{
 			double samplingPos = 0;

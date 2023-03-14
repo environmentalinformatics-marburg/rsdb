@@ -28,6 +28,7 @@ public class PointProcessor {
 	}
 	
 	public static void process(DataProvider2 dp2, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, String proj4, Receiver receiver) throws IOException {
+		Logger.info("PointProcessor process");
 		Vec<GeoPoint> points = null;
 
 		if(normalise.normalise_ground) {

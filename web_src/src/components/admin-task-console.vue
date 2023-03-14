@@ -1,10 +1,11 @@
 <template>
     <span>
-        <v-dialog v-model="dialog" lazy absolute width="800px">
+        <v-dialog v-model="dialog" lazy absolute width="800px" :fullscreen="isFullscreen">
             <v-card style="padding: 4px;">
                 <v-card-actions style="background-color: #0000001a;">
-                    <div class="headline">Task Console</div>
+                    <div class="headline"><v-icon>terminal</v-icon> Task Console</div>
                     <v-spacer></v-spacer>
+                    <v-btn :title="isFullscreen ? 'Reduce task console.' : 'Maximize task console.'" icon><v-icon @click="isFullscreen = !isFullscreen;">{{isFullscreen ? 'content_copy' : 'crop_square'}}</v-icon></v-btn> 
                     <v-btn title="Close task console. A running task will continue to run." icon><v-icon @click="dialog = false;">close</v-icon></v-btn>  
                 </v-card-actions>
                 <v-icon v-if="remote_task.status === 'READY'" color="yellow">directions_walk</v-icon>
@@ -104,6 +105,7 @@ export default {
             status: 'init',
             log: [],
             snackbarCopiedToClipboard: false,
+            isFullscreen: false,
         }
     },
     methods: {

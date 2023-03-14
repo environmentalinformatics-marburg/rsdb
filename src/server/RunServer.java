@@ -43,7 +43,7 @@ public class RunServer {
 			addShutdownHook(server, broker);
 			server.join();
 		} catch(Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			Logger.error(e);
 		}
 	}

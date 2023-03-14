@@ -3,10 +3,6 @@ package server.api.pointclouds;
 import java.io.IOException;
 import java.util.Iterator;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -16,16 +12,17 @@ import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 import org.locationtech.proj4j.proj.Projection;
 import org.locationtech.proj4j.units.Unit;
+import org.tinylog.Logger;
 
 import broker.Broker;
+import broker.Informal.Builder;
 import broker.InformalProperties;
 import broker.TimeSlice;
-import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
-import broker.acl.EmptyACL;
 import broker.group.PoiGroup;
 import broker.group.RoiGroup;
+import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.DoublePoint;
 import pointcloud.DoubleRect;
 import pointcloud.PointCloud;
@@ -86,8 +83,8 @@ public class APIHandler_pointcloud {
 			int formatIndex = resource.lastIndexOf('.');
 			String resourceName = formatIndex < 0 ? resource : resource.substring(0, formatIndex);
 			String resourceFormat = formatIndex < 0 ? "" : resource.substring(formatIndex + 1);
-			Logger.info("resourceName: "+resourceName);
-			Logger.info("resourceFormat: "+resourceFormat);
+			Logger.info("resourceName: " + resourceName);
+			Logger.info("resourceFormat: " + resourceFormat);
 			String next = i < 0 ? "/" : target.substring(i);
 			if(next.equals("/")) {
 				switch(resourceName) {

@@ -40,14 +40,14 @@ top_level_key3:
 ~~~ yaml
 # server config
 server:
-  # HTTP port (default 8081) 
+  # HTTP port (default 8081), (port 0 disables that connection) 
   #port: 8081
 
   # HTTP authentication method basic or digest (default digest)
   # For usage with Qgis WMS HTTP authentication basic is needed
   #http_authentication: basic  
   
-  # HTTPS port (default 8082) 
+  # HTTPS port (default 8082), (port 0 disables that connection) 
   #secure_port: 8082
 
   # password of certificate store (default none)
@@ -56,7 +56,7 @@ server:
   # login protected HTTP and HTTPS ports (default true)  
   #login: true
   
-  # JWS port (default none)
+  # JWS port (default none), (port 0 disables that connection)
   #jws_port: 8083
 
 # JWS config: list of JWS provider entries  

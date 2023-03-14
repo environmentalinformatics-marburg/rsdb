@@ -46,7 +46,7 @@ public class APIHandler_points {
 		//this.broker = broker;
 	}
 
-	public void handle(PointCloud pointcloud, String format, Request request, HttpServletResponse response) throws IOException {
+	public void handle(PointCloud pointcloud, String file_format, Request request, HttpServletResponse response) throws IOException {
 		String extText = request.getParameter("ext");
 		String polygonText = request.getParameter("polygon");
 		double xmin = Double.MAX_VALUE;
@@ -139,7 +139,7 @@ public class APIHandler_points {
 		AttributeSelector selector = columns == null ? null : AttributeSelector.of(columns);
 		ChainedFilterFunc filterFunc = CellTable.parseFilter(request.getParameter("filter"));
 
-		if(format.equals("zip")) {
+		if(file_format.equals("zip")) {
 			String tileFormat = "las";
 			response.setContentType("application/zip");
 			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
@@ -167,7 +167,7 @@ public class APIHandler_points {
 			zipOutputStream.flush();
 		} else {
 			ResponseReceiver receiver = new ResponseReceiver(response);		
-			PointProcessor.process(pointcloud, req_t, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, format, receiver, request, selector, columns);
+			PointProcessor.process(pointcloud, req_t, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, file_format, receiver, request, selector, columns);
 		}
 	}
 

@@ -120,7 +120,7 @@ function init() {
 							self.update_view(pos_array, classification_array);
 						})
 						.catch(function (error) {
-							self.loadingMessage = "ERROR loading points";
+							self.loadingMessage = "ERROR loading PointDB points";
 						});
 
 				} else {
@@ -172,6 +172,7 @@ function init() {
 							var currentPos = 0;
 							var points = dataView.getUint32(currentPos, true);
 							self.pointCount = points;
+							console.log('pointCount ' + self.pointCount);
 							currentPos += 4;
 							var pos_array = new Float32Array(arrayBuffer, currentPos, points * 3);
 							currentPos += points * 3 * 4;
@@ -195,7 +196,7 @@ function init() {
 							self.update_view(pos_array, classification_array, rgb_array);
 						})
 						.catch(function (error) {
-							self.loadingMessage = "ERROR loading points " + error;
+							self.loadingMessage = "ERROR loading PointCloud points " + error;
 						});
 
 				}
@@ -301,7 +302,8 @@ function init() {
 						break;
 					case 'color':
 						for (var i = 0; i < colors.length; i++) {
-							colors[i] = rgb_array[i] / 65535;							
+							//colors[i] = rgb_array[i] / 65535;							
+							colors[i] = rgb_array[i] / 255;
 						}
 						break;						
 					default:
