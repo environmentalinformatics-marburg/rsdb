@@ -21,6 +21,7 @@ import javax.xml.transform.stream.StreamResult;
 
 
 import org.tinylog.Logger;
+import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -141,81 +142,92 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 	private static final AtomicLong memFileIdCounter = new AtomicLong(0);
 
 	public void handle_GetCoverage(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		//Logger.info("handle");
-		Timer.start("WCS processing");
-		int dstWidth = Web.getInt(request, "WIDTH", -1);
-		int dstHeight = Web.getInt(request, "HEIGHT", -1);
+		try {
+			//Logger.info("handle");
+			Timer.start("WCS processing");
+			int dstWidth = Web.getInt(request, "WIDTH", -1);
+			int dstHeight = Web.getInt(request, "HEIGHT", -1);
 
-		String[] bbox = request.getParameter("BBOX").split(",");
-		Extent2d extent2d = Extent2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
-		double geoXres = (extent2d.xmax - extent2d.xmin) / dstWidth;
-		double geoYres = (extent2d.ymax - extent2d.ymin) / dstHeight;
+			String[] bbox = request.getParameter("BBOX").split(",");
+			Extent2d extent2d = Extent2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
+			double geoXres = (extent2d.xmax - extent2d.xmin) / dstWidth;
+			double geoYres = (extent2d.ymax - extent2d.ymin) / dstHeight;
 
-		ResponseReceiver resceiver = new ResponseReceiver(response);
+			ResponseReceiver resceiver = new ResponseReceiver(response);
 
-		GeoReference ref = rasterdb.ref();
-		Range2d range2d = ref.bboxToRange2d(extent2d.xmin, extent2d.ymin, extent2d.xmax, extent2d.ymax);
-		//Logger.info(extent2d);
-		//Logger.info(range2d);
+			GeoReference ref = rasterdb.ref();
+			Range2d range2d = ref.bboxToRange2d(extent2d.xmin, extent2d.ymin, extent2d.xmax, extent2d.ymax);
+			//Logger.info(extent2d);
+			//Logger.info(range2d);
 
-		int timestamp = 0;
-		if(Web.has(request, "TIME")) {
-			String timeText = Web.getString(request, "TIME");
-			TimeSlice timeSlice = rasterdb.getTimeSliceByName(timeText);
-			if(timeSlice == null) {
-				int[] timestampRange = null;
-				try{
-					timestampRange = TimeUtil.getTimestampRangeOrNull(timeText);
-					if(timestampRange != null) {
-						timeSlice = new TimeSlice(timestampRange[0], timeText);
+			int timestamp = 0;
+			if(Web.has(request, "TIME")) {
+				String timeText = Web.getString(request, "TIME");
+				TimeSlice timeSlice = rasterdb.getTimeSliceByName(timeText);
+				if(timeSlice == null) {
+					int[] timestampRange = null;
+					try{
+						timestampRange = TimeUtil.getTimestampRangeOrNull(timeText);
+						if(timestampRange != null) {
+							timeSlice = new TimeSlice(timestampRange[0], timeText);
+						}
+					}catch(Exception e) {
+						//Logger.warn("could not parse timestamp: " + timeText);
+						throw new RuntimeException("tim slice not found");
 					}
-				}catch(Exception e) {
-					//Logger.warn("could not parse timestamp: " + timeText);
-					throw new RuntimeException("tim slice not found");
 				}
+				if(timeSlice != null) {
+					timestamp = timeSlice.id;
+				}
+			} else if(!rasterdb.rasterUnit().timeKeysReadonly().isEmpty()){			
+				timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
 			}
-			if(timeSlice != null) {
-				timestamp = timeSlice.id;
-			}
-		} else if(!rasterdb.rasterUnit().timeKeysReadonly().isEmpty()){			
-			timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
-		}
 
-		BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, dstWidth, dstHeight);
+			BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, dstWidth, dstHeight);
 
-		List<TimeBand> processingBands = processor.getTimeBands();
+			List<TimeBand> processingBands = processor.getTimeBands();
 
-		/*OutputProcessingType outputProcessingType = OutputProcessingType.IDENTITY;		
+			/*OutputProcessingType outputProcessingType = OutputProcessingType.IDENTITY;		
 		RequestProcessorBands.processBands(processor, processingBands, outputProcessingType, "tiff", resceiver);*/
 
-		Range2d srcRange = processor.getDstRange();
-		if(srcRange.getPixelCount() > 16777216) { // 4096*4096
-			throw new RuntimeException("requested raster too large: " + srcRange.getWidth() + " x " + srcRange.getHeight());
+			Range2d srcRange = processor.getDstRange();
+			if(srcRange.getPixelCount() > 16777216) { // 4096*4096
+				throw new RuntimeException("requested raster too large: " + srcRange.getWidth() + " x " + srcRange.getHeight());
+			}
+
+			TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands); // all bands need same data type for tiff reader compatibility (e.g. GDAL)
+			TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, extent2d.xmin, extent2d.ymin, geoXres, geoYres, (short)ref.getEPSG(0));
+
+			//Timer.start("raster convert");
+			boolean direct = (tiffdataType == TiffDataType.INT16 || tiffdataType == TiffDataType.FLOAT32) && ScaleDownMax2.validScaleDownMax2(srcRange.getWidth(), srcRange.getHeight(), dstWidth, dstHeight);
+			//boolean direct = false;
+			if(direct) {
+				//Logger.info("direct");
+				directConvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
+			} else {
+				Logger.info("GDAL  " + tiffdataType + "   " + srcRange.getWidth() + " x " + srcRange.getHeight() + "  ->  " + dstWidth + " x " + dstHeight);
+				GDALconvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
+			}
+			//Logger.info(Timer.stop("raster convert"));
+			Logger.info(Timer.stop("WCS processing"));
+
+			Timer.start("WCS transfer");
+			resceiver.setStatus(HttpServletResponse.SC_OK);
+			resceiver.setContentType("image/tiff");
+			long tiffSize = tiffWriter.exactSizeOfWriteAuto();
+			resceiver.setContentLength(tiffSize);
+			tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));
+			Logger.info(Timer.stop("WCS transfer") + "  " + (tiffSize >= 1024*1024 ? ((tiffSize / (1024*1024)) + " MBytes") : (tiffSize + " Bytes") ) + "  " + dstWidth + " x " + dstHeight + " pixel  " + processingBands.size() + " bands of " + tiffdataType);
+		} catch (EofException e) {			
+			Throwable eCause = e.getCause();
+			if(eCause != null && eCause instanceof IOException) {
+				Logger.info(eCause.getMessage());
+			} else {
+				Logger.warn(e);
+			}			
+		} catch (Exception e) {
+			Logger.warn(e);
 		}
-
-		TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands); // all bands need same data type for tiff reader compatibility (e.g. GDAL)
-		TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, extent2d.xmin, extent2d.ymin, geoXres, geoYres, (short)ref.getEPSG(0));
-
-		//Timer.start("raster convert");
-		boolean direct = (tiffdataType == TiffDataType.INT16 || tiffdataType == TiffDataType.FLOAT32) && ScaleDownMax2.validScaleDownMax2(srcRange.getWidth(), srcRange.getHeight(), dstWidth, dstHeight);
-		//boolean direct = false;
-		if(direct) {
-			//Logger.info("direct");
-			directConvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
-		} else {
-			Logger.info("GDAL  " + tiffdataType + "   " + srcRange.getWidth() + " x " + srcRange.getHeight() + "  ->  " + dstWidth + " x " + dstHeight);
-			GDALconvert(processor, processingBands, tiffdataType, dstWidth, dstHeight, tiffWriter);
-		}
-		//Logger.info(Timer.stop("raster convert"));
-		Logger.info(Timer.stop("WCS processing"));
-
-		Timer.start("WCS transfer");
-		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("image/tiff");
-		long tiffSize = tiffWriter.exactSizeOfWriteAuto();
-		resceiver.setContentLength(tiffSize);
-		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));
-		Logger.info(Timer.stop("WCS transfer") + "  " + (tiffSize >= 1024*1024 ? ((tiffSize / (1024*1024)) + " MBytes") : (tiffSize + " Bytes") ) + "  " + dstWidth + " x " + dstHeight + " pixel  " + processingBands.size() + " bands of " + tiffdataType);
 	}
 
 	private void directConvert(BandProcessor processor, List<TimeBand> processingBands, TiffDataType tiffdataType, int dstWidth, int dstHeight, TiffWriter tiffWriter) {

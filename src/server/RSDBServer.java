@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.concurrent.ForkJoinPool;
 
 import org.tinylog.Logger;
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
@@ -377,16 +377,18 @@ public class RSDBServer {
 
 		try {
 			System.out.println("Java " + Runtime.version());
-			Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 			System.out.println(gdal.VersionInfo("version"));
 			try {
-				System.out.println((Runtime.getRuntime().maxMemory() / (1024*1024)) + " MBytes max for RSDB allocated memory");
+				System.out.println(String.format("%.1f", (Runtime.getRuntime().maxMemory() / (1024*1024)) / 1024d) + " GB max for RSDB allocated memory");
+				System.out.println("Detected processors " + Runtime.getRuntime().availableProcessors());
+				System.out.println("Common thread pool parallelism  " + ForkJoinPool.commonPool().getParallelism());
 			} catch(Exception e) {
 				Logger.warn(e);
 			}
 			System.out.println("-------------------------------------------------------------------");
 			System.out.println("Hostnames: ");
 			System.out.println();
+			Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 			while(networkInterfaces.hasMoreElements()) {
 				NetworkInterface networkInterface = networkInterfaces.nextElement();				
 				for(InterfaceAddress interfaceAddress:networkInterface.getInterfaceAddresses()) {
