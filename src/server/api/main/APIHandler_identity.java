@@ -1,12 +1,17 @@
 package server.api.main;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
+import java.util.Locale;
+import java.util.concurrent.ForkJoinPool;
 
-import jakarta.servlet.http.HttpServletResponse;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.openmbean.CompositeDataSupport;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.security.DefaultUserIdentity;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Authentication.User;
@@ -14,11 +19,14 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.gdal.gdal;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Account;
 import broker.Broker;
 import broker.acl.FastUserIdentity;
+import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
 import util.JsonUtil;
 
@@ -131,6 +139,87 @@ public class APIHandler_identity extends APIHandler {
 
 		json.key("url_base");
 		json.value(url.substring(0, url.indexOf("/api/identity")));
+
+		try {			
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			pw.println(System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch") + " Operating system");
+			pw.println(Runtime.version() + " Java version");
+			try {
+				pw.println(gdal.VersionInfo("version"));
+			} catch(Exception e) {
+				Logger.warn(e);
+			}
+			
+			Runtime r = Runtime.getRuntime();			
+			r.gc();
+			
+			try {
+				MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+
+				Object attributeValaue_Uptime = mBeanServer.getAttribute(new ObjectName("java.lang","type","Runtime"), "Uptime");
+				long uptime_s_total = Long.parseLong(attributeValaue_Uptime.toString()) / 1000;
+
+				long uptime_s = (uptime_s_total % 60);
+				long uptime_min_total = uptime_s_total / 60;
+
+				long uptime_min = (uptime_min_total % 60);
+				long uptime_hour_total = uptime_min_total / 60;
+
+				long uptime_hour = (uptime_hour_total % 24);
+				long uptime_day_total = uptime_hour_total / 24;
+
+				pw.println(uptime_day_total + " days " + String.format("%02d", uptime_hour) + ":" + String.format("%02d", uptime_min) + ":" +  String.format("%02d", uptime_s) + " uptime");
+
+				CompositeDataSupport cHeapMemoryUsage = (CompositeDataSupport) mBeanServer.getAttribute(new ObjectName("java.lang","type","Memory"), "HeapMemoryUsage");
+				CompositeDataSupport cNonHeapMemoryUsage = (CompositeDataSupport) mBeanServer.getAttribute(new ObjectName("java.lang","type","Memory"), "NonHeapMemoryUsage");
+				long usedHeapMemoryUsage = Long.parseLong(cHeapMemoryUsage.get("used").toString());
+				long usedNonHeapMemoryUsage = Long.parseLong(cNonHeapMemoryUsage.get("used").toString());				
+				pw.println();
+				pw.println(String.format(Locale.ENGLISH, "%.3f", (usedHeapMemoryUsage / (1024*1024)) / 1024d) + " GB RSDB heap memory usage");
+				pw.println(String.format(Locale.ENGLISH, "%.3f", (usedNonHeapMemoryUsage / (1024*1024)) / 1024d) + " GB RSDB non heap memory usage");
+
+				/*Set<ObjectName> mbeans = mBeanServer.queryNames(null, null);
+				for (ObjectName mbean : mbeans)
+				{
+					MBeanInfo info = mBeanServer.getMBeanInfo(mbean);
+					MBeanAttributeInfo[] attrInfo = info.getAttributes();
+
+					pw.println("Attributes for object: " + mbean);
+					for (MBeanAttributeInfo attr : attrInfo)
+					{
+						pw.println("  " + attr.getName());
+					}
+				}
+
+
+				Set<ObjectName> names = mBeanServer.queryNames(null, null);
+				for(ObjectName name:names) {
+					String propName = name.getCanonicalName();
+					pw.println(propName);
+				}*/
+			} catch(Exception e) {
+				Logger.warn(e);
+			}
+						
+			pw.println();
+			pw.println("" + r.availableProcessors() + " Detected processors");
+			pw.println("" + ForkJoinPool.commonPool().getParallelism() + " Common thread pool parallelism");
+			pw.println();
+			pw.println(String.format(Locale.ENGLISH, "%.3f", (r.maxMemory() / (1024*1024)) / 1024d) + " GB maximum for RSDB Java allocatable memory");
+			pw.println(String.format(Locale.ENGLISH, "%.3f", (r.totalMemory() / (1024*1024)) / 1024d) + " GB for RSDB Java currently allocated memory");
+			pw.println(String.format(Locale.ENGLISH, "%.3f", (r.freeMemory() / (1024*1024)) / 1024d) + " GB RSDB Java free memory (from currently allocated memory)");
+			pw.println(String.format(Locale.ENGLISH, "%.3f", (((r.maxMemory() - r.totalMemory() + r.freeMemory()) ) / (1024*1024)) / 1024d) + " GB RSDB Java free memory (from max allocatable memory)");
+			pw.println(String.format(Locale.ENGLISH, "%.3f", ((r.totalMemory() - r.freeMemory()) / (1024*1024)) / 1024d) + " GB RSDB Java used memory (all memmory not in use at this moment has been garbage collected)");
+
+			pw.flush();
+			String s = sw.toString();
+
+			json.key("diagnostics");
+			json.value(s);
+		} catch(Exception e) {
+			Logger.warn(e);
+		}
 
 		json.endObject();		
 	}

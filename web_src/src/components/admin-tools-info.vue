@@ -4,9 +4,14 @@
     <v-layout>
       <v-flex xs12 sm6 offset-sm3>
         <v-card>
-          <h3 class="headline mb-0">Remote Sensing Database Administration <v-btn flat icon color="green" @click="refresh()" title="refresh layers">
-          <v-icon>refresh</v-icon>
-      </v-btn></h3>
+          <v-card-title>
+            <h3 class="headline mb-0">
+              Remote Sensing Database Info 
+              <v-btn flat icon color="green" @click="refresh()" title="refresh layers">
+                <v-icon>refresh</v-icon>
+              </v-btn>
+            </h3>
+          </v-card-title>
           <v-divider></v-divider>
           <v-card-title v-if="identity != undefined">
             <div>
@@ -48,6 +53,19 @@
               -->
 
             </div>
+          </v-card-title>
+        </v-card>
+        <v-card>
+          <v-divider></v-divider>
+          <v-divider></v-divider>
+          <v-card-title>
+            <h3 class="headline mb-0">Diagnostics</h3>
+          </v-card-title>
+          <v-divider></v-divider>
+          <v-card-title>
+            <pre v-if="identity && identity.diagnostics">
+{{identity.diagnostics}}
+            </pre>
           </v-card-title>
         </v-card>
       </v-flex>
