@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 
 import pointdb.base.GeoPoint;
 import util.Receiver;
+import util.Web;
 import util.collections.vec.Vec;
 
 public class PointXyzWriter {
@@ -133,7 +134,7 @@ public class PointXyzWriter {
 	
 
 	public static void writePoints(Receiver receiver, Vec<GeoPoint> points, String[] columns) throws IOException {
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 
 		PrintWriter writer = receiver.getWriter();
 

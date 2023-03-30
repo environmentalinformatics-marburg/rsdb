@@ -149,7 +149,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 
 			specMap.put(spec.id, spec);
 
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter jsonResponse = new JSONWriter(response.getWriter());
 			jsonResponse.object();
 			jsonResponse.key("package");
@@ -165,7 +165,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			json.object();
 			json.key("response");
@@ -543,7 +543,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			properties.prepend("publisher", informal.corresponding_contact);
 		}
 		properties.prepend("type", "raster");		
-		properties.prepend("format", "image/tiff");
+		properties.prepend("format", Web.MIME_TIFF);
 
 		if(spec.ext != null) {
 			String coverage = "extent (" + spec.ext[0] + ", " + spec.ext[1] + " to " + spec.ext[2] + ", " + spec.ext[3] + ")";

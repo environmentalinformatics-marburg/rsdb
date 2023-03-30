@@ -23,9 +23,6 @@ import util.Range2d;
 import util.Web;
 
 public class RasterdbsHandler extends AbstractHandler {
-	
-
-	protected static final String MIME_JSON = "application/json";
 
 	private final Broker broker;
 
@@ -47,7 +44,7 @@ public class RasterdbsHandler extends AbstractHandler {
 		try {
 			TreeSet<String> rasterdbTags = new TreeSet<>();
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			json.object();
 			json.key("rasterdbs");

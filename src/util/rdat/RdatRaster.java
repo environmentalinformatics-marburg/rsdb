@@ -9,6 +9,7 @@ import pointdb.processing.geopoint.RasterSubGrid;
 import util.BufferedDataOuputStream;
 import util.Receiver;
 import util.Serialisation;
+import util.Web;
 
 public class RdatRaster {
 
@@ -82,9 +83,9 @@ public class RdatRaster {
 	public static void write_RDAT_RASTER(Receiver receiver, RasterSubGrid[] rasterGrids, String proj4) throws IOException {
 		/*DataOutputByteArray out = new DataOutputByteArray();
 		write_RDAT_RASTER(out, rasterGrids, proj4);		
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		receiver.getOutputStream().write(out.buf,0,out.pos);*/
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		try(BufferedDataOuputStream out = new BufferedDataOuputStream(receiver.getOutputStream())) {
 			write_RDAT_RASTER(out, rasterGrids, proj4);	
 		}
@@ -93,9 +94,9 @@ public class RdatRaster {
 	public static void write_RDAT_RASTER(Receiver receiver, RasterSubGrid rasterGrid, String proj4) throws IOException {
 		/*DataOutputByteArray out = new DataOutputByteArray();
 		write_RDAT_RASTER(out, rasterGrid, proj4);		
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		receiver.getOutputStream().write(out.buf,0,out.pos);*/
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		try(BufferedDataOuputStream out = new BufferedDataOuputStream(receiver.getOutputStream())) {
 			write_RDAT_RASTER(out, rasterGrid, proj4);	
 		}

@@ -316,7 +316,7 @@ public class RSDBServer {
 		sessionCokkieConfig.setPath("/");
 
 		ContextHandlerCollection contextCollection = new ContextHandlerCollection();
-		contextCollection.setHandlers(createContextHandlers(broker));
+		contextCollection.setHandlers(createHandlers(broker));
 
 		HandlerList handlerList = new HandlerList();
 		handlerList.addHandler(new AbstractHandler() {			
@@ -380,7 +380,7 @@ public class RSDBServer {
 			System.out.println(gdal.VersionInfo("version"));
 			try {
 				System.out.println(String.format("%.1f", (Runtime.getRuntime().maxMemory() / (1024*1024)) / 1024d) + " GB max for RSDB allocated memory");
-				System.out.println("Detected processors " + Runtime.getRuntime().availableProcessors());
+				System.out.println("Stated processor cores " + Runtime.getRuntime().availableProcessors());
 				System.out.println("Common thread pool parallelism  " + ForkJoinPool.commonPool().getParallelism());
 			} catch(Exception e) {
 				Logger.warn(e);
@@ -438,9 +438,9 @@ public class RSDBServer {
 		return contexts;
 	}
 
-	private static ContextHandler[] createContextHandlers(Broker broker) {
+	private static Handler[] createHandlers(Broker broker) {
 		String prefixPath = broker.brokerConfig.server().url_prefix;
-		ContextHandler[] contexts = new ContextHandler[] {
+		Handler[] handlers = new Handler[] {
 				createContext(prefixPath + POINTDB_API_URL, new APICollectionHandler(broker)),
 				createContext(prefixPath + "/pointdbs", true, new APIHandler_pointdbs(broker)),
 				createContext(prefixPath + RASTERDB_API_URL, new RasterdbHandler(broker)),
@@ -460,16 +460,13 @@ public class RSDBServer {
 				createContext(prefixPath, new BaseRedirector(prefixPath + "/entrypoint")),
 				createContext(prefixPath, new InvalidUrlHandler("unknown request")),
 		};
-		return contexts;
+		return handlers;
 	}
 
-	/*private static ContextHandler createContext(Handler handler) {
-		ContextHandler context = new ContextHandler();		
-		context.setHandler(handler);
-		return context;
-	}*/
-
-	private static ContextHandler createContext(String contextPath, Handler handler) {
+	private static Handler createContext(String contextPath, Handler handler) {
+		if(contextPath.length() == 0) {
+			contextPath = "/";
+		}
 		ContextHandler context = new ContextHandler(contextPath);
 		context.setHandler(handler);
 		return context;

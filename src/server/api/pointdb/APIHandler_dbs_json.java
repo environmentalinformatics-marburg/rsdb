@@ -16,10 +16,6 @@ import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_dbs_json extends PointdbAPIHandler {
-	@SuppressWarnings("unused")
-		
-
-	private static final String MIME_JSON = "application/json";
 
 	public APIHandler_dbs_json(Broker broker) {
 		super(broker, "dbs.json");		
@@ -30,7 +26,7 @@ public class APIHandler_dbs_json extends PointdbAPIHandler {
 		request.setHandled(true);
 
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 
 		if(request.getParameter("structured") == null) {

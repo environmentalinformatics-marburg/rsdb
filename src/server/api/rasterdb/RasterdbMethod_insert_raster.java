@@ -240,7 +240,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 				rasterdb.flush();
 			}			
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			json.object();
 			json.key("result");

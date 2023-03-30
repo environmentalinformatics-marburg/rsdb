@@ -3,7 +3,7 @@ package server.api.poi_groups;
 import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
-
+import util.Web;
 
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
@@ -16,9 +16,6 @@ import broker.group.Poi;
 import broker.group.PoiGroup;
 
 public class APIHandler_poi_group {
-	
-
-	protected static final String MIME_JSON = "application/json";
 
 	private final Broker broker;
 
@@ -64,7 +61,7 @@ public class APIHandler_poi_group {
 
 	private void handleGET(PoiGroup poiGroup, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("poi_group");

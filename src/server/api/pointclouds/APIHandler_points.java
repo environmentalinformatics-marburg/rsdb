@@ -35,10 +35,6 @@ import util.StreamReceiver;
 import util.Web;
 
 public class APIHandler_points {
-	
-
-	protected static final String MIME_JSON = "application/json";	
-	protected static final String MIME_CSV = "text/csv";
 
 	//private final Broker broker;
 
@@ -141,7 +137,7 @@ public class APIHandler_points {
 
 		if(file_format.equals("zip")) {
 			String tileFormat = "las";
-			response.setContentType("application/zip");
+			response.setContentType(Web.MIME_ZIP);
 			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
 			write_dublin_core(pointcloud, boundingRect, zipOutputStream);

@@ -27,6 +27,7 @@ import rasterunit.TileKey;
 import server.api.rasterdb.WmsCapabilities.WmsStyle;
 import util.Range2d;
 import util.TimeUtil;
+import util.Web;
 
 public class RasterdbMethod_meta_json extends RasterdbMethod {
 
@@ -50,7 +51,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			GeoReference ref = rasterdb.ref();
 
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 
 			json.object();

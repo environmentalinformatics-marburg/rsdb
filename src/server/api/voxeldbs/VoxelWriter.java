@@ -9,6 +9,7 @@ import org.eclipse.jetty.server.Response;
 
 import util.Extent3d;
 import util.Range3d;
+import util.Web;
 import util.rdat.Rdat;
 import util.rdat.RdatList;
 import voxeldb.VoxelDB;
@@ -21,7 +22,7 @@ public class VoxelWriter {
 
 		switch(format) {
 		case "js": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.writeInt(voxelRange.xlen());
 			out.writeInt(voxelRange.ylen());
@@ -30,7 +31,7 @@ public class VoxelWriter {
 			break;
 		}
 		case "rdat": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.write(Rdat.SIGNATURE_RDAT);
 			out.write(Rdat.RDAT_TYPE_DIM_VECTOR);
@@ -67,7 +68,7 @@ public class VoxelWriter {
 
 		switch(format) {
 		case "js": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.writeInt(voxelRange.xlen());
 			out.writeInt(voxelRange.ylen());
@@ -76,7 +77,7 @@ public class VoxelWriter {
 			break;
 		}
 		case "rdat": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.write(Rdat.SIGNATURE_RDAT);
 			out.write(Rdat.RDAT_TYPE_DIM_VECTOR);
@@ -114,7 +115,7 @@ public class VoxelWriter {
 
 		switch(format) {
 		case "js": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.writeInt(voxelRange.xlen());
 			out.writeInt(voxelRange.ylen());
@@ -123,7 +124,7 @@ public class VoxelWriter {
 			break;
 		}
 		case "rdat": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.write(Rdat.SIGNATURE_RDAT);
 			out.write(Rdat.RDAT_TYPE_DIM_VECTOR);
@@ -160,7 +161,7 @@ public class VoxelWriter {
 
 		switch(format) {
 		case "js": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.writeInt(voxelRange.xlen());
 			out.writeInt(voxelRange.ylen());
@@ -169,7 +170,7 @@ public class VoxelWriter {
 			break;
 		}
 		case "rdat": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.write(Rdat.SIGNATURE_RDAT);
 			out.write(Rdat.RDAT_TYPE_DIM_VECTOR);
@@ -206,7 +207,7 @@ public class VoxelWriter {
 
 		switch(format) {
 		case "js": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.writeInt(voxelRange.xlen());
 			out.writeInt(voxelRange.ylen());
@@ -215,7 +216,7 @@ public class VoxelWriter {
 			break;
 		}
 		case "rdat": {
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			DataOutputStream out = new DataOutputStream(response.getOutputStream());
 			out.write(Rdat.SIGNATURE_RDAT);
 			out.write(Rdat.RDAT_TYPE_DIM_VECTOR);

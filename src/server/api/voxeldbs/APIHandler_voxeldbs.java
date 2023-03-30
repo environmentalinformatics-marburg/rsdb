@@ -20,9 +20,6 @@ import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_voxeldbs extends AbstractHandler {
-	
-
-	protected static final String MIME_JSON = "application/json";
 
 	private final Broker broker;
 	private final APIHandler_voxeldb apihandler_voxeldb;	
@@ -52,7 +49,7 @@ public class APIHandler_voxeldbs extends AbstractHandler {
 			e.printStackTrace();
 			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println(e);
 		}
 	}
@@ -60,7 +57,7 @@ public class APIHandler_voxeldbs extends AbstractHandler {
 	private void handleList(Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
 		boolean withDescription = request.getParameter("description") != null;
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("voxeldbs");

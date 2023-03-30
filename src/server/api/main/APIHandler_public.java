@@ -24,12 +24,10 @@ import server.api.rasterdb.RasterdbMethod_wcs;
 import server.api.rasterdb.RasterdbMethod_wms;
 import server.api.vectordbs.VectordbHandler_wfs;
 import server.api.vectordbs.VectordbHandler_wms;
+import util.Web;
 import vectordb.VectorDB;
 
 public class APIHandler_public extends AbstractHandler {
-
-
-	protected static final String MIME_JSON = "application/json";
 
 	protected final Broker broker;
 
@@ -38,7 +36,7 @@ public class APIHandler_public extends AbstractHandler {
 	private abstract static class PublicAccessHandler {
 		public void handle(String id, String target, Request baseRequest, Response response) throws IOException {
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			json.object();
 			json.key("id");
@@ -126,7 +124,7 @@ public class APIHandler_public extends AbstractHandler {
 	}
 
 	public void refresh() {
-		Logger.info("refresh");
+		//Logger.info("refresh");
 		HashMap<String, PublicAccessHandler> idMap = new HashMap<String, PublicAccessHandler>();
 		broker.publicAccessManager().forEach((id, publicAccess) -> {
 			PublicAccessHandler idHandler = toIdHandler(id, publicAccess);
@@ -192,7 +190,7 @@ public class APIHandler_public extends AbstractHandler {
 			Logger.error(e);
 			try {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("ERROR: " + e.getMessage());
 			} catch(Exception e1) {
 				Logger.warn(e1);
@@ -202,7 +200,7 @@ public class APIHandler_public extends AbstractHandler {
 
 	private void handleRoot(Request baseRequest, HttpServletResponse response) throws IOException {
 		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-		response.setContentType("text/plain;charset=utf-8");
+		response.setContentType(Web.MIME_TEXT);
 		response.getWriter().println("missing id");		
 	}
 
@@ -210,7 +208,7 @@ public class APIHandler_public extends AbstractHandler {
 		PublicAccessHandler idHandler = handlerMap.get(id);
 		if(idHandler == null) {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println("ERROR: id not found");
 			return;
 		}

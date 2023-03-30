@@ -12,15 +12,16 @@ import org.tinylog.Logger;
 import remotetask.pointcloud.task_pointcloud;
 import remotetask.pointdb.task_pointdb;
 import remotetask.rasterdb.task_rasterdb;
+import remotetask.rsdb.task_rsdb;
 import remotetask.vectordb.task_vectordb;
 import remotetask.voxeldb.task_voxeldb;
 import util.collections.vec.Vec;
 
-public class RemoteTasks {
-	
+public class RemoteTasks {	
 
 	private static final Class<?>[] CONSTRUCTOR_ARGS = new Class[] {Context.class};
 	
+	final static Map<String, RemoteTaskInfo> task_rsdbMap = new ConcurrentHashMap<>();
 	final static Map<String, RemoteTaskInfo> task_rasterdbMap = new ConcurrentHashMap<>();
 	final static Map<String, RemoteTaskInfo> task_pointdbMap = new ConcurrentHashMap<>();
 	final static Map<String, RemoteTaskInfo> task_pointcloudMap = new ConcurrentHashMap<>();
@@ -28,6 +29,9 @@ public class RemoteTasks {
 	final static Map<String, RemoteTaskInfo> task_vectordbMap = new ConcurrentHashMap<>();
 
 	static {
+		//task_rsdb
+		put(remotetask.rsdb.Task_testing.class);		
+		
 		//task_rasterdb
 		put(remotetask.rasterdb.Task_remove_timestamps.class);
 		put(remotetask.rasterdb.Task_remove_bands.class);
@@ -40,7 +44,6 @@ public class RemoteTasks {
 		put(remotetask.rasterdb.Task_refresh_extent.class);
 		put(remotetask.rasterdb.Task_rename.class);
 		put(remotetask.rasterdb.Task_export.class);
-		put(remotetask.rasterdb.Task_testing.class);
 
 		//task_pointcloud
 		put(remotetask.pointcloud.Task_import.class);
@@ -75,6 +78,20 @@ public class RemoteTasks {
 	
 	private static void put(Class<? extends RemoteTask> clazz) {
 		boolean inserted = false;
+		if(clazz.isAnnotationPresent(task_rsdb.class)) {
+			try {
+				String name = clazz.getAnnotation(task_rsdb.class).value();
+				RemoteTaskInfo rti = createRTI(clazz, name);
+				if(task_rsdbMap.containsKey(name)) {
+					Logger.warn("task with name already inserted, overwrite: " + name);
+				}
+				task_rsdbMap.put(name, rti);
+				inserted = true;
+			} catch(Exception e) {
+				Logger.error("could not put task: "+ clazz.getName() + e);
+			}
+		}
+		
 		if(clazz.isAnnotationPresent(task_rasterdb.class)) {
 			try {
 				String name = clazz.getAnnotation(task_rasterdb.class).value();
@@ -185,6 +202,7 @@ public class RemoteTasks {
 
 	public static Map<String, TreeMap<String, RemoteTaskInfo>> list() {
 		LinkedHashMap<String,TreeMap<String, RemoteTaskInfo>> map = new LinkedHashMap<>();
+		map.put("task_rsdb", collectAsTreeMap(task_rsdbMap));
 		map.put("task_rasterdb", collectAsTreeMap(task_rasterdbMap));
 		map.put("task_pointcloud", collectAsTreeMap(task_pointcloudMap));
 		map.put("task_voxeldb", collectAsTreeMap(task_voxeldbMap));

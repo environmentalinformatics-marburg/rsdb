@@ -36,6 +36,7 @@ import server.api.main.APIHandler_identity;
 import util.Hex;
 import util.Nonce;
 import util.TemplateUtil;
+import util.Web;
 
 public class LoginHandler extends AbstractHandler {
 	
@@ -199,7 +200,7 @@ public class LoginHandler extends AbstractHandler {
 				ctx.put("ref", loc);
 				ctx.put("error", "wrong user / password");
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.setContentType("text/html;charset=utf-8");
+				response.setContentType(Web.MIME_HTML);
 				TemplateUtil.getTemplate("login_error.mustache", true).execute(ctx, response.getWriter());
 				baseRequest.setHandled(true);
 				return;
@@ -229,7 +230,7 @@ public class LoginHandler extends AbstractHandler {
 			ctx.put("ref", loc);
 			ctx.put("error", e.getMessage());
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentType("text/html;charset=utf-8");
+			response.setContentType(Web.MIME_HTML);
 			TemplateUtil.getTemplate("login_error.mustache", true).execute(ctx, response.getWriter());
 		}
 	}

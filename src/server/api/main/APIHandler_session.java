@@ -16,6 +16,7 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import server.api.APIHandler;
+import util.Web;
 
 public class APIHandler_session extends APIHandler {
 	
@@ -39,7 +40,7 @@ public class APIHandler_session extends APIHandler {
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {		
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 
 		String base64 = createSession();

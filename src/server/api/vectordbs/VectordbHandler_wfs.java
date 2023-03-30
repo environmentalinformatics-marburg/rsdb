@@ -97,7 +97,7 @@ public class VectordbHandler_wfs extends VectordbHandler {
 	}
 
 	private void handle_GetCapabilities(VectorDB vectordb, Request request, Response response) throws IOException {
-		response.setContentType("text/xml; charset=UTF-8");	
+		response.setContentType(Web.MIME_XML);	
 		PrintWriter out = response.getWriter();	
 		try {
 			//out.write(cc);

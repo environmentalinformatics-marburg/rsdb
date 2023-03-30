@@ -88,7 +88,7 @@ public class WmsHandler extends AbstractHandler {
 
 	private void handle_GetCapabilities(String target, Request request, HttpServletRequest internal, HttpServletResponse response) throws IOException {
 		WmsCapabilities wmsCapabilities = new WmsCapabilities(broker, request.getRequestURL().toString());
-		response.setContentType("application/xml");
+		response.setContentType(Web.MIME_XML);
 		wmsCapabilities.capabilities(response.getOutputStream(), Web.getUserIdentity(request));		
 	}
 
@@ -166,7 +166,7 @@ public class WmsHandler extends AbstractHandler {
 
 			String format = request.getParameter("FORMAT");
 			if(format == null) {
-				format = "image/png";
+				format = Web.MIME_PNG;
 			}
 
 			String layer = request.getParameter("LAYERS");
@@ -174,7 +174,7 @@ public class WmsHandler extends AbstractHandler {
 			RasterDB rasterdb = broker.getRasterdb(layer);
 			if (!rasterdb.isAllowed(Web.getUserIdentity(request))) {
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("access not allowed for user");
 				Logger.error("access not allowed for user");
 				return;
@@ -320,18 +320,18 @@ public class WmsHandler extends AbstractHandler {
 			response.setStatus(HttpServletResponse.SC_OK);
 			switch(format) {
 			case "image/jpeg": {
-				response.setContentType("image/jpeg");
+				response.setContentType(Web.MIME_JPEG);
 				image.writeJpg(response.getOutputStream(), 0.7f);
 				break;
 			}
 			case "image/png": {
-				response.setContentType("image/png");
+				response.setContentType(Web.MIME_PNG);
 				image.writePngCompressed(response.getOutputStream());
 				break;
 			}
 			default: {
 				if(format.startsWith("image/png:")) {
-					response.setContentType("image/png");
+					response.setContentType(Web.MIME_PNG);
 					switch(format) {
 					case "image/png:0":
 						image.writePng(response.getOutputStream(), 0);
@@ -367,7 +367,7 @@ public class WmsHandler extends AbstractHandler {
 						image.writePngCompressed(response.getOutputStream());
 					}
 				} else {
-					response.setContentType("image/png");
+					response.setContentType(Web.MIME_PNG);
 					image.writePngCompressed(response.getOutputStream());
 				}
 			}

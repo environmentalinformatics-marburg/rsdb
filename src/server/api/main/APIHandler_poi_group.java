@@ -31,7 +31,7 @@ public class APIHandler_poi_group extends APIHandler {
 		poiGroup.acl.check(Web.getUserIdentity(request));				
 		
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());		
 
 		json.array();

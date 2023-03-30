@@ -2,22 +2,19 @@ package server.api.main;
 
 import java.io.IOException;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Account;
 import broker.Account.Builder;
 import broker.AccountManager;
 import broker.Broker;
 import broker.acl.AclUtil;
-import broker.acl.EmptyACL;
+import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
 import util.JsonUtil;
 import util.Web;
@@ -52,7 +49,7 @@ public class APIHandler_accounts extends APIHandler {
 	private void handleGET(String target, Request request, Response response) throws IOException {		
 		AclUtil.check(Web.getUserIdentity(request), "get accounts details");
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("accounts");
@@ -130,7 +127,7 @@ public class APIHandler_accounts extends APIHandler {
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}			
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter jsonResponse = new JSONWriter(response.getWriter());
 			jsonResponse.object();
 			jsonResponse.key("response");

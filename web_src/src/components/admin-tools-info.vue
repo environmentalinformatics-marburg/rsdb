@@ -7,9 +7,17 @@
           <v-card-title>
             <h3 class="headline mb-0">
               Remote Sensing Database Info 
-              <v-btn flat icon color="green" @click="refresh()" title="refresh layers">
+              <v-btn flat icon color="green" @click="refresh()" title="Refresh server status information.">
                 <v-icon>refresh</v-icon>
               </v-btn>
+              <span v-if="identityMode === 'init' || identityMode === 'load'">
+                <ring-loader color="#000000" size="20px" style="display: inline-block;" />
+                loading...
+              </span>
+              <span v-if="identityMode === 'error'">
+                <v-icon>error</v-icon>
+                {{identityMessage}}
+              </span>              
             </h3>
           </v-card-title>
           <v-divider></v-divider>
@@ -70,14 +78,7 @@
         </v-card>
       </v-flex>
     </v-layout>
-     <div v-if="identityMode === 'init' || identityMode === 'load'">
-      <ring-loader color="#000000" size="20px" style="display: inline-block;" />
-      loading...
-    </div>
-    <div v-if="identityMode === 'error'">
-      <v-icon>error</v-icon>
-      {{identityMessage}}
-    </div>
+    
     </div>
 </div>
 

@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
@@ -16,10 +14,10 @@ import remotetask.RemoteTaskInfo;
 import remotetask.RemoteTaskParameter;
 import remotetask.RemoteTasks;
 import server.api.APIHandler;
+import util.Web;
 
 public class APIHandler_remote_task_entries extends APIHandler {
 	
-
 	public APIHandler_remote_task_entries(Broker broker) {
 		super(broker, "remote_task_entries");
 	}
@@ -44,7 +42,7 @@ public class APIHandler_remote_task_entries extends APIHandler {
 	}
 
 	protected void handleRootGET(Request request, Response response) throws IOException {
-		response.setContentType(MIME_JSON);		
+		response.setContentType(Web.MIME_JSON);		
 		JSONWriter res = new JSONWriter(response.getWriter());
 		res.object();
 		res.key("remote_task_categories");

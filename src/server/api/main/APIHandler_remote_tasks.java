@@ -62,7 +62,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
 		if(remoteTask == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter res = new JSONWriter(response.getWriter());
 			res.object();
 			res.key("error");
@@ -74,7 +74,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 			return;
 		}
 
-		response.setContentType("text/plain");	
+		response.setContentType(Web.MIME_TEXT);	
 		PrintWriter out = response.getWriter();
 		for(String line:remoteTask.getLog()) {
 			out.println(line);
@@ -97,7 +97,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 	protected void handleRootGET(Request request, Response response) throws IOException {
 		boolean identity = Web.getFlag(request, "identity");
 		
-		response.setContentType(MIME_JSON);		
+		response.setContentType(Web.MIME_JSON);		
 		JSONWriter res = new JSONWriter(response.getWriter());
 		res.object();
 		res.key("remote_tasks");
@@ -139,7 +139,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 
 
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter res = new JSONWriter(response.getWriter());
 		res.object();
 		res.key("remote_task");
@@ -179,7 +179,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
 		if(remoteTask == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter res = new JSONWriter(response.getWriter());
 			res.object();
 			res.key("error");
@@ -190,7 +190,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.endObject();
 		} else {
 			remoteTask.cancel();
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter res = new JSONWriter(response.getWriter());
 			res.object();
 			res.key("message");
@@ -206,7 +206,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
 		if(remoteTask == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter res = new JSONWriter(response.getWriter());
 			res.object();
 			res.key("error");
@@ -222,7 +222,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 		boolean identity = Web.getFlag(request, "identity");
 
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter res = new JSONWriter(response.getWriter());
 		res.object();
 		res.key("remote_task");

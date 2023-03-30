@@ -27,6 +27,7 @@ import server.api.rasterdb.RequestProcessor.TiffDataType;
 import util.Range2d;
 import util.Receiver;
 import util.TimeUtil;
+import util.Web;
 import util.rdat.RdatBand;
 import util.rdat.RdatList;
 import util.rdat.RdatWriter;
@@ -115,7 +116,7 @@ public class RequestProcessorBandsWriters {
 		}
 		rdatWriter.setNoDataValue(noDataValue);
 		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("application/octet-stream");
+		resceiver.setContentType(Web.MIME_BINARY);
 		rdatWriter.write(new DataOutputStream(resceiver.getOutputStream()));		
 	}
 	
@@ -176,7 +177,7 @@ public class RequestProcessorBandsWriters {
 		}
 		tiffWriter.setNoDataValue(noDataValue);
 		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("image/tiff");
+		resceiver.setContentType(Web.MIME_TIFF);
 		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));		
 	}
@@ -270,7 +271,7 @@ public class RequestProcessorBandsWriters {
 		}
 		tiffWriter.setNoDataValue(noDataValue);
 		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("image/tiff");
+		resceiver.setContentType(Web.MIME_TIFF);
 		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));		
 	}

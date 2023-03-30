@@ -19,6 +19,7 @@ import broker.Broker;
 import server.api.main.ChunkedUploader;
 import server.api.main.ChunkedUploader.ChunkedUpload;
 import util.Util;
+import util.Web;
 import vectordb.VectorDB;
 
 public class VectordbHandler_files extends VectordbHandler {
@@ -53,7 +54,7 @@ public class VectordbHandler_files extends VectordbHandler {
 						Logger.error(e);
 						e.printStackTrace();
 						response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-						response.setContentType("text/plain;charset=utf-8");
+						response.setContentType(Web.MIME_TEXT);
 						response.getWriter().println(e.getMessage());
 					} catch (IOException e1) {
 						Logger.error(e1);
@@ -72,6 +73,6 @@ public class VectordbHandler_files extends VectordbHandler {
 		Logger.info(target);
 		vectordb.removeFile(target);
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType("text/plain;charset=utf-8");
+		response.setContentType(Web.MIME_TEXT);
 	}
 }

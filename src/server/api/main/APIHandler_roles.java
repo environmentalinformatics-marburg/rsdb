@@ -6,12 +6,10 @@ import java.util.HashSet;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
 import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
 import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
 import util.Web;
@@ -27,7 +25,7 @@ public class APIHandler_roles extends APIHandler {
 		Logger.info("request roles");
 		//UserIdentity userIdentity = Web.getUserIdentity(request);
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		
 		HashSet<String> collector = new HashSet<>();
 		broker.accountManager().collectRoles(collector);

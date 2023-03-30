@@ -16,9 +16,6 @@ import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_info extends PointdbAPIHandler {
-		
-
-	private static final String MIME_JSON = "application/json";
 
 	public APIHandler_info(Broker broker) {
 		super(broker, "info");		
@@ -56,8 +53,8 @@ public class APIHandler_info extends PointdbAPIHandler {
 			}
 		}
 
-		//if(MIME_JSON.equals(request.getHeader("Accept"))) { // JSON
-		response.setContentType(MIME_JSON);
+		//if(Web.MIME_JSON.equals(request.getHeader("Accept"))) { // JSON
+		response.setContentType(Web.MIME_JSON);
 		Logger.info(response.getWriter().getClass());
 		JSONWriter json = new JSONWriter(response.getWriter());
 		//Logger.info("JSON!");
@@ -138,7 +135,7 @@ public class APIHandler_info extends PointdbAPIHandler {
 
 		/*} else { // Plain Text
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			PrintWriter out = response.getWriter();
 			out.println("PointDB");			
 

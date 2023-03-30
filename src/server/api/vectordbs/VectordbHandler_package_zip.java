@@ -27,10 +27,10 @@ import broker.Broker;
 import broker.Informal;
 import broker.InformalProperties.Builder;
 import util.Extent2d;
+import util.Web;
 import vectordb.VectorDB;
 
-public class VectordbHandler_package_zip extends VectordbHandler {
-	
+public class VectordbHandler_package_zip extends VectordbHandler {	
 
 	private static final String META_FILE_NAME = "metadata.yaml";
 
@@ -44,7 +44,7 @@ public class VectordbHandler_package_zip extends VectordbHandler {
 			List<Path> filenames = vectordb.getDataFilenames();
 			Path root = vectordb.getDataPath();
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("application/zip");
+			response.setContentType(Web.MIME_ZIP);
 			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
 

@@ -32,7 +32,7 @@ public class VectordbHandler_raster_png extends VectordbHandler {
 		try {
 			if(!vectordb.hasDataFilename()) {
 				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().print("no data");
 				return;
 			}
@@ -100,7 +100,7 @@ public class VectordbHandler_raster_png extends VectordbHandler {
 			
 			//image.writePngCompressed("out.png");
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("image/png");
+			response.setContentType(Web.MIME_PNG);
 			image.writePngCompressed(response.getOutputStream());			
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -19,14 +19,15 @@ import rasterdb.RasterDB;
 import server.api.main.ChunkedUploader;
 import server.api.main.ChunkedUploader.ChunkedUpload;
 import util.Util;
+import util.Web;
 
 public class RasterdbMethod_attachments extends RasterdbMethod {
 	
 	private static final HashMap<String, String> EXTENSTION_MAP = new HashMap<String, String>();
 	
 	static {
-		EXTENSTION_MAP.put("pdf", "application/pdf");
-		EXTENSTION_MAP.put("txt", "text/plain");
+		EXTENSTION_MAP.put("pdf", Web.MIME_PDF);
+		EXTENSTION_MAP.put("txt", Web.MIME_TEXT);
 	}
 	
 	private static final Path TEMP_PATH = Paths.get("temp/raster_attachments");
@@ -69,7 +70,7 @@ public class RasterdbMethod_attachments extends RasterdbMethod {
 				if(mime != null) {
 					response.setContentType(mime);
 				} else {
-					response.setContentType("application/octet-stream");
+					response.setContentType(Web.MIME_BINARY);
 				}
 			}			
 			Files.copy(filePath, response.getOutputStream());
@@ -87,7 +88,7 @@ public class RasterdbMethod_attachments extends RasterdbMethod {
 		Logger.info("handleDELETE " + target);
 		rasterdb.removeAttachmentFile(target);
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType("text/plain;charset=utf-8");
+		response.setContentType(Web.MIME_TEXT);
 	}
 	
 	private void handlePOST(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
@@ -111,7 +112,7 @@ public class RasterdbMethod_attachments extends RasterdbMethod {
 						Logger.error(e);
 						e.printStackTrace();
 						response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-						response.setContentType("text/plain;charset=utf-8");
+						response.setContentType(Web.MIME_TEXT);
 						response.getWriter().println(e.getMessage());
 					} catch (IOException e1) {
 						Logger.error(e1);

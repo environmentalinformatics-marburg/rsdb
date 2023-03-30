@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import util.Web;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -22,7 +23,7 @@ public class InvalidUrlHandler extends AbstractHandler {
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		baseRequest.setHandled(true);
 		response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-		response.setContentType("text/html;charset=utf-8");
+		response.setContentType(Web.MIME_HTML);
 		//response.setHeader("Server", "");
 		//response.setHeader("Date", null);
 		PrintWriter writer = response.getWriter();

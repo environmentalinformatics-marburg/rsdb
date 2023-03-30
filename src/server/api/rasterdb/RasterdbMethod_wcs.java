@@ -105,7 +105,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 	}
 
 	public void handle_GetCapabilities(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		response.setContentType("application/xml");		
+		response.setContentType(Web.MIME_XML);		
 		PrintWriter out = response.getWriter();	
 		//out.write(cc);
 		try {
@@ -116,7 +116,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 	}
 
 	public void handle_DescribeCoverage(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		response.setContentType("application/xml");		
+		response.setContentType(Web.MIME_XML);		
 		PrintWriter out = response.getWriter();	
 		//out.write(cd);
 		try {
@@ -213,12 +213,17 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 
 			Timer.start("WCS transfer");
 			resceiver.setStatus(HttpServletResponse.SC_OK);
-			resceiver.setContentType("image/tiff");
+			resceiver.setContentType(Web.MIME_TIFF);
 			long tiffSize = tiffWriter.exactSizeOfWriteAuto();
 			resceiver.setContentLength(tiffSize);
 			tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));
 			Logger.info(Timer.stop("WCS transfer") + "  " + (tiffSize >= 1024*1024 ? ((tiffSize / (1024*1024)) + " MBytes") : (tiffSize + " Bytes") ) + "  " + dstWidth + " x " + dstHeight + " pixel  " + processingBands.size() + " bands of " + tiffdataType);
-		} catch (EofException e) {			
+		} catch (EofException e) {
+			try {
+				response.closeOutput();
+			} catch(Exception e1) {
+				Logger.warn(e1);
+			}
 			Throwable eCause = e.getCause();
 			if(eCause != null && eCause instanceof IOException) {
 				Logger.info(eCause.getMessage());
@@ -226,6 +231,11 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 				Logger.warn(e);
 			}			
 		} catch (Exception e) {
+			try {
+				response.closeOutput();
+			} catch(Exception e1) {
+				Logger.warn(e1);
+			}
 			Logger.warn(e);
 		}
 	}

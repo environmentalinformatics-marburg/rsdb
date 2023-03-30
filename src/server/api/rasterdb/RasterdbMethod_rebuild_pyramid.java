@@ -13,6 +13,7 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import rasterdb.RasterDB;
+import util.Web;
 
 public class RasterdbMethod_rebuild_pyramid extends RasterdbMethod {
 	
@@ -27,7 +28,7 @@ public class RasterdbMethod_rebuild_pyramid extends RasterdbMethod {
 		try {
 			rasterdb.rebuildPyramid(true);
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			json.object();
 			json.key("result");

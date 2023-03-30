@@ -19,13 +19,21 @@ import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.server.Authentication.User;
 import org.json.JSONObject;
 
-public final class Web {
-	
+public final class Web {	
+
+	public static final String MIME_TEXT = "text/plain;charset=utf-8";
+	public static final String MIME_XML = "application/xml;charset=utf-8";
+	public static final String MIME_JSON = "application/json;charset=utf-8";
+	//public static final String MIME_CSV = "text/csv;charset=utf-8";
+	public static final String MIME_HTML = "text/html;charset=utf-8";
+	public static final String MIME_BINARY = "application/octet-stream";
+	public static final String MIME_ZIP = "application/zip";
+	public static final String MIME_PDF = "application/pdf";
+	public static final String MIME_PNG = "image/png";
+	public static final String MIME_TIFF = "image/tiff";
+	public static final String MIME_JPEG = "image/jpeg";
 
 	private Web(){}
-
-	public static final String MIME_JSON = "application/json";
-	public static final String MIME_CSV = "text/csv";
 
 	public static double getDouble(Request request, String name) {
 		String text = request.getParameter(name);

@@ -15,6 +15,7 @@ import pointdb.PointDB;
 import pointdb.base.GeoPoint;
 import util.BufferedDataOuputStream;
 import util.Receiver;
+import util.Web;
 
 public class RdatPointDataFrame {
 
@@ -73,9 +74,9 @@ public class RdatPointDataFrame {
 
 		/*DataOutputByteArray out = new DataOutputByteArray();
 		write_RDAT_POINT_DATA_FRAME(out, points, columnWriterList, pointdb.config.getProj4());		
-		response.setContentType("application/octet-stream");
+		response.setContentType(Web.MIME_BINARY);
 		response.getOutputStream().write(out.buf,0,out.pos);*/		
-		response.setContentType("application/octet-stream");
+		response.setContentType(Web.MIME_BINARY);
 		try(BufferedDataOuputStream out = new BufferedDataOuputStream(response.getOutputStream())) {
 			write_RDAT_POINT_DATA_FRAME(out, points, columnWriterList, pointdb.config.getProj4());	
 		}

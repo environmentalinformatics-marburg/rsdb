@@ -93,7 +93,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			double gamma = Double.NaN;
 			boolean gamma_auto_sync = false;
 			int[] palette = null;
-			String format = "image/png";
+			String format = Web.MIME_PNG;
 
 			if(!target.isEmpty()) {
 				Logger.info("target |" + target + "|");
@@ -186,17 +186,17 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			switch(format) {
 			case "image/jpeg": // Official type from standard. set GetCapabilities.
 			case "jpg": {  // needed for customWMS format selection
-				response.setContentType("image/jpeg");
+				response.setContentType(Web.MIME_JPEG);
 				image.writeJpg(response.getOutputStream(), 0.7f);
 				break;
 			}
 			case "jpg:small": {  // needed for customWMS format selection
-				response.setContentType("image/jpeg");
+				response.setContentType(Web.MIME_JPEG);
 				image.writeJpg(response.getOutputStream(), 0.3f);
 				break;
 			}
 			case "png:uncompressed": {  // needed for customWMS format selection
-				response.setContentType("image/png");
+				response.setContentType(Web.MIME_PNG);
 				image.writePng(response.getOutputStream(), 0);
 				break;
 			}
@@ -204,11 +204,16 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			case "png":  // obsolete, needed for old code ??
 			case "png:compressed": // needed for customWMS format selection
 			default: {
-				response.setContentType("image/png");
+				response.setContentType(Web.MIME_PNG);
 				image.writePngCompressed(response.getOutputStream());
 			}
 			}
 		} catch(PngjOutputException  e) {
+			try {
+				response.closeOutput();
+			} catch(Exception e1) {
+				Logger.warn(e1);
+			}
 			Throwable eCause = e.getCause();
 			if(eCause != null && eCause instanceof EofException) {				
 				Throwable eCauseSub = eCause.getCause();
@@ -221,12 +226,17 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 				Logger.warn(e);
 			}			
 		} catch(Exception e) {
+			try {
+				response.closeOutput();
+			} catch(Exception e1) {
+				Logger.warn(e1);
+			}
 			Logger.warn(e);
 		}
 	}
 
 	public void handle_GetCapabilities(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		response.setContentType("application/xml");		
+		response.setContentType(Web.MIME_XML);		
 		PrintWriter out = response.getWriter();		
 		try {
 			String requestUrl = request.getRequestURL().toString();

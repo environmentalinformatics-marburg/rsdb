@@ -88,7 +88,7 @@ public class VectordbsHandler extends AbstractHandler {
 		VectordbHandler handler = methodMap.get(method);
 		if(handler == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println("unknown method " + method);
 			return;
 		}
@@ -97,7 +97,7 @@ public class VectordbsHandler extends AbstractHandler {
 			vectordb = broker.getVectorDB(name);
 		} catch(Exception e) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println(e.getMessage());
 			return;
 		}		
@@ -109,7 +109,7 @@ public class VectordbsHandler extends AbstractHandler {
 				Logger.error(e);
 				try {
 					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-					response.setContentType("text/plain;charset=utf-8");
+					response.setContentType(Web.MIME_TEXT);
 					response.getWriter().println(e.getMessage());
 				} catch(Exception e1) {
 					Logger.error(e1);
@@ -118,7 +118,7 @@ public class VectordbsHandler extends AbstractHandler {
 		} else {
 			Logger.error("access not allowed for user");
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println("access not allowed for user");
 		}
 
@@ -136,7 +136,7 @@ public class VectordbsHandler extends AbstractHandler {
 		default:
 			Logger.error("HTTP method not allowed");
 			response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println("HTTP method not allowed");
 			return;
 		}	
@@ -146,7 +146,7 @@ public class VectordbsHandler extends AbstractHandler {
 		try {
 			boolean withDescription = request.getParameter("description") != null;
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("application/json");
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			json.object();
 			json.key("vectordbs");

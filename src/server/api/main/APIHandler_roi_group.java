@@ -32,7 +32,7 @@ public class APIHandler_roi_group extends APIHandler {
 		roiGroup.acl.check(Web.getUserIdentity(request));
 		
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 
 		json.array();

@@ -46,7 +46,7 @@ public class APIHandler_public_access extends APIHandler {
 	private void handleGET(String target, Request request, Response response) throws IOException {		
 		AclUtil.check(Web.getUserIdentity(request), "get public URL list");
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("public");
@@ -131,7 +131,7 @@ public class APIHandler_public_access extends APIHandler {
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}			
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter jsonResponse = new JSONWriter(response.getWriter());
 			jsonResponse.object();
 			jsonResponse.key("response");

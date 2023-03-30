@@ -11,6 +11,7 @@ import rasterdb.TimeBandProcessor;
 import util.Range2d;
 import util.Receiver;
 import util.TimeUtil;
+import util.Web;
 import util.frame.DoubleFrame;
 import util.image.ImageBufferARGB;
 import util.rdat.RdatBand;
@@ -50,7 +51,7 @@ public class RequestProcessorProductWriters {
 		}
 		//rdatWriter.setNoDataValue(noDataValue);
 		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("application/octet-stream");
+		resceiver.setContentType(Web.MIME_BINARY);
 		rdatWriter.write(new DataOutputStream(resceiver.getOutputStream()));
 	}
 
@@ -72,19 +73,19 @@ public class RequestProcessorProductWriters {
 		}
 		//tiffWriter.setNoDataValue(noDataValue);
 		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("image/tiff");
+		resceiver.setContentType(Web.MIME_TIFF);
 		tiffWriter.writeTIFF(new DataOutputStream(resceiver.getOutputStream()));
 	}
 
 	public static void writeImagePng(ImageBufferARGB image, TimeBandProcessor processor, String productText, Receiver resceiver) throws IOException {
 		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("image/png");
+		resceiver.setContentType(Web.MIME_PNG);
 		image.writePngCompressed(resceiver.getOutputStream());
 	}
 	
 	public static void writeImageJpg(ImageBufferARGB image, TimeBandProcessor processor, String productText, Receiver resceiver) throws IOException {
 		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("image/jpeg");
+		resceiver.setContentType(Web.MIME_JPEG);
 		image.writeJpg(resceiver.getOutputStream(), 0.7f);
 	}
 
@@ -104,7 +105,7 @@ public class RequestProcessorProductWriters {
 		TiffComposite composite = TiffComposite.ofImageBufferARGB(image);
 		tiffWriter.setTiffComposite(composite);
 		resceiver.setStatus(HttpServletResponse.SC_OK);
-		resceiver.setContentType("image/tiff");
+		resceiver.setContentType(Web.MIME_TIFF);
 		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));		
 	}

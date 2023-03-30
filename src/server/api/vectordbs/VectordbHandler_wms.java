@@ -114,13 +114,13 @@ public class VectordbHandler_wms extends VectordbHandler {
 			VectorDB.closeDataSource(datasource);
 		}
 		if(image != null) {
-			response.setContentType("image/png");
+			response.setContentType(Web.MIME_PNG);
 			image.writePngCompressed(response.getOutputStream());
 		}
 	}
 
 	public void handle_GetCapabilities(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		response.setContentType("application/xml");		
+		response.setContentType(Web.MIME_XML);		
 		PrintWriter out = response.getWriter();		
 		try {
 			xml_root(vectordb, out);

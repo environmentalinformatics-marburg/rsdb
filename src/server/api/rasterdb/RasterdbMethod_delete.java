@@ -48,7 +48,7 @@ public class RasterdbMethod_delete extends RasterdbMethod {
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter jsonResponse = new JSONWriter(response.getWriter());
 			jsonResponse.object();
 			jsonResponse.key("response");
@@ -60,7 +60,7 @@ public class RasterdbMethod_delete extends RasterdbMethod {
 			Logger.error(e);			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			json.object();
 			json.key("reason");

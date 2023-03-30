@@ -42,6 +42,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SigningKeyResolver;
 import util.TemplateUtil;
+import util.Web;
 import util.collections.vec.Vec;
 
 /**
@@ -150,7 +151,7 @@ public class JWSAuthentication extends AbstractHandler {
 			if(JWSParam != null) {
 				if(!isValidJwsSyntax(JWSParam)) {
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					response.setContentType("text/html;charset=utf-8");
+					response.setContentType(Web.MIME_HTML);
 					response.getWriter().println("invalid JWS parameter syntax");
 					request.setHandled(true);
 					return;
@@ -163,7 +164,7 @@ public class JWSAuthentication extends AbstractHandler {
 			if(jwsParam != null) {
 				if(!isValidJwsSyntax(jwsParam)) {
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					response.setContentType("text/html;charset=utf-8");
+					response.setContentType(Web.MIME_HTML);
 					response.getWriter().println("invalid JWS parameter syntax");
 					request.setHandled(true);
 					return;
@@ -218,7 +219,7 @@ public class JWSAuthentication extends AbstractHandler {
 
 
 		response.setHeader("WWW-Authenticate", auth_req);
-		response.setContentType("text/html;charset=utf-8");
+		response.setContentType(Web.MIME_HTML);
 
 		HashMap<String, Object> ctx = new HashMap<>();
 		ctx.put("server_nonce", server_nonce);
@@ -308,7 +309,7 @@ public class JWSAuthentication extends AbstractHandler {
 					session.invalidate();
 				}
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.setContentType("text/html;charset=utf-8");
+				response.setContentType(Web.MIME_HTML);
 				HashMap<String, Object> ctx = new HashMap<>();
 				ctx.put("error", e.getMessage());
 				ctx.put("redirect_target", redirect_target);
@@ -331,7 +332,7 @@ public class JWSAuthentication extends AbstractHandler {
 			HashMap<String, Object> ctx = new HashMap<>();
 			ctx.put("error", e.getMessage());
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			response.setContentType("text/html;charset=utf-8");
+			response.setContentType(Web.MIME_HTML);
 			TemplateUtil.getTemplate("api_jws_error.mustache", ALWAYS_REFRESH_MUSTACHE).execute(ctx, response.getWriter());
 			request.setHandled(true);
 		}

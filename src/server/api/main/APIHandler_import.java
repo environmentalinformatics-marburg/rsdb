@@ -71,7 +71,7 @@ public class APIHandler_import extends APIHandler {
 		RemoteProxyTask remoteProxyTask = RemoteTaskExecutor.insertToExecute(importProcessor, ctx);
 
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter res = new JSONWriter(response.getWriter());
 		res.object();
 		res.key("remote_task");

@@ -10,9 +10,6 @@ import broker.Broker;
 import rasterdb.RasterDB;
 
 public abstract class RasterdbMethod {
-	//
-	
-	protected static final String MIME_JSON = "application/json";
 
 	protected final Broker broker;
 

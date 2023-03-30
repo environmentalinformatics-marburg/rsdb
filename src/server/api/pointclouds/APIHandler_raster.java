@@ -35,8 +35,7 @@ import util.rdat.RdatWriter;
 import util.tiff.TiffBand;
 import util.tiff.TiffWriter;
 
-public class APIHandler_raster {
-	
+public class APIHandler_raster {	
 
 	//private final Broker broker;
 
@@ -121,7 +120,7 @@ public class APIHandler_raster {
 
 		if(format.equals("zip")) {			
 			String tileFormat = "tiff";
-			response.setContentType("application/zip");
+			response.setContentType(Web.MIME_ZIP);
 			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
 			Receiver receiver = new StreamReceiver(zipOutputStream);			
@@ -248,7 +247,7 @@ public class APIHandler_raster {
 				rdatWriter.addRdatBand(RdatBand.ofFloat64(width, height, bandMeta, double_grid));
 			}
 			receiver.setStatus(HttpServletResponse.SC_OK);
-			receiver.setContentType("application/octet-stream");
+			receiver.setContentType(Web.MIME_BINARY);
 			rdatWriter.write(new DataOutputStream(receiver.getOutputStream()));
 			break;
 		}
@@ -271,7 +270,7 @@ public class APIHandler_raster {
 				tiffWriter.addTiffBand(TiffBand.ofFloat64(double_grid, type));
 			}
 			receiver.setStatus(HttpServletResponse.SC_OK);
-			receiver.setContentType("image/tiff");
+			receiver.setContentType(Web.MIME_TIFF);
 			receiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 			tiffWriter.writeAuto(new DataOutputStream(receiver.getOutputStream()));
 			break;

@@ -3,7 +3,7 @@ package server.api.vectordbs;
 import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
-
+import util.Web;
 
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
@@ -14,9 +14,6 @@ import broker.Broker;
 import vectordb.VectorDB;
 
 public abstract class VectordbHandler {
-
-	
-	protected static final String MIME_JSON = "application/json";
 
 	protected final Broker broker;
 
@@ -46,7 +43,7 @@ public abstract class VectordbHandler {
 		default:
 			Logger.error("HTTP method not allowed");
 			response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println("HTTP method not allowed");
 			return;
 		}	
@@ -55,7 +52,7 @@ public abstract class VectordbHandler {
 	public void handleGET(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		Logger.error("HTTP method not allowed");
 		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-		response.setContentType("text/plain;charset=utf-8");
+		response.setContentType(Web.MIME_TEXT);
 		response.getWriter().println("HTTP method not allowed");
 		return;		
 	}
@@ -63,7 +60,7 @@ public abstract class VectordbHandler {
 	public void handlePOST(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		Logger.error("HTTP method not allowed");
 		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-		response.setContentType("text/plain;charset=utf-8");
+		response.setContentType(Web.MIME_TEXT);
 		response.getWriter().println("HTTP method not allowed");
 		return;		
 	}
@@ -71,10 +68,8 @@ public abstract class VectordbHandler {
 	public void handleDELETE(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		Logger.error("HTTP method not allowed");
 		response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-		response.setContentType("text/plain;charset=utf-8");
+		response.setContentType(Web.MIME_TEXT);
 		response.getWriter().println("HTTP method not allowed");
 		return;		
 	}
-
-
 }

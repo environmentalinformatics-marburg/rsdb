@@ -3,7 +3,7 @@ package server.api.vectordbs;
 import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
-
+import util.Web;
 
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
@@ -25,7 +25,7 @@ public class VectordbHandler_table extends VectordbHandler {
 	public void handleGET(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {		
 		try {
 			response.setStatus(HttpServletResponse.SC_OK);			
-			response.setContentType("application/json");
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			vectordb.writeTableJSON(json);
 		} catch (Exception e) {

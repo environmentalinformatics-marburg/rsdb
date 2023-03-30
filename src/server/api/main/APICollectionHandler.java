@@ -45,7 +45,7 @@ public abstract class APICollectionHandler extends AbstractHandler {
 		Logger.tag("API").info(Web.getRequestLogString("API",method,baseRequest));
 		if(method.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			PrintWriter writer = response.getWriter();
 			writer.println("API: no method");
 			writer.println("\navailable methods:\n");
@@ -59,7 +59,7 @@ public abstract class APICollectionHandler extends AbstractHandler {
 		APIHandler handler = methodMap.get(method);
 		if(handler==null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println("unknown method "+method);
 			return;
 		}

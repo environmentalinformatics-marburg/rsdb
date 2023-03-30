@@ -20,9 +20,6 @@ import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_poi_groups extends AbstractHandler {
-	
-
-	protected static final String MIME_JSON = "application/json";
 
 	private final Broker broker;
 	private final APIHandler_poi_group apihandler_poi_group;	
@@ -52,14 +49,14 @@ public class APIHandler_poi_groups extends AbstractHandler {
 			e.printStackTrace();
 			Logger.error(e);
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println(e);
 		}
 	}
 
 	private void handleList(Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("poi_groups");

@@ -17,6 +17,7 @@ import pointcloud.LasWriter.LAS_HEADER;
 import pointcloud.LasWriter.POINT_DATA_RECORD;
 import util.ByteArrayOut;
 import util.Receiver;
+import util.Web;
 
 public class PointTableWriter {
 	
@@ -41,7 +42,7 @@ public class PointTableWriter {
 	}
 
 	public static void writeXYZ(Stream<PointTable> pointTables, Receiver receiver) throws IOException {
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		PrintWriter writer = receiver.getWriter();
 		pointTables.sequential().forEach(p -> {
 			int len = p.rows;
@@ -70,7 +71,7 @@ public class PointTableWriter {
 	}
 
 	private static void writeJsAllPoints(PointTable[] pointTables, Receiver receiver, String format, int pointCount) throws IOException {
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		switch(format) {
 		case "xzy": {
 			Logger.info("write in points in format xzy");
@@ -193,7 +194,7 @@ public class PointTableWriter {
 		}
 		Logger.info("samples "+samplePointCount);
 		int pointCount = samplePointCount;
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		switch(format) {
 		case "xzy": {
 			@SuppressWarnings("resource")

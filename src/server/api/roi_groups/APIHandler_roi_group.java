@@ -15,11 +15,9 @@ import broker.Broker;
 import broker.group.Roi;
 import broker.group.RoiGroup;
 import pointdb.base.Point2d;
+import util.Web;
 
 public class APIHandler_roi_group {
-	
-
-	protected static final String MIME_JSON = "application/json";
 
 	private final Broker broker;
 
@@ -65,7 +63,7 @@ public class APIHandler_roi_group {
 
 	private void handleGET(RoiGroup roiGroup, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("roi_group");

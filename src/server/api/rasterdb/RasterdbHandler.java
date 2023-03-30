@@ -86,20 +86,20 @@ public class RasterdbHandler extends AbstractHandler {
 			//Logger.info("subsubTarget " + subsubTarget);
 			if(name.isEmpty()) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("missing rasterdb ");
 				return;
 			}
 			if(method.isEmpty()) {
 				response.setStatus(HttpServletResponse.SC_OK);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("RasterDB");
 				return;
 			}
 			RasterdbMethod handler = methodMap.get(method);
 			if(handler == null) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("unknown method " + method);
 				return;
 			}
@@ -108,7 +108,7 @@ public class RasterdbHandler extends AbstractHandler {
 				rasterdb = broker.getRasterdb(name);
 			} catch(RasterDBNotFoundExeption e) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println(e.getMessage());
 				return;
 			}
@@ -121,7 +121,7 @@ public class RasterdbHandler extends AbstractHandler {
 					e.printStackTrace();
 					try {
 						response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-						response.setContentType("text/plain;charset=utf-8");
+						response.setContentType(Web.MIME_TEXT);
 						response.getWriter().println(e.getMessage());
 					} catch(Exception e1) {
 						Logger.error(e1);
@@ -130,7 +130,7 @@ public class RasterdbHandler extends AbstractHandler {
 			} else {
 				Logger.error("access not allowed for user");
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("access not allowed for user");
 			}
 		}
@@ -149,7 +149,7 @@ public class RasterdbHandler extends AbstractHandler {
 
 			if (subMethod.isEmpty()) {
 				response.setStatus(HttpServletResponse.SC_OK);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("PointDB");
 				return;
 			}
@@ -160,7 +160,7 @@ public class RasterdbHandler extends AbstractHandler {
 			RasterdbMethod handler = methodMap.get(subMethod);
 			if (handler == null) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("unknown method " + subMethod);
 				return;
 			}
@@ -169,7 +169,7 @@ public class RasterdbHandler extends AbstractHandler {
 				rasterdb = broker.getRasterdb(name);
 			} catch(RasterDBNotFoundExeption e) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println(e.getMessage());
 				return;
 			}
@@ -180,13 +180,13 @@ public class RasterdbHandler extends AbstractHandler {
 				} catch (Exception e) {
 					Logger.error(e);
 					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-					response.setContentType("text/plain;charset=utf-8");
+					response.setContentType(Web.MIME_TEXT);
 					response.getWriter().println(e.getMessage());
 				}
 			} else {
 				Logger.error("access not allowed for user");
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-				response.setContentType("text/plain;charset=utf-8");
+				response.setContentType(Web.MIME_TEXT);
 				response.getWriter().println("access not allowed for user");
 			}
 		}*/

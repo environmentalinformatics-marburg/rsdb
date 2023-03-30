@@ -1,11 +1,11 @@
-package remotetask.rasterdb;
+package remotetask.rsdb;
 
 import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
 
-@task_rasterdb("testing")
+@task_rsdb("testing")
 @Description("This task does nothing. It is for testing purposes. The running task can be canceled. Optionally, this task throws an error at round x.")
 @Param(name="throw_error_rounds", type="integer", desc="Throw error after x rounds. Default -1 => do not throw an error", example="0", required=false)
 public class Task_testing extends CancelableRemoteTask {

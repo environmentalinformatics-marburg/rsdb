@@ -23,10 +23,6 @@ import util.rdat.RdatList;
 import util.rdat.RdatWriter;
 
 public class APIHandler_volume {
-	
-
-	protected static final String MIME_JSON = "application/json";	
-	protected static final String MIME_CSV = "text/csv";
 
 	//private final Broker broker;
 
@@ -123,7 +119,7 @@ public class APIHandler_volume {
 				rdatWriter.addRdatBand(RdatBand.ofInt32(width, height, bandMeta, volume[level]));
 			}		
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			rdatWriter.write(new DataOutputStream(response.getOutputStream()));
 			break;
 		}

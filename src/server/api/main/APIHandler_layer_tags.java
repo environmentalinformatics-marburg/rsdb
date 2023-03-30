@@ -24,7 +24,7 @@ public class APIHandler_layer_tags extends APIHandler {
 	protected void handle(String target, Request request, Response response) throws IOException {
 		UserIdentity userIdentity = Web.getUserIdentity(request);
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 
 

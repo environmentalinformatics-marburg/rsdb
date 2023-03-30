@@ -8,6 +8,7 @@ import org.eclipse.jetty.server.Response;
 import jakarta.servlet.http.HttpServletResponse;
 import util.Extent3d;
 import util.Range3d;
+import util.Web;
 import util.rdat.RdatBand;
 import util.rdat.RdatList;
 import util.rdat.RdatWriter;
@@ -36,7 +37,7 @@ public abstract class RasterProcBool8 extends RasterProc {
 			}
 			rdatWriter.addRdatBand(RdatBand.ofBool8(xAggLen, yAggLen, bandMeta, dst));
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("application/octet-stream");
+			response.setContentType(Web.MIME_BINARY);
 			rdatWriter.write(new DataOutputStream(response.getOutputStream()));
 			break;
 		}

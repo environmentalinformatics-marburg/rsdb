@@ -57,7 +57,7 @@ public class APIHandler_image extends PointdbAPIHandler {
 		ImageCreator imageCreator = ImageCreator.of(pointdb.tilePointProducer(rect).filter(filter), statistics, rect, width, height, TILE_LOCAL_TO_SCREEN_DIV, fill, type);
 
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType("image/png");
+		response.setContentType(Web.MIME_PNG);
 		imageCreator.create().writePngUncompressed(response.getOutputStream());
 		Logger.info(Timer.stop("image"));
 	}

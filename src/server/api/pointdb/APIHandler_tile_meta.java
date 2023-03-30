@@ -3,18 +3,16 @@ package server.api.pointdb;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
 import broker.Broker;
+import jakarta.servlet.http.HttpServletResponse;
 import pointdb.PointDB;
 import pointdb.base.TileMeta;
 import pointdb.processing.tilemeta.TileMetaConsumer;
 import util.CsvWriter;
+import util.Web;
 
 
 public class APIHandler_tile_meta extends PointdbAPIHandler {
@@ -35,7 +33,7 @@ public class APIHandler_tile_meta extends PointdbAPIHandler {
 		
 		PointDB pointdb = getPointdb(request);
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType("text/plain;charset=utf-8");
+		response.setContentType(Web.MIME_TEXT);
 		PrintWriter out = response.getWriter();
 		
 		CsvWriter<TileMeta> csvwriter = new CsvWriter<TileMeta>(out);

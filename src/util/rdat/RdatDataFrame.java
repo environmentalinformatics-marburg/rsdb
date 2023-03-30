@@ -14,6 +14,7 @@ import org.mapdb.DataIO.DataOutputByteArray;
 
 import util.BufferedDataOuputStream;
 import util.Receiver;
+import util.Web;
 import util.collections.vec.Vec;
 
 public class RdatDataFrame<T> {
@@ -183,9 +184,9 @@ public class RdatDataFrame<T> {
 	public void write(Receiver receiver, Collection<T> coll) throws IOException {
 		/*DataOutputByteArray out = new DataOutputByteArray();
 		write(out, coll);	
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		receiver.getOutputStream().write(out.buf,0,out.pos);*/
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		try(BufferedDataOuputStream out = new BufferedDataOuputStream(receiver.getOutputStream())) {
 			write(out, coll);
 		}

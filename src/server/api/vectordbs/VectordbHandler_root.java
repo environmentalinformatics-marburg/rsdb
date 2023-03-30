@@ -37,7 +37,7 @@ public class VectordbHandler_root extends VectordbHandler {
 		try {
 			boolean data_filenames = true;
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("application/json");
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());
 			json.object();
 			json.key("vectordb");
@@ -130,10 +130,10 @@ public class VectordbHandler_root extends VectordbHandler {
 		Logger.info("delete");
 		vectordb.checkMod(userIdentity);
 		if(broker.deleteVectordb(vectordb.getName())) {
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.setStatus(HttpServletResponse.SC_OK);
 		} else {
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.setStatus(HttpServletResponse.SC_CONFLICT);
 			response.getWriter().print("could not delete");
 		}
@@ -148,7 +148,7 @@ public class VectordbHandler_root extends VectordbHandler {
 	@Override
 	public void handlePOST(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		try {
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.setStatus(HttpServletResponse.SC_OK);
 			JSONObject json = new JSONObject(Web.requestContentToString(request));
 			Util.checkProps(POST_PROPS_MANDATORY, POST_PROPS, json);

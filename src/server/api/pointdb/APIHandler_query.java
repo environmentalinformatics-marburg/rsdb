@@ -128,7 +128,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 		double ymin = 0;
 		if(format.equals("zip")) {			
 			String tileFormat = "las";
-			response.setContentType("application/zip");
+			response.setContentType(Web.MIME_ZIP);
 			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
 			Receiver receiver = new StreamReceiver(zipOutputStream);

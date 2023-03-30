@@ -32,9 +32,6 @@ import util.Web;
 
 public class APIHandler_pointcloud {
 
-
-	protected static final String MIME_JSON = "application/json";
-
 	private final Broker broker;
 	private final APIHandler_points apihandler_points;	
 	private final APIHandler_raster apihandler_raster;	
@@ -59,7 +56,7 @@ public class APIHandler_pointcloud {
 			throw new RuntimeException("PointCloud not found: " + name);
 			/*Logger.error("PointCloud not found: " + name);
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			response.setContentType("text/plain;charset=utf-8");
+			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println("PointCloud not found: " + name);*/
 		} else if(target.equals("/")) {
 			switch(request.getMethod()) {
@@ -131,7 +128,7 @@ public class APIHandler_pointcloud {
 
 
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("pointcloud");
@@ -472,7 +469,7 @@ public class APIHandler_pointcloud {
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter jsonResponse = new JSONWriter(response.getWriter());
 			jsonResponse.object();
 			jsonResponse.key("response");

@@ -14,10 +14,6 @@ import pointdb.process.ProcessingFun;
 import util.Web;
 
 public class APIHandler_index_list {
-	//
-
-	protected static final String MIME_JSON = "application/json";	
-	protected static final String MIME_CSV = "text/csv";
 
 	//private final Broker broker;
 

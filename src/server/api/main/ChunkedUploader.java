@@ -22,6 +22,7 @@ import org.eclipse.jetty.server.Response;
 import com.googlecode.javaewah.datastructure.BitSet;
 
 import util.Util;
+import util.Web;
 
 public class ChunkedUploader {
 	
@@ -109,7 +110,7 @@ public class ChunkedUploader {
 	public void handle(Request request, Response response, Consumer<ChunkedUpload> fileConsumer) throws IOException {
 		Logger.info(System.getProperty("java.io.tmpdir"));
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType("text/plain;charset=utf-8");
+		response.setContentType(Web.MIME_TEXT);
 		//Logger.info("handle upload");
 
 		//Logger.info(request.getContentType());

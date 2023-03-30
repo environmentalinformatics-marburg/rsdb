@@ -12,22 +12,24 @@
                     <template slot="items" slot-scope="props">
                         <td><input type="checkbox" id="checkbox" v-model="props.item.remove" style="width: 40px;"/>remove band</td>
                         <td>{{props.item.index}}</td>
-                        <td><input v-model="props.item.title" placeholder="title" /></td>
-                        <td><input v-model="props.item.visualisation" placeholder="visualisation" /></td>
-                        <td><input v-model="props.item.vis_min" placeholder="vis_min" /></td>
-                        <td><input v-model="props.item.vis_max" placeholder="vis_max" /></td>
+                        <td><input v-model="props.item.title" placeholder="[title]" /></td>
+                        <td><input v-model="props.item.wavelength" placeholder="[wavelength]" /></td>
+                        <td><input v-model="props.item.fwhm" placeholder="[fwhm]" /></td>
+                        <td><input v-model="props.item.visualisation" placeholder="[visualisation]" /></td>
+                        <td><input v-model="props.item.vis_min" placeholder="[vis_min]" /></td>
+                        <td><input v-model="props.item.vis_max" placeholder="[vis_max]" /></td>
                         <td :class="{remove: props.item.remove}">{{props.item.remove ? 'remove band' : '(keep band)'}}</td>
                     </template>
                 </v-data-table>
                 <v-card-text>
                     <b>Edit</b> band properties by click on that entry. 
-                    <br><b>Remove</b> bands by checkbox selection, all data of that bands will be removed.
+                    <br><b>Remove</b> bands by checkbox selection. All data of that bands will be removed.
                 </v-card-text>
                 <br>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn class="green--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
-                    <v-btn class="red--text darken-1" flat="flat" @click.native="execute()">Execute</v-btn>
+                    <v-btn class="grey--text darken-1" flat="flat" @click.native="dialog = false">Cancel</v-btn>
+                    <v-btn class="green--text darken-1" flat="flat" @click.native="execute()">Apply</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -56,12 +58,14 @@ export default {
             setError: false,
             setErrorMessage: undefined,
             bandTableHeaders: [{ text: "", align: 'left', sortable: false}, 
-                               { text: "index", align: 'left', value: "index"},
-                               { text: "title", align: 'left', value: "title" },
-                               { text: "visualisation", align: 'left', value: "visualisation" },
-                               { text: "vis_min", align: 'left', value: "vis_min"}, 
-                               { text: "vis_max", align: 'left', value: "vis_max"},
-                               { text: "action", align: 'left', value: "remove"}],
+                               { text: "Index", align: 'left', value: "index"},
+                               { text: "Title", align: 'left', value: "title" },
+                               { text: "Wavelength", align: 'left', value: "wavelength"},
+                               { text: "FWHM", align: 'left', value: "fwhm"},
+                               { text: "Visualisation", align: 'left', value: "visualisation" },
+                               { text: "Vis. min", align: 'left', value: "vis_min"}, 
+                               { text: "Vis. max", align: 'left', value: "vis_max"},
+                               { text: "Action", align: 'left', value: "remove"}],
             bands: [],
             remote_task_id: undefined,
         }
@@ -70,7 +74,15 @@ export default {
         
         refresh() {
             this.bands = this.meta.bands.map(function(band) {
-                return {index: band.index, title: band.title, visualisation:band.visualisation, vis_min: band.vis_min, vis_max: band.vis_max};
+                return {
+                    index: band.index, 
+                    title: band.title,
+                    wavelength: band.wavelength, 
+                    fwhm: band.fwhm,  
+                    visualisation:band.visualisation, 
+                    vis_min: band.vis_min, 
+                    vis_max: band.vis_max,
+                };
             });
         },
 

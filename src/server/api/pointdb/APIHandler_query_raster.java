@@ -55,7 +55,7 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 
 		if(format.equals("zip")) {
 			String tileFormat = "tiff";
-			response.setContentType("application/zip");
+			response.setContentType(Web.MIME_ZIP);
 			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
 			Receiver receiver = new StreamReceiver(zipOutputStream);
@@ -103,7 +103,7 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 				tiffWriter.addTiffBand(TiffBand.ofFloat64(rasterSubGrid.start_x, rasterSubGrid.start_y, rasterSubGrid.range_x, rasterSubGrid.range_y, rasterSubGrid.data, processingType));
 			}
 			receiver.setStatus(HttpServletResponse.SC_OK);
-			receiver.setContentType("image/tiff");
+			receiver.setContentType(Web.MIME_TIFF);
 			receiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 			tiffWriter.writeAuto(new DataOutputStream(receiver.getOutputStream()));
 			break;
@@ -113,7 +113,7 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 			DoubleFrame frame = new DoubleFrame(r.copySubData(), 0, 0, 0, 0);
 			ImageBufferARGB image = Renderer.renderGreyDouble(frame , frame.width, frame.height, Double.NaN, null);
 			receiver.setStatus(HttpServletResponse.SC_OK);
-			receiver.setContentType("image/png");
+			receiver.setContentType(Web.MIME_PNG);
 			image.writePngCompressed(receiver.getOutputStream());
 			break;
 		}

@@ -29,6 +29,7 @@ import broker.acl.FastUserIdentity;
 import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
 import util.JsonUtil;
+import util.Web;
 
 public class APIHandler_identity extends APIHandler {
 
@@ -74,7 +75,7 @@ public class APIHandler_identity extends APIHandler {
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {		
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 
 		String user = "anonymous";
@@ -203,8 +204,8 @@ public class APIHandler_identity extends APIHandler {
 			}
 						
 			pw.println();
-			pw.println("" + r.availableProcessors() + " Detected processors");
-			pw.println("" + ForkJoinPool.commonPool().getParallelism() + " Common thread pool parallelism");
+			pw.println("" + r.availableProcessors() + " stated processor cores");
+			pw.println("" + ForkJoinPool.commonPool().getParallelism() + " common thread pool parallelism");
 			pw.println();
 			pw.println(String.format(Locale.ENGLISH, "%.3f", (r.maxMemory() / (1024*1024)) / 1024d) + " GB maximum for RSDB Java allocatable memory");
 			pw.println(String.format(Locale.ENGLISH, "%.3f", (r.totalMemory() / (1024*1024)) / 1024d) + " GB for RSDB Java currently allocated memory");

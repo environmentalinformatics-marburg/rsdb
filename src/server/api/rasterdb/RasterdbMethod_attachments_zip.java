@@ -16,6 +16,7 @@ import org.tinylog.Logger;
 import broker.Broker;
 import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.RasterDB;
+import util.Web;
 
 public class RasterdbMethod_attachments_zip extends RasterdbMethod {
 	
@@ -42,7 +43,7 @@ public class RasterdbMethod_attachments_zip extends RasterdbMethod {
 			List<Path> filenames = rasterdb.getAttachmentFilenames();
 			Path root = rasterdb.config.getAttachmentFolderPath();
 			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("application/zip");
+			response.setContentType(Web.MIME_ZIP);
 			ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 			zipOutputStream.setLevel(Deflater.NO_COMPRESSION);
 

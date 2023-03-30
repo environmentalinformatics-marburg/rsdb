@@ -43,7 +43,7 @@ public class BasicStyle extends Style implements PolygonDrawer {
 		yamlMap.optFunString("stroke_color", text -> stroke_color = Renderer.stringToColor(text));
 		float stroke_width = yamlMap.optFloat("stroke_width", DEFAULT_STROKE_WIDTH);
 		float[] stroke_dash = yamlMap.optFloatArray("stroke_dash", null);
-		Logger.info(Arrays.toString(stroke_dash));
+		//Logger.info(Arrays.toString(stroke_dash));
 		stroke = createStroke(stroke_width, stroke_dash);
 		yamlMap.optFunString("fill_color", text -> fill_color = Renderer.stringToColor(text));
 	}

@@ -47,7 +47,7 @@ public class APIHandler_map extends PointdbAPIHandler {
 		Logger.info(Timer.stop("meta"));
 		//}
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType("image/png");
+		response.setContentType(Web.MIME_PNG);
 		imageRGBA.writePngUncompressed(response.getOutputStream());
 
 	}

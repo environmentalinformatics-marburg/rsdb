@@ -227,6 +227,8 @@ export default {
     },
     categoryToTitle(c) {
       switch(c) {
+        case "task_rsdb":
+          return "RSDB";        
         case "task_rasterdb":
           return "RasterDB";
         case "task_pointdb":

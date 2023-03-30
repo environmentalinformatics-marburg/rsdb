@@ -24,7 +24,7 @@ public class APIHandler_catalog_json extends APIHandler {
 		UserIdentity userIdentity = Web.getUserIdentity(request);
 
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		broker.catalog.writeJSON(response.getWriter(), userIdentity, false);
 	}
 }

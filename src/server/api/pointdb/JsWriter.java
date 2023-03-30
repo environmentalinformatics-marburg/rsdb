@@ -10,6 +10,7 @@ import pointdb.base.GeoPoint;
 import pointdb.processing.geopoint.RasterSubGrid;
 import util.ByteArrayOut;
 import util.Receiver;
+import util.Web;
 import util.collections.vec.Vec;
 
 public class JsWriter {
@@ -37,7 +38,7 @@ public class JsWriter {
 			out.putFloatRaw(p.y);
 		}
 
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		OutputStream stream = receiver.getOutputStream();
 		out.flip(stream);
 	}
@@ -57,7 +58,7 @@ public class JsWriter {
 			out.putByteRaw(p.classification);
 		}
 
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		OutputStream stream = receiver.getOutputStream();
 		out.flip(stream);
 	}
@@ -74,7 +75,7 @@ public class JsWriter {
 		out.putIntRaw(xLen);
 		out.putIntRaw(yLen);
 		out.putFloats2dBorderedRaw(data, yStart, yBorder, xStart, xBorder);
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		OutputStream stream = receiver.getOutputStream();
 		out.flip(stream);
 	}
@@ -87,7 +88,7 @@ public class JsWriter {
 		out.putIntRaw(xLen);
 		out.putIntRaw(yLen);
 		out.putFloats2d(data);
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		OutputStream stream = receiver.getOutputStream();
 		out.flip(stream);
 	}
@@ -100,7 +101,7 @@ public class JsWriter {
 		out.putIntRaw(xLen);
 		out.putIntRaw(yLen);
 		out.putFloats2d(data);
-		receiver.setContentType("application/octet-stream");
+		receiver.setContentType(Web.MIME_BINARY);
 		OutputStream stream = receiver.getOutputStream();
 		out.flip(stream);
 	}

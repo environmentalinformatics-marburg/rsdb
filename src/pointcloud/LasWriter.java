@@ -8,6 +8,7 @@ import java.util.Arrays;
 import util.BufferedDataOuputStreamLE;
 import util.LittleEndianDataOutputStream;
 import util.Receiver;
+import util.Web;
 
 public class LasWriter {
 	//
@@ -90,7 +91,7 @@ public class LasWriter {
 		double yoff = ((int)ymin);
 		double zoff = ((int)zmin);		
 
-		receiver.setContentType("application/octet-stream");	
+		receiver.setContentType(Web.MIME_BINARY);	
 		//LittleEndianDataOutputStream out = new LittleEndianDataOutputStream(receiver.getOutputStream());
 		try(BufferedDataOuputStreamLE out = new BufferedDataOuputStreamLE(receiver.getOutputStream())) {
 			out.putInt(LASF_SIGNATUR); //File Signature (“LASF”) char[4] 4 bytes

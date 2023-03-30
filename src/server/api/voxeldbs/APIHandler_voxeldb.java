@@ -34,9 +34,6 @@ import voxeldb.VoxelGeoRef;
 
 public class APIHandler_voxeldb {
 
-
-	protected static final String MIME_JSON = "application/json";
-
 	private final Broker broker;
 
 	private final Handler_voxels handler_voxels = new Handler_voxels();
@@ -102,7 +99,7 @@ public class APIHandler_voxeldb {
 		boolean extent = request.getParameter("extent") != null;
 
 		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MIME_JSON);
+		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
 		json.key("voxeldb");
@@ -412,7 +409,7 @@ public class APIHandler_voxeldb {
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}
-			response.setContentType(MIME_JSON);
+			response.setContentType(Web.MIME_JSON);
 			JSONWriter jsonResponse = new JSONWriter(response.getWriter());
 			jsonResponse.object();
 			jsonResponse.key("response");

@@ -25,6 +25,7 @@ import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import util.Range2d;
 import util.TimeUtil;
+import util.Web;
 import util.collections.ReadonlyNavigableSetView;
 
 public class WmsCapabilities {
@@ -101,7 +102,7 @@ public class WmsCapabilities {
 		Element eGetCapabilities = addGetResource(eRequest, "GetCapabilities");
 		addElement(eGetCapabilities, "Format", "text/xml");
 		Element eGetMap = addGetResource(eRequest, "GetMap");
-		addElement(eGetMap, "Format", "image/png");
+		addElement(eGetMap, "Format", Web.MIME_PNG);
 
 	}
 
