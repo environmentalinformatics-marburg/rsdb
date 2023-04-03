@@ -2,8 +2,6 @@ package pointcloud;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Phaser;
 import java.util.function.Consumer;
@@ -19,8 +17,7 @@ import rasterunit.TileKey;
 import remotetask.CancelableRemoteProxy;
 import util.collections.ReadonlyNavigableSetView;
 
-public class Rebuild extends CancelableRemoteProxy {
-	
+public class Rebuild extends CancelableRemoteProxy {	
 
 	private final PointCloud src;
 	private final Path rootPath;

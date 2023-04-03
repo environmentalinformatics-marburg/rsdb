@@ -24,6 +24,8 @@ public class TimeSlice {
 		}
 	}
 
+	public static final TimeSlice ZERO_UNTITLED = new TimeSlice(0, "untitled");
+
 	public final int id;
 	public final String name;
 
@@ -87,5 +89,10 @@ public class TimeSlice {
 			json.value(name);
 		}
 		json.endObject();
+	}
+
+	@Override
+	public String toString() {
+		return "TimeSlice [" + id + ": " + name + "]";
 	}
 }

@@ -6,16 +6,17 @@
          <v-toolbar>
             Mouse<br>Modus
             <v-btn-toggle v-model="mouseModusButtonState" mandatory style="border: 1px solid #8d8d88;">
-              <v-btn flat value="move" title="move map by mouse (press and hold left mouse button)">
+              <v-btn flat value="move" title="Move map by mouse (press and hold left mouse button).">
                 <v-icon>open_with</v-icon>move
               </v-btn>
-              <v-btn flat value="select" title="select an extent on map (press and hold left mouse button)">
+              <v-btn flat value="select" title="Select an extent on map (press and hold left mouse button).">
                 <v-icon>settings_overscan</v-icon>select
               </v-btn>
             </v-btn-toggle>
 
             <div style="padding-right: 10px;"></div>
-            <v-btn fab title="change viewer settings" @click="onSettingsDialog"><v-icon>settings_applications</v-icon></v-btn>
+            <v-btn icon small title="Change viewer settings." @click="onSettingsDialog"><v-icon>settings_applications</v-icon></v-btn>
+            <v-btn v-show="selectedExtent !== undefined" icon small title="Copy selected extent dimensions to clipboard." @click="onExtentCopy"><v-icon>content_copy</v-icon></v-btn>            
       </v-toolbar>
       <admin-viewer-select 
         :currentLayerWMS_opacity="layerWMS_opacity" 
@@ -116,11 +117,37 @@
     </div>
     <v-snackbar value="true"  v-for="(text, id) in notifications" :key="id">
       {{text}}<v-btn flat color="pink" @click.native="removeNotification(id)">Close</v-btn>
-    </v-snackbar>  
+    </v-snackbar>      
   </div>
 </template>
 
 <script>
+
+//derived from http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+function copyTextToClipboard(text) {
+	var textArea = document.createElement("textarea");
+	textArea.style.position = 'fixed';
+	textArea.style.top = 0;
+	textArea.style.left = 0;
+	textArea.style.width = '2em';
+	textArea.style.height = '2em';
+	textArea.style.padding = 0;
+	textArea.style.border = 'none';
+	textArea.style.outline = 'none';
+	textArea.style.boxShadow = 'none';
+	textArea.style.background = 'transparent';
+	textArea.value = text;
+	document.body.appendChild(textArea);
+	textArea.select();
+	try {
+		var successful = document.execCommand('copy');
+		var msg = successful ? 'successful' : 'unsuccessful';
+		console.log('copying text command was ' + msg);
+	} catch (e) {
+		console.log('ERROR unable to copy: '+e);
+	}
+	document.body.removeChild(textArea);
+}
 
 import { mapState } from 'vuex'
 
@@ -642,7 +669,13 @@ export default {
     },
     onSplitpanesResize() {
       this.olmap.updateSize();
-    }
+    },
+    onExtentCopy() {
+      if(this.selectedExtent !== undefined) {
+        copyTextToClipboard(this.selectedExtent[0] + ',' + this.selectedExtent[1] + ',' + this.selectedExtent[2] + ',' + this.selectedExtent[3]);
+        this.addnotification('Selected extent dimensions copied to clipboard.');
+      }
+    },    
   },
   computed: {
     ...mapState({
