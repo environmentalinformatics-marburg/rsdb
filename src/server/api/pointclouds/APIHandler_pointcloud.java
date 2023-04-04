@@ -126,7 +126,6 @@ public class APIHandler_pointcloud {
 		boolean requestCellCount = request.getParameter("cell_count") != null;
 		boolean requestCellSizeStats = request.getParameter("cell_size_stats") != null;
 
-
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
@@ -141,8 +140,6 @@ public class APIHandler_pointcloud {
 		json.key("proj4");
 		json.value(pointcloud.getProj4());
 
-
-
 		Unit unit = null;
 		if(pointcloud.hasProj4()) {
 			try {
@@ -154,7 +151,7 @@ public class APIHandler_pointcloud {
 					}
 				}
 			} catch(Exception e) {
-				Logger.warn(e);
+				Logger.warn(e.getMessage());
 			}
 		}
 		if(unit == null && pointcloud.hasCode()) {
@@ -167,7 +164,7 @@ public class APIHandler_pointcloud {
 					}
 				}
 			} catch(Exception e) {
-				Logger.warn(e);
+				Logger.warn(e.getMessage());
 			}
 		}
 		if(unit != null) {

@@ -1,13 +1,11 @@
 package rasterdb.node;
 
 
-import org.tinylog.Logger;
-
 import rasterdb.BandProcessor;
 import util.frame.DoubleFrame;
 
 public class ProcessorNode_gap_filling extends ProcessorNode {
-	
+
 
 	private final ProcessorNode node;
 	private final int maxRadius;
@@ -38,7 +36,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 		fill(src, dst, width, height, maxRadius);
 		return resultFrame;
 	}
-	
+
 	public static void fill(double[][] src, double[][] dst, int width, int height, int maxRadius) {
 		for (int y = 0; y < height; y++) {
 			double[] row = src[y];			
@@ -50,9 +48,51 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 		}
 	}
 
+	public static void fill(float[][] src, float[][] dst, int width, int height, int maxRadius) {
+		for (int y = 0; y < height; y++) {
+			float[] row = src[y];			
+			for (int x = 0; x < width; x++) {
+				if(!Float.isFinite(row[x])) {
+					fill(src, dst, width, height, x, y, maxRadius);
+				}
+			}
+		}
+	}
+
+	public static void fillBordered(float[][] src, float[][] dst, int width, int height, int maxRadius) {
+		int xmin = maxRadius;
+		int ymin = maxRadius;
+		int xupper = width - maxRadius;
+		int yupper = height - maxRadius;
+		for (int y = ymin; y < yupper; y++) {
+			float[] row = src[y];			
+			for (int x = xmin; x < xupper; x++) {
+				if(!Float.isFinite(row[x])) {
+					fillBordered(src, dst, width, height, x, y, maxRadius);
+				}
+			}
+		}
+	}
+
 	private static void fill(double[][] src, double[][] dst, int width, int height, int x, int y, int maxRadius) {
 		int radius = 1;
 		while(radius <= maxRadius && !fillG(src, dst, width, height, x, y, radius)) {
+			radius++;
+			//Logger.info("check " + radius);
+		}
+	}
+
+	private static void fill(float[][] src, float[][] dst, int width, int height, int x, int y, int maxRadius) {
+		int radius = 1;
+		while(radius <= maxRadius && !fillG(src, dst, width, height, x, y, radius)) {
+			radius++;
+			//Logger.info("check " + radius);
+		}
+	}
+
+	private static void fillBordered(float[][] src, float[][] dst, int width, int height, int x, int y, int maxRadius) {
+		int radius = 1;
+		while(radius <= maxRadius && !fillGBordered(src, dst, width, height, x, y, radius)) {
 			radius++;
 			//Logger.info("check " + radius);
 		}
@@ -70,7 +110,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 
 		double cnt = 0;
 		double sum = 0;
-		
+
 		if(ymin >= 0) {
 			double[] row = src[ymin];
 			for (int ix = cxmin; ix <= cxmax; ix++) {
@@ -81,7 +121,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 				}
 			}
 		}
-		
+
 		if(ymax < height) {
 			double[] row = src[ymax];
 			for (int ix = cxmin; ix <= cxmax; ix++) {
@@ -92,7 +132,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 				}
 			}
 		}
-		
+
 		if(xmin >= 0) {
 			for (int iy = cymin + 1; iy < cymax; iy++) {
 				double v = src[iy][xmin];
@@ -102,7 +142,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 				}
 			}
 		}
-		
+
 		if(xmax < width) {
 			for (int iy = cymin + 1; iy < cymax; iy++) {
 				double v = src[iy][xmax];
@@ -112,7 +152,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 				}
 			}
 		}
-		
+
 		if(cnt > 0) {
 			//Logger.info("fill "+fx+" "+fy+" "+cnt);
 			dst[fy][fx] = sum / cnt;
@@ -121,4 +161,125 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 		return false;
 	}
 
+	private static boolean fillG(float[][] src, float[][] dst, int width, int height, int fx, int fy, int radius) {
+		int xmin = fx - radius;
+		int ymin = fy - radius;
+		int xmax = fx + radius;
+		int ymax = fy + radius;
+		int cxmin = xmin < 0 ? 0 : xmin;
+		int cymin = ymin < 0 ? 0 : ymin;
+		int cxmax = xmax >= width ? width - 1 : xmax;
+		int cymax = ymax >= height ? height - 1 : ymax;
+
+		float cnt = 0;
+		float sum = 0;
+
+		if(ymin >= 0) {
+			float[] row = src[ymin];
+			for (int ix = cxmin; ix <= cxmax; ix++) {
+				float v = row[ix];
+				if(Float.isFinite(v)) {
+					sum += v;
+					cnt++;
+				}
+			}
+		}
+
+		if(ymax < height) {
+			float[] row = src[ymax];
+			for (int ix = cxmin; ix <= cxmax; ix++) {
+				float v = row[ix];
+				if(Float.isFinite(v)) {
+					sum += v;
+					cnt++;
+				}
+			}
+		}
+
+		if(xmin >= 0) {
+			for (int iy = cymin + 1; iy < cymax; iy++) {
+				float v = src[iy][xmin];
+				if(Float.isFinite(v)) {
+					sum += v;
+					cnt++;
+				}
+			}
+		}
+
+		if(xmax < width) {
+			for (int iy = cymin + 1; iy < cymax; iy++) {
+				float v = src[iy][xmax];
+				if(Float.isFinite(v)) {
+					sum += v;
+					cnt++;
+				}
+			}
+		}
+
+		if(cnt > 0) {
+			//Logger.info("fill "+fx+" "+fy+" "+cnt);
+			dst[fy][fx] = sum / cnt;
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean fillGBordered(float[][] src, float[][] dst, int width, int height, int fx, int fy, int radius) {
+		int xmin = fx - radius;
+		int ymin = fy - radius;
+		int xmax = fx + radius;
+		int ymax = fy + radius;
+
+		float cnt = 0;
+		float sum = 0;
+
+		{
+			float[] row = src[ymin];
+			for (int ix = xmin; ix <= xmax; ix++) {
+				float v = row[ix];
+				if(Float.isFinite(v)) {
+					sum += v;
+					cnt++;
+				}
+			}
+		}
+
+		{
+			float[] row = src[ymax];
+			for (int ix = xmin; ix <= xmax; ix++) {
+				float v = row[ix];
+				if(Float.isFinite(v)) {
+					sum += v;
+					cnt++;
+				}
+			}
+		}
+
+		{
+			for (int iy = ymin + 1; iy < ymax; iy++) {
+				float v = src[iy][xmin];
+				if(Float.isFinite(v)) {
+					sum += v;
+					cnt++;
+				}
+			}
+		}
+
+		{
+			for (int iy = ymin + 1; iy < ymax; iy++) {
+				float v = src[iy][xmax];
+				if(Float.isFinite(v)) {
+					sum += v;
+					cnt++;
+				}
+			}
+		}
+
+		if(cnt > 0) {
+			//Logger.info("fill "+fx+" "+fy+" "+cnt);
+			dst[fy][fx] = sum / cnt;
+			return true;
+		}
+		return false;
+	}
 }

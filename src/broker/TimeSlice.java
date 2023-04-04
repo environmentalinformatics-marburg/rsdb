@@ -95,4 +95,8 @@ public class TimeSlice {
 	public String toString() {
 		return "TimeSlice [" + id + ": " + name + "]";
 	}
+
+	public boolean isZERO_UNTITLED() {
+		return this == ZERO_UNTITLED;
+	}
 }

@@ -6,10 +6,10 @@ import org.tinylog.Logger;
 import com.googlecode.javaewah.datastructure.BitSet;
 
 import rasterdb.tile.ProcessingDouble;
+import rasterdb.tile.ProcessingFloat;
 import util.collections.vec.Vec;
 
 public class PointRaster {
-	
 
 	public final Vec<P3d>[][] grid;
 	public final double xmin;
@@ -39,15 +39,15 @@ public class PointRaster {
 		double[] zs = pointTable.z;
 		for (int i = 0; i < len; i++) {
 			try {
-			double x = (xs[i] - xmin) / res;
-			double y = (ys[i] - ymin) / res;
-			double z = zs[i];
-			Vec<P3d> list = grid[(int) y][(int) x];
-			if(list == null) {
-				list = new Vec<P3d>();
-				grid[(int) y][(int) x] = list;
-			}
-			list.add(new P3d(x, y, z));
+				double x = (xs[i] - xmin) / res;
+				double y = (ys[i] - ymin) / res;
+				double z = zs[i];
+				Vec<P3d> list = grid[(int) y][(int) x];
+				if(list == null) {
+					list = new Vec<P3d>();
+					grid[(int) y][(int) x] = list;
+				}
+				list.add(new P3d(x, y, z));
 			} catch(Exception e) {
 				Logger.info("insert point " + xs[i] + " " + ys[i]);
 				throw e;
@@ -85,6 +85,26 @@ public class PointRaster {
 					for(P3d p:c) {
 						if(p.z > z) {
 							z = p.z;
+						}
+					}
+					r[y][x] = z;
+				}
+
+			}
+		}
+		return r;
+	}
+	
+	public float[][] getTopFloat() {
+		float[][] r = ProcessingFloat.createEmpty(xlen, ylen);		
+		for (int y = 0; y < ylen; y++) {
+			for (int x = 0; x < xlen; x++) {
+				Vec<P3d> c = grid[y][x];
+				if(c != null) { // not empty
+					float z = Float.NEGATIVE_INFINITY;
+					for(P3d p:c) {
+						if(p.z > z) {
+							z = (float) p.z;
 						}
 					}
 					r[y][x] = z;

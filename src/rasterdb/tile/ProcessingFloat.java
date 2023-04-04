@@ -123,6 +123,24 @@ public class ProcessingFloat {
 		}
 		return pixels;
 	}
+	
+	public static float[][] copy(float[][] src, int width, int height) {
+		float[][] dst = new float[height][width];
+		for (int i = 0; i < height; i++) {
+		    System.arraycopy(src[i], 0, dst[i], 0, width);
+		}
+		return dst;
+	}
+	
+	public static float[][] withoutBorder(float[][] raster, int fill) {
+		int h = raster.length - fill - fill;
+		int w = raster[0].length - fill - fill;
+		float[][] r = new float[h][w];
+		for(int y = 0; y < h; y++) {
+			System.arraycopy(raster[fill + y], fill, r[y], 0, w);
+		}
+		return r;
+	}
 
 
 	/**

@@ -280,10 +280,10 @@ public class APIHandler_raster {
 		}		
 	}
 	
-	public static double[][] generateDTM(PointCloud pointcloud, int req_t, double proc_xmin, double proc_ymin, double proc_xmax, double proc_ymax, double res, int fill) {
+	public static double[][] generateDTM(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, double res, int fill) {
 		AttributeSelector selector = new AttributeSelector().setXYZ().setClassification();
-		Stream<PointTable> pointTables = pointcloud.getPointTables(req_t, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterGround);
-		PointRaster pointRaster_dtm = new PointRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
+		Stream<PointTable> pointTables = pointcloud.getPointTables(t, xmin, ymin, xmax, ymax, selector, CellTable::filterGround);
+		PointRaster pointRaster_dtm = new PointRaster(xmin, ymin, xmax, ymax, res);
 		pointTables.sequential().forEach(pointRaster_dtm::insert);
 		double[][] grid_dtm = pointRaster_dtm.getMedian();
 		int width = grid_dtm[0].length;

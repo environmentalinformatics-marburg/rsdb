@@ -112,7 +112,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 						}
 					}
 				} catch(Exception e) {
-					Logger.warn(e);
+					Logger.warn(e.getMessage());
 				}
 			}
 			if(ref.has_code()) {
@@ -128,7 +128,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 							}
 						}
 					} catch(Exception e) {
-						Logger.warn(e);
+						Logger.warn(e.getMessage());
 					}
 				}
 			}

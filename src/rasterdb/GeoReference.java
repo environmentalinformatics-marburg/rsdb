@@ -117,9 +117,25 @@ public class GeoReference {
 	public double pixelXToGeo(int pixelX) {
 		return (pixelX * pixel_size_x) + offset_x;
 	}
-
+	
 	public double pixelYToGeo(int pixelY) {
 		return (pixelY * pixel_size_y) + offset_y;
+	}
+	
+	public double pixelXToGeoBorder(int pixelX) {
+		return pixelXToGeo(pixelX + 1);
+	}
+
+	public double pixelYToGeoBorder(int pixelY) {
+		return pixelYToGeo(pixelY + 1);
+	}
+	
+	public double pixelXToGeoUpper(int pixelX) {
+		return Math.nextDown(pixelXToGeoBorder(pixelX));
+	}
+	
+	public double pixelYToGeoUpper(int pixelY) {
+		return Math.nextDown(pixelYToGeoBorder(pixelY));
 	}
 
 	public double pixelXToGeo(double pixelX) {
@@ -280,6 +296,12 @@ public class GeoReference {
 
 	public double pixelYdivToGeo(int div, int pixelY) {
 		return (pixelY * (pixel_size_y * div)) + offset_y;
+	}
+	
+	public void throwNotSameXYpixelsize() {
+		if(pixel_size_x != pixel_size_y) {
+			throw new RuntimeException("Not same pixel size in x y: " + pixel_size_x + "  " + pixel_size_y);
+		}
 	}
 
 }
