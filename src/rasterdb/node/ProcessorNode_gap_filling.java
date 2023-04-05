@@ -64,15 +64,30 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 		int ymin = maxRadius;
 		int xupper = width - maxRadius;
 		int yupper = height - maxRadius;
+		int notFilled = 0;
+		final int maxNotFilled = 64;
 		for (int y = ymin; y < yupper; y++) {
 			float[] row = src[y];			
 			for (int x = xmin; x < xupper; x++) {
-				if(!Float.isFinite(row[x])) {
-					fillBordered(src, dst, width, height, x, y, maxRadius);
-				}
+				if(Float.isFinite(row[x])) {
+					notFilled = 0;
+				} else
+					if(notFilled < maxNotFilled) {
+						if(fillBordered(src, dst, width, height, x, y, 1, maxRadius)) {
+							notFilled = 0;
+						} else
+							notFilled++;
+					} else {
+						if(fillBordered(src, dst, width, height, x, y, maxRadius, maxRadius)) {
+							notFilled = 0;
+							fillBordered(src, dst, width, height, x, y, 1, maxRadius);
+						} else
+							notFilled++;
+					}
 			}
 		}
 	}
+
 
 	private static void fill(double[][] src, double[][] dst, int width, int height, int x, int y, int maxRadius) {
 		int radius = 1;
@@ -90,12 +105,13 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 		}
 	}
 
-	private static void fillBordered(float[][] src, float[][] dst, int width, int height, int x, int y, int maxRadius) {
-		int radius = 1;
-		while(radius <= maxRadius && !fillGBordered(src, dst, width, height, x, y, radius)) {
-			radius++;
-			//Logger.info("check " + radius);
+	private static boolean fillBordered(float[][] src, float[][] dst, int width, int height, int x, int y, int minRadius, int maxRadius) {
+		for (int radius = minRadius; radius <= maxRadius; radius++) {
+			if(fillGBordered(src, dst, width, height, x, y, radius)) {
+				return true;
+			}
 		}
+		return false;
 	}
 
 	private static boolean fillG(double[][] src, double[][] dst, int width, int height, int fx, int fy, int radius) {

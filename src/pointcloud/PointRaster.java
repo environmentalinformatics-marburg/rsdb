@@ -19,6 +19,7 @@ public class PointRaster {
 	public final double res;
 	public final int xlen;
 	public final int ylen;
+	private int insertedPointTablesCount = 0;
 
 	@SuppressWarnings("unchecked")
 	public PointRaster(double xmin, double ymin, double xmax, double ymax, double res) {
@@ -52,7 +53,8 @@ public class PointRaster {
 				Logger.info("insert point " + xs[i] + " " + ys[i]);
 				throw e;
 			}
-		}		
+		}
+		insertedPointTablesCount++;
 	}
 
 	public void insert(PointTable pointTable, BitSet filter) {
@@ -72,7 +74,8 @@ public class PointRaster {
 				}
 				list.add(new P3d(x, y, z));
 			}
-		}		
+		}
+		insertedPointTablesCount++;
 	}
 
 	public double[][] getTop() {
@@ -143,5 +146,9 @@ public class PointRaster {
 			}
 		}
 		return r;
+	}
+	
+	public int getInsertedPointTablesCount() {
+		return insertedPointTablesCount;
 	}
 }

@@ -14,8 +14,8 @@ import pointcloud.AttributeSelector;
 import pointcloud.CellTable;
 import pointcloud.DoubleRect;
 import pointcloud.PointCloud;
-import pointcloud.PointRaster;
 import pointcloud.PointTable;
+import pointcloud.TopFloatRaster;
 import rasterdb.Band;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
@@ -69,7 +69,7 @@ public class Task_surface_raster extends CancelableRemoteTask {
 			surface_xmax = rect.xmax;
 			surface_ymax = rect.ymax;
 		}
-		
+
 		double surface_res = 1d;
 
 		String rasterdb_name = task.optString("rasterdb", pointcloud.getName() + "_surface");
@@ -130,20 +130,22 @@ public class Task_surface_raster extends CancelableRemoteTask {
 		setMessage("process raster");
 
 		Rect2i raster_rect = new Rect2i(raster_xmin, raster_ymin, raster_xmax, raster_ymax);
-		int fill = 32;
-		final int tile_size = 4096 - fill - fill;
+		int fill = 16;
+		final int tile_size = 2048 - fill - fill;
 		//final int tile_size = 1024;
 		raster_rect.tiledIO(tile_size, tile_size, (xtile, ytile, xtilemax, ytilemax, xtmin, ytmin, xtmax, ytmax) -> {
+			throwCanceled();
 			setMessage("process raster tile " + (xtile+1) + ", " + (ytile+1) + " of " + (xtilemax+1) + ", " + (ytilemax+1));
-			processRaster(pointcloud, rasterdb, timeSlice, band, xtmin, ytmin, xtmax, ytmax, false, fill);
+			processRasterDSM(pointcloud, rasterdb, timeSlice, band, xtmin, ytmin, xtmax, ytmax, false, fill);
 		});
 
+		throwCanceled();
 		setMessage("rebuild pyramid");
 		rasterdb.rebuildPyramid(true);	
 		setMessage("Done.");
 	}
 
-	private void processRaster(PointCloud pointcloud, RasterDB rasterdb, TimeSlice timeSlice, Band band, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, boolean commit, int fill) throws IOException {
+	private void processRasterDSM(PointCloud pointcloud, RasterDB rasterdb, TimeSlice timeSlice, Band band, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, boolean commit, int fill) throws IOException {
 		GeoReference ref = rasterdb.ref();
 		ref.throwNotSameXYpixelsize();
 		double res = ref.pixel_size_x;
@@ -156,26 +158,29 @@ public class Task_surface_raster extends CancelableRemoteTask {
 		int proc_raster_width = raster_width + fill + fill;
 		int proc_raster_height = raster_height + fill + fill;
 		setMessage("process raster "+proc_xmin+" "+proc_ymin+" "+proc_xmax+" "+proc_ymax);
-		PointRaster pointRaster = new PointRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
+		TopFloatRaster topFloatRaster = new TopFloatRaster(proc_xmin, proc_ymin, proc_xmax, proc_ymax, res);
 
 		AttributeSelector selector = new AttributeSelector().setXYZ().setClassification();
 		Stream<PointTable> pointTables = pointcloud.getPointTables(timeSlice.id, proc_xmin, proc_ymin, proc_xmax, proc_ymax, selector, CellTable::filterEntity);
-		pointTables.sequential().forEach(pointRaster::insert);
-		float[][] raster = pointRaster.getTopFloat();
-		if(fill > 0) {
-			float[][] raster_dst = ProcessingFloat.copy(raster, proc_raster_width, proc_raster_height);
-			ProcessorNode_gap_filling.fillBordered(raster, raster_dst, proc_raster_width, proc_raster_height, fill);
-			raster = ProcessingFloat.withoutBorder(raster_dst, fill);			
-		}
+		pointTables.sequential().forEach(topFloatRaster::insert);
+		if(topFloatRaster.getInsertedPointTablesCount() > 0) {
+			float[][] raster = topFloatRaster.grid;
+			if(fill > 0) {
+				float[][] raster_dst = ProcessingFloat.copy(raster, proc_raster_width, proc_raster_height);
+				ProcessorNode_gap_filling.fillBordered(raster, raster_dst, proc_raster_width, proc_raster_height, fill);
+				raster = ProcessingFloat.withoutBorder(raster_dst, fill);			
+			}
 
-
-		RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
-		int cnt = ProcessingFloat.writeMerge(rasterUnit, timeSlice.id, band, raster, raster_ymin, raster_xmin);
-		if(commit) {
-			rasterUnit.commit();
-			setMessage("commited");
+			RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
+			int cnt = ProcessingFloat.writeMerge(rasterUnit, timeSlice.id, band, raster, raster_ymin, raster_xmin);
+			if(commit) {
+				rasterUnit.commit();
+				setMessage("commited");
+			}
+			setMessage("tiles written: " + cnt);
+		} else {
+			setMessage("skip empty");
 		}
-		setMessage("tiles written: " + cnt);
 	}
 
 
