@@ -511,4 +511,17 @@ public class ProcessingFloat {
 			counter.add(tilesWrittenInRow);
 		}		
 	}
+	
+	public static float[][] minus(float[][] a, float[][] b, int width, int height) {
+		float[][] c = new float[height][width];
+		for (int y = 0; y < height; y++) {
+			float[] rowa = a[y];
+			float[] rowb = b[y];
+			float[] rowc = c[y];
+			for (int x = 0; x < width; x++) {
+				rowc[x] = rowa[x] - rowb[x];
+			}
+		}
+		return c;
+	}
 }

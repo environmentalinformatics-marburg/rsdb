@@ -1,46 +1,47 @@
 package util.collections.vec;
 
 import java.util.Arrays;
-import java.util.function.DoubleConsumer;
 
-public class DoubleVec {
+import util.yaml.YamlMap.FloatConsumer;
 
-	private static final double[] DEFAULT_SIZED_EMPTY_ARRAY = {};
+public class FloatVec {
 
-	protected int size;
-	protected double[] items;
+	private static final float[] DEFAULT_SIZED_EMPTY_ARRAY = {};
+
+	public int size;
+	public float[] items;
 	
-	public static <T> DoubleVec ofOne(double e) {
-		return new DoubleVec(new double[] {e}, 1);
+	public static <T> FloatVec ofOne(float e) {
+		return new FloatVec(new float[] {e}, 1);
 	}
 	
-	public DoubleVec() {
+	public FloatVec() {
 		items = DEFAULT_SIZED_EMPTY_ARRAY;
 	}
 
-	public DoubleVec(int initialCapacity) {
-		items = new double[initialCapacity];
+	public FloatVec(int initialCapacity) {
+		items = new float[initialCapacity];
 	}
 	
-	public DoubleVec(double[] items) {
+	public FloatVec(float[] items) {
 		this.items = items;
 		this.size = items.length;
 	}
 	
-	public DoubleVec(double[] items, int size) {
+	public FloatVec(float[] items, int size) {
 		this.items = items;
 		this.size = size;
 	}
 	
-	public void forEach(DoubleConsumer consumer) {
+	public void forEach(FloatConsumer consumer) {
 		int len = size;
-		double[] data = items;
+		float[] data = items;
 		for (int i = 0; i < len; i++) {
 			consumer.accept(data[i]);
 		}
 	}
 	
-	public void add(double e) {		
+	public void add(float e) {		
 		if (items.length == size) {
 			growForOne();
 		}
@@ -49,11 +50,11 @@ public class DoubleVec {
 	
 	private void growForOne() {
 		if (items == DEFAULT_SIZED_EMPTY_ARRAY) {
-			items = new double[10];
+			items = new float[10];
 		} else {
 			int oldLen = size;
 			int newLen = oldLen + (oldLen >> 1) + 1;
-			double[] newItems = new double[newLen];
+			float[] newItems = new float[newLen];
 			System.arraycopy(this.items, 0, newItems, 0, oldLen);
 			items = newItems;
 		}
@@ -67,22 +68,22 @@ public class DoubleVec {
 		return size;
 	}
 	
-	public double get(int index) {
+	public float get(int index) {
 		if(this.size <= index) {
 			throw new IndexOutOfBoundsException();
 		}		
 		return this.items[index];       
 	}
 	
-	public double min() {		
+	public float min() {		
 		int len = size;
-		double[] data = items;
+		float[] data = items;
 		if(len == 0) {
-			return Double.NaN;
+			return Float.NaN;
 		}
-		double min = data[0];
+		float min = data[0];
 		for (int i = 1; i < len; i++) {
-			double v = data[i];
+			float v = data[i];
 			if(v < min) {
 				min = v;
 			}
@@ -90,15 +91,15 @@ public class DoubleVec {
 		return min;
 	}
 	
-	public double max() {		
+	public float max() {		
 		int len = size;
-		double[] data = items;
+		float[] data = items;
 		if(len == 0) {
-			return Double.NaN;
+			return Float.NaN;
 		}
-		double max = data[0];
+		float max = data[0];
 		for (int i = 1; i < len; i++) {
-			double v = data[i];
+			float v = data[i];
 			if(max < v) {
 				max = v;
 			}
@@ -106,7 +107,7 @@ public class DoubleVec {
 		return max;
 	}
 	
-	public double[] toArray() {
+	public float[] toArray() {
 		return Arrays.copyOf(items, size);
 	}
 	

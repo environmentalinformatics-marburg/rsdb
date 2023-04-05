@@ -5,13 +5,12 @@ import org.tinylog.Logger;
 
 import com.googlecode.javaewah.datastructure.BitSet;
 
-import rasterdb.tile.ProcessingDouble;
 import rasterdb.tile.ProcessingFloat;
-import util.collections.vec.Vec;
+import util.collections.vec.FloatVec;
 
-public class PointRaster {
+public class ZRasterFloat {
 
-	public final Vec<P3d>[][] grid;
+	public final FloatVec[][] grid;
 	public final double xmin;
 	public final double ymin;
 	public final double xmax;
@@ -21,8 +20,7 @@ public class PointRaster {
 	public final int ylen;
 	private int insertedPointTablesCount = 0;
 
-	@SuppressWarnings("unchecked")
-	public PointRaster(double xmin, double ymin, double xmax, double ymax, double res) {
+	public ZRasterFloat(double xmin, double ymin, double xmax, double ymax, double res) {
 		this.xmin = xmin;
 		this.ymin = ymin;
 		this.xmax = xmax;
@@ -30,7 +28,7 @@ public class PointRaster {
 		this.res = res;
 		this.xlen = (int) ((xmax - xmin) / res) + 1;
 		this.ylen = (int) ((ymax - ymin) / res) + 1;
-		this.grid = new Vec[ylen][xlen];
+		this.grid = new FloatVec[ylen][xlen];
 	}
 
 	public void insert(PointTable pointTable) {
@@ -42,13 +40,13 @@ public class PointRaster {
 			try {
 				double x = (xs[i] - xmin) / res;
 				double y = (ys[i] - ymin) / res;
-				double z = zs[i];
-				Vec<P3d> list = grid[(int) y][(int) x];
+				float z = (float) zs[i];
+				FloatVec list = grid[(int) y][(int) x];
 				if(list == null) {
-					list = new Vec<P3d>();
+					list = new FloatVec();
 					grid[(int) y][(int) x] = list;
 				}
-				list.add(new P3d(x, y, z));
+				list.add(z);
 			} catch(Exception e) {
 				Logger.info("insert point " + xs[i] + " " + ys[i]);
 				throw e;
@@ -66,48 +64,31 @@ public class PointRaster {
 			if(filter.get(i)) {
 				double x = (xs[i] - xmin) / res;
 				double y = (ys[i] - ymin) / res;
-				double z = zs[i];
-				Vec<P3d> list = grid[(int) y][(int) x];
+				float z = (float) zs[i];
+				FloatVec list = grid[(int) y][(int) x];
 				if(list == null) {
-					list = new Vec<P3d>();
+					list = new FloatVec();
 					grid[(int) y][(int) x] = list;
 				}
-				list.add(new P3d(x, y, z));
+				list.add(z);
 			}
 		}
 		insertedPointTablesCount++;
 	}
 
-	public double[][] getTop() {
-		double[][] r = ProcessingDouble.createEmpty(xlen, ylen);		
-		for (int y = 0; y < ylen; y++) {
-			for (int x = 0; x < xlen; x++) {
-				Vec<P3d> c = grid[y][x];
-				if(c != null) { // not empty
-					double z = Double.NEGATIVE_INFINITY;
-					for(P3d p:c) {
-						if(p.z > z) {
-							z = p.z;
-						}
-					}
-					r[y][x] = z;
-				}
-
-			}
-		}
-		return r;
-	}
-	
-	public float[][] getTopFloat() {
+	public float[][] getTop() {
 		float[][] r = ProcessingFloat.createEmpty(xlen, ylen);		
 		for (int y = 0; y < ylen; y++) {
 			for (int x = 0; x < xlen; x++) {
-				Vec<P3d> c = grid[y][x];
+				FloatVec c = grid[y][x];
 				if(c != null) { // not empty
 					float z = Float.NEGATIVE_INFINITY;
-					for(P3d p:c) {
-						if(p.z > z) {
-							z = (float) p.z;
+					int len = c.size;
+					float[] buf = c.items;
+					for(int i = 0; i < len; i++) {
+						float bufz = buf[i];
+						if(bufz > z) {
+							z = bufz;
 						}
 					}
 					r[y][x] = z;
@@ -118,57 +99,28 @@ public class PointRaster {
 		return r;
 	}
 
-	public double[][] getMedian() {
-		double[][] r = ProcessingDouble.createEmpty(xlen, ylen);		
-		for (int y = 0; y < ylen; y++) {
-			for (int x = 0; x < xlen; x++) {
-				Vec<P3d> c = grid[y][x];
-				if(c != null) { // not empty
-					int len = c.size();
-					switch(len) {
-					case 1:
-						r[y][x] = c.get(0).z;
-						break;
-					case 2:
-						r[y][x] = (c.get(0).z + c.get(1).z) / 2;	
-						break;
-					default:
-						c.sort(P3d.Z_COMPARATOR);
-						if(len % 2 == 0) {
-							int pos = len / 2;
-							r[y][x] = (c.get(pos - 1).z + c.get(pos).z) / 2d;
-						} else {
-							r[y][x] =  c.get(len / 2).z;
-						}
-					}
-				}
-
-			}
-		}
-		return r;
-	}
-	
-	public float[][] getMedianFloat() {
+	public float[][] getMedian() {
 		float[][] r = ProcessingFloat.createEmpty(xlen, ylen);		
 		for (int y = 0; y < ylen; y++) {
 			for (int x = 0; x < xlen; x++) {
-				Vec<P3d> c = grid[y][x];
+				FloatVec c = grid[y][x];
 				if(c != null) { // not empty
 					int len = c.size();
+					float[] buf = c.items;
 					switch(len) {
 					case 1:
-						r[y][x] = (float) c.get(0).z;
+						r[y][x] = buf[0];
 						break;
 					case 2:
-						r[y][x] = (float) ((c.get(0).z + c.get(1).z) / 2);	
+						r[y][x] = (buf[0] + buf[1]) / 2f;	
 						break;
 					default:
-						c.sort(P3d.Z_COMPARATOR);
+						c.sort();
 						if(len % 2 == 0) {
 							int pos = len / 2;
-							r[y][x] = (float) ((c.get(pos - 1).z + c.get(pos).z) / 2d);
+							r[y][x] = (buf[pos - 1] + buf[pos]) / 2f;
 						} else {
-							r[y][x] =  (float) c.get(len / 2).z;
+							r[y][x] =  buf[len / 2];
 						}
 					}
 				}
@@ -177,7 +129,7 @@ public class PointRaster {
 		}
 		return r;
 	}
-	
+
 	public int getInsertedPointTablesCount() {
 		return insertedPointTablesCount;
 	}
