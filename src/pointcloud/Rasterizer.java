@@ -1,15 +1,13 @@
 package pointcloud;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.stream.Stream;
 
-
 import org.tinylog.Logger;
 
-import broker.TimeSlice;
 import broker.Informal.Builder;
+import broker.TimeSlice;
 import rasterdb.Band;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
@@ -19,8 +17,7 @@ import rasterunit.RasterUnitStorage;
 import remotetask.CancelableRemoteProxy;
 import util.Range2d;
 
-public class Rasterizer extends CancelableRemoteProxy {
-	
+public class Rasterizer extends CancelableRemoteProxy {	
 
 	public static final double DEFAULT_POINT_SCALE = 4;
 

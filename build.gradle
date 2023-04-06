@@ -66,18 +66,18 @@ dependencies {
   	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.33'  // TODO: check compatibility with newer version 2
   	//implementation group: 'com.opencsv', name: 'opencsv', version: '4.6' // warning: API at v5.0 breaks
   	implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'  	
-  	implementation group: 'com.github.mreutegg', name: 'laszip4j', version: '0.13'
+  	implementation group: 'com.github.mreutegg', name: 'laszip4j', version: '0.14'
   	implementation group: 'ar.com.hjg', name: 'pngj', version: '2.1.0'
   	implementation group: 'com.samskivert', name: 'jmustache', version: '1.15'	
   	
   	implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
   	implementation group: 'com.mkobos', name: 'pca_transform', version: '1.0.2'
   	
-  	implementation group: 'com.googlecode.javaewah', name: 'JavaEWAH', version: '1.1.13'  	
+  	implementation group: 'com.googlecode.javaewah', name: 'JavaEWAH', version: '1.2.3'  	
   	implementation group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.9.1' // caution: newer versions may break storage layout (last tested: 1.1.7.7)
     implementation group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.11' // data format changed from 0.1.11 to 0.1.12  	
     implementation group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.12' // caution: newer versions may break storage layout
-  	implementation group: 'com.github.luben', name: 'zstd-jni', version: '1.5.4-2' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
+  	implementation group: 'com.github.luben', name: 'zstd-jni', version: '1.5.5-1' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
   	
   	implementation group: 'org.antlr', name: 'antlr4-runtime', version: '4.9.3' // caution: newer versions may break with generated DSL Java source files
   	

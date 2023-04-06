@@ -12,8 +12,8 @@ import org.tinylog.Logger;
 public class BlokingTaskSubmitter {
 	
 
-	private static ForkJoinPool executor = ForkJoinPool.commonPool();
-	//static final ForkJoinPool executor = new ForkJoinPool(1);
+	private static final ForkJoinPool executor = ForkJoinPool.commonPool();
+	//private static final ForkJoinPool executor = new ForkJoinPool(1);
 
 	private static final int SUBMIT_CHECK_INTERVAL_COUNT = 64;
 	private static final int MAX_QUEUED_COUNT = 128;
