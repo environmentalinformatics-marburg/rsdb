@@ -10,20 +10,21 @@
                 </v-card-title>
                 <v-data-table v-bind:headers="bandTableHeaders" :items="bands" class="meta-content" hide-actions>
                     <template slot="items" slot-scope="props">
-                        <td><input type="checkbox" id="checkbox" v-model="props.item.remove" style="width: 40px;"/>remove band</td>
-                        <td>{{props.item.index}}</td>
+                        <td><input type="checkbox" id="checkbox" v-model="props.item.remove" style="width: 40px;"/><span style="color: grey;"><span :class="{remove: props.item.remove}">remove band</span></span></td>
+                        <td>{{props.item.index}} <span style="font-size: 0.8em; color: grey;">{{props.item.datatype}}</span></td>
                         <td><input v-model="props.item.title" placeholder="[title]" /></td>
                         <td><input v-model="props.item.wavelength" placeholder="[wavelength]" /></td>
                         <td><input v-model="props.item.fwhm" placeholder="[fwhm]" /></td>
-                        <td><input v-model="props.item.visualisation" placeholder="[visualisation]" /></td>
+                        <td :class="toVisualisationClass(props.item.visualisation)"><input v-model="props.item.visualisation" placeholder="[visualisation]" /></td>
                         <td><input v-model="props.item.vis_min" placeholder="[vis_min]" /></td>
                         <td><input v-model="props.item.vis_max" placeholder="[vis_max]" /></td>
-                        <td :class="{remove: props.item.remove}">{{props.item.remove ? 'remove band' : '(keep band)'}}</td>
+                        <td style="color: grey;"><span :class="{remove: props.item.remove}">{{props.item.remove ? 'remove band' : '(keep band)'}}</span></td>
                     </template>
                 </v-data-table>
                 <v-card-text>
                     <b>Edit</b> band properties by click on that entry. 
                     <br><b>Remove</b> bands by checkbox selection. All data of that bands will be removed.
+                    <br><b>Visualisation column</b> contains an optional hint for band visualisation. Possible values: <b>red</b> or <b>green</b> or <b>blue</b>.
                 </v-card-text>
                 <br>
                 <v-card-actions>
@@ -57,7 +58,7 @@ export default {
             dialog: false,
             setError: false,
             setErrorMessage: undefined,
-            bandTableHeaders: [{ text: "", align: 'left', sortable: false}, 
+            bandTableHeaders: [{ text: "Removal", align: 'left', sortable: false}, 
                                { text: "Index", align: 'left', value: "index"},
                                { text: "Title", align: 'left', value: "title" },
                                { text: "Wavelength", align: 'left', value: "wavelength"},
@@ -82,6 +83,7 @@ export default {
                     visualisation:band.visualisation, 
                     vis_min: band.vis_min, 
                     vis_max: band.vis_max,
+                    datatype: band.datatype,
                 };
             });
         },
@@ -150,6 +152,19 @@ export default {
             return error.message + " - " + JSON.stringify(error.response.data);
         },
 
+        toVisualisationClass(visualisation) {
+            if(visualisation === 'red') {
+                return 'visualisation-red';
+            }
+            if(visualisation === 'green') {
+                return 'visualisation-green';
+            }
+            if(visualisation === 'blue') {
+                return 'visualisation-blue';
+            }
+            return 'visualisation-unspecified';
+        },
+
     },
     watch: {
         meta() {
@@ -172,6 +187,21 @@ export default {
 
 .remove {
     color: #e43215;
+}
+.visualisation-red {
+    color: #d51717e5
+}
+
+.visualisation-green {
+    color: #24a824e5;
+}
+
+.visualisation-blue {
+    color: #0f4ee1;
+}
+
+.visualisation-unspecified {
+    color: grey;
 }
 
 </style>

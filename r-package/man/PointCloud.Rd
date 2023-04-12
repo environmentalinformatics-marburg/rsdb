@@ -58,7 +58,21 @@ Vector of column-names. See "$attribute_list" for available attributes.
 
 \strong{filter}: point filter.
 
-Vector of conjunctive connected filter elements.
+Vector of conjunctive connected filter elements:
+
+'ground' Ground classified points only.
+
+'vegetation' Vegetation classified points only.
+
+'non_ground' All not ground classified points.
+
+'non_vegetation' All not vegetation classified points.
+
+'classification=x' e.g. 'classification=1' Points of that classification only.
+
+'return=x' e.g. 'return=1' Points of that return only.
+
+'last_return=x' e.g. 'last_return=1' Points of that last_return only (returns counted in reverse beginning with last).
 
 \strong{normalise}: point normalisation.
 
@@ -260,16 +274,16 @@ woellauer
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{PointCloud$new()}}
-\item \href{#method-points}{\code{PointCloud$points()}}
-\item \href{#method-raster}{\code{PointCloud$raster()}}
-\item \href{#method-volume}{\code{PointCloud$volume()}}
-\item \href{#method-indices}{\code{PointCloud$indices()}}
+\item \href{#method-PointCloud-new}{\code{PointCloud$new()}}
+\item \href{#method-PointCloud-points}{\code{PointCloud$points()}}
+\item \href{#method-PointCloud-raster}{\code{PointCloud$raster()}}
+\item \href{#method-PointCloud-volume}{\code{PointCloud$volume()}}
+\item \href{#method-PointCloud-indices}{\code{PointCloud$indices()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-PointCloud-new"></a>}}
+\if{latex}{\out{\hypertarget{method-PointCloud-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -277,8 +291,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-points"></a>}}
-\if{latex}{\out{\hypertarget{method-points}{}}}
+\if{html}{\out{<a id="method-PointCloud-points"></a>}}
+\if{latex}{\out{\hypertarget{method-PointCloud-points}{}}}
 \subsection{Method \code{points()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(
@@ -293,8 +307,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-raster"></a>}}
-\if{latex}{\out{\hypertarget{method-raster}{}}}
+\if{html}{\out{<a id="method-PointCloud-raster"></a>}}
+\if{latex}{\out{\hypertarget{method-PointCloud-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$raster(
@@ -309,8 +323,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-volume"></a>}}
-\if{latex}{\out{\hypertarget{method-volume}{}}}
+\if{html}{\out{<a id="method-PointCloud-volume"></a>}}
+\if{latex}{\out{\hypertarget{method-PointCloud-volume}{}}}
 \subsection{Method \code{volume()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$volume(
@@ -324,8 +338,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-indices"></a>}}
-\if{latex}{\out{\hypertarget{method-indices}{}}}
+\if{html}{\out{<a id="method-PointCloud-indices"></a>}}
+\if{latex}{\out{\hypertarget{method-PointCloud-indices}{}}}
 \subsection{Method \code{indices()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$indices(

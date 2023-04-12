@@ -116,7 +116,7 @@ public class Task_surface_raster extends CancelableRemoteTask {
 		if(!timeSlice.isZERO_UNTITLED()) {
 			rasterdb.setTimeSlice(timeSlice);
 		}
-		
+
 		//final String rasterType = "DSM";
 		//final String rasterType = "DTM";
 		//final String rasterType = "CHM";
@@ -130,20 +130,17 @@ public class Task_surface_raster extends CancelableRemoteTask {
 		int fill = 16;
 		final int tile_size = 2048 - fill - fill;
 		//final int tile_size = 1024;
-		
+
 		TaskPipeline taskPipeline = new TaskPipeline(16);
-		raster_rect.tiledIO(tile_size, tile_size, (xtile, ytile, xtilemax, ytilemax, xtmin, ytmin, xtmax, ytmax) -> {
+		raster_rect.tiledThrows(tile_size, tile_size, (xtile, ytile, xtilemax, ytilemax, xtmin, ytmin, xtmax, ytmax) -> {
 			throwCanceled();
 			setMessage("process raster tile " + (xtile+1) + ", " + (ytile+1) + " of " + (xtilemax+1) + ", " + (ytilemax+1));			
 			//processRaster(pointcloud, rasterdb, timeSlice, band, xtmin, ytmin, xtmax, ytmax, false, fill, rasterType);
 			SurfaceRasterizer surfaceRasterizer = new SurfaceRasterizer(this, pointcloud, rasterdb, timeSlice, band, xtmin, ytmin, xtmax, ytmax, false, fill, rasterType);
 			//surfaceRasterizer.process();
 			//surfaceRasterizer.finish();
-			try {
-				taskPipeline.submit(surfaceRasterizer);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
+			taskPipeline.submit(surfaceRasterizer);
+
 		});
 		taskPipeline.join();
 

@@ -99,14 +99,14 @@ woellauer
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{VectorDB$new()}}
-\item \href{#method-getVectors}{\code{VectorDB$getVectors()}}
-\item \href{#method-getVectorsWGS84}{\code{VectorDB$getVectorsWGS84()}}
+\item \href{#method-VectorDB-new}{\code{VectorDB$new()}}
+\item \href{#method-VectorDB-getVectors}{\code{VectorDB$getVectors()}}
+\item \href{#method-VectorDB-getVectorsWGS84}{\code{VectorDB$getVectorsWGS84()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-VectorDB-new"></a>}}
+\if{latex}{\out{\hypertarget{method-VectorDB-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VectorDB$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -114,8 +114,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-getVectors"></a>}}
-\if{latex}{\out{\hypertarget{method-getVectors}{}}}
+\if{html}{\out{<a id="method-VectorDB-getVectors"></a>}}
+\if{latex}{\out{\hypertarget{method-VectorDB-getVectors}{}}}
 \subsection{Method \code{getVectors()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VectorDB$getVectors(epsg = NULL)}\if{html}{\out{</div>}}
@@ -123,8 +123,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-getVectorsWGS84"></a>}}
-\if{latex}{\out{\hypertarget{method-getVectorsWGS84}{}}}
+\if{html}{\out{<a id="method-VectorDB-getVectorsWGS84"></a>}}
+\if{latex}{\out{\hypertarget{method-VectorDB-getVectorsWGS84}{}}}
 \subsection{Method \code{getVectorsWGS84()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VectorDB$getVectorsWGS84()}\if{html}{\out{</div>}}

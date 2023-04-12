@@ -33,11 +33,19 @@ public interface GeoPointFilter extends Predicate<GeoPoint> {
 			String r = text.substring(lEQ.length());
 			int last_returnNumber = Integer.parseInt(r);
 			return p->p.returns-(p.returnNumber-1)==last_returnNumber;
-		}else if (text.startsWith(cEQ)) {
+		} else if (text.startsWith(cEQ)) {
 			String r = text.substring(cEQ.length());
 			int classNr = Integer.parseInt(r);
 			return p->p.classification==classNr;
-		}  
+		} else if(text.equals("ground")) {
+			return p->p.classification==2 || p.classification==8;
+		} else if(text.equals("non_ground")) {
+			return p-> !(p.classification==2 || p.classification==8);
+		} else if(text.equals("vegetation")) {
+			return p->p.classification==3 || p.classification==4 || p.classification==5 || p.classification==13 || p.classification==0 || p.classification==20;
+		} else if(text.equals("non_vegetation")) {
+			return p-> !(p.classification==3 || p.classification==4 || p.classification==5 || p.classification==13 || p.classification==0 || p.classification==20);
+		}
 		throw new RuntimeException("filter unknown: "+text);
 	}
 	

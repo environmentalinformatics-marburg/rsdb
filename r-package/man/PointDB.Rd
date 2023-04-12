@@ -374,16 +374,16 @@ woellauer
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{PointDB$new()}}
-\item \href{#method-process}{\code{PointDB$process()}}
-\item \href{#method-query}{\code{PointDB$query()}}
-\item \href{#method-query_polygon}{\code{PointDB$query_polygon()}}
-\item \href{#method-query_raster}{\code{PointDB$query_raster()}}
+\item \href{#method-PointDB-new}{\code{PointDB$new()}}
+\item \href{#method-PointDB-process}{\code{PointDB$process()}}
+\item \href{#method-PointDB-query}{\code{PointDB$query()}}
+\item \href{#method-PointDB-query_polygon}{\code{PointDB$query_polygon()}}
+\item \href{#method-PointDB-query_raster}{\code{PointDB$query_raster()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-PointDB-new"></a>}}
+\if{latex}{\out{\hypertarget{method-PointDB-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$new(url, db, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -391,8 +391,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-process"></a>}}
-\if{latex}{\out{\hypertarget{method-process}{}}}
+\if{html}{\out{<a id="method-PointDB-process"></a>}}
+\if{latex}{\out{\hypertarget{method-PointDB-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$process(areas, functions)}\if{html}{\out{</div>}}
@@ -400,8 +400,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-query"></a>}}
-\if{latex}{\out{\hypertarget{method-query}{}}}
+\if{html}{\out{<a id="method-PointDB-query"></a>}}
+\if{latex}{\out{\hypertarget{method-PointDB-query}{}}}
 \subsection{Method \code{query()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$query(ext, filter = NULL, columns = NULL, normalise = NULL)}\if{html}{\out{</div>}}
@@ -409,8 +409,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-query_polygon"></a>}}
-\if{latex}{\out{\hypertarget{method-query_polygon}{}}}
+\if{html}{\out{<a id="method-PointDB-query_polygon"></a>}}
+\if{latex}{\out{\hypertarget{method-PointDB-query_polygon}{}}}
 \subsection{Method \code{query_polygon()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$query_polygon(polygon, filter = NULL, columns = NULL, normalise = NULL)}\if{html}{\out{</div>}}
@@ -418,8 +418,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-query_raster"></a>}}
-\if{latex}{\out{\hypertarget{method-query_raster}{}}}
+\if{html}{\out{<a id="method-PointDB-query_raster"></a>}}
+\if{latex}{\out{\hypertarget{method-PointDB-query_raster}{}}}
 \subsection{Method \code{query_raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointDB$query_raster(ext, type)}\if{html}{\out{</div>}}

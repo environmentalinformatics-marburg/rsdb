@@ -24,26 +24,26 @@
 	</div>
 	<div class="control_panel">
 		<table>
-		<tr><td>filter</td><td><select v-model="viewType"><option v-for="v in viewTypes">{{v}}</option></select></td></tr>
-		<tr><td>color</td><td><select v-model="viewColor"><option v-for="v in viewColors">{{v}}</option></select></td></tr>
-		<tr><td>z</td><td><select v-model="viewZ"><option v-for="v in viewZs">{{v}}</option></select></td></tr>
-		<tr><td>point size</td><td><button @click="pointSizeMinus" title="smaller">-</button>{{pointSize.toFixed(1)}}<button @click="pointSizePlus" title="bigger">+</button></td></tr>
-		<tr><td><label for="checkbox_illuminated">light</label></td><td>
+		<tr title="Filter poincloud points by point classification."><td>Filter</td><td><select v-model="viewType"><option v-for="v in viewTypes">{{v}}</option></select></td></tr>
+		<tr title="Colorize poincloud points."><td>Color</td><td><select v-model="viewColor"><option v-for="v in viewColors">{{v}}</option></select></td></tr>
+		<tr title="Poincloud points reference for z-values."><td>Z</td><td><select v-model="viewZ"><option v-for="v in viewZs">{{v}}</option></select></td></tr>
+		<tr title="Poincloud points visualisation size."><td>Point size</td><td><button @click="pointSizeMinus" title="smaller">-</button>{{pointSize.toFixed(1)}}<button @click="pointSizePlus" title="bigger">+</button></td></tr>
+		<tr title="Visual illumination. Change illumination intensity with keys 'page up' and 'page down'."><td><label for="checkbox_illuminated">Light</label></td><td>
 			<input type="checkbox" id="checkbox_illuminated" v-model="illuminated">
 			<span v-show="illuminated"><button @click="illuminatedMinus" title="darker &#013;&#010; Key: PAGE DOWN">-</button>{{(1/this.fogDensity).toFixed(0)}}<button @click="illuminatedPlus" title="brighter &#013;&#010; Key: PAGE UP">+</button></span></td></tr>
-		<tr><td><label for="checkbox_filterExtremes">outliers -</label></td><td><input type="checkbox" id="checkbox_filterExtremes" v-model="filterExtremes"></td></tr>
-		<tr><td><label for="checkbox_animated">animated</label></td><td><input type="checkbox" id="checkbox_animated" v-model="useAnimation"></td></tr>
+		<tr title="Filter poincloud points by extreme z-values to remove outliers."><td><label for="checkbox_filterExtremes">Outliers -</label></td><td><input type="checkbox" id="checkbox_filterExtremes" v-model="filterExtremes"></td></tr>
+		<tr title="Smoth movements. At high point densities, for higher performance, it may be better to switch off smoth movements."><td><label for="checkbox_animated">Animated</label></td><td><input type="checkbox" id="checkbox_animated" v-model="useAnimation"></td></tr>
 		</table>
 		<hr>
-		<div>
+		<div title="Change the view of the pointcloud visualisation.">
 			<table>
-				<tr><td><b>Rotate</b></td><td>left mouse button<br>move</td></tr>
-				<tr><td><b>Shift</b></td><td>right mouse button<br>move</td></tr>
-				<tr><td><b>Zoom</b></td><td>rotate mouse wheel</td></tr>
+				<tr><td><b>Rotate</b></td><td>Hold left mouse button<br>and move mouse.</td></tr>
+				<tr><td><b>Move</b></td><td>Hold right mouse button<br>and move mouse. Or press arrow keys.</td></tr>
+				<tr><td><b>Zoom</b></td><td>Rotate mouse wheel.</td></tr>
 			</table>
 		</div>
 		<hr>
-		<div>
+		<div title="Change the visualisation subset of the pointcloud by moving on the map in one direction.">
 			<table>
 				<tr><td></td><td><button @click="moveStep(0,1);">North</button></td><td></td></tr>
 				<tr><td><button @click="moveStep(-1,0);">West</button></td><td style="text-align: center;">Move</td><td><button @click="moveStep(1,0);">East</button></td></tr>

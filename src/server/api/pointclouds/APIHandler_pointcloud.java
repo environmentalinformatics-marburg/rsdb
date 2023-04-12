@@ -3,6 +3,7 @@ package server.api.pointclouds;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -49,69 +50,82 @@ public class APIHandler_pointcloud {
 	}
 
 	public void handle(String name, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		Logger.info("get: " + name);
-		PointCloud pointcloud = broker.getPointCloud(name);
-		Logger.info("get: " + pointcloud);
-		if(pointcloud == null) {
-			throw new RuntimeException("PointCloud not found: " + name);
-			/*Logger.error("PointCloud not found: " + name);
+		try {
+			Logger.info("get: " + name);
+			PointCloud pointcloud = broker.getPointCloud(name);
+			Logger.info("get: " + pointcloud);
+			if(pointcloud == null) {
+				throw new RuntimeException("PointCloud not found: " + name);
+				/*Logger.error("PointCloud not found: " + name);
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.setContentType(Web.MIME_TEXT);
 			response.getWriter().println("PointCloud not found: " + name);*/
-		} else if(target.equals("/")) {
-			switch(request.getMethod()) {
-			case "GET":
-				pointcloud.check(userIdentity);
-				handleGET(pointcloud, request, response, userIdentity);
-				break;
-			case "POST":
-				pointcloud.checkMod(userIdentity);
-				handlePOST(pointcloud, request, response, userIdentity);
-				break;
-			default:
-				throw new RuntimeException("invalid HTTP method: " + request.getMethod());
-			}
-		} else {
-			int i = target.indexOf('/', 1);
-			if(i == 1) {
-				throw new RuntimeException("no name in pointclouds: " + target);
-			}			
-			String resource = i < 0 ? target.substring(1) : target.substring(1, i);
-			int formatIndex = resource.lastIndexOf('.');
-			String resourceName = formatIndex < 0 ? resource : resource.substring(0, formatIndex);
-			String resourceFormat = formatIndex < 0 ? "" : resource.substring(formatIndex + 1);
-			Logger.info("resourceName: " + resourceName);
-			Logger.info("resourceFormat: " + resourceFormat);
-			String next = i < 0 ? "/" : target.substring(i);
-			if(next.equals("/")) {
-				switch(resourceName) {
-				case "points":
+			} else if(target.equals("/")) {
+				switch(request.getMethod()) {
+				case "GET":
 					pointcloud.check(userIdentity);
-					apihandler_points.handle(pointcloud, resourceFormat, request, response);
+					handleGET(pointcloud, request, response, userIdentity);
 					break;
-				case "raster":
-					pointcloud.check(userIdentity);
-					apihandler_raster.handle(pointcloud, resourceFormat, request, response);
+				case "POST":
+					pointcloud.checkMod(userIdentity);
+					handlePOST(pointcloud, request, response, userIdentity);
 					break;
-				case "volume":
-					pointcloud.check(userIdentity);
-					apihandler_volume.handle(pointcloud, resourceFormat, request, response);
-					break;
-				case "indices":
-					pointcloud.check(userIdentity);
-					apihandler_indices.handle(pointcloud, resourceFormat, request, response);
-					break;
-				case "index_list":
-					pointcloud.check(userIdentity);
-					apihandler_index_list.handle(pointcloud, resourceFormat, request, response);
-					break;					
 				default:
-					throw new RuntimeException("unknown resource: " + resource);
+					throw new RuntimeException("invalid HTTP method: " + request.getMethod());
 				}
 			} else {
-				throw new RuntimeException("error in subpath: " + target);
+				int i = target.indexOf('/', 1);
+				if(i == 1) {
+					throw new RuntimeException("no name in pointclouds: " + target);
+				}			
+				String resource = i < 0 ? target.substring(1) : target.substring(1, i);
+				int formatIndex = resource.lastIndexOf('.');
+				String resourceName = formatIndex < 0 ? resource : resource.substring(0, formatIndex);
+				String resourceFormat = formatIndex < 0 ? "" : resource.substring(formatIndex + 1);
+				Logger.info("resourceName: " + resourceName);
+				Logger.info("resourceFormat: " + resourceFormat);
+				String next = i < 0 ? "/" : target.substring(i);
+				if(next.equals("/")) {
+					switch(resourceName) {
+					case "points":
+						pointcloud.check(userIdentity);
+						apihandler_points.handle(pointcloud, resourceFormat, request, response);
+						break;
+					case "raster":
+						pointcloud.check(userIdentity);
+						apihandler_raster.handle(pointcloud, resourceFormat, request, response);
+						break;
+					case "volume":
+						pointcloud.check(userIdentity);
+						apihandler_volume.handle(pointcloud, resourceFormat, request, response);
+						break;
+					case "indices":
+						pointcloud.check(userIdentity);
+						apihandler_indices.handle(pointcloud, resourceFormat, request, response);
+						break;
+					case "index_list":
+						pointcloud.check(userIdentity);
+						apihandler_index_list.handle(pointcloud, resourceFormat, request, response);
+						break;					
+					default:
+						throw new RuntimeException("unknown resource: " + resource);
+					}
+				} else {
+					throw new RuntimeException("error in subpath: " + target);
+				}
+			}	
+		} catch(EofException e) {
+			if(e.getMessage() == null) {
+				Throwable cause = e.getCause();
+				if(cause != null && cause.getMessage() != null) {
+					Logger.warn(cause.getMessage());
+				} else {
+					Logger.warn(e);
+				}
+			} else {
+				Logger.warn(e.getMessage());
 			}
-		}		
+		}
 	}
 
 	private void handleGET(PointCloud pointcloud, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {		

@@ -79,7 +79,7 @@ function init() {
 		methods: {
 			load_points: function () {
 				var self = this;
-				this.loadingMessage = "loading points";
+				this.loadingMessage = "Loading poincloud points...";
 				//var radius = 10;
 				var radius = 100;
 				var qx = parseFloat(this.urlParameters.x);

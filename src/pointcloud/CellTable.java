@@ -2,6 +2,8 @@ package pointcloud;
 
 import java.util.Arrays;
 
+import org.tinylog.Logger;
+
 import com.googlecode.javaewah.datastructure.BitSet;
 
 public class CellTable {
@@ -340,8 +342,29 @@ public class CellTable {
 	public static FilterFunc filterFuncClassification(byte classification) {
 		return cellTable -> cellTable.filterClassification(classification);
 	}
+	
+	public static FilterFunc filterFuncClassification(byte classification1, byte classification2) {
+		return cellTable -> cellTable.filterClassification(classification1, classification2);
+	}
+	
+	public static FilterFunc filterFuncClassification(byte c1, byte c2, byte c3, byte c4, byte c5, byte c6) {
+		return cellTable -> cellTable.filterClassification(c1, c2, c3, c4, c5, c6);
+	}
+	
+	public static FilterFunc filterFuncClassificationNot(byte classification) {
+		return cellTable -> cellTable.filterClassificationNot(classification);
+	}
+	
+	public static FilterFunc filterFuncClassificationNot(byte classification1, byte classification2) {
+		return cellTable -> cellTable.filterClassificationNot(classification1, classification2);
+	}
+	
+	public static FilterFunc filterFuncClassificationNot(byte c1, byte c2, byte c3, byte c4, byte c5, byte c6) {
+		return cellTable -> cellTable.filterClassificationNot(c1, c2, c3, c4, c5, c6);
+	}
 
 	public static ChainedFilterFunc parseFilter(String filterText) {
+		Logger.info("parseFilter |" + filterText + "|");
 		ChainedFilterFunc chainedFilterFunc = null;
 		if(filterText != null) {
 			String[] elementTexts = filterText.split(";");
@@ -367,12 +390,20 @@ public class CellTable {
 			String r = text.substring(cEQ.length()).trim();
 			int classNr = Integer.parseInt(r);
 			return filterFuncClassification((byte)classNr);
-		} else {
+		} else if(text.equals("ground")) {
+			return filterFuncClassification((byte)2, (byte)8);
+		} else if(text.equals("non_ground")) {
+			return filterFuncClassificationNot((byte)2, (byte)8);	
+		} else if(text.equals("vegetation")) {
+			return filterFuncClassification((byte)3, (byte)4, (byte)5, (byte)13, (byte)0, (byte)20);
+		} else if(text.equals("non_vegetation")) {
+			return filterFuncClassificationNot((byte)3, (byte)4, (byte)5, (byte)13, (byte)0, (byte)20);					
+		} else{
 			throw new RuntimeException("filter unknown: "+text);
 		}
 	}
 
-	public static boolean isVegetaion(byte classification) {
+	public static boolean isVegetation(byte classification) {
 		return classification == 3 // low vegetation
 				|| classification == 4  // medium vegetation
 				|| classification == 5  // high vegetation 
@@ -393,7 +424,7 @@ public class CellTable {
 	 */
 	public boolean isEntity(byte classification) {
 		return isGround(classification) 
-				|| isVegetaion(classification) 
+				|| isVegetation(classification) 
 				|| classification == 6 // building
 				|| classification == 9 // water
 				|| classification == 0 // not classified
@@ -468,6 +499,76 @@ public class CellTable {
 		if(c != null) {
 			for (int i = 0; i < len; i++) {
 				if(c[i] == classification) {
+					bitset.set(i);
+				}
+			}
+		}
+		return bitset;
+	}
+	
+	public BitSet filterClassification(byte classification1, byte classification2) {
+		int len = rows;
+		BitSet bitset = new BitSet(len);
+		byte[] c = this.classification;
+		if(c != null) {
+			for (int i = 0; i < len; i++) {
+				if(c[i] == classification1 || c[i] == classification2) {
+					bitset.set(i);
+				}
+			}
+		}
+		return bitset;
+	}
+	
+	public BitSet filterClassification(byte c1, byte c2, byte c3, byte c4, byte c5, byte c6) {
+		int len = rows;
+		BitSet bitset = new BitSet(len);
+		byte[] c = this.classification;
+		if(c != null) {
+			for (int i = 0; i < len; i++) {
+				if(c[i] == c1 || c[i] == c2 || c[i] == c3 || c[i] == c4 || c[i] == c5 || c[i] == c6) {
+					bitset.set(i);
+				}
+			}
+		}
+		return bitset;
+	}
+	
+	public BitSet filterClassificationNot(byte classification) {
+		int len = rows;
+		BitSet bitset = new BitSet(len);
+		byte[] c = this.classification;
+		if(c != null) {
+			for (int i = 0; i < len; i++) {
+				if(c[i] != classification) {
+					bitset.set(i);
+				}
+			}
+		}
+		return bitset;
+	}
+	
+	public BitSet filterClassificationNot(byte classification1, byte classification2) {
+		int len = rows;
+		BitSet bitset = new BitSet(len);
+		byte[] c = this.classification;
+		if(c != null) {
+			for (int i = 0; i < len; i++) {
+				if(!(c[i] == classification1 || c[i] == classification2)) {
+					bitset.set(i);
+				}
+			}
+		}
+		return bitset;
+	}
+	
+	public BitSet filterClassificationNot(byte c1, byte c2, byte c3, byte c4, byte c5, byte c6) {
+		int len = rows;
+		BitSet bitset = new BitSet(len);
+		byte[] c = this.classification;
+		if(c != null) {
+			for (int i = 0; i < len; i++) {
+				if(!(c[i] == c1 || c[i] == c2 || c[i] == c3 || c[i] == c4 || c[i] == c5 || c[i] == c6)) {
 					bitset.set(i);
 				}
 			}

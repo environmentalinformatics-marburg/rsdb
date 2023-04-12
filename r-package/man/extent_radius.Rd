@@ -20,7 +20,7 @@ extent
 Creates an \link{extent} that covers the square over the circle at point x,y with radius r.
 }
 \details{
-Extents are used to query data from \link{RasterDB} and from \link{PointDB}.
+Extents are used to query data from \link{RasterDB} , from \link{PointCloud} and from \link{PointDB}.
 }
 \seealso{
 \link{extent}

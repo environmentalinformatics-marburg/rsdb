@@ -324,7 +324,21 @@ PointCloud_private <- list( #      *********** private *************************
 #'
 #' \strong{filter}: point filter.
 #'
-#' Vector of conjunctive connected filter elements.
+#' Vector of conjunctive connected filter elements:
+#'
+#' 'ground' Ground classified points only.
+#'
+#' 'vegetation' Vegetation classified points only.
+#'
+#' 'non_ground' All not ground classified points.
+#'
+#' 'non_vegetation' All not vegetation classified points.
+#'
+#' 'classification=x' e.g. 'classification=1' Points of that classification only.
+#'
+#' 'return=x' e.g. 'return=1' Points of that return only.
+#'
+#' 'last_return=x' e.g. 'last_return=1' Points of that last_return only (returns counted in reverse beginning with last).
 #'
 #' \strong{normalise}: point normalisation.
 #'

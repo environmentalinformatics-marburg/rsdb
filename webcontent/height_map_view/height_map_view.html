@@ -17,8 +17,8 @@
 
 <div id="app">
 	<div class="no_raster_type_panel" v-show="viewType == undefined">
-		<div style="color: #f01313;">No raster type selected.</div> 
-		<div style="color: #000000;"> ==> Select one raster <b>type</b> to view rastered pointcloud!  -----></div>
+		<div style="color: #f01313;">No suface type selected.</div> 
+		<div style="color: #000000;"> ==> Select one <b>surface type</b> to be generated from the pointcloud!  -----></div>
 	</div>
 	<div class="loading_panel" v-show="loadingMessage != undefined">
 	<img src="../images/default.svg" style="border: 0; vertical-align:middle;" width="24" >
@@ -26,18 +26,18 @@
 	</div>
 	<div class="control_panel">
 		<table>
-		<tr><td>type<td><select v-model="viewType"><option v-for="v in viewTypes.filter(function(e){return e.data_type === undefined || e.data_type==='basic_raster';})" :value="v.name">{{v.name}} - {{v.description === undefined ? v.title : v.description}}</option></select>
-		<tr><td><label for="checkbox_illuminated">fog</label><td><input type="checkbox" id="checkbox_illuminated" v-model="illuminated"><span v-show="illuminated">{{(1/this.fogDensity).toFixed(0)}}</span>
-		<tr><td><label for="checkbox_animated">animated</label><td><input type="checkbox" id="checkbox_animated" v-model="useAnimation">
+		<tr title="Select a surface raster type for visualisation."><td>Surface<td><select v-model="viewType"><option v-for="v in viewTypes.filter(function(e){return e.data_type === undefined || e.data_type==='basic_raster';})" :value="v.name">{{v.name}} - {{v.description === undefined ? v.title : v.description}}</option></select>
+		<tr title="Add visual fog to improve perception of depth. Change fog intensity with keys 'page up' and 'page down'."><td><label for="checkbox_illuminated">Fog</label><td><input type="checkbox" id="checkbox_illuminated" v-model="illuminated"><span v-show="illuminated">{{(1/this.fogDensity).toFixed(0)}}</span>
+		<tr title="Smoth movements. May impact performance."><td><label for="checkbox_animated">Animated</label><td><input type="checkbox" id="checkbox_animated" v-model="useAnimation">
 		</table>
 	
 	
 		<hr>
 		<div>
 			<table>
-				<tr><td><b>Rotate</b></td><td>left mouse button move</td></tr>
-				<tr><td><b>Shift</b></td><td>right mouse button move</td></tr>
-				<tr><td><b>Zoom</b></td><td>rotate mouse wheel</td></tr>
+				<tr><td><b>Rotate</b></td><td>Hold left mouse button and move mouse.</td></tr>
+				<tr><td><b>Shift</b></td><td>Hold right mouse button and move mouse.</td></tr>
+				<tr><td><b>Zoom</b></td><td>Rotate mouse wheel.</td></tr>
 			</table>
 		</div>
 	</div>	

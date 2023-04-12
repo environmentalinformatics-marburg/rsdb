@@ -296,20 +296,20 @@ woellauer
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{RasterDB$new()}}
-\item \href{#method-refresh_meta}{\code{RasterDB$refresh_meta()}}
-\item \href{#method-raster}{\code{RasterDB$raster()}}
-\item \href{#method-insert_RasterLayer}{\code{RasterDB$insert_RasterLayer()}}
-\item \href{#method-insert_RasterStack}{\code{RasterDB$insert_RasterStack()}}
-\item \href{#method-rebuild_pyramid}{\code{RasterDB$rebuild_pyramid()}}
-\item \href{#method-update_pyramid}{\code{RasterDB$update_pyramid()}}
-\item \href{#method-set_meta}{\code{RasterDB$set_meta()}}
-\item \href{#method-set_band_meta}{\code{RasterDB$set_band_meta()}}
+\item \href{#method-RasterDB-new}{\code{RasterDB$new()}}
+\item \href{#method-RasterDB-refresh_meta}{\code{RasterDB$refresh_meta()}}
+\item \href{#method-RasterDB-raster}{\code{RasterDB$raster()}}
+\item \href{#method-RasterDB-insert_RasterLayer}{\code{RasterDB$insert_RasterLayer()}}
+\item \href{#method-RasterDB-insert_RasterStack}{\code{RasterDB$insert_RasterStack()}}
+\item \href{#method-RasterDB-rebuild_pyramid}{\code{RasterDB$rebuild_pyramid()}}
+\item \href{#method-RasterDB-update_pyramid}{\code{RasterDB$update_pyramid()}}
+\item \href{#method-RasterDB-set_meta}{\code{RasterDB$set_meta()}}
+\item \href{#method-RasterDB-set_band_meta}{\code{RasterDB$set_band_meta()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-RasterDB-new"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
@@ -317,8 +317,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-refresh_meta"></a>}}
-\if{latex}{\out{\hypertarget{method-refresh_meta}{}}}
+\if{html}{\out{<a id="method-RasterDB-refresh_meta"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-refresh_meta}{}}}
 \subsection{Method \code{refresh_meta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$refresh_meta()}\if{html}{\out{</div>}}
@@ -326,8 +326,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-raster"></a>}}
-\if{latex}{\out{\hypertarget{method-raster}{}}}
+\if{html}{\out{<a id="method-RasterDB-raster"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$raster(
@@ -342,8 +342,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-insert_RasterLayer"></a>}}
-\if{latex}{\out{\hypertarget{method-insert_RasterLayer}{}}}
+\if{html}{\out{<a id="method-RasterDB-insert_RasterLayer"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-insert_RasterLayer}{}}}
 \subsection{Method \code{insert_RasterLayer()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterLayer(
@@ -360,8 +360,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-insert_RasterStack"></a>}}
-\if{latex}{\out{\hypertarget{method-insert_RasterStack}{}}}
+\if{html}{\out{<a id="method-RasterDB-insert_RasterStack"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-insert_RasterStack}{}}}
 \subsection{Method \code{insert_RasterStack()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$insert_RasterStack(
@@ -377,8 +377,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-rebuild_pyramid"></a>}}
-\if{latex}{\out{\hypertarget{method-rebuild_pyramid}{}}}
+\if{html}{\out{<a id="method-RasterDB-rebuild_pyramid"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-rebuild_pyramid}{}}}
 \subsection{Method \code{rebuild_pyramid()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$rebuild_pyramid()}\if{html}{\out{</div>}}
@@ -386,8 +386,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update_pyramid"></a>}}
-\if{latex}{\out{\hypertarget{method-update_pyramid}{}}}
+\if{html}{\out{<a id="method-RasterDB-update_pyramid"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-update_pyramid}{}}}
 \subsection{Method \code{update_pyramid()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$update_pyramid()}\if{html}{\out{</div>}}
@@ -395,8 +395,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_meta"></a>}}
-\if{latex}{\out{\hypertarget{method-set_meta}{}}}
+\if{html}{\out{<a id="method-RasterDB-set_meta"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-set_meta}{}}}
 \subsection{Method \code{set_meta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$set_meta(meta)}\if{html}{\out{</div>}}
@@ -404,8 +404,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_band_meta"></a>}}
-\if{latex}{\out{\hypertarget{method-set_band_meta}{}}}
+\if{html}{\out{<a id="method-RasterDB-set_band_meta"></a>}}
+\if{latex}{\out{\hypertarget{method-RasterDB-set_band_meta}{}}}
 \subsection{Method \code{set_band_meta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RasterDB$set_band_meta(bands)}\if{html}{\out{</div>}}

@@ -46,13 +46,13 @@ woellauer
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{RemoteTask$new()}}
-\item \href{#method-wait}{\code{RemoteTask$wait()}}
+\item \href{#method-RemoteTask-new}{\code{RemoteTask$new()}}
+\item \href{#method-RemoteTask-wait}{\code{RemoteTask$wait()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-RemoteTask-new"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteTask-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteTask$new(rsdbConnector, id)}\if{html}{\out{</div>}}
@@ -60,8 +60,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-wait"></a>}}
-\if{latex}{\out{\hypertarget{method-wait}{}}}
+\if{html}{\out{<a id="method-RemoteTask-wait"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteTask-wait}{}}}
 \subsection{Method \code{wait()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteTask$wait(polling_interval = 0.5)}\if{html}{\out{</div>}}

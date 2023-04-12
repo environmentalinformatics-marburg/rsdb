@@ -12,15 +12,15 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{VoxelDB$new()}}
-\item \href{#method-voxels}{\code{VoxelDB$voxels()}}
-\item \href{#method-aggregated_voxels}{\code{VoxelDB$aggregated_voxels()}}
-\item \href{#method-raster}{\code{VoxelDB$raster()}}
+\item \href{#method-VoxelDB-new}{\code{VoxelDB$new()}}
+\item \href{#method-VoxelDB-voxels}{\code{VoxelDB$voxels()}}
+\item \href{#method-VoxelDB-aggregated_voxels}{\code{VoxelDB$aggregated_voxels()}}
+\item \href{#method-VoxelDB-raster}{\code{VoxelDB$raster()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-VoxelDB-new"></a>}}
+\if{latex}{\out{\hypertarget{method-VoxelDB-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$new(rsdbConnector, name)}\if{html}{\out{</div>}}
@@ -28,8 +28,8 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-voxels"></a>}}
-\if{latex}{\out{\hypertarget{method-voxels}{}}}
+\if{html}{\out{<a id="method-VoxelDB-voxels"></a>}}
+\if{latex}{\out{\hypertarget{method-VoxelDB-voxels}{}}}
 \subsection{Method \code{voxels()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$voxels(
@@ -48,8 +48,8 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-aggregated_voxels"></a>}}
-\if{latex}{\out{\hypertarget{method-aggregated_voxels}{}}}
+\if{html}{\out{<a id="method-VoxelDB-aggregated_voxels"></a>}}
+\if{latex}{\out{\hypertarget{method-VoxelDB-aggregated_voxels}{}}}
 \subsection{Method \code{aggregated_voxels()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$aggregated_voxels(
@@ -73,8 +73,8 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-raster"></a>}}
-\if{latex}{\out{\hypertarget{method-raster}{}}}
+\if{html}{\out{<a id="method-VoxelDB-raster"></a>}}
+\if{latex}{\out{\hypertarget{method-VoxelDB-raster}{}}}
 \subsection{Method \code{raster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$raster(

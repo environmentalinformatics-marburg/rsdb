@@ -69,20 +69,16 @@ public class SurfaceRasterizer extends PipelineTask {
 	}
 
 	@Override
-	protected void finish() {
+	protected void finish() throws IOException {
 		if(raster_result != null) {
-			try {
-				RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
-				int cnt = ProcessingFloat.writeMerge(rasterUnit, timeSlice.id, band, raster_result, raster_ymin, raster_xmin);
-				raster_result = null;
-				if(commit) {
-					rasterUnit.commit();
-					setMessage("commited");
-				}
-				setMessage("tiles written: " + cnt);		
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			RasterUnitStorage rasterUnit = rasterdb.rasterUnit();
+			int cnt = ProcessingFloat.writeMerge(rasterUnit, timeSlice.id, band, raster_result, raster_ymin, raster_xmin);
+			raster_result = null;
+			if(commit) {
+				rasterUnit.commit();
+				setMessage("commited");
 			}
+			setMessage("tiles written: " + cnt);	
 		}	
 	}
 

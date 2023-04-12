@@ -265,26 +265,26 @@ woellauer
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{RemoteSensing$new()}}
-\item \href{#method-lidar}{\code{RemoteSensing$lidar()}}
-\item \href{#method-pointdb}{\code{RemoteSensing$pointdb()}}
-\item \href{#method-rasterdb}{\code{RemoteSensing$rasterdb()}}
-\item \href{#method-lidar_layers}{\code{RemoteSensing$lidar_layers()}}
-\item \href{#method-web}{\code{RemoteSensing$web()}}
-\item \href{#method-poi_group}{\code{RemoteSensing$poi_group()}}
-\item \href{#method-poi}{\code{RemoteSensing$poi()}}
-\item \href{#method-roi_group}{\code{RemoteSensing$roi_group()}}
-\item \href{#method-roi}{\code{RemoteSensing$roi()}}
-\item \href{#method-create_rasterdb}{\code{RemoteSensing$create_rasterdb()}}
-\item \href{#method-pointcloud}{\code{RemoteSensing$pointcloud()}}
-\item \href{#method-vectordb}{\code{RemoteSensing$vectordb()}}
-\item \href{#method-voxeldb}{\code{RemoteSensing$voxeldb()}}
-\item \href{#method-submit_task}{\code{RemoteSensing$submit_task()}}
+\item \href{#method-RemoteSensing-new}{\code{RemoteSensing$new()}}
+\item \href{#method-RemoteSensing-lidar}{\code{RemoteSensing$lidar()}}
+\item \href{#method-RemoteSensing-pointdb}{\code{RemoteSensing$pointdb()}}
+\item \href{#method-RemoteSensing-rasterdb}{\code{RemoteSensing$rasterdb()}}
+\item \href{#method-RemoteSensing-lidar_layers}{\code{RemoteSensing$lidar_layers()}}
+\item \href{#method-RemoteSensing-web}{\code{RemoteSensing$web()}}
+\item \href{#method-RemoteSensing-poi_group}{\code{RemoteSensing$poi_group()}}
+\item \href{#method-RemoteSensing-poi}{\code{RemoteSensing$poi()}}
+\item \href{#method-RemoteSensing-roi_group}{\code{RemoteSensing$roi_group()}}
+\item \href{#method-RemoteSensing-roi}{\code{RemoteSensing$roi()}}
+\item \href{#method-RemoteSensing-create_rasterdb}{\code{RemoteSensing$create_rasterdb()}}
+\item \href{#method-RemoteSensing-pointcloud}{\code{RemoteSensing$pointcloud()}}
+\item \href{#method-RemoteSensing-vectordb}{\code{RemoteSensing$vectordb()}}
+\item \href{#method-RemoteSensing-voxeldb}{\code{RemoteSensing$voxeldb()}}
+\item \href{#method-RemoteSensing-submit_task}{\code{RemoteSensing$submit_task()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-new"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$new(url, userpwd = NULL, ssl_verifypeer = TRUE)}\if{html}{\out{</div>}}
@@ -292,8 +292,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-lidar"></a>}}
-\if{latex}{\out{\hypertarget{method-lidar}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-lidar"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-lidar}{}}}
 \subsection{Method \code{lidar()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$lidar(layer)}\if{html}{\out{</div>}}
@@ -301,8 +301,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-pointdb"></a>}}
-\if{latex}{\out{\hypertarget{method-pointdb}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-pointdb"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-pointdb}{}}}
 \subsection{Method \code{pointdb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$pointdb(name)}\if{html}{\out{</div>}}
@@ -310,8 +310,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-rasterdb"></a>}}
-\if{latex}{\out{\hypertarget{method-rasterdb}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-rasterdb"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-rasterdb}{}}}
 \subsection{Method \code{rasterdb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$rasterdb(name)}\if{html}{\out{</div>}}
@@ -319,8 +319,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-lidar_layers"></a>}}
-\if{latex}{\out{\hypertarget{method-lidar_layers}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-lidar_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-lidar_layers}{}}}
 \subsection{Method \code{lidar_layers()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$lidar_layers()}\if{html}{\out{</div>}}
@@ -328,8 +328,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-web"></a>}}
-\if{latex}{\out{\hypertarget{method-web}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-web"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-web}{}}}
 \subsection{Method \code{web()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$web()}\if{html}{\out{</div>}}
@@ -337,8 +337,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-poi_group"></a>}}
-\if{latex}{\out{\hypertarget{method-poi_group}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-poi_group"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-poi_group}{}}}
 \subsection{Method \code{poi_group()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$poi_group(group_name)}\if{html}{\out{</div>}}
@@ -346,8 +346,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-poi"></a>}}
-\if{latex}{\out{\hypertarget{method-poi}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-poi"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-poi}{}}}
 \subsection{Method \code{poi()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$poi(group_name, poi_name)}\if{html}{\out{</div>}}
@@ -355,8 +355,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-roi_group"></a>}}
-\if{latex}{\out{\hypertarget{method-roi_group}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-roi_group"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-roi_group}{}}}
 \subsection{Method \code{roi_group()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$roi_group(group_name)}\if{html}{\out{</div>}}
@@ -364,8 +364,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-roi"></a>}}
-\if{latex}{\out{\hypertarget{method-roi}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-roi"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-roi}{}}}
 \subsection{Method \code{roi()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$roi(group_name, roi_name)}\if{html}{\out{</div>}}
@@ -373,8 +373,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-create_rasterdb"></a>}}
-\if{latex}{\out{\hypertarget{method-create_rasterdb}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-create_rasterdb"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-create_rasterdb}{}}}
 \subsection{Method \code{create_rasterdb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$create_rasterdb(
@@ -388,8 +388,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-pointcloud"></a>}}
-\if{latex}{\out{\hypertarget{method-pointcloud}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-pointcloud"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-pointcloud}{}}}
 \subsection{Method \code{pointcloud()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$pointcloud(name)}\if{html}{\out{</div>}}
@@ -397,8 +397,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-vectordb"></a>}}
-\if{latex}{\out{\hypertarget{method-vectordb}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-vectordb"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-vectordb}{}}}
 \subsection{Method \code{vectordb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$vectordb(name)}\if{html}{\out{</div>}}
@@ -406,8 +406,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-voxeldb"></a>}}
-\if{latex}{\out{\hypertarget{method-voxeldb}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-voxeldb"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-voxeldb}{}}}
 \subsection{Method \code{voxeldb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$voxeldb(name)}\if{html}{\out{</div>}}
@@ -415,8 +415,8 @@ woellauer
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-submit_task"></a>}}
-\if{latex}{\out{\hypertarget{method-submit_task}{}}}
+\if{html}{\out{<a id="method-RemoteSensing-submit_task"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-submit_task}{}}}
 \subsection{Method \code{submit_task()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$submit_task(task, wait = TRUE, polling_interval = 0.5)}\if{html}{\out{</div>}}

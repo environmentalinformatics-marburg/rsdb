@@ -122,7 +122,8 @@
                         <td>{{ props.item.title }}</td>
                         <td>{{ props.item.wavelength }}</td>
                         <td>{{ props.item.fwhm }}</td>
-                        <td>{{ props.item.visualisation}}</td>
+                        <td :class="toVisualisationClass(props.item.visualisation)">{{ props.item.visualisation}}</td>
+                        <td>{{ props.item.datatype}}</td>
                     </template>
                 </v-data-table>
             </div>
@@ -320,7 +321,7 @@ export default {
             metaErrorMessage: undefined,
             busy: false,
             busyMessage: undefined,
-            bandsTableHeaders: [{ text: "Id", align: 'right', value: "index", width: "55px" }, { text: "Name", align: 'left', value: "title" }, { text: "Wavelength", align: 'left', value: "wavelength", width: "10px" }, { text: "Fwhm", align: 'left', value: "fwhm", width: "10px" }, { text: "Visualisation", align: 'left', value: "visualisation", width: "100px" }],
+            bandsTableHeaders: [{ text: "Id", align: 'right', value: "index", width: "55px" }, { text: "Name", align: 'left', value: "title" }, { text: "Wavelength", align: 'left', value: "wavelength", width: "10px" }, { text: "Fwhm", align: 'left', value: "fwhm", width: "10px" }, { text: "Visualisation", align: 'left', value: "visualisation", width: "100px" }, { text: "Type", align: 'left', value: "datatype", width: "20px" }],
             timeSliceTableHeaders: [{ text: "Id", align: 'right', value: "id", width: "55px" }, { text: "Name", align: 'left', value: "name" }],
             panel: [true, true],
         }
@@ -380,6 +381,18 @@ export default {
                 return a;
             }
             return [a];
+        },
+        toVisualisationClass(visualisation) {
+            if(visualisation === 'red') {
+                return 'visualisation-red';
+            }
+            if(visualisation === 'green') {
+                return 'visualisation-green';
+            }
+            if(visualisation === 'blue') {
+                return 'visualisation-blue';
+            }
+            return 'visualisation-unspecified';
         },
     },
     computed: {
@@ -502,6 +515,23 @@ export default {
 .header-unit {
     color: rgba(0, 0, 0, 0.68); 
     font-weight:normal;
+}
+
+
+.visualisation-red {
+    color: #d51717e5
+}
+
+.visualisation-green {
+    color: #24a824e5;
+}
+
+.visualisation-blue {
+    color: #0f4ee1;
+}
+
+.visualisation-unspecified {
+    color: grey;
 }
 
 </style>
