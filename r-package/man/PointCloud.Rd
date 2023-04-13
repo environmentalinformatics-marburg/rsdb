@@ -33,157 +33,13 @@ pointcloud$time_slices
 }
 \description{
 PointCloud class provides methods to access (LiDAR) point-clouds of Remote Sensing Database.
+
+Use instance of \link{RemoteSensing} class to create instances of PointCloud class.
+
+In section 'Active bindings' class fields and in section 'Methods' class functions of pointcloud class are described.
+
+Use instance objects of PointCloud class to call that functionality (e.g. pointcloud$name ).
 }
-\section{Details}{
-
-
-In the Following methods of PointCloud are described. Use instance objects to call that methods (e.g. pointcloud$method(paramters) ).
-Use instance of \link{RemoteSensing} class to create instances of PointCloud.
-
-\describe{
-
-\item{$points(ext, columns=NULL, filter=NULL, normalise=NULL, time_slice_id=NULL, time_slice_name=NULL)}{Get pointcloud points.
-
-returns: data.frame
-
-parameters:
-
-\strong{ext}: subset of pointcloud.
-
-ext is of type 'bbox' or 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).
-
-\strong{columns}: requested attributes.
-
-Vector of column-names. See "$attribute_list" for available attributes.
-
-\strong{filter}: point filter.
-
-Vector of conjunctive connected filter elements:
-
-'ground' Ground classified points only.
-
-'vegetation' Vegetation classified points only.
-
-'non_ground' All not ground classified points.
-
-'non_vegetation' All not vegetation classified points.
-
-'classification=x' e.g. 'classification=1' Points of that classification only.
-
-'return=x' e.g. 'return=1' Points of that return only.
-
-'last_return=x' e.g. 'last_return=1' Points of that last_return only (returns counted in reverse beginning with last).
-
-\strong{normalise}: point normalisation.
-
-\itemize{
-
- \item \strong{\code{"extremes"}}
-
- removes points that are outliers in z resp. elevation coordinate
-
- \item \strong{\code{"ground"}}
-
- moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coordinates represent vegetation above ground.
-
-}
-
-Multiple Normalisations may be combined by list of characters or by comma separated character. e.g. \code{"extremes,ground"} or \code{list("extremes","ground")}
-
-}
-
-\item{$raster(ext, res=1, type="point_count", fill=10, time_slice_id=NULL, time_slice_name=NULL)}{Process pointcloud to raster.
-
-returns: RasterLayer
-
-parameters:
-
-\strong{ext}: subset of pointcloud.
-
-ext is of type 'bbox' or 'Extent' (rectangular area).
-
-\strong{res}: pixel size of raster.
-
-\strong{type}: type of raster processing.
-
-For available types see "$raster_list".
-
-\strong{fill}: if pixel value is missing fill it with nearest pixels of at most given pixel count distance.
-
-}
-
-\item{$volume(ext, res=1, zres=res, time_slice_id=NULL, time_slice_name=NULL)}{Process pointcloud to voxels (multiple layers of rasters).
-
-returns: RasterStack
-
-parameters:
-
-\strong{ext}: subset of pointcloud.
-
-ext is of type 'bbox' or 'Extent' (rectangular area).
-
-\strong{res}: pixel (voxel) size of raster.
-
-\strong{zres}: height of voxel (height per layer)
-
-}
-
-\item{$indices(areas, functions, omit_empty_areas=TRUE, time_slice_id=NULL, time_slice_name=NULL)}{calculate metrices at areas.
-
-returns: data.frame
-
-parameters:
-
-\strong{areas}: areas is of type
-
- 'SpatialPolygons' (several polygon areas) Polygons are extracted with IDs as names. See details of conversion in \link{convert_SpatialPolygons_to_named_matrix_list}
-
- 'SpatialPolygonsDataFrame' (several polygon areas) Polygons are extracted with IDs as names. See details of conversion in \link{convert_SpatialPolygonsDataFrame_to_named_matrix_list}
-
- or one area or list of following types:
-
-'bbox' or 'Extent' (one rectangular area) Polygons are extracted as rectangles and with names (if list elements are named)
-
-'Polygon' (one polygon area) Polygons are extracted with names (if list elements are named). . See details of conversion in \link{convert_Polygon_to_matrix}
-
-'Polygons' (one polygon area) Polygons are extracted with names (if list elements are named). . See details of conversion in \link{convert_Polygons_to_matrix}
-
-'Matrix' (one polygon area) Polygons are extracted as polygons and with names (if list elements are named), matrix of two columns (x,y) and one row per point, first and last point need to be same for closed polygons.
-
-
-If list entries are named (e.g. list(name1=ext1, name2=ext2) ) then the returned data.fram contains that names in a 'name'-column.
-
-\strong{functions}: one or a list of index names.
-
-For available index names see "$index_list".
-
-\strong{omit_empty_areas}: Don't include areas with no point data in result (default).
-
-}
-
-\item{$name}{get name of pointcloud}
-
-\item{$meta}{get meta data}
-
-\item{$geocode}{get geo code (e.g. EPSG code)}
-
-\item{$proj4}{get projection as PROJ4}
-
-\item{$extent}{get full extent of pointcloud as 'Extent' object.
-
-Note: Do not use this full extent to request data as the full pointcloud may be several gigabytes large!}
-
-\item{$description}{get textual description}
-
-\item{$raster_list}{get names of available raster processing types, that can be reqested by "$raster" function.}
-
-\item{$attribute_list}{get names of point attributes (x, y, z, intensity, etc.), that are available in this pointcloud.}
-
-\item{$index_list}{get names and description of LiDAR indieces, that can be requested by "$indices" function.}
-
-}
-}
-
 \section{Extent objects}{
 
 
@@ -271,6 +127,31 @@ woellauer
 \keyword{point}
 \keyword{point-cloud}
 \keyword{remote-sensing}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{name}}{Pointcloud name.}
+
+\item{\code{meta}}{Meta data.}
+
+\item{\code{geocode}}{Geo code (e.g. EPSG code).}
+
+\item{\code{proj4}}{Pointcloud Projection as PROJ4.}
+
+\item{\code{extent}}{Full extent of pointcloud as 'Extent' object. Note: Do not use this full extent to request data as the full pointcloud may be many gigabytes large!}
+
+\item{\code{description}}{Textual pointcloud data description.}
+
+\item{\code{raster_list}}{Names of available raster processing types, that can be requested by "$raster()" method.}
+
+\item{\code{attribute_list}}{Names of point attributes (x, y, z, intensity, etc.), that are available in this pointcloud.}
+
+\item{\code{index_list}}{Names and description of LiDAR indices, that can be requested by "$indices()" method.}
+
+\item{\code{time_slices}}{List of all time slices in this pointcloud.}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -285,15 +166,31 @@ woellauer
 \if{html}{\out{<a id="method-PointCloud-new"></a>}}
 \if{latex}{\out{\hypertarget{method-PointCloud-new}{}}}
 \subsection{Method \code{new()}}{
+Use instance of \link{RemoteSensing} class to create instances of PointCloud class.
+This initialize function is for internal use only.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$new(base_url, name, curlHandle, rsdbConnector)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{base_url}}{RSDB server URL.}
+
+\item{\code{name}}{Pointcloud name.}
+
+\item{\code{curlHandle}}{connection handler.}
+
+\item{\code{rsdbConnector}}{rsdb server connection.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PointCloud-points"></a>}}
 \if{latex}{\out{\hypertarget{method-PointCloud-points}{}}}
 \subsection{Method \code{points()}}{
+Retrieve subsets of pointcloud points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$points(
   ext,
@@ -305,11 +202,55 @@ woellauer
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{ext}}{Subset of pointcloud.
+
+ext is of type 'bbox' or 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).}
+
+\item{\code{columns}}{Requested attributes.
+
+Vector of column-names. See "$attribute_list" for available attributes.}
+
+\item{\code{filter}}{Point filter.
+
+Vector of conjunctive connected filter elements:
+
+\itemize{
+\item \strong{'ground'} Ground classified points only.
+\item \strong{'vegetation'} Vegetation classified points only
+\item \strong{'non_ground'} All not ground classified points.
+\item \strong{'non_vegetation'} All not vegetation classified points.
+\item \strong{'classification=x'} e.g. 'classification=1' Points of that classification only.
+\item \strong{'return=x'} e.g. 'return=1' Points of that return only.
+\item \strong{'last_return=x'} e.g. 'last_return=1' Points of that last_return only (returns counted in reverse beginning with last).
+}}
+
+\item{\code{normalise}}{(deprecated) Point normalisation.
+
+\itemize{
+\item \strong{'extremes'} Removes points that are outliers in z resp. elevation coordinate.
+\item \strong{'ground'} Moves z resp. elevation coordinate of LiDAR points to elevation zero. The resulting z coordinates represent vegetation above ground.
+}
+
+Multiple Normalisations may be combined by list of characters or by comma separated character. e.g. \code{"extremes,ground"} or \code{list("extremes","ground")}}
+
+\item{\code{time_slice_id}}{Optionally, get points of specified time slice id.}
+
+\item{\code{time_slice_name}}{Optionally, get points of specified time slice name.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+data.frame of points.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PointCloud-raster"></a>}}
 \if{latex}{\out{\hypertarget{method-PointCloud-raster}{}}}
 \subsection{Method \code{raster()}}{
+Process pointcloud to raster.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$raster(
   ext,
@@ -321,11 +262,36 @@ woellauer
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{ext}}{Subset of pointcloud.
+
+ext is of type 'bbox' or 'Extent' (rectangular area).}
+
+\item{\code{res}}{Pixel size of raster.}
+
+\item{\code{type}}{Type of raster processing.
+
+For a complete list of available types see "$raster_list". Most used types are 'dsm', 'dtm', 'chm'.}
+
+\item{\code{fill}}{If pixel value is missing, fill it with nearest pixels of at most given pixel count distance.}
+
+\item{\code{time_slice_id}}{Optionally, process specified time slice id.}
+
+\item{\code{time_slice_name}}{Optionally, process specified time slice name.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+RasterLayer
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PointCloud-volume"></a>}}
 \if{latex}{\out{\hypertarget{method-PointCloud-volume}{}}}
 \subsection{Method \code{volume()}}{
+Process pointcloud to voxels (multiple layers of rasters).
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$volume(
   ext,
@@ -336,11 +302,32 @@ woellauer
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{ext}}{Subset of pointcloud.
+
+ext is of type 'bbox' or 'Extent' (rectangular area).}
+
+\item{\code{res}}{Pixel (voxel) size of raster.}
+
+\item{\code{zres}}{Height of voxel (height per layer).}
+
+\item{\code{time_slice_id}}{Optionally, process specified time slice id.}
+
+\item{\code{time_slice_name}}{Optionally, process specified time slice name.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+RasterStack
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PointCloud-indices"></a>}}
 \if{latex}{\out{\hypertarget{method-PointCloud-indices}{}}}
 \subsection{Method \code{indices()}}{
+Calculate metrices at areas.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PointCloud$indices(
   areas,
@@ -351,5 +338,42 @@ woellauer
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{areas}}{Areas is of type:
+
+ 'SpatialPolygons' (several polygon areas) Polygons are extracted with IDs as names. See details of conversion in \link{convert_SpatialPolygons_to_named_matrix_list}
+
+ 'SpatialPolygonsDataFrame' (several polygon areas) Polygons are extracted with IDs as names. See details of conversion in \link{convert_SpatialPolygonsDataFrame_to_named_matrix_list}
+
+ or one area or list of following types:
+
+'bbox' or 'Extent' (one rectangular area) Polygons are extracted as rectangles and with names (if list elements are named)
+
+'Polygon' (one polygon area) Polygons are extracted with names (if list elements are named). . See details of conversion in \link{convert_Polygon_to_matrix}
+
+'Polygons' (one polygon area) Polygons are extracted with names (if list elements are named). . See details of conversion in \link{convert_Polygons_to_matrix}
+
+'Matrix' (one polygon area) Polygons are extracted as polygons and with names (if list elements are named), matrix of two columns (x,y) and one row per point, first and last point need to be same for closed polygons.
+
+
+If list entries are named (e.g. list(name1=ext1, name2=ext2) ) then the returned data.fram contains that names in a 'name'-column.}
+
+\item{\code{functions}}{One index name or a list of index names.
+
+For available index names see "$index_list".}
+
+\item{\code{omit_empty_areas}}{Don't include areas with no point data in result (default).}
+
+\item{\code{time_slice_id}}{Optionally, process specified time slice id.}
+
+\item{\code{time_slice_name}}{Optionally, process specified time slice name.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+data.frame
+}
 }
 }
