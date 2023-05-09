@@ -7,17 +7,22 @@ import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.osr.CoordinateTransformation;
+import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 
 import ar.com.hjg.pngj.PngjOutputException;
 import broker.Broker;
+import pointcloud.Rect2d;
 import rasterdb.BandProcessor;
 import rasterdb.CustomWMS;
+import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.Rasterizer;
 import rasterdb.TimeBand;
 import rasterdb.dsl.DSL;
 import rasterdb.dsl.ErrorCollector;
+import util.GeoUtil;
 import util.Range2d;
 import util.Web;
 import util.frame.DoubleFrame;
@@ -25,10 +30,10 @@ import util.image.ImageBufferARGB;
 import util.image.MonoColor;
 import util.image.Renderer;
 
-public class RasterdbMethod_wms extends RasterdbMethod {
+public class RasterdbMethod_webwms extends RasterdbMethod {
 
-	public RasterdbMethod_wms(Broker broker) {
-		super(broker, "wms");	
+	public RasterdbMethod_webwms(Broker broker) {
+		super(broker, "webwms");	
 	}
 
 	@Override
@@ -56,7 +61,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			handle_GetMap(rasterdb, target, request, response, userIdentity);
 			break;
 		case "GetCapabilities":
-			RasterdbMethod_wms_GetCapabilities.handle_GetCapabilities(rasterdb, target, request, response, userIdentity);
+			RasterdbMethod_webwms_GetCapabilities.handle_GetCapabilities(rasterdb, target, request, response, userIdentity);
 			break;
 		default:
 			Logger.error("unknown request "+reqParam);
@@ -132,12 +137,25 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			int height = Web.getInt(request, "HEIGHT");
 			String[] bbox = request.getParameter("BBOX").split(",");
 			//Logger.info("bbox "+Arrays.toString(bbox));
-			//boolean transposed = rasterdb.ref().wms_transposed;
-			boolean transposed = false;
-			if(transposed) {
-				Logger.info("!!!            transposed                !!!");
+			Rect2d wmsRect = Rect2d.parseBbox(bbox);
+			double[][] rePoints = wmsRect.createPoints9();
+			Logger.info(Arrays.deepToString(rePoints));
+			GeoReference ref = rasterdb.ref();
+			if(!ref.has_code()) {
+				throw new RuntimeException("no EPSG projection information");
 			}
-			Range2d range2d = rasterdb.ref().parseBboxToRange2d(bbox, transposed);
+			int epsg = ref.getEPSG(0);
+			if(epsg <= 0) {
+				throw new RuntimeException("no EPSG projection information");
+			}
+			SpatialReference layerSr = GeoUtil.spatialReferenceFromEPSG(epsg);
+			if(layerSr == null) {
+				throw new RuntimeException("no valid EPSG projection information");
+			}
+			CoordinateTransformation ctToLayer = CoordinateTransformation.CreateCoordinateTransformation(GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE, layerSr);
+			ctToLayer.TransformPoints(rePoints);
+			Rect2d reRect = Rect2d.ofPoints(rePoints);
+			Range2d range2d = ref.rect2dToRange2d(reRect);
 			BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
 			ImageBufferARGB image = null;
 			if(bandText.equals("color")) {

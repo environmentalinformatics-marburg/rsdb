@@ -77,15 +77,15 @@ dependencies {
   	implementation group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.9.1' // caution: newer versions may break storage layout (last tested: 1.1.7.7)
     implementation group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.11' // data format changed from 0.1.11 to 0.1.12  	
     implementation group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.12' // caution: newer versions may break storage layout
-  	implementation group: 'com.github.luben', name: 'zstd-jni', version: '1.5.5-1' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
+  	implementation group: 'com.github.luben', name: 'zstd-jni', version: '1.5.5-2' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
   	
   	implementation group: 'org.antlr', name: 'antlr4-runtime', version: '4.9.3' // caution: newer versions may break with generated DSL Java source files
   	
-	implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '11.0.14'
-	implementation group: 'org.eclipse.jetty', name: 'jetty-security', version: '11.0.14'
-	implementation group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '11.0.14'
-	implementation group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: '11.0.14'
-	implementation group: 'org.eclipse.jetty', name: 'jetty-client', version: '11.0.14'
+	implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '11.0.15'
+	implementation group: 'org.eclipse.jetty', name: 'jetty-security', version: '11.0.15'
+	implementation group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '11.0.15'
+	implementation group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: '11.0.15'
+	implementation group: 'org.eclipse.jetty', name: 'jetty-client', version: '11.0.15'
 	
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'

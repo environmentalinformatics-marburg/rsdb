@@ -194,6 +194,12 @@ public abstract class BufferedDataOuputStreamBasic extends OutputStream implemen
 		}
 	}
 	
+	public void putShorts(short[] vs, int len) throws IOException {
+		for (int i = 0; i < len; i++) {
+			putShort(vs[i]);
+		}
+	}
+	
 	public void putChars(char[] vs) throws IOException {
 		int len = vs.length;
 		for (int i = 0; i < len; i++) {

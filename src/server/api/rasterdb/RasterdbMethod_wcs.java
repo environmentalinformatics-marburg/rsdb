@@ -56,8 +56,7 @@ import util.tiff.TiffWriter;
 
 public class RasterdbMethod_wcs extends RasterdbMethod {
 
-
-	private static Driver GDAL_MEM_DRIVER = null;
+	public static Driver GDAL_MEM_DRIVER = null;
 
 	static {
 		gdal.AllRegister();

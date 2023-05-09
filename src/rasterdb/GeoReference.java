@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.tinylog.Logger;
 
+import pointcloud.Rect2d;
 import util.Range2d;
 import util.yaml.YamlMap;
 
@@ -224,6 +225,10 @@ public class GeoReference {
 	public String optCode(String code_default) {
 		return has_code() ? code : code_default;
 	}
+	
+	public String getCode() {
+		return code;
+	}
 
 	public boolean has_proj4() {
 		return !proj4.equals(NO_PROJ4);
@@ -247,9 +252,17 @@ public class GeoReference {
 	public Range2d bboxToRange2d(double[] bbox) {
 		return bboxToRange2d(bbox[0], bbox[1], bbox[2], bbox[3]);
 	}
+	
+	public Range2d rect2dToRange2d(Rect2d rect2d) {
+		return bboxToRange2d(rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax);
+	}
 
 	public Range2d bboxToRange2d(double xmin, double ymin, double xmax, double ymax) {
 		return new Range2d(geoXToPixel(xmin), geoYToPixel(ymin), geoXToPixel(Math.nextDown(xmax)), geoYToPixel(Math.nextDown(ymax)));
+	}
+	
+	public Rect2d range2dToRect2d(Range2d range2d) {
+		return new Rect2d(pixelXToGeo(range2d.xmin), pixelYToGeo(range2d.ymin), pixelXToGeo(range2d.xmax + 1), pixelYToGeo(range2d.ymax + 1));
 	}
 
 	@Override

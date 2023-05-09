@@ -4,13 +4,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
-
-import org.tinylog.Logger;
-
 import util.Range2d;
 
-public class FloatFrame {
-	
+public class FloatFrame {	
 
 	public final float[][] data;
 	public final int width;
@@ -382,5 +378,10 @@ public class FloatFrame {
 				row[i] += add;
 			}
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "FloatFrame [" + local_min_x + ", " + local_min_y + " - " + local_max_x + ", " + local_max_y + "] " +  width + " x " + height;
 	}
 }

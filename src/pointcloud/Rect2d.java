@@ -12,25 +12,46 @@ public class Rect2d {
 		this.xmax = xmax;
 		this.ymax = ymax;
 	}
-	
-	@FunctionalInterface
-	public static interface TileRectConsumer {
-		void accept(long xtile, long ytile, Rect2d rect);
+
+	public static Rect2d parseBbox(String[] bbox) {
+		return new Rect2d(
+				Double.parseDouble(bbox[0]), 
+				Double.parseDouble(bbox[1]), 
+				Double.parseDouble(bbox[2]),
+				Double.parseDouble(bbox[3])
+				);
 	}
-	
-	public void tiles_utmm(double xsize, double ysize, TileRectConsumer consumer) {
-		long xtilemin = (long) Math.floor(xmin / xsize);
-		long ytilemin = (long) Math.floor(ymin / ysize);
-		long xtilemax = (long) Math.floor(xmax / xsize);
-		long ytilemax = (long) Math.floor(ymax / ysize);
-		for(long ytile = ytilemin; ytile <= ytilemax;  ytile++) {
-			for(long xtile = xtilemin; xtile <= xtilemax;  xtile++) {
-				
+
+	public static Rect2d ofPoints(double[][] points) {
+		double wmsXmin = Double.POSITIVE_INFINITY;
+		double wmsYmin = Double.POSITIVE_INFINITY;
+		double wmsXmax = Double.NEGATIVE_INFINITY;
+		double wmsYmax = Double.NEGATIVE_INFINITY;
+		for(double[] point : points) {
+			double x = point[0];
+			double y = point[1];
+			if(x < wmsXmin) {
+				wmsXmin = x;
+			}
+			if(y < wmsYmin) {
+				wmsYmin = y;
+			}
+			if(x > wmsXmax) {
+				wmsXmax = x;
+			}
+			if(y > wmsYmax) {
+				wmsYmax = y;
 			}
 		}
+		return new Rect2d(wmsXmin, wmsYmin, wmsXmax, wmsYmax);
 	}
-	
-	public void tiled(double xsize, double ysize, TileRectConsumer consumer) {
+
+	@FunctionalInterface
+	public static interface TileRect2dConsumer {
+		void accept(long xtile, long ytile, Rect2d rect);
+	}
+
+	public void tiled(double xsize, double ysize, TileRect2dConsumer consumer) {
 		double fxmax = xmax - xmin;
 		double fymax = ymax - ymin;
 		int xtilemax = (int) Math.floor(fxmax / xsize);
@@ -47,5 +68,57 @@ public class Rect2d {
 				consumer.accept(xtile, ytile, tileRect);
 			}
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "Rect2d [xmin=" + xmin + ", ymin=" + ymin + ", xmax=" + xmax + ", ymax=" + ymax + "]";
+	}
+
+	public double[][] createPoints4() {
+		double[][] points = new double[][] {
+			{xmin, ymin},
+			{xmin, ymax},
+			{xmax, ymin},
+			{xmax, ymax},		
+		};
+		return points;
+	}
+
+	public double[][] createPoints9() {
+		double xmid = (xmin + xmax) / 2d;
+		double ymid = (ymin + ymax) / 2d;
+		double[][] points = new double[][] {
+			{xmin, ymin},
+			{xmin, ymid},
+			{xmin, ymax},			
+			{xmid, ymin},
+			{xmid, ymid},
+			{xmid, ymax},			
+			{xmax, ymin},
+			{xmax, ymid},
+			{xmax, ymax},		
+		};
+		return points;
+	}
+	
+	public double[][] createPointsMidBorder() {
+		double xmid = (xmin + xmax) / 2d;
+		double ymid = (ymin + ymax) / 2d;
+		double[][] points = new double[][] {
+			{xmin, ymid},
+			{xmid, ymin},
+			{xmid, ymax},			
+			{xmax, ymid},	
+		};
+		return points;
+	}
+
+	public double width() {
+		return xmax - xmin;
+	}
+
+	public double height() {
+		return ymax - ymin;
 	}
 }
