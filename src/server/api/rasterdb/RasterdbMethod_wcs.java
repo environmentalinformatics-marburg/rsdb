@@ -43,6 +43,7 @@ import rasterdb.RasterDB;
 import rasterdb.TimeBand;
 import server.api.rasterdb.RequestProcessor.TiffDataType;
 import util.Extent2d;
+import util.GeoUtil;
 import util.Range2d;
 import util.ResponseReceiver;
 import util.TimeUtil;
@@ -55,13 +56,6 @@ import util.tiff.TiffBand;
 import util.tiff.TiffWriter;
 
 public class RasterdbMethod_wcs extends RasterdbMethod {
-
-	public static Driver GDAL_MEM_DRIVER = null;
-
-	static {
-		gdal.AllRegister();
-		GDAL_MEM_DRIVER = gdal.GetDriverByName("MEM");
-	}
 
 	public RasterdbMethod_wcs(Broker broker) {
 		super(broker, "wcs");	
@@ -282,7 +276,7 @@ public class RasterdbMethod_wcs extends RasterdbMethod {
 			/*srcFilename = "/vsimem/rsdb_wcs_in_memory_input"+ memFileIdCounter.incrementAndGet() +".tif";
 			Logger.info(srcFilename);*/
 			srcFilename = ""; // parameter not usable
-			datasetSrc = GDAL_MEM_DRIVER.Create(srcFilename, srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalDataType);
+			datasetSrc = GeoUtil.GDAL_MEM_DRIVER.Create(srcFilename, srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalDataType);
 			//Driver memDriver = gdal.GetDriverByName("GTiff");
 			//Dataset datasetSrc = memDriver.Create("c:/temp4/gdalfile/t17.tiff", srcRange.getWidth(), srcRange.getHeight(), processingBands.size(), gdalconstConstants.GDT_UInt16);
 

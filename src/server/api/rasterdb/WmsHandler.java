@@ -274,7 +274,7 @@ public class WmsHandler extends AbstractHandler {
 			PureImage image = null;
 			if(style_product.equals("color") || style_product.isEmpty()) {
 				Timer.start("render");
-				image = Rasterizer.rasterizeRGB(processor, width, height, gamma, range, syncBands, currentInterruptor);
+				image = Rasterizer.rasterizeRGB(processor, rasterdb, timestamp, width, height, gamma, range, syncBands, currentInterruptor);
 				//Logger.info(Timer.stop("render"));
 			} else if(style_product.startsWith("band")) {
 				String s = style_product.substring(4);

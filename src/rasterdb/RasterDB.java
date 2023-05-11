@@ -493,6 +493,15 @@ public class RasterDB implements AutoCloseable {
 		}
 		return band;
 	}
+	
+	public TimeBand getTimeBand(int timestamp, int bandIndex) {
+		Band band = getBandByNumber(bandIndex);		
+		return band == null ? null : new TimeBand(timestamp, band);		
+	}
+	
+	public void getTimeBand() {
+		
+	}
 
 	public Informal informal() {
 		return informal;

@@ -141,7 +141,7 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 			BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
 			ImageBufferARGB image = null;
 			if(bandText.equals("color")) {
-				image = Rasterizer.rasterizeRGB(processor, width, height, gamma, range, gamma_auto_sync, null);
+				image = Rasterizer.rasterizeRGB(processor, rasterdb, timestamp, width, height, gamma, range, gamma_auto_sync, null);
 			} else if(bandText.startsWith("band")) {
 				int bandIndex = Integer.parseInt(bandText.substring(4));
 				TimeBand timeBand = processor.getTimeBand(bandIndex);

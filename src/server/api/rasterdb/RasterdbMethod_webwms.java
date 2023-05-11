@@ -20,6 +20,7 @@ import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.Rasterizer;
 import rasterdb.TimeBand;
+import rasterdb.TimeBandProcessor;
 import rasterdb.dsl.DSL;
 import rasterdb.dsl.ErrorCollector;
 import util.GeoUtil;
@@ -139,7 +140,7 @@ public class RasterdbMethod_webwms extends RasterdbMethod {
 			//Logger.info("bbox "+Arrays.toString(bbox));
 			Rect2d wmsRect = Rect2d.parseBbox(bbox);
 			double[][] rePoints = wmsRect.createPoints9();
-			Logger.info(Arrays.deepToString(rePoints));
+			//Logger.info(Arrays.deepToString(rePoints));
 			GeoReference ref = rasterdb.ref();
 			if(!ref.has_code()) {
 				throw new RuntimeException("no EPSG projection information");
@@ -148,34 +149,37 @@ public class RasterdbMethod_webwms extends RasterdbMethod {
 			if(epsg <= 0) {
 				throw new RuntimeException("no EPSG projection information");
 			}
-			SpatialReference layerSr = GeoUtil.spatialReferenceFromEPSG(epsg);
-			if(layerSr == null) {
+			SpatialReference srLayer = GeoUtil.spatialReferenceFromEPSG(epsg);
+			if(srLayer == null) {
 				throw new RuntimeException("no valid EPSG projection information");
 			}
-			CoordinateTransformation ctToLayer = CoordinateTransformation.CreateCoordinateTransformation(GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE, layerSr);
+			SpatialReference srWMS = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
+			/*CoordinateTransformation ctToLayer = CoordinateTransformation.CreateCoordinateTransformation(srWMS, srLayer);
 			ctToLayer.TransformPoints(rePoints);
 			Rect2d reRect = Rect2d.ofPoints(rePoints);
 			Range2d range2d = ref.rect2dToRange2d(reRect);
-			BandProcessor processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
+			TimeBandProcessor processor = new TimeBandProcessor(rasterdb, range2d, width, height);*/
+			Reprojector processor = new Reprojector(rasterdb, srLayer, srWMS, wmsRect, width, height);
 			ImageBufferARGB image = null;
 			if(bandText.equals("color")) {
-				image = Rasterizer.rasterizeRGB(processor, width, height, gamma, range, gamma_auto_sync, null);
+				image = Rasterizer.rasterizeRGB(processor, rasterdb, timestamp, width, height, gamma, range, gamma_auto_sync, null);
 			} else if(bandText.startsWith("band")) {
 				int bandIndex = Integer.parseInt(bandText.substring(4));
-				TimeBand timeBand = processor.getTimeBand(bandIndex);
+				TimeBand timeBand = rasterdb.getTimeBand(timestamp, bandIndex);
 				if(palette == null) {
 					image = Rasterizer.rasterizeGrey(processor, timeBand, width, height, gamma, range, null);
 				} else {
 					image = Rasterizer.rasterizePalette(processor, timeBand, width, height, gamma, range, palette, null);	
 				}
 			} else {
-				ErrorCollector errorCollector = new ErrorCollector();
+				throw new RuntimeException("custom processing not implemented for reprojected wms");
+				/*ErrorCollector errorCollector = new ErrorCollector();
 				DoubleFrame[] doubleFrames = DSL.process(bandText, errorCollector, processor);
 				if(palette == null) {
 					image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, range);
 				} else {
 					image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, range, palette);
-				}
+				}*/
 			}
 
 			switch(format) {
