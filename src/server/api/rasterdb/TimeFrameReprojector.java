@@ -3,17 +3,17 @@ package server.api.rasterdb;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
-import org.gdal.gdalconst.gdalconstConstants;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 
 import pointcloud.Rect2d;
-import rasterdb.FrameProducer;
+import rasterdb.Band;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
+import rasterdb.TimeFrameProducer;
 import util.GeoUtil;
 import util.Range2d;
 import util.Timer;
@@ -21,10 +21,9 @@ import util.frame.DoubleFrame;
 import util.frame.FloatFrame;
 import util.frame.ShortFrame;
 
-public class Reprojector implements FrameProducer {
+public class TimeFrameReprojector implements TimeFrameProducer {
 
-	private final SpatialReference srLayer;
-	private final SpatialReference srWMS;
+	private final RasterDB rasterdb;
 	private final GeoReference ref;
 	private final TimeBandProcessor timeBandProcessor;
 	private final Rect2d layerRect;
@@ -42,21 +41,20 @@ public class Reprojector implements FrameProducer {
 	private final double maxexrror = 0.5d;
 	//private final double maxexrror = 0.0d;
 
-	public Reprojector(RasterDB rasterdb, SpatialReference srLayer, SpatialReference srWMS, Rect2d wmsRect, int width, int height) {
-		this.srLayer = srLayer;
-		this.srWMS = srWMS;
+	public TimeFrameReprojector(RasterDB rasterdb, int layerEPSG, int wmsEPSG, Rect2d wmsRect, int width, int height) {
+		this.rasterdb = rasterdb;
 		this.width = width;
 		this.height = height;
 		this.ref = rasterdb.ref();
 		this.wmsRect = wmsRect;
-		CoordinateTransformation ctToLayer = CoordinateTransformation.CreateCoordinateTransformation(srWMS, srLayer);
+		CoordinateTransformation ctToLayer = GeoUtil.getCoordinateTransformation(wmsEPSG, layerEPSG);
 		double[][] rePoints = wmsRect.createPoints9();
 		ctToLayer.TransformPoints(rePoints);
 		this.layerRect = Rect2d.ofPoints(rePoints);		
 		Range2d range2d = ref.rect2dToRange2d(layerRect);
 		this.timeBandProcessor = new TimeBandProcessor(rasterdb, range2d, width, height);
-		srLayerWKT = srLayer.ExportToWkt();
-		srWmsWKT = srWMS.ExportToWkt();
+		srLayerWKT = GeoUtil.getWKT(layerEPSG);
+		srWmsWKT = GeoUtil.getWKT(wmsEPSG);
 		int scale = timeBandProcessor.getScale();
 		Range2d layerRange2d = timeBandProcessor.getDstRange();
 		double layerGeoXmin = ref.pixelXToGeo(layerRange2d.xmin * scale);
@@ -70,12 +68,12 @@ public class Reprojector implements FrameProducer {
 	}
 
 	@Override
-	public ShortFrame getShortFrame(TimeBand timeband) {
+	public ShortFrame getShortFrame(int timestamp, Band band) {
 		Dataset datasetSrc = null;
 		Dataset datasetDst = null;
 		try {
 			Timer.start("getShortFrame");
-			ShortFrame srcFrame = timeBandProcessor.getShortFrame(timeband);		
+			ShortFrame srcFrame = timeBandProcessor.getShortFrame(timestamp, band);		
 			datasetSrc = GeoUtil.GDAL_MEM_DRIVER.Create("", srcFrame.width, srcFrame.height, 1, gdalconst.GDT_UInt16);
 			datasetSrc.SetProjection(srLayerWKT);
 			datasetSrc.SetGeoTransform(geoTranformLayer);
@@ -118,12 +116,12 @@ public class Reprojector implements FrameProducer {
 	}
 
 	@Override
-	public FloatFrame getFloatFrame(TimeBand timeband) {
+	public FloatFrame getFloatFrame(int timestamp, Band band) {
 		Dataset datasetSrc = null;
 		Dataset datasetDst = null;
 		try {
 			Timer.start("getFloatFrame");
-			FloatFrame srcFrame = timeBandProcessor.getFloatFrame(timeband);		
+			FloatFrame srcFrame = timeBandProcessor.getFloatFrame(timestamp, band);		
 			datasetSrc = GeoUtil.GDAL_MEM_DRIVER.Create("", srcFrame.width, srcFrame.height, 1, gdalconst.GDT_Float32);
 			datasetSrc.SetProjection(srLayerWKT);
 			datasetSrc.SetGeoTransform(geoTranformLayer);
@@ -166,12 +164,12 @@ public class Reprojector implements FrameProducer {
 	}
 
 	@Override
-	public DoubleFrame getDoubleFrame(TimeBand timeband) {
+	public DoubleFrame getDoubleFrame(int timestamp, Band band) {
 		Dataset datasetSrc = null;
 		Dataset datasetDst = null;
 		try {
 			Timer.start("getDoubleFrame");
-			DoubleFrame srcFrame = timeBandProcessor.getDoubleFrame(timeband);		
+			DoubleFrame srcFrame = timeBandProcessor.getDoubleFrame(timestamp, band);		
 			datasetSrc = GeoUtil.GDAL_MEM_DRIVER.Create("", srcFrame.width, srcFrame.height, 1, gdalconst.GDT_Float64);
 			datasetSrc.SetProjection(srLayerWKT);
 			datasetSrc.SetGeoTransform(geoTranformLayer);
@@ -211,5 +209,23 @@ public class Reprojector implements FrameProducer {
 				datasetDst = null;
 			}
 		}
+	}
+	
+	@Override
+	public DoubleFrame getDoubleFrameConst(double value) {		
+		DoubleFrame doubleFrame = DoubleFrame.ofRange2d(width, height, new Range2d(0, 0, width - 1, height - 1));
+		doubleFrame.fill(value);
+		return doubleFrame;
+	}
+	
+	@Override
+	public Band getBand(int index) {
+		return rasterdb.bandMapReadonly.get(index);		
+	}
+	
+	@Override
+	public TimeBand getTimeBand(int timestamp, int bandIndex) {
+		Band band = getBand(bandIndex);		
+		return band == null ? null : new TimeBand(timestamp, band);		
 	}
 }

@@ -19,7 +19,6 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.gdal.osr.CoordinateTransformation;
-import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -27,6 +26,7 @@ import org.w3c.dom.Node;
 
 import broker.TimeSlice;
 import pointcloud.Rect2d;
+import rasterdb.CustomWMS;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import server.api.rasterdb.WmsCapabilities.WmsStyle;
@@ -43,20 +43,34 @@ public class RasterdbMethod_webwms_GetCapabilities {
 	public static void handle_GetCapabilities(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		response.setContentType(Web.MIME_XML);		
 		PrintWriter out = response.getWriter();		
+		
+		CustomWMS customWMS = null;
+		if(!target.isEmpty()) {
+			Logger.info("target |" + target + "|");
+			customWMS = rasterdb.customWmsMapReadonly.get(target);
+			if(customWMS != null) {
+				if(customWMS.hasEPSG()) {
+					
+				}				
+			} else {
+				throw new RuntimeException("custom WMS not found |" + target + "|");
+			}
+		}
+		
 		try {
 			String requestUrl = request.getRequestURL().toString();
 			Logger.info("WMS requesUrl   " + requestUrl);
-			xml_root(rasterdb, requestUrl, out);
+			xml_root(rasterdb, customWMS, requestUrl, out);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private static void xml_root(RasterDB rasterdb, String requestUrl, PrintWriter out) throws ParserConfigurationException, TransformerException {
+	private static void xml_root(RasterDB rasterdb, CustomWMS customWMS, String requestUrl, PrintWriter out) throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		Document doc = docBuilder.newDocument();
-		doc.appendChild(getCapabilities(rasterdb, requestUrl, doc));
+		doc.appendChild(getCapabilities(rasterdb, customWMS, requestUrl, doc));
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -79,7 +93,7 @@ public class RasterdbMethod_webwms_GetCapabilities {
 		return e;
 	}
 
-	private static Node getCapabilities(RasterDB rasterdb, String requestUrl, Document doc) {
+	private static Node getCapabilities(RasterDB rasterdb, CustomWMS customWMS, String requestUrl, Document doc) {
 		Element rootElement = doc.createElementNS(NS_URL, "WMS_Capabilities");
 		rootElement.setAttribute("version", "1.3.0");
 		rootElement.setAttribute("xmlns:xlink", NS_XLINK);
@@ -95,7 +109,7 @@ public class RasterdbMethod_webwms_GetCapabilities {
 		addRequest(eCapability, requestUrl);
 
 		for (WmsStyle style : WmsCapabilities.getWmsStyles(rasterdb)) {
-			addRootLayer(rasterdb, eCapability, style.name, style.title);
+			addRootLayer(rasterdb, customWMS, eCapability, style.name, style.title);
 		}
 
 		return rootElement;
@@ -125,9 +139,9 @@ public class RasterdbMethod_webwms_GetCapabilities {
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
-	private static void tryAdd_GeographicBoundingBox(Range2d localRange, GeoReference ref, SpatialReference layerSr, Element eRootLayer) {
+	private static void tryAdd_GeographicBoundingBox(Range2d localRange, GeoReference ref, int layerEPSG, Element eRootLayer) {
 		try {
-			CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(layerSr, GeoUtil.WGS84_SPATIAL_REFERENCE);
+			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, GeoUtil.EPSG_WGS84);
 			double[] p1 = ct.TransformPoint(ref.pixelXToGeo(localRange.xmin), ref.pixelYToGeo(localRange.ymin));
 			double[] p2 = ct.TransformPoint(ref.pixelXToGeo(localRange.xmax + 1), ref.pixelYToGeo(localRange.ymax + 1));
 			double westBoundLongitude = p1[0];
@@ -151,7 +165,7 @@ public class RasterdbMethod_webwms_GetCapabilities {
 		}
 	}
 
-	private static void addRootLayer(RasterDB rasterdb, Element eCapability, String name, String title) {
+	private static void addRootLayer(RasterDB rasterdb, CustomWMS customWMS, Element eCapability, String name, String title) {
 		Element eRootLayer = addElement(eCapability, "Layer");
 
 		GeoReference ref = rasterdb.ref();
@@ -159,8 +173,8 @@ public class RasterdbMethod_webwms_GetCapabilities {
 		if(!ref.has_code()) {
 			throw new RuntimeException("no EPSG projection information");
 		}
-		int epsg = ref.getEPSG(0);
-		if(epsg <= 0) {
+		int layerEPSG = ref.getEPSG(0);
+		if(layerEPSG <= 0) {
 			throw new RuntimeException("no EPSG projection information");
 		}
 
@@ -172,18 +186,18 @@ public class RasterdbMethod_webwms_GetCapabilities {
 			return;
 		}
 
-		SpatialReference layerSr = GeoUtil.spatialReferenceFromEPSG(epsg);
-		if(layerSr == null) {
-			throw new RuntimeException("no valid EPSG projection information");
-		}
-
-		tryAdd_GeographicBoundingBox(localRange, ref, layerSr, eRootLayer);		
+		tryAdd_GeographicBoundingBox(localRange, ref, layerEPSG, eRootLayer);	
+		
+		int wmsEPSG = GeoUtil.EPSG_WEB_MERCATOR;
 		
 		Rect2d layerRect = ref.range2dToRect2d(localRange);
 		double[][] layerPoints = layerRect.createPoints9(); // larger extent
 		//double[][] layerPoints = layerRect.createPointsMidBorder(); // mean extent
 		Logger.info(Arrays.deepToString(layerPoints));
-		CoordinateTransformation ctToWMS = CoordinateTransformation.CreateCoordinateTransformation(layerSr, GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE);
+		CoordinateTransformation ctToWMS = GeoUtil.getCoordinateTransformation(layerEPSG, wmsEPSG);
+		if(ctToWMS == null) {
+			throw new RuntimeException("no valid EPSG projection information");
+		}
 		ctToWMS.TransformPoints(layerPoints);
 		Logger.info(Arrays.deepToString(layerPoints));
 

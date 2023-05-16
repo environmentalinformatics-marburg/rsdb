@@ -24,9 +24,10 @@ import broker.acl.AclUtil;
 import broker.group.PoiGroup;
 import broker.group.RoiGroup;
 import jakarta.servlet.http.HttpServletResponse;
-import pointcloud.DoublePoint;
-import pointcloud.DoubleRect;
+import pointcloud.P2d;
+import pointcloud.Rect2d;
 import pointcloud.PointCloud;
+import pointcloud.Rect2d;
 import util.JsonUtil;
 import util.Range2d;
 import util.Web;
@@ -130,7 +131,7 @@ public class APIHandler_pointcloud {
 
 	private void handleGET(PointCloud pointcloud, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {		
 		boolean requestExtent = request.getParameter("extent") != null;
-		DoubleRect range = requestExtent ? pointcloud.getRange() : null;
+		Rect2d range = requestExtent ? pointcloud.getRange() : null;
 		Range2d cell_range = requestExtent ? pointcloud.getCellRange() : null;
 
 		boolean requestPoiGroups = request.getParameter("poi_groups") != null;
@@ -229,7 +230,7 @@ public class APIHandler_pointcloud {
 				json.value((cell_range.ymax - cell_range.ymin + 1) * pointcloud.getCellsize());
 				json.endObject();
 			}
-			DoublePoint cell_offset = pointcloud.getCelloffset();
+			P2d cell_offset = pointcloud.getCelloffset();
 			if(cell_offset != null) {
 				json.key("cell_offset");
 				json.object();

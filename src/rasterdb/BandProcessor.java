@@ -8,7 +8,8 @@ import util.frame.DoubleFrame;
 import util.frame.FloatFrame;
 import util.frame.ShortFrame;
 
-public class BandProcessor extends TimeBandProcessor {
+public class BandProcessor extends TimeBandProcessor implements FrameProducer {
+	
 	public final int timestamp;
 	
 	public BandProcessor(RasterDB rasterdb, Range2d range2d, int timestamp) {

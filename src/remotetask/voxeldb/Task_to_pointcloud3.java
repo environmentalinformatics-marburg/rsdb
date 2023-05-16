@@ -7,7 +7,7 @@ import broker.Broker;
 import broker.TimeSlice;
 import broker.acl.ACL;
 import pointcloud.CellTable;
-import pointcloud.DoublePoint;
+import pointcloud.P2d;
 import pointcloud.PointCloud;
 import remotetask.Context;
 import remotetask.Description;
@@ -95,7 +95,7 @@ public class Task_to_pointcloud3 extends RemoteTask {
 
 		double pointCellOffsetX_ = Math.floor(voxelRef.originX / pointCellSize);
 		double pointCellOffsetY_ = Math.floor(voxelRef.originY / pointCellSize);
-		DoublePoint off = pointcloud.getOrSetCelloffset(pointCellOffsetX_, pointCellOffsetY_);
+		P2d off = pointcloud.getOrSetCelloffset(pointCellOffsetX_, pointCellOffsetY_);
 		long pointCellOffsetX = (long) off.x;
 		long pointCellOffsetY = (long) off.y;
 		Logger.info("point cell offset " + pointCellOffsetX + " " + pointCellOffsetY);

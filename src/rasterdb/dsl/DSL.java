@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.tinylog.Logger;
 
 import rasterdb.BindVisitor;
+import rasterdb.FrameProducer;
 import rasterdb.BandProcessor;
 import rasterdb.RasterDB;
 import rasterdb.ast.AST;
@@ -15,8 +16,7 @@ import rasterdb.node.CompileVisitor;
 import rasterdb.node.ProcessorNode;
 import util.frame.DoubleFrame;
 
-public class DSL {
-	
+public class DSL {	
 
 	public static AST parse(String script, ErrorCollector errorCollector) {
 		try {
@@ -55,18 +55,18 @@ public class DSL {
 		return astUnified.accept(new BindVisitor(rasterdb), null);		
 	}
 
-	public static ProcessorNode compileToProcessorNode(AST astBound, BandProcessor processor) {
+	public static ProcessorNode compileToProcessorNode(AST astBound, FrameProducer processor) {
 		return astBound.accept(new CompileVisitor(processor));		
 	}
 
-	public static ProcessorNode parse_unify_bind_compileToProcessorNode(String script, ErrorCollector errorCollector, BandProcessor processor) {
+	public static ProcessorNode parse_unify_bind_compileToProcessorNode(String script, ErrorCollector errorCollector, RasterDB rasterdb, FrameProducer processor) {
 		AST astUnified = parse_unify(script, errorCollector);
-		AST astBound = bind(astUnified, processor.rasterdb);
+		AST astBound = bind(astUnified, rasterdb);
 		return compileToProcessorNode(astBound, processor);		
 	}
 	
-	public static DoubleFrame[] process(String script, ErrorCollector errorCollector, BandProcessor processor) {
-		ProcessorNode processorNode = DSL.parse_unify_bind_compileToProcessorNode(script, errorCollector, processor);
+	public static DoubleFrame[] process(String script, ErrorCollector errorCollector, RasterDB rasterdb, FrameProducer processor) {
+		ProcessorNode processorNode = DSL.parse_unify_bind_compileToProcessorNode(script, errorCollector, rasterdb, processor);
 		return processorNode.process(processor);
 	}
 	

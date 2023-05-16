@@ -7,7 +7,7 @@ import broker.Broker;
 import broker.Informal.Builder;
 import broker.TimeSlice;
 import broker.acl.ACL;
-import pointcloud.DoubleRect;
+import pointcloud.Rect2d;
 import pointcloud.PointCloud;
 import rasterdb.Band;
 import rasterdb.GeoReference;
@@ -55,7 +55,7 @@ public class Task_surface_raster extends CancelableRemoteTask {
 			surface_xmax = rect_Text.getDouble(2);
 			surface_ymax = rect_Text.getDouble(3);
 		} else {
-			DoubleRect rect = pointcloud.getRange();
+			Rect2d rect = pointcloud.getRange();
 			surface_xmin = rect.xmin;
 			surface_ymin = rect.ymin;
 			surface_xmax = rect.xmax;

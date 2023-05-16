@@ -8,7 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import broker.Broker;
-import pointcloud.DoubleRect;
+import pointcloud.Rect2d;
 import pointdb.base.PdbConst;
 import pointdb.base.Rect;
 import pointdb.process.Functions;
@@ -62,7 +62,7 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 			bands[i] = rasterdb.createBand(TilePixel.TYPE_FLOAT, index_text, null);
 		}
 
-		DoubleRect pointcloudExtent = dpFactory.getExtent();
+		Rect2d pointcloudExtent = dpFactory.getExtent();
 		double xmin = pointcloudExtent.xmin;
 		double ymin = pointcloudExtent.ymin;
 		double xmax = pointcloudExtent.xmax;

@@ -1,6 +1,6 @@
 package rasterdb.node;
 
-import rasterdb.BandProcessor;
+import rasterdb.FrameProducer;
 import util.frame.DoubleFrame;
 
 public class ProcessorNode_euclidean_distance extends ProcessorNode {
@@ -12,7 +12,7 @@ public class ProcessorNode_euclidean_distance extends ProcessorNode {
 	}
 
 	@Override
-	public DoubleFrame[] process(BandProcessor processor) {
+	public DoubleFrame[] process(FrameProducer processor) {
 		DoubleFrame[] targetFrames = targetNode.process(processor);
 		DoubleFrame resultFrame = DoubleFrame.euclidean_distance(targetFrames);
 		resultFrame.meta.put("name", "spectral_distance");

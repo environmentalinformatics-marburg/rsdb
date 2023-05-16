@@ -18,13 +18,14 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.gdal.osr.CoordinateTransformation;
-import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import broker.TimeSlice;
+import pointcloud.Rect2d;
+import rasterdb.CustomWMS;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import server.api.rasterdb.WmsCapabilities.WmsStyle;
@@ -34,27 +35,37 @@ import util.TimeUtil;
 import util.Web;
 
 public class RasterdbMethod_wms_GetCapabilities {
-	
+
 	private static final String NS_URL = "http://www.opengis.net/wms";
 	private static final String NS_XLINK = "http://www.w3.org/1999/xlink";
-	
+
 	public static void handle_GetCapabilities(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		response.setContentType(Web.MIME_XML);		
-		PrintWriter out = response.getWriter();		
+		PrintWriter out = response.getWriter();
+
+		CustomWMS customWMS = null;
+		if(!target.isEmpty()) {
+			Logger.info("target |" + target + "|");
+			customWMS = rasterdb.customWmsMapReadonly.get(target);
+			if(customWMS == null) {
+				throw new RuntimeException("custom WMS not found |" + target + "|");
+			}
+		}		
+
 		try {
 			String requestUrl = request.getRequestURL().toString();
 			Logger.info("WMS requesUrl   " + requestUrl);
-			xml_root(rasterdb, requestUrl, out);
+			xml_root(rasterdb, customWMS, requestUrl, out);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private static void xml_root(RasterDB rasterdb, String requestUrl, PrintWriter out) throws ParserConfigurationException, TransformerException {
+	private static void xml_root(RasterDB rasterdb, CustomWMS customWMS, String requestUrl, PrintWriter out) throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		Document doc = docBuilder.newDocument();
-		doc.appendChild(getCapabilities(rasterdb, requestUrl, doc));
+		doc.appendChild(getCapabilities(rasterdb, customWMS, requestUrl, doc));
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -77,7 +88,7 @@ public class RasterdbMethod_wms_GetCapabilities {
 		return e;
 	}
 
-	private static Node getCapabilities(RasterDB rasterdb, String requestUrl, Document doc) {
+	private static Node getCapabilities(RasterDB rasterdb, CustomWMS customWMS, String requestUrl, Document doc) {
 		Element rootElement = doc.createElementNS(NS_URL, "WMS_Capabilities");
 		rootElement.setAttribute("version", "1.3.0");
 		rootElement.setAttribute("xmlns:xlink", NS_XLINK);
@@ -93,7 +104,7 @@ public class RasterdbMethod_wms_GetCapabilities {
 		addRequest(eCapability, requestUrl);
 
 		for (WmsStyle style : WmsCapabilities.getWmsStyles(rasterdb)) {
-			addRootLayer(rasterdb, eCapability, style.name, style.title);
+			addRootLayer(rasterdb, customWMS, eCapability, style.name, style.title);
 		}
 
 		return rootElement;
@@ -123,11 +134,22 @@ public class RasterdbMethod_wms_GetCapabilities {
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
-	private static void addRootLayer(RasterDB rasterdb, Element eCapability, String name, String title) {
+	private static void addRootLayer(RasterDB rasterdb, CustomWMS customWMS, Element eCapability, String name, String title) {
 		Element eRootLayer = addElement(eCapability, "Layer");
-		
+
 		GeoReference ref = rasterdb.ref();
-		String code = ref.optCode("EPSG:3857");
+
+		int layerEPSG = ref.getEPSG(0);
+		boolean hasLayerCRS = layerEPSG > 0;
+		int wmsEPSG = hasLayerCRS ? layerEPSG : 0;
+		if(customWMS != null && customWMS.hasEPSG()) {
+			wmsEPSG = customWMS.epsg;
+		}
+		boolean hasWmsCRS = wmsEPSG > 0;
+		boolean isTransform = hasLayerCRS && hasWmsCRS && layerEPSG != wmsEPSG;
+
+		//String layerCode = ref.optCode("EPSG:3857");
+
 		addElement(eRootLayer, "Name", name);
 		addElement(eRootLayer, "Title", title);
 
@@ -135,96 +157,57 @@ public class RasterdbMethod_wms_GetCapabilities {
 		if(localRange == null) {
 			return;
 		}
+		Rect2d layerRect = ref.range2dToRect2d(localRange);	
 
-		if(ref.has_code()) {
-			try {
-				int epsg = ref.getEPSG(0);
-				if(epsg != 0) {
-					SpatialReference layerSr = GeoUtil.spatialReferenceFromEPSG(epsg);
-					CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(layerSr, GeoUtil.WGS84_SPATIAL_REFERENCE);
-					double[] p1 = ct.TransformPoint(ref.pixelXToGeo(localRange.xmin), ref.pixelYToGeo(localRange.ymin));
-					double[] p2 = ct.TransformPoint(ref.pixelXToGeo(localRange.xmax + 1), ref.pixelYToGeo(localRange.ymax + 1));
-					double westBoundLongitude = p1[0];
-					double eastBoundLongitude = p2[0];
-					double southBoundLatitude = p1[1];
-					double northBoundLatitude = p2[1];
-					if(Double.isFinite(westBoundLongitude) 
-							&& Double.isFinite(eastBoundLongitude) 
-							&& Double.isFinite(southBoundLatitude) 
-							&& Double.isFinite(northBoundLatitude)
-							&& westBoundLongitude != eastBoundLongitude
-							&& southBoundLatitude != northBoundLatitude) {
-						Element eEX_GeographicBoundingBox = addElement(eRootLayer, "EX_GeographicBoundingBox");		
-						addElement(eEX_GeographicBoundingBox, "westBoundLongitude", "" + westBoundLongitude);
-						addElement(eEX_GeographicBoundingBox, "eastBoundLongitude", "" + eastBoundLongitude);		
-						addElement(eEX_GeographicBoundingBox, "southBoundLatitude", "" + southBoundLatitude);
-						addElement(eEX_GeographicBoundingBox, "northBoundLatitude", "" + northBoundLatitude);
-					}
-				}
-			} catch(Exception e) {
-				Logger.warn(e);
-			}
+		if(hasLayerCRS) {
+			tryAdd_GeographicBoundingBox(layerRect, ref, layerEPSG, eRootLayer);
 		}
 
-		addElement(eRootLayer, "CRS", code);
-		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
-		eBoundingBox.setAttribute("CRS", code);
-		//boolean transposed = ref.wms_transposed;
-		boolean transposed = false;
-		if (transposed) {
-			eBoundingBox.setAttribute("minx", "" + ref.pixelYToGeo(localRange.ymin));
-			eBoundingBox.setAttribute("miny", "" + ref.pixelXToGeo(localRange.xmin));
-			eBoundingBox.setAttribute("maxx", "" + ref.pixelYToGeo(localRange.ymax + 1));
-			eBoundingBox.setAttribute("maxy", "" + ref.pixelXToGeo(localRange.xmax + 1));
+		if(isTransform) {
+			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, wmsEPSG);	
+			if(ct == null) {
+				throw new RuntimeException("no transform");
+			}
+			double[][] rePoints = layerRect.createPoints9();
+			ct.TransformPoints(rePoints);
+			Rect2d wmsRect = Rect2d.ofPoints(rePoints);
+			if(!wmsRect.isFinite()) {
+				throw new RuntimeException("no rect");
+			}
+			addElement(eRootLayer, "CRS", "EPSG:" + wmsEPSG);
+			Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
+			eBoundingBox.setAttribute("CRS", "EPSG:" + wmsEPSG);
+			eBoundingBox.setAttribute("minx", "" + wmsRect.xmin);
+			eBoundingBox.setAttribute("miny", "" + wmsRect.ymin);
+			eBoundingBox.setAttribute("maxx", "" + wmsRect.xmax);
+			eBoundingBox.setAttribute("maxy", "" + wmsRect.ymax);
+
+			double wmsResx = wmsRect.width() / localRange.getWidth();
+			double wmsResy = wmsRect.height() / localRange.getHeight();
+			eBoundingBox.setAttribute("resx", "" + wmsResx);
+			eBoundingBox.setAttribute("resy", "" + wmsResy);
 		} else {
-			eBoundingBox.setAttribute("minx", "" + ref.pixelXToGeo(localRange.xmin));
-			eBoundingBox.setAttribute("miny", "" + ref.pixelYToGeo(localRange.ymin));
-			eBoundingBox.setAttribute("maxx", "" + ref.pixelXToGeo(localRange.xmax + 1));
-			eBoundingBox.setAttribute("maxy", "" + ref.pixelYToGeo(localRange.ymax + 1));
-		}
-		if(ref.has_pixel_size()) {
-			eBoundingBox.setAttribute("resx", "" + ref.pixel_size_x);
-			eBoundingBox.setAttribute("resy", "" + ref.pixel_size_y);
-		}
-
-		/*ReadonlyNavigableSetView<Integer> timekeys = rasterdb.rasterUnit().timeKeysReadonly();
-		for(Integer timeKey:timekeys) {
-			if(timeKey > 0) {
-				Element eTimeLayer = addElement(eRootLayer, "Layer");
-				addElement(eTimeLayer, "Name", name + "/" + timeKey);
-				addElement(eTimeLayer, "Title", title + " / " + TimeUtil.toPrettyText(timeKey));
+			if(hasLayerCRS) {
+				addElement(eRootLayer, "CRS", "EPSG:" + layerEPSG);
 			}
-		}*/
+			Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
+			if(hasLayerCRS) {
+				eBoundingBox.setAttribute("CRS", "EPSG:" + layerEPSG);
+			}
+			eBoundingBox.setAttribute("minx", "" + layerRect.xmin);
+			eBoundingBox.setAttribute("miny", "" + layerRect.ymin);
+			eBoundingBox.setAttribute("maxx", "" + layerRect.xmax);
+			eBoundingBox.setAttribute("maxy", "" + layerRect.ymax);
+
+			if(ref.has_pixel_size()) {
+				eBoundingBox.setAttribute("resx", "" + ref.pixel_size_x);
+				eBoundingBox.setAttribute("resy", "" + ref.pixel_size_y);
+			}
+		}
 
 		TreeSet<Integer> timestamps = new TreeSet<Integer>();
 		timestamps.addAll(rasterdb.rasterUnit().timeKeysReadonly());
 		timestamps.addAll(rasterdb.timeMapReadonly.keySet());
-
-		/*if(!timestamps.isEmpty()) { // TIME-paramter not used by clients ?
-			StringBuilder content = new StringBuilder();
-			boolean following = false;
-			String last = null;
-			for(Integer timestamp : timestamps) {
-				if(following) {
-					content.append(',');
-				} else {
-					following = true;
-				}
-				TimeSlice timeSlice = rasterdb.timeMapReadonly.get(timestamp);
-				if(timeSlice == null) {
-					last = TimeUtil.toPrettyText(timestamp);
-				} else {
-					last = timeSlice.name;
-				}
-				content.append(last);
-			}
-			Element eDimension = addElement(eRootLayer, "Dimension", content.toString());
-			eDimension.setAttribute("name", "time");
-			eDimension.setAttribute("units", ""); // no unit
-			if(last != null) {
-				eDimension.setAttribute("default", last);
-			}
-		}*/
 
 		for(Integer timestamp:timestamps) {
 			Element eTimeLayer = addElement(eRootLayer, "Layer");
@@ -235,6 +218,27 @@ public class RasterdbMethod_wms_GetCapabilities {
 			} else {
 				addElement(eTimeLayer, "Title", title + " / " + timeSlice.name);
 			}			
+		}
+	}
+
+	private static void tryAdd_GeographicBoundingBox(Rect2d layerRect, GeoReference ref, int layerEPSG, Element eRootLayer) {
+		try {
+			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, GeoUtil.EPSG_WGS84);
+			if(ct == null) {
+				return;
+			}
+			double[][] rePoints = layerRect.createPoints9();
+			ct.TransformPoints(rePoints);
+			Rect2d wgs84Rect = Rect2d.ofPoints(rePoints);
+			if(wgs84Rect.isFinite()) {
+				Element eEX_GeographicBoundingBox = addElement(eRootLayer, "EX_GeographicBoundingBox");		
+				addElement(eEX_GeographicBoundingBox, "westBoundLongitude", "" + wgs84Rect.xmin);
+				addElement(eEX_GeographicBoundingBox, "eastBoundLongitude", "" + wgs84Rect.xmax);		
+				addElement(eEX_GeographicBoundingBox, "southBoundLatitude", "" + wgs84Rect.ymin);
+				addElement(eEX_GeographicBoundingBox, "northBoundLatitude", "" + wgs84Rect.ymax);
+			}			
+		} catch(Exception e) {
+			Logger.warn(e);
 		}
 	}
 }

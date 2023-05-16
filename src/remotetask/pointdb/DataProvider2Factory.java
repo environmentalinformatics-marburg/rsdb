@@ -1,10 +1,10 @@
 package remotetask.pointdb;
 
-import pointcloud.DoubleRect;
+import pointcloud.Rect2d;
 import pointdb.base.Rect;
 import pointdb.process.DataProvider2;
 
 public abstract class DataProvider2Factory {	
 	public abstract DataProvider2 get(Rect rect);
-	public abstract DoubleRect getExtent();
+	public abstract Rect2d getExtent();
 }

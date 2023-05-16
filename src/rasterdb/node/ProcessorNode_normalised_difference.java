@@ -1,6 +1,6 @@
 package rasterdb.node;
 
-import rasterdb.BandProcessor;
+import rasterdb.FrameProducer;
 import util.frame.DoubleFrame;
 
 public class ProcessorNode_normalised_difference extends ProcessorNode {
@@ -14,7 +14,7 @@ public class ProcessorNode_normalised_difference extends ProcessorNode {
 	}
 
 	@Override
-	public DoubleFrame[] process(BandProcessor processor) {
+	public DoubleFrame[] process(FrameProducer processor) {
 		DoubleFrame refFrame = referenceNode.process(processor)[0];
 		DoubleFrame[] targetFrames = targetNode.process(processor);
 		DoubleFrame[] resultFrames = new DoubleFrame[targetFrames.length];

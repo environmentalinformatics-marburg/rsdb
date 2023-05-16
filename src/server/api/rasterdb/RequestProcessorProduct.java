@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.tinylog.Logger;
 
 import rasterdb.BandProcessor;
+import rasterdb.RasterDB;
 import rasterdb.dsl.DSL;
 import rasterdb.dsl.ErrorCollector;
 import server.api.rasterdb.RequestProcessor.OutputProcessingType;
@@ -18,13 +19,13 @@ import util.image.Renderer;
 public class RequestProcessorProduct {
 	
 	
-	public static void processProduct(BandProcessor processor, String productText, OutputProcessingType outputProcessingType, String format, Receiver resceiver) throws IOException {
+	public static void processProduct(RasterDB rasterdb, BandProcessor processor, String productText, OutputProcessingType outputProcessingType, String format, Receiver resceiver) throws IOException {
 		Range2d reqRange2d = processor.getDstRange();
 		int reqWidth = reqRange2d.getWidth();
 		int reqHeight = reqRange2d.getHeight();
 		ErrorCollector errorCollector = new ErrorCollector();
 		Logger.info("process: "+productText);
-		DoubleFrame[] doubleFrames = DSL.process(productText, errorCollector, processor);
+		DoubleFrame[] doubleFrames = DSL.process(productText, errorCollector, rasterdb, processor);
 		Logger.info("BANDS "+doubleFrames.length);
 		
 		switch(outputProcessingType) {

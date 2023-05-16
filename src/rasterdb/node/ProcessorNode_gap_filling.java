@@ -2,6 +2,7 @@ package rasterdb.node;
 
 
 import rasterdb.BandProcessor;
+import rasterdb.FrameProducer;
 import util.frame.DoubleFrame;
 
 public class ProcessorNode_gap_filling extends ProcessorNode {
@@ -16,7 +17,7 @@ public class ProcessorNode_gap_filling extends ProcessorNode {
 	}
 
 	@Override
-	public DoubleFrame[] process(BandProcessor processor) {
+	public DoubleFrame[] process(FrameProducer processor) {
 		DoubleFrame[] frames = node.process(processor);
 		for (int i = 0; i < frames.length; i++) {
 			DoubleFrame frame = frames[i];

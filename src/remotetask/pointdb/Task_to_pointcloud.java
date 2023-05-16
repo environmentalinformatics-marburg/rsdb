@@ -8,7 +8,7 @@ import org.tinylog.Logger;
 import broker.Broker;
 import broker.acl.ACL;
 import pointcloud.CellTable;
-import pointcloud.DoublePoint;
+import pointcloud.P2d;
 import pointcloud.PointCloud;
 import pointdb.DBTileKeyProducer;
 import pointdb.PointDB;
@@ -145,7 +145,7 @@ public class Task_to_pointcloud extends RemoteTask{
 			double cellsize = pointcloud.getCellsize();
 			long utmm_cellsize = PdbConst.to_utmm(cellsize);
 			long utmm_cellsize_minus_one = utmm_cellsize - 1;
-			DoublePoint celloffset = pointcloud.getOrSetCelloffset(Math.floor(stat.tile_x_min / cellsize), Math.floor(stat.tile_y_min / cellsize));
+			P2d celloffset = pointcloud.getOrSetCelloffset(Math.floor(stat.tile_x_min / cellsize), Math.floor(stat.tile_y_min / cellsize));
 			long utmm_pointdb_min_x = PdbConst.to_utmm(stat.tile_x_min);
 			long utmm_pointdb_min_y = PdbConst.to_utmm(stat.tile_y_min);
 			long utmm_pointdb_max_x = PdbConst.to_utmm(stat.tile_x_max) + PdbConst.LOCAL_TILE_SIZE_MINUS_ONE;

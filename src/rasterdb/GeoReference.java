@@ -11,6 +11,7 @@ import java.util.Set;
 import org.tinylog.Logger;
 
 import pointcloud.Rect2d;
+import util.GeoUtil;
 import util.Range2d;
 import util.yaml.YamlMap;
 
@@ -204,22 +205,7 @@ public class GeoReference {
 	}
 
 	public int getEPSG(int missing) {
-		if (has_code()) {
-			String epsgText = code.toLowerCase();
-			if (epsgText.startsWith("epsg:")) {
-				String codeText = epsgText.substring(5);
-				try {
-					return Integer.parseUnsignedInt(codeText.trim());
-				} catch (Exception e) {
-					Logger.warn(e);
-					return missing;
-				}
-			}
-			return missing;
-		} else {
-			return missing;
-		}
-
+		return GeoUtil.parseEPSG(code, missing);
 	}
 
 	public String optCode(String code_default) {

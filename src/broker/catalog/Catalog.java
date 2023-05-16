@@ -40,7 +40,7 @@ import broker.StructuredAccess;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
-import pointcloud.DoublePoint;
+import pointcloud.P2d;
 import pointcloud.PointCloud;
 import pointdb.PointDB;
 import pointdb.base.PdbConst;
@@ -299,7 +299,7 @@ public class Catalog {
 				Coordinate[] coordinates = new Coordinate[keys.size() * 4];
 				int i = 0;
 				double cellsize = pointcloud.getCellsize();
-				DoublePoint celloffset = pointcloud.getCelloffset();
+				P2d celloffset = pointcloud.getCelloffset();
 				double cellscale = pointcloud.getCellscale();
 				for(TileKey key:keys) {				
 					double xmin = (celloffset.x + key.x) * cellsize;

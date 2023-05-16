@@ -11,7 +11,7 @@ import org.locationtech.proj4j.CoordinateReferenceSystem;
 
 import broker.TimeSlice;
 import pointcloud.CellTable;
-import pointcloud.DoubleRect;
+import pointcloud.Rect2d;
 import pointdb.las.Las;
 import pointdb.las.Laz;
 import remotetask.CancelableRemoteProxy;
@@ -26,14 +26,14 @@ public class Importer extends CancelableRemoteProxy {
 	private static final int READ_MAX_BYTES = 1_000_000_000;
 
 	private final VoxelDB voxeldb;
-	private final DoubleRect filterRect;
+	private final Rect2d filterRect;
 	private final double filterZmin;
 	private final double filterZmax;
 	private final boolean trySetOriginToFileOrigin;
 	private final TimeSlice timeSlice;
 	private final CellFactory cellFactory;
 
-	public Importer(VoxelDB voxeldb, DoubleRect filterRect, double filterZmin, double filterZmax, boolean trySetOriginToFileOrigin, TimeSlice timeSlice) {
+	public Importer(VoxelDB voxeldb, Rect2d filterRect, double filterZmin, double filterZmax, boolean trySetOriginToFileOrigin, TimeSlice timeSlice) {
 		this.voxeldb = voxeldb;
 		this.filterRect = filterRect;
 		this.trySetOriginToFileOrigin = trySetOriginToFileOrigin;

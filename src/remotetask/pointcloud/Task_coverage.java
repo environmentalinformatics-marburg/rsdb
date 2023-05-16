@@ -10,7 +10,7 @@ import broker.Broker;
 import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.TimeSlice;
-import pointcloud.DoublePoint;
+import pointcloud.P2d;
 import pointcloud.PointCloud;
 import rasterdb.Band;
 import rasterdb.GeoReference;
@@ -102,7 +102,7 @@ public class Task_coverage extends RemoteTask {
 		pointcloud.setAssociatedRasterDB(rasterdb.config.getName());
 
 		Range2d cellrange = pointcloud.getCellRange();
-		DoublePoint celloffset = pointcloud.getCelloffset();
+		P2d celloffset = pointcloud.getCelloffset();
 		double cellsize = pointcloud.getCellsize();
 		double pointcloud_xmin = (celloffset.x + cellrange.xmin) * cellsize;
 		double pointcloud_ymin = (celloffset.y + cellrange.ymin) * cellsize;		
@@ -161,7 +161,7 @@ public class Task_coverage extends RemoteTask {
 			return;
 		}		
 
-		DoublePoint celloffset = pointcloud.getCelloffset();
+		P2d celloffset = pointcloud.getCelloffset();
 		double cellsize = pointcloud.getCellsize();
 		double cellscale1d = 1 / pointcloud.getCellscale();
 		double pointcloud_xmin = (celloffset.x + cellrange.xmin) * cellsize;

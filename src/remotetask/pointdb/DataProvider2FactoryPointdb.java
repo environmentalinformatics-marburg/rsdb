@@ -1,6 +1,6 @@
 package remotetask.pointdb;
 
-import pointcloud.DoubleRect;
+import pointcloud.Rect2d;
 import pointdb.PointDB;
 import pointdb.base.Rect;
 import pointdb.process.DataProvider2;
@@ -21,9 +21,9 @@ public class DataProvider2FactoryPointdb extends DataProvider2Factory {
 	}
 
 	@Override
-	public DoubleRect getExtent() {
+	public Rect2d getExtent() {
 		Statistics stat = pointdb.tileMetaProducer(null).toStatistics();
 		Rect rect = Rect.of_UTMM(stat.utmm_x_min, stat.utmm_y_min, stat.utmm_x_max, stat.utmm_y_max);
-		return rect.toDoubleRect();
+		return rect.toRect2d();
 	}
 }

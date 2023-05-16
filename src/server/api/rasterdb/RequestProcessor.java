@@ -104,7 +104,7 @@ public class RequestProcessor {
 				if (bandText != null) {
 					throw new RuntimeException("parameter band can not be used if parameter product is specified");
 				}
-				RequestProcessorProduct.processProduct(processor, productText, outputProcessingType, format, new ResponseReceiver(response));								
+				RequestProcessorProduct.processProduct(rasterdb, processor, productText, outputProcessingType, format, new ResponseReceiver(response));								
 			}
 		} catch (Exception e) {
 			Logger.error(e);

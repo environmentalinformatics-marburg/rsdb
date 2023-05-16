@@ -121,4 +121,8 @@ public class Rect2d {
 	public double height() {
 		return ymax - ymin;
 	}
+	
+	public boolean isFinite() {
+		return Double.isFinite(xmin) && Double.isFinite(ymin) && Double.isFinite(xmax) && Double.isFinite(ymax);
+	}
 }

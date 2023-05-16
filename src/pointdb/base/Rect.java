@@ -6,7 +6,7 @@ import java.util.Arrays;
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
-import pointcloud.DoubleRect;
+import pointcloud.Rect2d;
 import util.Web;
 
 /**
@@ -265,7 +265,7 @@ public class Rect {
 		}
 	}
 
-	public DoubleRect toDoubleRect() {
-		return new DoubleRect(getUTMd_min_x(), getUTMd_min_y(), getUTMd_max_x(), getUTMd_max_y());
+	public Rect2d toRect2d() {
+		return new Rect2d(getUTMd_min_x(), getUTMd_min_y(), getUTMd_max_x(), getUTMd_max_y());
 	}
 }

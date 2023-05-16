@@ -26,7 +26,7 @@ public class Importer extends CancelableRemoteProxy {
 
 	private final PointCloud pointcloud;
 	
-	private final DoubleRect filterRect; // nullable
+	private final Rect2d filterRect; // nullable
 	private final AttributeSelector selector;
 	private final int compression_level; // default if == Integer.MIN_VALUE
 
@@ -36,7 +36,7 @@ public class Importer extends CancelableRemoteProxy {
 	public int file_error_counter = 0;
 
 	
-	public Importer(PointCloud pointcloud, DoubleRect filterRect, AttributeSelector selector, int compression_level) {
+	public Importer(PointCloud pointcloud, Rect2d filterRect, AttributeSelector selector, int compression_level) {
 		this.pointcloud = pointcloud;
 		this.filterRect = filterRect;
 		this.selector = selector;
@@ -185,7 +185,7 @@ public class Importer extends CancelableRemoteProxy {
 			}
 		}
 
-		DoublePoint celloffset = pointcloud.getOrSetCelloffset(Math.floor(xlasmin / xcellsize), Math.floor(ylasmin / ycellsize));
+		P2d celloffset = pointcloud.getOrSetCelloffset(Math.floor(xlasmin / xcellsize), Math.floor(ylasmin / ycellsize));
 		double xcelloffset = celloffset.x;
 		double ycelloffset = celloffset.y;
 

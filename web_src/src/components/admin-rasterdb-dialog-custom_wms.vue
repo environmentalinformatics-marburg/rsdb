@@ -145,6 +145,7 @@ export default {
             v.gamma_auto_sync = c.gamma_auto_sync !== undefined ? c.gamma_auto_sync : false;
             v.palette = c.palette !== undefined ? c.palette : 'grey';
             v.format = c.format !== undefined ? c.format : 'png:compressed';
+            v.epsg = c.epsg !== undefined ? c.epsg : 0;
             this.$set(this.custom_wms, id, v);
             this.addEntryVisible = false;
             if(edit) {

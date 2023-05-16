@@ -3,6 +3,7 @@ package util;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
+import java.util.function.IntConsumer;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -219,6 +220,13 @@ public class JsonUtil {
 		if(valueF == valueT) {
 			fun.accept(valueF);
 		}		
+	}
+	
+	public static void optFunInt(JSONObject jsonObject, String name, IntConsumer fun) {
+		if(jsonObject.has(name)) {
+			int value = jsonObject.getInt(name);
+			fun.accept(value);
+		}	
 	}
 
 	public static void optFunDouble(JSONObject jsonObject, String name, DoubleConsumer fun) {

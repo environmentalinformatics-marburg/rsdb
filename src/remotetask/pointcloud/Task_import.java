@@ -13,7 +13,7 @@ import org.tinylog.Logger;
 import broker.Broker;
 import broker.acl.AclUtil;
 import pointcloud.AttributeSelector;
-import pointcloud.DoubleRect;
+import pointcloud.Rect2d;
 import pointcloud.Importer;
 import pointcloud.PointCloud;
 import remotetask.CancelableRemoteProxyTask;
@@ -63,14 +63,14 @@ public class Task_import extends CancelableRemoteProxyTask {
 			}
 		}
 
-		DoubleRect filterRect = null;
+		Rect2d filterRect = null;
 		JSONArray rect_Text = task.optJSONArray("rect");
 		if(rect_Text != null) {
 			double rect_xmin = rect_Text.getDouble(0);
 			double rect_ymin = rect_Text.getDouble(1);
 			double rect_xmax = rect_Text.getDouble(2);
 			double rect_ymax = rect_Text.getDouble(3);
-			filterRect = new DoubleRect(rect_xmin, rect_ymin, rect_xmax, rect_ymax);
+			filterRect = new Rect2d(rect_xmin, rect_ymin, rect_xmax, rect_ymax);
 		}
 
 		String name = task.getString("pointcloud");

@@ -6,10 +6,10 @@ import org.json.JSONWriter;
 
 import util.yaml.YamlMap;
 
-public class DoublePoint {
+public class P2d {
 	public final double x;
 	public final double y;
-	public DoublePoint(double x, double y) {
+	public P2d(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
@@ -20,17 +20,17 @@ public class DoublePoint {
 		return map;
 	}
 
-	public static DoublePoint ofYaml(YamlMap yamlmap) {
+	public static P2d ofYaml(YamlMap yamlmap) {
 		double x = yamlmap.getDouble("x");
 		double y = yamlmap.getDouble("y");
-		return new DoublePoint(x, y);	
+		return new P2d(x, y);	
 	}
 	@Override
 	public String toString() {
 		return "["+ x + " " + y + "]";
 	}
-	public DoublePoint mul(double a) {
-		return new DoublePoint(x * a, y * a);
+	public P2d mul(double a) {
+		return new P2d(x * a, y * a);
 	}
 	public void toJSON(JSONWriter json) {
 		json.object();

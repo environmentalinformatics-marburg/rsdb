@@ -7,6 +7,7 @@ import org.tinylog.Logger;
 
 import rasterdb.Band;
 import rasterdb.BandProcessor;
+import rasterdb.FrameProducer;
 import rasterdb.ast.AST;
 import rasterdb.ast.AST_Band_number;
 import rasterdb.ast.AST_Constant;
@@ -16,12 +17,11 @@ import rasterdb.ast.AST_radiance;
 import rasterdb.ast.AstVisitor;
 import util.frame.DoubleFrame;
 
-public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {
-	
+public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {	
 
 	//private final BandProcessor processor;
 
-	public CompileVisitor(BandProcessor processor) {
+	public CompileVisitor(FrameProducer processor) {
 		//this.processor = processor;
 	}
 
@@ -41,7 +41,7 @@ public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {
 			ProcessorNode[] nodes = list.toArray(new ProcessorNode[0]);
 			int len = nodes.length;
 			@Override
-			public DoubleFrame[] process(BandProcessor processor) {
+			public DoubleFrame[] process(FrameProducer processor) {
 				DoubleFrame[][] subResults = new DoubleFrame[len][];
 				int fullLen = 0;
 				for (int i = 0; i < len; i++) {
@@ -67,7 +67,7 @@ public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {
 	public ProcessorNode visitBandNumber(AST_Band_number ast, Void param) {
 		return new ProcessorNode() {
 			@Override
-			public DoubleFrame[] process(BandProcessor processor) {
+			public DoubleFrame[] process(FrameProducer processor) {
 				Band band = processor.getBand(ast.number);
 				DoubleFrame frame = processor.getDoubleFrame(band);
 				if(band.has_wavelength()) {
@@ -108,7 +108,7 @@ public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {
 				ProcessorNode[] nodes = paramNodes;
 				int len = ast.asts.size();
 				@Override
-				public DoubleFrame[] process(BandProcessor processor) {
+				public DoubleFrame[] process(FrameProducer processor) {
 					DoubleFrame[][] subResults = new DoubleFrame[len][];
 					for (int i = 0; i < subResults.length; i++) {
 						subResults[i] = nodes[i].process(processor);
@@ -189,7 +189,7 @@ public class CompileVisitor implements AstVisitor<ProcessorNode, Void> {
 	public ProcessorNode visitConstant(AST_Constant ast_Constant, Void param) {
 		return new ProcessorNode() {
 			@Override
-			public DoubleFrame[] process(BandProcessor processor) {
+			public DoubleFrame[] process(FrameProducer processor) {
 				return new DoubleFrame[]{processor.getDoubleFrameConst(ast_Constant.constant)};				
 			}
 		};

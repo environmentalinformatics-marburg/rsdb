@@ -39,10 +39,19 @@
             <v-select v-model="entry.palette" :items="oneBandMappings" :show-labels="false" :allowEmpty="false" solo hide-details />
         </v-card-text>
 
+        <v-card-text>
+            <b>Coordinate reference system (CRS)</b>  (reprojection)
+            <v-select v-model="crsSelect" :items="crss" :show-labels="false" :allowEmpty="false" solo hide-details />
+            <span :class="{disabled: (crsSelect !== -1)}">    
+                EPSG:<input type="text" id="name" name="name" maxlength="8" size="10" class="text-input" :disabled="crsSelect !== -1" placeholder="number" v-model="crsUserValue" :class="{'text-input-invalid': isNaN(crsUserValue) || crsUserValue < 0}"/>
+            </span>
+        </v-card-text>  
+
          <v-card-text>
             <b>Format</b> (image type)
             <v-select v-model="entry.format" :items="formats" :show-labels="false" :allowEmpty="false" solo hide-details />
-        </v-card-text>      
+        </v-card-text>
+     
     </v-card>
 </v-menu>
 </template>
@@ -63,6 +72,14 @@ export default {
             gammas: ["auto", "0.1", "0.2", "0.5", "1.0", "1.5", "2.0", "2.5", "3.0"],
             oneBandMappings: ["grey", "inferno", "viridis", "jet", "cividis"],
             formats: ["png:compressed", "png:uncompressed", "jpg", "jpg:small"],
+            crss: [
+                {value: 0, text: '(no reprojection)'},
+                {value: 3857, text: 'EPSG:3857 (Web Mercator)'},
+                {value: -1, text: 'other (custom)'},
+            ],
+            crsSelect: 0,
+            crsUserValue: 0,
+            preselecting: false,
         }
     },
     methods: {
@@ -71,7 +88,42 @@ export default {
 
     },
     watch: {
-
+        crsSelect() {
+            if(!this.preselecting) {
+                if(this.crsSelect > 0) {
+                    this.crsUserValue = this.crsSelect;
+                } else if(this.crsSelect === 0) {
+                    this.crsUserValue = 0;                    
+                } else {
+                    this.crsUserValue = 3857; 
+                }
+            }
+        },
+        crsUserValue() {
+            this.entry.epsg = this.crsUserValue;
+        },
+        async visible() {
+            if(this.visible) {
+                console.log("update");
+                console.log(this.entry.epsg);
+                try {
+                    this.preselecting = true;
+                    if(this.entry.epsg === undefined || this.entry.epsg === null || this.entry.epsg <= 0) {
+                        this.crsSelect = 0;
+                        this.crsUserValue = 0;
+                    } else if(this.entry.epsg === 3857) {
+                        this.crsSelect = 3857;
+                        this.crsUserValue = 3857;
+                    } else {
+                        this.crsSelect = -1;
+                        this.crsUserValue = this.entry.epsg;
+                    }
+                } finally {
+                    await this.$nextTick();
+                    this.preselecting = false;
+                }
+            }
+        }
     },
     mounted() {
 

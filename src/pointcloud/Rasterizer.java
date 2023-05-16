@@ -60,7 +60,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 		pointcloud.setAssociatedRasterDB(rasterdb.config.getName());
 
 		Range2d cellrange = pointcloud.getCellRange();
-		DoublePoint celloffset = pointcloud.getCelloffset();
+		P2d celloffset = pointcloud.getCelloffset();
 		double cellsize = pointcloud.getCellsize();
 		double pointcloud_xmin = (celloffset.x + cellrange.xmin) * cellsize;
 		double pointcloud_ymin = (celloffset.y + cellrange.ymin) * cellsize;		
@@ -211,7 +211,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 			return;
 		}		
 
-		DoublePoint celloffset = pointcloud.getCelloffset();
+		P2d celloffset = pointcloud.getCelloffset();
 		double cellsize = pointcloud.getCellsize();
 		double cellscale1d = 1 / pointcloud.getCellscale();
 		double pointcloud_xmin = (celloffset.x + cellrange.xmin) * cellsize;

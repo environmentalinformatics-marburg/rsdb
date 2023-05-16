@@ -13,12 +13,12 @@ import util.image.Renderer;
 
 public class Rasterizer {	
 	
-	public static ImageBufferARGB rasterizeRGB(FrameProducer processor, RasterDB rasterdb, int timestamp, int width, int height, double gamma, double[] range, boolean syncBands, Interruptor interruptor) {
+	public static ImageBufferARGB rasterizeRGB(TimeFrameProducer processor, RasterDB rasterdb, int timestamp, int width, int height, double gamma, double[] range, boolean syncBands, Interruptor interruptor) {
 		TimeBand[] bands = TimeBand.of(timestamp, BandProcessing.getBestColorBands(rasterdb));
 		return rasterizeRGB(processor, bands, width, height, gamma, range, syncBands, interruptor);
 	}
 
-	public static ImageBufferARGB rasterizeRGB(FrameProducer processor, TimeBand[] bands, int width, int height, double gamma, double[] range, boolean syncBands, Interruptor interruptor) {
+	public static ImageBufferARGB rasterizeRGB(TimeFrameProducer processor, TimeBand[] bands, int width, int height, double gamma, double[] range, boolean syncBands, Interruptor interruptor) {
 		Timer.start("load");
 		if(bands[0].band.isPixelTypeInt16OrExactConvertible() && bands[1].band.isPixelTypeInt16OrExactConvertible() && bands[2].band.isPixelTypeInt16OrExactConvertible()) {
 			if((bands[0].band.index == bands[1].band.index && bands[1].band.index != bands[2].band.index) || (bands[1].band.index == bands[2].band.index && bands[2].band.index != bands[0].band.index)) {
@@ -88,7 +88,7 @@ public class Rasterizer {
 		}
 	}
 
-	public static ImageBufferARGB rasterizeGrey(FrameProducer processor, TimeBand timeband, int width, int height, double gamma, double[] range, Interruptor interruptor) {
+	public static ImageBufferARGB rasterizeGrey(TimeFrameProducer processor, TimeBand timeband, int width, int height, double gamma, double[] range, Interruptor interruptor) {
 		if(timeband.band.isPixelTypeInt16OrExactConvertible())  {
 			short na = timeband.band.getInt16NA();
 			Interruptor.checkInterrupted(interruptor);
@@ -108,7 +108,7 @@ public class Rasterizer {
 		}	
 	}
 	
-	public static ImageBufferARGB rasterizePalette(FrameProducer processor, TimeBand timeband, int width, int height, double gamma, double[] range, int[] palette, Interruptor interruptor) {
+	public static ImageBufferARGB rasterizePalette(TimeFrameProducer processor, TimeBand timeband, int width, int height, double gamma, double[] range, int[] palette, Interruptor interruptor) {
 		if(timeband.band.isPixelTypeInt16OrExactConvertible())  {
 			short na = timeband.band.getInt16NA();
 			Interruptor.checkInterrupted(interruptor);

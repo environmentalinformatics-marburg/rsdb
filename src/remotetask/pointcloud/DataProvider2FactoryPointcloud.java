@@ -1,6 +1,6 @@
 package remotetask.pointcloud;
 
-import pointcloud.DoubleRect;
+import pointcloud.Rect2d;
 import pointcloud.PointCloud;
 import pointdb.base.Rect;
 import pointdb.process.DataProvider2;
@@ -23,7 +23,7 @@ public class DataProvider2FactoryPointcloud extends DataProvider2Factory {
 	}
 	
 	@Override
-	public DoubleRect getExtent() {
+	public Rect2d getExtent() {
 		return pointcloud.getRange();
 	}
 }

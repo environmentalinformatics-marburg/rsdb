@@ -3,7 +3,7 @@ package rasterdb.node;
 import com.mkobos.pca_transform.PCA;
 
 import Jama.Matrix;
-import rasterdb.BandProcessor;
+import rasterdb.FrameProducer;
 import util.frame.DoubleFrame;
 
 public class ProcessorNode_pca extends ProcessorNode {
@@ -17,7 +17,7 @@ public class ProcessorNode_pca extends ProcessorNode {
 	}
 
 	@Override
-	public DoubleFrame[] process(BandProcessor processor) {
+	public DoubleFrame[] process(FrameProducer processor) {
 		DoubleFrame[] targetFrames = targetNode.process(processor);
 		Matrix matrix = new Matrix(toMatrix(targetFrames));
 		PCA pca = new PCA(matrix);

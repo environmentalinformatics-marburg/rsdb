@@ -65,7 +65,7 @@ public class PointCloud implements AutoCloseable {
 
 	private double cellscale = 100;
 	private double cellsize = 100;
-	private DoublePoint celloffset = null;
+	private P2d celloffset = null;
 	private String code = "";
 	private String proj4 = "";
 	private ACL acl = EmptyACL.ADMIN;
@@ -278,7 +278,7 @@ public class PointCloud implements AutoCloseable {
 				cellscale = yamlMap.getDouble("cellscale");
 				cellsize = yamlMap.getDouble("cellsize");
 				if(yamlMap.contains("celloffset")) {
-					celloffset = DoublePoint.ofYaml(yamlMap.getMap("celloffset"));
+					celloffset = P2d.ofYaml(yamlMap.getMap("celloffset"));
 				}
 				
 				timeMap.clear();
@@ -357,14 +357,14 @@ public class PointCloud implements AutoCloseable {
 		return ((int) Math.floor(cellsize * cellscale)) - 1;
 	}
 
-	public DoublePoint getCelloffset() {
+	public P2d getCelloffset() {
 		return celloffset;
 	}
 
-	public DoublePoint getOrSetCelloffset(double xcelloffset, double ycelloffset) {
+	public P2d getOrSetCelloffset(double xcelloffset, double ycelloffset) {
 		synchronized (griddb) {
 			if(celloffset == null) {
-				celloffset = new DoublePoint(xcelloffset, ycelloffset);
+				celloffset = new P2d(xcelloffset, ycelloffset);
 				Logger.info("set celloffset " + celloffset);
 				griddb.writeMeta();
 			}
@@ -694,7 +694,7 @@ public class PointCloud implements AutoCloseable {
 		return null;
 	}
 
-	public DoubleRect getRange() {
+	public Rect2d getRange() {
 		Range2d range2d = griddb.getTileRange2d();
 		if(range2d == null) {
 			return null;
@@ -703,7 +703,7 @@ public class PointCloud implements AutoCloseable {
 			double ymin = (celloffset.y + range2d.ymin) * cellsize;
 			double xmax = (celloffset.x + range2d.xmax + 1) * cellsize - (1 / cellscale);
 			double ymax = (celloffset.y + range2d.ymax + 1) * cellsize - (1 / cellscale);
-			return new DoubleRect(xmin, ymin, xmax, ymax);
+			return new Rect2d(xmin, ymin, xmax, ymax);
 		}
 	}
 

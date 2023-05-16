@@ -19,6 +19,7 @@ public class CustomWMS {
 		public boolean gamma_auto_sync = false;
 		public String palette = null;
 		public String format = null;
+		public int epsg = 0;
 		
 		public Builder() {}
 		
@@ -31,6 +32,7 @@ public class CustomWMS {
 			yamlMap.optFunBoolean("gamma_auto_sync", gamma_auto_sync -> b.gamma_auto_sync = gamma_auto_sync);
 			yamlMap.optFunString("palette", palette -> b.palette = palette);
 			yamlMap.optFunString("format", format -> b.format = format);
+			yamlMap.optFunInt("epsg", epsg -> b.epsg = epsg);
 			return b;
 		}
 		
@@ -43,6 +45,7 @@ public class CustomWMS {
 			JsonUtil.optFunBoolean(jsonObject, "gamma_auto_sync", gamma_auto_sync -> b.gamma_auto_sync = gamma_auto_sync);
 			JsonUtil.optFunString(jsonObject, "palette", palette -> b.palette = palette);
 			JsonUtil.optFunString(jsonObject, "format", format -> b.format = format);
+			JsonUtil.optFunInt(jsonObject, "epsg", epsg -> b.epsg = epsg);
 			return b;
 		}
 
@@ -58,6 +61,7 @@ public class CustomWMS {
 	public final boolean gamma_auto_sync;
 	public final String palette;
 	public final String format;
+	public final int epsg;
 	
 	public static CustomWMS ofYaml(YamlMap yamlMap) {
 		return Builder.ofYaml(yamlMap).build();
@@ -75,6 +79,7 @@ public class CustomWMS {
 		gamma_auto_sync = b.gamma_auto_sync;
 		palette = b.palette;
 		format = b.format;
+		epsg = b.epsg;
 	}
 	
 	public boolean hasValue_range() {
@@ -100,6 +105,10 @@ public class CustomWMS {
 	public boolean hasFormat() {
 		return format != null;
 	}
+	
+	public boolean hasEPSG() {
+		return epsg > 0;
+	}
 
 	public Map<String, Object> toYaml() {
 		LinkedHashMap<String, Object> yamlMap = new LinkedHashMap<String, Object>();
@@ -121,6 +130,9 @@ public class CustomWMS {
 		}
 		if(hasFormat()) {
 			yamlMap.put("format", format);
+		}
+		if(hasEPSG()) {
+			yamlMap.put("epsg", epsg);
 		}
 		return yamlMap;
 	}
@@ -152,6 +164,10 @@ public class CustomWMS {
 		if(hasFormat()) {
 			json.key("format");
 			json.value(format);
+		}
+		if(hasEPSG()) {
+			json.key("epsg");
+			json.value(epsg);
 		}
 		json.endObject();
 	}	

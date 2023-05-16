@@ -24,7 +24,7 @@ import util.frame.DoubleFrame;
 import util.frame.FloatFrame;
 import util.frame.ShortFrame;
 
-public class TimeBandProcessor implements FrameProducer {
+public class TimeBandProcessor implements TimeFrameProducer {
 	
 
 	public final RasterDB rasterdb;

@@ -289,7 +289,7 @@ public class WmsHandler extends AbstractHandler {
 				//Logger.info(Timer.stop("render"));
 			} else {
 				ErrorCollector errorCollector = new ErrorCollector();
-				DoubleFrame[] doubleFrames = DSL.process(style_product, errorCollector, processor);
+				DoubleFrame[] doubleFrames = DSL.process(style_product, errorCollector, rasterdb, processor);
 				if(doubleFrames.length < 1) {
 					throw new RuntimeException("no result");
 				}
