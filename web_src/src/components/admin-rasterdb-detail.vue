@@ -268,6 +268,7 @@
                 <admin-rasterdb-bands :meta="meta" @changed="refresh" />
                 <admin-rasterdb-dialog-remove-timestamps :meta="meta" @changed="refresh" />
                 <admin-rasterdb-dialog-custom_wms :meta="meta" @changed="refresh" />
+                <admin-rasterdb-dialog-custom_wcs :meta="meta" @changed="refresh" />
                 <br><br><a href="#/tools/task">more available as <i>tasks</i> at 'tools'-tab - 'task creation' (e.g. <b>layer renaming</b>)</a>
                 <br><br>
                 <admin-rasterdb-dialog-delete :meta="meta" @changed="refresh" />
@@ -290,6 +291,7 @@ import adminRasterdbDialogSetAcl from './admin-rasterdb-dialog-set-acl.vue'
 import adminRasterdbDialogDelete from './admin-rasterdb-dialog-delete'
 import adminRasterdbDialogRemoveTimestamps from './admin-rasterdb-dialog-remove-timestamps'
 import adminRasterdbDialogCustom_wms from './admin-rasterdb-dialog-custom_wms'
+import adminRasterdbDialogCustom_wcs from './admin-rasterdb-dialog-custom_wcs'
 import adminRasterdbDialogBands from './admin-rasterdb-dialog-bands.vue'
 import adminRasterdbDialogWms from './admin-rasterdb-dialog-wms.vue'
 import adminRasterdbDialogWcs from './admin-rasterdb-dialog-wcs.vue'
@@ -307,6 +309,7 @@ export default {
         'admin-rasterdb-dialog-delete': adminRasterdbDialogDelete,
         'admin-rasterdb-dialog-remove-timestamps': adminRasterdbDialogRemoveTimestamps,
         'admin-rasterdb-dialog-custom_wms': adminRasterdbDialogCustom_wms,
+        'admin-rasterdb-dialog-custom_wcs': adminRasterdbDialogCustom_wcs,
         'admin-rasterdb-bands': adminRasterdbDialogBands,
         'admin-rasterdb-dialog-wms': adminRasterdbDialogWms,
         'admin-rasterdb-dialog-wcs': adminRasterdbDialogWcs,

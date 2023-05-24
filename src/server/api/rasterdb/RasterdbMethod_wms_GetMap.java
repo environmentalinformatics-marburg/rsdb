@@ -104,7 +104,7 @@ public class RasterdbMethod_wms_GetMap {
 				GeoReference ref = rasterdb.ref();
 				if(ref.has_code()) {
 					try {
-						layerEPSG = ref.getEPSG(timestamp);
+						layerEPSG = ref.getEPSG(0);
 						wmsEPSG = GeoUtil.parseEPSG(crsParameter, 0);
 						if(layerEPSG > 0 && wmsEPSG > 0 && layerEPSG != wmsEPSG) {
 							doReprojection = true;

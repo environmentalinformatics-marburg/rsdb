@@ -26,15 +26,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import broker.Broker;
-import util.Extent2d;
+import pointcloud.Rect2d;
 import util.GeoUtil;
 import util.Web;
 import util.image.ImageBufferARGB;
 import vectordb.Renderer;
 import vectordb.VectorDB;
 
-public class VectordbHandler_wms extends VectordbHandler {
-	
+public class VectordbHandler_wms extends VectordbHandler {	
 
 	public VectordbHandler_wms(Broker broker) {
 		super(broker, "wms");
@@ -105,11 +104,11 @@ public class VectordbHandler_wms extends VectordbHandler {
 		}
 
 		String[] bbox = request.getParameter("BBOX").split(",");
-		Extent2d extent = Extent2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
+		Rect2d rect = Rect2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
 		ImageBufferARGB image = null;
 		DataSource datasource = vectordb.getDataSource();
 		try {		
-			image = Renderer.render(datasource, extent, width, height, ct, vectordb.getStyle());
+			image = Renderer.render(datasource, rect, width, height, ct, vectordb.getStyle());
 		} finally {
 			VectorDB.closeDataSource(datasource);
 		}
@@ -185,7 +184,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
 		eBoundingBox.setAttribute("CRS", crs);
 
-		Extent2d extent = vectordb.getExtent();
+		Rect2d extent = vectordb.getExtent();
 
 		eBoundingBox.setAttribute("minx", "" + extent.xmin);
 		eBoundingBox.setAttribute("miny", "" + extent.ymin);

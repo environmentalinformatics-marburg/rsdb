@@ -292,6 +292,13 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				customWMS.writeJson(json);
 			});
 			json.endObject();
+			json.key("custom_wcs");
+			json.object();
+			rasterdb.customWcsMapReadonly.forEach((key, customWCS) -> {
+				json.key(key);
+				customWCS.writeJson(json);
+			});
+			json.endObject();
 			if(requestAttachment_filenames) {
 				json.key("attachment_filenames");
 				json.array();

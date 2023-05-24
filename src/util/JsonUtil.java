@@ -1,8 +1,12 @@
 package util;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
+import java.util.function.Function;
 import java.util.function.IntConsumer;
 
 import org.json.JSONArray;
@@ -264,5 +268,21 @@ public class JsonUtil {
 			json.value(value);
 		}
 		json.endArray();		
+	}
+	
+	public static <T> HashMap<String, T> parsePropertyHashMap(JSONObject json, Function<JSONObject, T> parser) {
+		HashMap<String, T> collectorMap = new HashMap<String, T>();
+		parsePropertyMap(json, parser, collectorMap);
+		return collectorMap;
+	}
+	
+	public static <T> void parsePropertyMap(JSONObject json, Function<JSONObject, T> parser, Map<String, T> collectorMap) {
+		Iterator<String> it = json.keys();
+		while(it.hasNext()) {
+			String key = it.next();	
+			JSONObject innerJSON = json.getJSONObject(key);
+			T property = parser.apply(innerJSON);
+			collectorMap.put(key, property);			
+		}
 	}
 }

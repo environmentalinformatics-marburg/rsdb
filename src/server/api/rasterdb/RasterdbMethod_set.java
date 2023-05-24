@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,6 +29,7 @@ import broker.acl.ACL;
 import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import rasterdb.Band;
+import rasterdb.CustomWCS;
 import rasterdb.CustomWMS;
 import rasterdb.RasterDB;
 import remotetask.rasterdb.ImportSpec;
@@ -275,8 +277,14 @@ public class RasterdbMethod_set extends RasterdbMethod {
 				}
 				case "custom_wms": {
 					rasterdb.checkMod(userIdentity);
-					HashMap<String, CustomWMS> map = parseCustomWMS(meta.getJSONObject("custom_wms"));
+					HashMap<String, CustomWMS> map = JsonUtil.parsePropertyHashMap(meta.getJSONObject("custom_wms"), CustomWMS::ofJSON);
 					rasterdb.setCustomWMS(map);
+					break;
+				}
+				case "custom_wcs": {
+					rasterdb.checkMod(userIdentity);
+					HashMap<String, CustomWCS> map = JsonUtil.parsePropertyHashMap(meta.getJSONObject("custom_wcs"), CustomWCS::ofJSON);
+					rasterdb.setCustomWCS(map);
 					break;
 				}
 				default: throw new RuntimeException("unknown key: "+key);
@@ -306,16 +314,5 @@ public class RasterdbMethod_set extends RasterdbMethod {
 				broker.catalog.update(rasterdb, updateCatalogPoints);
 			}
 		}		
-	}
-
-	private HashMap<String, CustomWMS> parseCustomWMS(JSONObject json) {
-		HashMap<String, CustomWMS> map = new HashMap<String, CustomWMS>();
-		Iterator<String> it = json.keys();
-		while(it.hasNext()) {
-			String key = it.next();
-			CustomWMS customWMS = CustomWMS.ofJSON(json.getJSONObject(key));
-			map.put(key, customWMS);			
-		}
-		return map;
 	}
 }

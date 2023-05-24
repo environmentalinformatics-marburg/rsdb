@@ -42,9 +42,9 @@ import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import broker.group.Poi;
 import broker.group.Roi;
+import pointcloud.Rect2d;
 import pointdb.base.Point2d;
 import server.api.vectordbs.VectordbDetails;
-import util.Extent2d;
 import util.GeoUtil;
 import util.Util;
 import util.collections.ReadonlyList;
@@ -516,7 +516,7 @@ public class VectorDB {
 		return points;	
 	}
 
-	public static Extent2d getExtent(double[][] points) {
+	public static Rect2d getExtent(double[][] points) {
 		double xmin = Double.POSITIVE_INFINITY;
 		double ymin = Double.POSITIVE_INFINITY;
 		double xmax = Double.NEGATIVE_INFINITY;
@@ -537,11 +537,11 @@ public class VectorDB {
 				ymax = y;
 			}
 		}
-		return new Extent2d(xmin, ymin, xmax, ymax);
+		return new Rect2d(xmin, ymin, xmax, ymax);
 	}
 
-	public Extent2d getExtent() {
-		Extent2d extent = null;
+	public Rect2d getExtent() {
+		Rect2d extent = null;
 		DataSource datasource = getDataSource();
 		try {		
 			extent = VectorDB.getExtent(VectorDB.getPoints(datasource));

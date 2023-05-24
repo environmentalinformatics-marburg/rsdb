@@ -1,5 +1,7 @@
 package pointcloud;
 
+import org.json.JSONWriter;
+
 public class Rect2d {
 	public final double xmin;
 	public final double ymin;
@@ -44,6 +46,10 @@ public class Rect2d {
 			}
 		}
 		return new Rect2d(wmsXmin, wmsYmin, wmsXmax, wmsYmax);
+	}
+	
+	public static Rect2d parse(String xmin, String ymin, String xmax, String ymax) {
+		return new Rect2d(Double.parseDouble(xmin), Double.parseDouble(ymin), Double.parseDouble(xmax), Double.parseDouble(ymax));
 	}
 
 	@FunctionalInterface
@@ -124,5 +130,18 @@ public class Rect2d {
 	
 	public boolean isFinite() {
 		return Double.isFinite(xmin) && Double.isFinite(ymin) && Double.isFinite(xmax) && Double.isFinite(ymax);
+	}
+	
+	public void toJSON(JSONWriter json) {
+		json.object();
+		json.key("xmin");
+		json.value(xmin);	
+		json.key("xmax");
+		json.value(xmax);	
+		json.key("ymin");
+		json.value(ymin);	
+		json.key("ymax");
+		json.value(ymax);
+		json.endObject();	
 	}
 }

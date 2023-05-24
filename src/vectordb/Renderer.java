@@ -6,6 +6,9 @@ import java.awt.RenderingHints;
 
 
 import org.tinylog.Logger;
+
+import pointcloud.Rect2d;
+
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.Geometry;
@@ -13,7 +16,6 @@ import org.gdal.ogr.Layer;
 import org.gdal.osr.CoordinateTransformation;
 
 import pointdb.base.Point2d;
-import util.Extent2d;
 import util.collections.vec.Vec;
 import util.image.ImageBufferARGB;
 import vectordb.style.BasicStyle;
@@ -59,13 +61,13 @@ public class Renderer {
 	}	
 
 	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
-		Extent2d extent = VectorDB.getExtent(VectorDB.getPoints(datasource));		
+		Rect2d extent = VectorDB.getExtent(VectorDB.getPoints(datasource));		
 		return renderProportionalMaxSize(datasource, extent, maxWidth, maxHeight, ct, style);
 	}
 
-	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Extent2d extent, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
-		double xlen = extent.getWidth();
-		double ylen = extent.getHeight();
+	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Rect2d rect, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
+		double xlen = rect.width();
+		double ylen = rect.height();
 
 		double xTargetScale = maxWidth / xlen;
 		double yTargetScale = maxHeight / ylen;
@@ -77,10 +79,10 @@ public class Renderer {
 
 		Logger.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
 
-		return render(datasource, extent, width, height, ct, style);
+		return render(datasource, rect, width, height, ct, style);
 	}
 
-	public static ImageBufferARGB render(DataSource datasource, Extent2d extent, int width, int height, CoordinateTransformation ct, Style style) {
+	public static ImageBufferARGB render(DataSource datasource, Rect2d rect, int width, int height, CoordinateTransformation ct, Style style) {
 		if(style == null) {
 			style = STYLE_DEFAULT;
 		}
@@ -91,14 +93,14 @@ public class Renderer {
 		gc.setColor(Color.DARK_GRAY);
 		//gc.drawLine(0, 0, 99, 99);		
 
-		double xlen = extent.getWidth();
-		double ylen = extent.getHeight();
+		double xlen = rect.width();
+		double ylen = rect.height();
 
 		double xscale = (width - 4) / xlen;
 		double yscale = (height - 4) / ylen;
 
-		double xoff = - extent.xmin + 2 * (1 / xscale);
-		double yoff = extent.ymax + 2 * (1 / yscale);
+		double xoff = - rect.xmin + 2 * (1 / xscale);
+		double yoff = rect.ymax + 2 * (1 / yscale);
 		//Logger.info("xscale " + xscale);
 		//Logger.info("yscale " + yscale);
 		//Logger.info("1/xscale " + (1 / xscale));

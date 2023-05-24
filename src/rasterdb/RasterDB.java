@@ -60,6 +60,9 @@ public class RasterDB implements AutoCloseable {
 
 	private final ConcurrentSkipListMap<String, CustomWMS> customWmsMap = new ConcurrentSkipListMap<String, CustomWMS>();
 	public final NavigableMap<String, CustomWMS> customWmsMapReadonly = Collections.unmodifiableNavigableMap(customWmsMap);
+	
+	private final ConcurrentSkipListMap<String, CustomWCS> customWcsMap = new ConcurrentSkipListMap<String, CustomWCS>();
+	public final NavigableMap<String, CustomWCS> customWcsMapReadonly = Collections.unmodifiableNavigableMap(customWcsMap);
 
 	private RasterUnitStorage rasterUnit = null;
 	private RasterUnitStorage rasterPyr1Unit = null;
@@ -227,6 +230,13 @@ public class RasterDB implements AutoCloseable {
 				});
 				map.put("custom_wms", m);	
 			}
+			if(!customWcsMap.isEmpty()) {
+				LinkedHashMap<String, Object> m = new LinkedHashMap<String, Object>();
+				customWcsMap.forEach((key, customWCS) -> {
+					m.put(key, customWCS.toYaml());	
+				});
+				map.put("custom_wcs", m);	
+			}
 			Yaml yaml = new Yaml();
 			Path writepath = Paths.get(metaPath.toString()+"_temp");
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(writepath.toFile())));
@@ -289,6 +299,13 @@ public class RasterDB implements AutoCloseable {
 					yamlMap.getMap("custom_wms").forEachKey((yaml, key) -> {
 						CustomWMS customWMS = CustomWMS.ofYaml(yaml.getMap(key));
 						customWmsMap.put(key, customWMS);
+					});
+				}
+				customWcsMap.clear();
+				if(yamlMap.contains("custom_wcs")) {
+					yamlMap.getMap("custom_wcs").forEachKey((yaml, key) -> {
+						CustomWCS customWCS = CustomWCS.ofYaml(yaml.getMap(key));
+						customWcsMap.put(key, customWCS);
 					});
 				}
 			}
@@ -738,6 +755,12 @@ public class RasterDB implements AutoCloseable {
 	public synchronized void setCustomWMS(Map<String, CustomWMS> map) {
 		customWmsMap.clear();
 		customWmsMap.putAll(map);
+		writeMeta();
+	}
+	
+	public synchronized void setCustomWCS(Map<String, CustomWCS> map) {
+		customWcsMap.clear();
+		customWcsMap.putAll(map);
 		writeMeta();
 	}
 

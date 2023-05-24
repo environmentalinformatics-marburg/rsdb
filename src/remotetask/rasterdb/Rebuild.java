@@ -76,6 +76,7 @@ public class Rebuild extends CancelableRemoteProxy {
 			}
 			dst.setTimeSlices(src.timeMapReadonly.values());
 			dst.setCustomWMS(src.customWmsMapReadonly);
+			dst.setCustomWCS(src.customWcsMapReadonly);
 			
 			if(isCanceled()) {
 				throw new RuntimeException("canceled");

@@ -48,11 +48,7 @@ public class RasterdbMethod_webwms_GetCapabilities {
 		if(!target.isEmpty()) {
 			Logger.info("target |" + target + "|");
 			customWMS = rasterdb.customWmsMapReadonly.get(target);
-			if(customWMS != null) {
-				if(customWMS.hasEPSG()) {
-					
-				}				
-			} else {
+			if(customWMS == null) {
 				throw new RuntimeException("custom WMS not found |" + target + "|");
 			}
 		}

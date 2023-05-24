@@ -15,7 +15,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import jakarta.servlet.http.HttpServletResponse;
-
+import pointcloud.Rect2d;
 
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
@@ -26,7 +26,6 @@ import org.yaml.snakeyaml.Yaml;
 import broker.Broker;
 import broker.Informal;
 import broker.InformalProperties.Builder;
-import util.Extent2d;
 import util.Web;
 import vectordb.VectorDB;
 
@@ -105,7 +104,7 @@ public class VectordbHandler_package_zip extends VectordbHandler {
 		properties.prepend("type", "vector");		
 		properties.prepend("format", "vector-file");
 
-		Extent2d ext = null;
+		Rect2d ext = null;
 		try {
 			ext = vectordb.getExtent();
 		} catch(Exception e) {
