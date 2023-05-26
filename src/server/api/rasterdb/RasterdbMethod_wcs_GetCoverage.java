@@ -34,6 +34,7 @@ import util.ResponseReceiver;
 import util.TimeUtil;
 import util.Timer;
 import util.Web;
+import util.collections.vec.Vec;
 import util.frame.DoubleFrame;
 import util.frame.FloatFrame;
 import util.frame.ShortFrame;
@@ -117,8 +118,13 @@ public class RasterdbMethod_wcs_GetCoverage {
 				timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
 			}
 
-			Collection<rasterdb.Band> bands = rasterdb.bandMapReadonly.values();
-			List<TimeBand> processingBands = TimeBand.of(timestamp, bands);
+			Collection<rasterdb.Band> allBands = rasterdb.bandMapReadonly.values();
+			Vec<TimeBand> processingBands = new Vec<TimeBand>();
+			for(rasterdb.Band band : allBands) {
+				if(customWCS == null || customWCS.includesBand(band.index)) {
+					processingBands.add(new TimeBand(timestamp, band));
+				}
+			}
 			
 			TiffDataType tiffdataType = RequestProcessorBandsWriters.getTiffDataType(processingBands); // all bands need same data type for tiff reader compatibility (e.g. GDAL)
 			TiffWriter tiffWriter = new TiffWriter(dstWidth, dstHeight, wcsRect.xmin, wcsRect.ymin, wcsResx, wcsResy, (short) wcsEPSG);

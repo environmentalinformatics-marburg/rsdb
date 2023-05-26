@@ -1,6 +1,6 @@
 <template>
     <span  style="display: inline-block;">
-        <v-dialog v-model="dialog" lazy absolute width="800px" persistent>
+        <v-dialog v-model="dialog" lazy width="800px" persistent scrollable>
             <v-btn title="open dialog to manage custom WCS entries" slot="activator">
                 <v-icon left>folder_open</v-icon>Custom WCS
             </v-btn>
@@ -26,7 +26,7 @@
                         <tr v-for="(c, key) in custom_wcs" :key="key">
                             <td><v-btn flat icon title="Remove custom WCS entry." @click="removeEntry(key)"><v-icon>delete_forever</v-icon></v-btn></td>
                             <td>
-                                <admin-rasterdb-dialog-custom_wcs-edit :entry="c" :id="key" :ref="'entry_' + key" />
+                                <admin-rasterdb-dialog-custom_wcs-edit :meta="meta" :entry="c" :id="key" :ref="'entry_' + key" />
                             </td>
                             <td><b>{{key}}</b></td>
                             <td><v-btn flat icon @click="onUrlCopy(wcsUrl(key))" title="copy WCS URL of this custom WCS entry to clipboard"><v-icon>content_copy</v-icon></v-btn></td>
@@ -36,6 +36,9 @@
                     </table>
                 </v-card-text>
                 <hr /> 
+                <v-card-text>
+                    <b>Cancel</b> to discard all changes. <b>Commit</b> to save all changes.
+                </v-card-text>
                 <v-card-actions>
                     <v-menu
                         v-model="addEntryVisible"
@@ -111,7 +114,6 @@ export default {
         refresh() {
             this.custom_wcs = {};
             for (const prop in this.meta.custom_wcs) {
-                console.log(prop);
                 this.addEntry(prop, this.meta.custom_wcs[prop]);
             }
         },
@@ -138,14 +140,8 @@ export default {
 
         addEntry(id, c, edit) {
             let v = {};
-            v.value_range = c.value_range !== undefined ? c.value_range : 'auto';
-            v.value_range_static_min = c.value_range_static_min !== undefined ? c.value_range_static_min: '0';
-            v.value_range_static_max = c.value_range_static_max !== undefined ? c.value_range_static_max: '255';
-            v.gamma = c.gamma !== undefined ? c.gamma : 'auto';
-            v.gamma_auto_sync = c.gamma_auto_sync !== undefined ? c.gamma_auto_sync : false;
-            v.palette = c.palette !== undefined ? c.palette : 'grey';
-            v.format = c.format !== undefined ? c.format : 'png:compressed';
             v.epsg = c.epsg !== undefined ? c.epsg : 0;
+            v.bands = c.bands !== undefined ? c.bands.slice() : [];
             this.$set(this.custom_wcs, id, v);
             this.addEntryVisible = false;
             if(edit) {

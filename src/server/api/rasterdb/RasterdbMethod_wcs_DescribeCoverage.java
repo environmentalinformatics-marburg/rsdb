@@ -163,8 +163,10 @@ public class RasterdbMethod_wcs_DescribeCoverage {
 		Element e_rangeSet = XmlUtil.addElement(eCoverageOffering, "rangeSet");
 		Element e_RangeSet = XmlUtil.addElement(e_rangeSet, "RangeSet");
 		for(rasterdb.Band band : rasterdb.bandMapReadonly.values()) {
-			XmlUtil.addElement(e_RangeSet, "name", ""+band.index);
-			XmlUtil.addElement(e_RangeSet, "label", band.title);
+			if(customWCS == null || customWCS.includesBand(band.index)) {
+				XmlUtil.addElement(e_RangeSet, "name", "" + band.index);
+				XmlUtil.addElement(e_RangeSet, "label", band.title);
+			}
 		}
 
 		Element e_supportedCRSs = XmlUtil.addElement(eCoverageOffering, "supportedCRSs");

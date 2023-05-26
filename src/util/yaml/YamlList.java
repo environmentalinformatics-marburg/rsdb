@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 import util.collections.ReadonlyList;
 import util.collections.array.ReadonlyArray;
@@ -70,5 +71,27 @@ public class YamlList {
 			}
 		}
 		return result;
+	}
+	
+	public void forEachInt(IntConsumer consumer) {
+		for(Object o:list) {
+			if(o instanceof Number) {
+				int v = ((Number) o).intValue();
+				consumer.accept(v);
+			} else {
+				throw new RuntimeException("element is not a number: "+o);
+			}
+		}
+	}
+	
+	public void forEachInteger(Consumer<Integer> consumer) {
+		for(Object o:list) {
+			if(o instanceof Number) {
+				int v = ((Number) o).intValue();
+				consumer.accept(v);
+			} else {
+				throw new RuntimeException("element is not a number: "+o);
+			}
+		}
 	}
 }

@@ -1,6 +1,6 @@
 <template>
     <span style="display: inline-block;">
-        <v-dialog v-model="dialog" lazy absolute min-width="800px">
+        <v-dialog v-model="dialog" lazy min-width="800px">
             <v-btn title="open dialog to edit / remove bands" slot="activator">
                 <v-icon left>folder_open</v-icon>bands
             </v-btn>

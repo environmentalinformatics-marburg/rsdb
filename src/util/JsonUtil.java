@@ -97,6 +97,23 @@ public class JsonUtil {
 		return a;
 	}
 	
+	public static int[] optIntArray(JSONObject json, String key) {
+		if(!json.has(key)) {
+			return new int[] {};
+		}
+		JSONArray jsonArray = json.optJSONArray(key);
+		if(jsonArray == null) {
+			int a0 = getInt(json, key);
+			return new int[] {a0};
+		}
+		int len = jsonArray.length();
+		int[] a = new int[len];
+		for(int i=0; i<len; i++) {
+			a[i] = Integer.parseInt(jsonArray.get(i).toString());
+		}
+		return a;
+	}
+	
 	public static String[] getStringArray(JSONObject json, String key) {
 		JSONArray jsonArray = json.optJSONArray(key);
 		if(jsonArray == null) {
@@ -230,6 +247,21 @@ public class JsonUtil {
 		if(jsonObject.has(name)) {
 			int value = jsonObject.getInt(name);
 			fun.accept(value);
+		}	
+	}
+	
+	public static void optFunInts(JSONObject jsonObject, String name, IntConsumer fun) {
+		if(jsonObject.has(name)) {
+			JSONArray jsonArray = jsonObject.optJSONArray(name);
+			if(jsonArray == null) {
+				optFunInt(jsonObject, name, fun);
+			} else {
+				int len = jsonArray.length();
+				for (int i = 0; i < len; i++) {
+					int v = jsonArray.getInt(i);
+					fun.accept(v);
+				}
+			}			
 		}	
 	}
 

@@ -1,6 +1,6 @@
 <template>
     <span  style="display: inline-block;">
-        <v-dialog v-model="dialog" lazy absolute width="800px">
+        <v-dialog v-model="dialog" lazy width="800px">
             <v-btn title="open dialog to edit / remove time slices" slot="activator">
                 <v-icon left>folder_open</v-icon>Time slices
             </v-btn>

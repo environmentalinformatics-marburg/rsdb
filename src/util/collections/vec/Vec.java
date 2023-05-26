@@ -919,4 +919,12 @@ public class Vec<T> implements List<T> {
 	public static <E> VecCollector<E> collector() {
 		return (VecCollector<E>) COLLECTOR;
 	}
+	
+	public static void insertInts(Vec<Integer> vec, int... ints) {
+		if(ints != null) {
+			for(int i:ints) {
+				vec.add(i);
+			}
+		}
+	}
 }

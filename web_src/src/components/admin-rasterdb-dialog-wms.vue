@@ -1,6 +1,6 @@
 <template>
     <span  style="display: inline-block;">
-        <v-dialog v-model="dialog" lazy absolute>
+        <v-dialog v-model="dialog" lazy>
             <v-btn title="Show URL for WMS based access to this RasterDB layer." slot="activator">
                 <v-icon left>folder_open</v-icon>WMS access
             </v-btn>

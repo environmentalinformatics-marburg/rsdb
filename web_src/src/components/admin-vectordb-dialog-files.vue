@@ -1,6 +1,6 @@
 <template>
     <span style="display: inline-block;">
-        <v-dialog v-model="dialog" lazy absolute width="800px">
+        <v-dialog v-model="dialog" lazy width="800px">
             <v-btn title="Upload new files or remove existing." slot="activator">
                 <v-icon left>folder_open</v-icon>Files
             </v-btn>

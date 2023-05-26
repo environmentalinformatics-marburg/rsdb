@@ -1,6 +1,6 @@
 <template>
     <span  style="display: inline-block;">
-        <v-dialog v-model="dialog" lazy absolute width="800px" persistent>
+        <v-dialog v-model="dialog" lazy width="800px" persistent scrollable>
             <v-btn title="open dialog to manage custom WMS entries" slot="activator">
                 <v-icon left>folder_open</v-icon>Custom WMS
             </v-btn>
@@ -36,6 +36,9 @@
                     </table>
                 </v-card-text>
                 <hr /> 
+                <v-card-text>
+                    <b>Cancel</b> to discard all changes. <b>Commit</b> to save all changes.
+                </v-card-text>
                 <v-card-actions>
                     <v-menu
                         v-model="addEntryVisible"
@@ -111,7 +114,6 @@ export default {
         refresh() {
             this.custom_wms = {};
             for (const prop in this.meta.custom_wms) {
-                console.log(prop);
                 this.addEntry(prop, this.meta.custom_wms[prop]);
             }
         },

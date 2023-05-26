@@ -1,6 +1,6 @@
 <template>
     <span>
-        <v-dialog v-model="dialog" lazy absolute width="800px" persistent>
+        <v-dialog v-model="dialog" lazy width="800px" persistent>
             <v-btn icon class="indigo--text" slot="activator" title="edit">
                 <v-icon>create</v-icon>
             </v-btn>

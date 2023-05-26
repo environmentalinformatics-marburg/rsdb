@@ -1,12 +1,6 @@
 <template>
-<v-menu
-    v-model="visible"
-    transition="scale-transition"
-    :close-on-content-click="false"
->
-    <template v-slot:activator="{ on }">
-        <v-btn v-on="on" slot="activator" flat icon title="Change settings of custom WMS entry."><v-icon>edit</v-icon></v-btn>
-    </template>
+<v-dialog v-model="visible" lazy width="600px">
+    <v-btn slot="activator" flat icon title="Change settings of custom WMS entry."><v-icon>edit</v-icon></v-btn>
     <v-card>
         <v-card-title>
             Custom WMS entry: <b> {{id}}</b>
@@ -53,7 +47,7 @@
         </v-card-text>
      
     </v-card>
-</v-menu>
+</v-dialog>
 </template>
 
 <script>

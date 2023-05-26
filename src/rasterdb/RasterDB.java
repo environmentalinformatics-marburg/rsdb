@@ -60,7 +60,7 @@ public class RasterDB implements AutoCloseable {
 
 	private final ConcurrentSkipListMap<String, CustomWMS> customWmsMap = new ConcurrentSkipListMap<String, CustomWMS>();
 	public final NavigableMap<String, CustomWMS> customWmsMapReadonly = Collections.unmodifiableNavigableMap(customWmsMap);
-	
+
 	private final ConcurrentSkipListMap<String, CustomWCS> customWcsMap = new ConcurrentSkipListMap<String, CustomWCS>();
 	public final NavigableMap<String, CustomWCS> customWcsMapReadonly = Collections.unmodifiableNavigableMap(customWcsMap);
 
@@ -223,19 +223,27 @@ public class RasterDB implements AutoCloseable {
 			if(!timeMap.isEmpty()) {
 				map.put("time_slices", TimeSlice.timeMapToYaml(timeMap));					
 			}
-			if(!customWmsMap.isEmpty()) {
-				LinkedHashMap<String, Object> m = new LinkedHashMap<String, Object>();
-				customWmsMap.forEach((key, customWMS) -> {
-					m.put(key, customWMS.toYaml());	
-				});
-				map.put("custom_wms", m);	
+			try {
+				if(!customWmsMap.isEmpty()) {
+					LinkedHashMap<String, Object> m = new LinkedHashMap<String, Object>();
+					customWmsMap.forEach((key, customWMS) -> {
+						m.put(key, customWMS.toYaml());	
+					});
+					map.put("custom_wms", m);	
+				}
+			} catch (Exception e) {
+				Logger.warn(e);
 			}
-			if(!customWcsMap.isEmpty()) {
-				LinkedHashMap<String, Object> m = new LinkedHashMap<String, Object>();
-				customWcsMap.forEach((key, customWCS) -> {
-					m.put(key, customWCS.toYaml());	
-				});
-				map.put("custom_wcs", m);	
+			try {
+				if(!customWcsMap.isEmpty()) {
+					LinkedHashMap<String, Object> m = new LinkedHashMap<String, Object>();
+					customWcsMap.forEach((key, customWCS) -> {
+						m.put(key, customWCS.toYaml());	
+					});
+					map.put("custom_wcs", m);	
+				}
+			} catch (Exception e) {
+				Logger.warn(e);
 			}
 			Yaml yaml = new Yaml();
 			Path writepath = Paths.get(metaPath.toString()+"_temp");
@@ -294,19 +302,29 @@ public class RasterDB implements AutoCloseable {
 				if(yamlMap.contains("time_slices")) {
 					TimeSlice.yamlToTimeMap((Map<?, Object>) yamlMap.getObject("time_slices"), timeMap);					
 				}
-				customWmsMap.clear();
-				if(yamlMap.contains("custom_wms")) {
-					yamlMap.getMap("custom_wms").forEachKey((yaml, key) -> {
-						CustomWMS customWMS = CustomWMS.ofYaml(yaml.getMap(key));
-						customWmsMap.put(key, customWMS);
-					});
+				try {
+					customWmsMap.clear();
+					if(yamlMap.contains("custom_wms")) {
+						yamlMap.getMap("custom_wms").forEachKey((yaml, key) -> {
+							CustomWMS customWMS = CustomWMS.ofYaml(yaml.getMap(key));
+							customWmsMap.put(key, customWMS);
+						});
+					}
+				} catch(Exception e) {
+					e.printStackTrace();
+					Logger.warn(e);
 				}
-				customWcsMap.clear();
-				if(yamlMap.contains("custom_wcs")) {
-					yamlMap.getMap("custom_wcs").forEachKey((yaml, key) -> {
-						CustomWCS customWCS = CustomWCS.ofYaml(yaml.getMap(key));
-						customWcsMap.put(key, customWCS);
-					});
+				try {
+					customWcsMap.clear();
+					if(yamlMap.contains("custom_wcs")) {
+						yamlMap.getMap("custom_wcs").forEachKey((yaml, key) -> {
+							CustomWCS customWCS = CustomWCS.ofYaml(yaml.getMap(key));
+							customWcsMap.put(key, customWCS);
+						});
+					}
+				} catch(Exception e) {
+					e.printStackTrace();
+					Logger.warn(e);
 				}
 			}
 			//Logger.info("*** ref *** " + ref + "    of   " + metaPath);
@@ -510,14 +528,14 @@ public class RasterDB implements AutoCloseable {
 		}
 		return band;
 	}
-	
+
 	public TimeBand getTimeBand(int timestamp, int bandIndex) {
 		Band band = getBandByNumber(bandIndex);		
 		return band == null ? null : new TimeBand(timestamp, band);		
 	}
-	
+
 	public void getTimeBand() {
-		
+
 	}
 
 	public Informal informal() {
@@ -536,7 +554,7 @@ public class RasterDB implements AutoCloseable {
 	public ACL getACL_mod() {
 		return acl_mod;
 	}
-	
+
 	public ACL getACL_owner() {
 		return acl_owner;
 	}
@@ -550,7 +568,7 @@ public class RasterDB implements AutoCloseable {
 		this.acl_mod = acl_mod;
 		writeMeta();	
 	}
-	
+
 	public void setACL_owner(ACL acl_owner) {
 		this.acl_owner = acl_owner;
 		writeMeta();	
@@ -579,7 +597,7 @@ public class RasterDB implements AutoCloseable {
 	public void checkMod(UserIdentity userIdentity, String location) {
 		AclUtil.check(acl_owner, acl_mod, userIdentity, "rasterdb " + this.config.getName() + " modify" + " at " + location);
 	}
-	
+
 	public boolean isAllowedOwner(UserIdentity userIdentity) {
 		return AclUtil.isAllowed(acl_owner, userIdentity);
 	}
@@ -757,7 +775,7 @@ public class RasterDB implements AutoCloseable {
 		customWmsMap.putAll(map);
 		writeMeta();
 	}
-	
+
 	public synchronized void setCustomWCS(Map<String, CustomWCS> map) {
 		customWcsMap.clear();
 		customWcsMap.putAll(map);

@@ -1,6 +1,6 @@
 <template>
     <span>
-        <v-dialog v-model="dialog" lazy absolute width="800px">
+        <v-dialog v-model="dialog" lazy width="800px">
             <v-btn title="show vector data properties as table" slot="activator">
                 <v-icon>storage</v-icon> open data table
             </v-btn>

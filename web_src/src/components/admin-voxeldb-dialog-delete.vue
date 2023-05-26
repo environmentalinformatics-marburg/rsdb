@@ -1,6 +1,6 @@
 <template>
     <span>
-        <v-dialog v-model="dialog" lazy absolute width="800px">
+        <v-dialog v-model="dialog" lazy width="800px">
             <v-btn title="Delete this VoxelDB layer. This can not be undone." slot="activator">
                 <v-icon left>delete_forever</v-icon>delete entire layer
             </v-btn>
