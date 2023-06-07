@@ -2,6 +2,11 @@ package util;
 
 // http://stackoverflow.com/questions/727628/how-do-i-throw-an-exception-from-the-callers-scope
 public class CarpException extends RuntimeException {
+	
+	public CarpException() {
+		super();
+	}
+	
 	public CarpException(String message) {
 		super(message);
 	}

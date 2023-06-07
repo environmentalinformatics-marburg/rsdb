@@ -1,10 +1,10 @@
 <template>
     <v-dialog :value="show" lazy persistent max-width="500px">
       <v-card>
-        <v-card-title class="headline">Add account</v-card-title>
+        <v-card-title class="headline">Create a new account</v-card-title>
         <v-card-text>
           <v-textarea label="User" auto-grow rows="1" v-model="username" title="Username" />
-          <v-textarea label="Password" auto-grow rows="1" v-model="password" title="Password" />
+          <v-textarea label="Password" auto-grow rows="1" v-model="password" title="Password" append-outer-icon="create" @click:append-outer="password = generate_nonce(12)" />
           Roles
           <multiselect 
             v-model="selectedRoles" 
@@ -101,6 +101,18 @@ export default {
         } catch(error) {
           console.log(error);
         }
+      },
+      
+      generate_nonce(len) {
+        var rnd = new Uint32Array(len);
+        window.crypto.getRandomValues(rnd);
+        var nonce = "";
+        var chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        var charsLen = chars.length;
+        for(var i = 0; i < len; i++) {
+          nonce += chars[rnd[i] % charsLen];
+        }
+        return nonce;
       },      
     },
     watch: {

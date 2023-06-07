@@ -19,7 +19,7 @@
         </v-card-text>
         <v-card-text>
           Password, leave empty to keep current password.
-         <v-textarea auto-grow rows="1" v-model="password" title="Password. Leave empty if you do not want to change the password." />
+         <v-textarea auto-grow rows="1" v-model="password" title="Password. Leave empty if you do not want to change the password." append-outer-icon="create" @click:append-outer="password = generate_nonce(12)" />
         </v-card-text>
         <v-card-text>
           {{postMessage}}
@@ -114,7 +114,19 @@ export default {
         if(this.account !== undefined) {
           this.selectedRoles = this.account.roles;
         }
-      },      
+      },
+      
+      generate_nonce(len) {
+        var rnd = new Uint32Array(len);
+        window.crypto.getRandomValues(rnd);
+        var nonce = "";
+        var chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        var charsLen = chars.length;
+        for(var i = 0; i < len; i++) {
+          nonce += chars[rnd[i] % charsLen];
+        }
+        return nonce;
+      },       
     },
     watch: {
       show: {

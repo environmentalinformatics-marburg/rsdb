@@ -4,9 +4,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-
-import org.tinylog.Logger;
-
 public class StringVisitor implements AstVisitor<String, Integer> {
 	
 	public static final StringVisitor DEFAULT = new StringVisitor();

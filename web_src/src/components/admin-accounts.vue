@@ -9,32 +9,32 @@
             <v-icon>refresh</v-icon>
           </v-btn>
           {{refreshMessage}}
+          <dialog-add-account ref="add_account" @changed="refresh"/>
+          <v-btn @click="$refs.add_account.show = true;" title="Insert a new account."><v-icon>add</v-icon> create account</v-btn>
           </h3>
           <v-divider></v-divider>
           <v-data-table :headers="headers" :items="accounts" v-if="accounts != undefined" hide-actions>
               <template slot="items" slot-scope="props">
                 <td :class="{admin: accountIsAdmin(props.item), empty: props.item.roles.length == 0}">
                   <v-icon v-if="accountIsAdmin(props.item)" title="Account is admin.">admin_panel_settings</v-icon><v-icon v-else title="User account, no admin.">account_box</v-icon>
-                  <v-icon v-if="!props.item.managed" title="Account can not be changed or removed.">lock</v-icon>
                   <span class="user-list">{{props.item.name}}</span>
+                  <v-icon v-if="!props.item.managed" title="Account can not be changed or removed.">lock</v-icon>                  
                 </td>
                 <td>
-                  <span v-for="role in props.item.roles" :key="role"><span class="role-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
-                  <span v-if="props.item.roles.length === 0" style="color: grey;">(none)</span>
-                </td>
-                <td v-if="props.item.managed">
-                  <v-btn @click="selectedAccount = props.item; $refs.manage_account.show = true;" icon color="grey lighten-3">
+                  <v-btn v-if="props.item.managed" @click="selectedAccount = props.item; $refs.manage_account.show = true;" icon color="grey lighten-3">
                     <v-icon title="Manage account.">folder_open</v-icon>
                   </v-btn>
-                  <v-btn @click="selectedAccount = props.item; $refs.remove_account.show = true;" icon color="grey lighten-3">
+                  <v-btn v-if="props.item.managed" @click="selectedAccount = props.item; $refs.remove_account.show = true;" icon color="grey lighten-3">
                     <v-icon title="Delete account.">delete_forever</v-icon>
                   </v-btn>
+                </td>                
+                <td>
+                  <span v-for="role in props.item.roles" :key="role" class="role-list">{{role}}</span>
+                  <span v-if="props.item.roles.length === 0" style="color: grey;">(none)</span>
                 </td>
               </template>
           </v-data-table>
           <v-divider></v-divider>
-          <dialog-add-account ref="add_account" @changed="refresh"/>
-          <v-btn @click="$refs.add_account.show = true;" title="Insert a new account."><v-icon>add</v-icon> Add account</v-btn>
           <dialog-manage-account ref="manage_account" :account="selectedAccount" @changed="refresh"/>
           <dialog-remove-account ref="remove_account" :account="selectedAccount" @changed="refresh"/>
           <br>
@@ -47,7 +47,7 @@
               <template slot="items" slot-scope="props">
                 <td><!--<v-icon>vpn_key</v-icon>--><span class="role-list">{{props.item.role}}</span></td>
                 <td>
-                  <span v-for="user in props.item.users" :key="user"><span class="user-list">{{user}}</span></span>
+                  <span v-for="user in props.item.users" :key="user" class="user-list">{{user}}</span>
                   <!--<span v-if="props.item.users.length === 0" style="color: grey;">(none)</span>-->
                 </td>                
               </template>
@@ -90,9 +90,9 @@ export default {
       refreshMessage: 'init...',
 
       headers: [
-        {text: "User", value: "name"},
-        {text: "Roles", value: "roles"},        
+        {text: "User", value: "name"},  
         {text: "Actions", value: "managed"}, 
+        {text: "Roles", value: "roles"},         
       ],
       
       roles_headers: [
