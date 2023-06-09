@@ -193,7 +193,7 @@ PointDB_private <- list( # **************** private *********************
 
 #' PointDB class
 #'
-#' PointDB class provides methods to access (LiDAR) point-clouds of Remote Sensing Database.
+#' \strong{!! Obsolete: Only for old layer data, for new data use \code{\link{PointCloud}} layers. !!} PointDB class provides methods to access (LiDAR) point-clouds of Remote Sensing Database.
 #'
 #' @keywords LiDAR point point-cloud database remote-sensing
 #' @seealso \link{RemoteSensing} \link{extent} \link{extent_diameter} \link{extent_radius} \link{RasterLayer-class} \link{visualise_raster}

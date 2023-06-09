@@ -54,10 +54,10 @@ public class Broker implements AutoCloseable {
 
 	public final BrokerConfig brokerConfig;
 
-	private static final Path rasterdb_root = Paths.get("rasterdb");
-	private static final Path pointcloud_root = Paths.get("pointcloud");
-	private static final Path vectordb_root = Paths.get("vectordb");
-	private static final Path voxeldb_root = Paths.get("voxeldb");
+	public static final Path rasterdb_root = Paths.get("rasterdb");
+	public static final Path pointcloud_root = Paths.get("pointcloud");
+	public static final Path vectordb_root = Paths.get("vectordb");
+	public static final Path voxeldb_root = Paths.get("voxeldb");
 
 	//private static final Path REALM_PROPERTIES_PATH = Paths.get("realm.properties");
 

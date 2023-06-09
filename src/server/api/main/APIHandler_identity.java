@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.concurrent.ForkJoinPool;
 
@@ -19,6 +20,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
 import org.json.JSONWriter;
 import org.tinylog.Logger;
@@ -28,11 +30,12 @@ import broker.Broker;
 import broker.acl.FastUserIdentity;
 import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
+import util.FileUtil;
 import util.JsonUtil;
 import util.Web;
+import util.collections.vec.Vec;
 
 public class APIHandler_identity extends APIHandler {
-
 
 	private static final Field FIELD_ROLES;
 
@@ -151,10 +154,10 @@ public class APIHandler_identity extends APIHandler {
 			} catch(Exception e) {
 				Logger.warn(e);
 			}
-			
+
 			Runtime r = Runtime.getRuntime();			
 			r.gc();
-			
+
 			try {
 				MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 
@@ -202,7 +205,7 @@ public class APIHandler_identity extends APIHandler {
 			} catch(Exception e) {
 				Logger.warn(e);
 			}
-						
+
 			pw.println();
 			pw.println("" + r.availableProcessors() + " stated processor cores");
 			pw.println("" + ForkJoinPool.commonPool().getParallelism() + " common thread pool parallelism");
@@ -212,6 +215,54 @@ public class APIHandler_identity extends APIHandler {
 			pw.println(String.format(Locale.ENGLISH, "%.3f", (r.freeMemory() / (1024*1024)) / 1024d) + " GB RSDB Java free memory (from currently allocated memory)");
 			pw.println(String.format(Locale.ENGLISH, "%.3f", (((r.maxMemory() - r.totalMemory() + r.freeMemory()) ) / (1024*1024)) / 1024d) + " GB RSDB Java free memory (from max allocatable memory)");
 			pw.println(String.format(Locale.ENGLISH, "%.3f", ((r.totalMemory() - r.freeMemory()) / (1024*1024)) / 1024d) + " GB RSDB Java used memory (all memmory not in use at this moment has been garbage collected)");
+
+			try {
+				long rasterdbSize = FileUtil.getFolderSize(Broker.rasterdb_root);
+				long pointcloudSize = FileUtil.getFolderSize(Broker.pointcloud_root);
+				long vectordbSize = FileUtil.getFolderSize(Broker.vectordb_root);
+				long voxeldbSize = FileUtil.getFolderSize(Broker.voxeldb_root);
+				long pointdbSize = FileUtil.getFolderSize(Paths.get("pointdb"));
+				//long totalSize = getFolderSize(Paths.get("."));  // possibly slow
+				long totalSize = rasterdbSize + pointcloudSize + vectordbSize + voxeldbSize + pointdbSize;
+				pw.println();
+				pw.println(String.format(Locale.ENGLISH, "%.3f", (rasterdbSize / (1024*1024)) / 1024d) + " GB rasterdb layers used disk space");
+				pw.println(String.format(Locale.ENGLISH, "%.3f", (pointcloudSize / (1024*1024)) / 1024d) + " GB pointcloud layers used disk space");
+				pw.println(String.format(Locale.ENGLISH, "%.3f", (vectordbSize / (1024*1024)) / 1024d) + " GB vectordb layers used disk space");
+				pw.println(String.format(Locale.ENGLISH, "%.3f", (voxeldbSize / (1024*1024)) / 1024d) + " GB voxeldb layers used disk space");
+				if(pointdbSize > 0) {
+					pw.println(String.format(Locale.ENGLISH, "%.3f", (pointdbSize / (1024*1024)) / 1024d) + " GB pointdb layers used disk space");
+				}
+				pw.println();
+				pw.println(String.format(Locale.ENGLISH, "%.3f", (totalSize / (1024*1024)) / 1024d) + " GB layers total used disk space");
+			} catch(Exception e) {
+				Logger.warn(e);
+			}
+
+			try {
+				long rsdbFree = Paths.get(".").toFile().getUsableSpace();
+				pw.println();
+				pw.println(String.format(Locale.ENGLISH, "%.3f", (rsdbFree / (1024*1024)) / 1024d) + " GB RSDB free disk space");
+			} catch(Exception e) {
+				Logger.warn(e);
+			}
+
+			try {
+				int driverCount = gdal.GetDriverCount();
+				pw.println();
+				pw.println();
+				pw.println("GDAL supported file formats: " + driverCount);
+				pw.println();
+				Vec<String> formats = new Vec<String>();
+				for (int i = 0; i < driverCount; i++) {
+					Driver driver = gdal.GetDriver(i);
+					formats.add(driver.getShortName() + " - " + driver.getLongName());
+				}
+				formats.sort(String.CASE_INSENSITIVE_ORDER);
+				formats.forEach(pw::println);
+			} catch(Exception e) {
+				Logger.warn(e);
+			}			
+
 
 			pw.flush();
 			String s = sw.toString();

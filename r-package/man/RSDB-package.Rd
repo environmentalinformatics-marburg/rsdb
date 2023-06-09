@@ -11,7 +11,7 @@ This R package connects to an RSDB server running at local or remote computer.
 \details{
 Central class is \code{\link{RemoteSensing}} that connects to remote sensing database.
 Methods of \code{\link{RemoteSensing}} provide access to raster (\code{\link{RasterDB}}),
-to point clouds (\code{\link{PointCloud}}), to voxels (\code{\link{VoxelDB}}), (deprecated \code{\link{PointDB}}), to vector (\code{\link{VectorDB}}), to region of interest (ROI) and to poin of interest (POI) (at \code{\link{RemoteSensing}}) layers and meta data.
+to point clouds (\code{\link{PointCloud}}), to voxels (\code{\link{VoxelDB}}), (Obsolete \code{\link{PointDB}}), to vector (\code{\link{VectorDB}}), to region of interest (ROI) and to poin of interest (POI) (at \code{\link{RemoteSensing}}) layers and meta data.
 }
 \examples{
 # load RSDB package

@@ -50,7 +50,7 @@ remotesensing$submit_task(task, wait = TRUE, polling_interval = 0.5)
 remotesensing$web()
 }
 \description{
-Remote sensing database manages (hyperspectral) \strong{rasters} and (LiDAR) \strong{point-clouds} and \strong{vector} data
+Remote sensing database manages (hyperspectral) \strong{rasters}, (LiDAR) \strong{point-clouds}, \strong{voxel} data and \strong{vector} data
 as well as auxiliary ROIs (regions of interest as named polygons) and POIs (points of interest as named points).
 }
 \details{
@@ -257,7 +257,7 @@ remotesensing$web()
 
 }
 \seealso{
-\link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB} \link{RemoteTask}
+\link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB} \link{VoxelDB} \link{RemoteTask}
 }
 \author{
 woellauer

@@ -2,12 +2,147 @@
 % Please edit documentation in R/VoxelDB.R
 \name{VoxelDB}
 \alias{VoxelDB}
-\title{R6 Class Representing a VoxelDB layer}
-\description{
-A VoxelDB layer contains voxel data.
+\title{VoxelDB class}
+\format{
+VoxelDB \link{R6Class} object.
 }
-\details{
-Instance object of VoxelDB class are created by instances of RemoteSensing class.
+\usage{
+# connect to remote sensing database
+remotesensing <- RemoteSensing$new(url, userpwd=NULL)
+
+# open one voxel layer in connected remote sensing database
+voxeldb <- remotesensing$voxeldb(name)
+
+# operate on opened voxeldb:
+
+voxeldb$voxels(ext = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, zmin = NULL, zmax = NULL, product = "count", time_slice_id = NULL, time_slice_name = NULL)
+voxeldb$aggregated_voxels(ext = NULL, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL, zmin = NULL, zmax = NULL, time_slice_id = NULL, time_slice_name = NULL, aggregation_factor = NULL, aggregation_factor_x = NULL, aggregation_factor_y = NULL, aggregation_factor_z = NULL, crop = FALSE, product = "sum")
+voxeldb$raster(ext, zmin = NULL, zmax = NULL, time_slice_id = NULL, time_slice_name = NULL, aggregation_factor = NULL, aggregation_factor_x = NULL, aggregation_factor_y = NULL, product = "sum")
+
+voxeldb$name
+voxeldb$meta
+voxeldb$time_slices
+voxeldb$extent
+voxeldb$extent3d
+voxeldb$xmin
+voxeldb$xmax
+voxeldb$ymin
+voxeldb$ymax
+voxeldb$zmin
+voxeldb$zmax
+voxeldb$res
+voxeldb$PROJ4
+voxeldb$EPSG
+}
+\description{
+VoxelDB class provides methods to access voxel data of Remote Sensing Database. Voxel layers can be generated from \link{PointCloud}.
+
+Use instance of \link{RemoteSensing} class to create instances of VoxelDB class.
+
+In section 'Active bindings' class fields and in section 'Methods' class functions of VoxelDB class are described.
+
+Use instance objects of VoxelDB class to call that functionality (e.g. voxeldb$name ).
+}
+\section{Extent objects}{
+
+
+An Extent (in 'raster'-package) is a rectangle, parallel to the coordinate system axes.
+
+It can be directlty created by \code{extent(...)}
+
+or based on position and diameter \code{extent_diameter(x, y, d)}
+
+Alternativly objects of class 'bbox' (in 'sf'-package) can be used.
+}
+
+\section{Polygon objects}{
+
+
+A Polygon (in 'sp'-package) is a closed sequence of points that cover an area. First and last point of the sequence need to be same.
+
+Manual creation of a Polygon
+\preformatted{
+# create Matrix of point seqence
+x <- 477662.863 + c(1,2,1.5,1,1)
+y <- 5632129.623 + c(1,1,2.7,2,1)
+coords <- cbind(x, y)
+
+# create Polygon from Matrix
+p <- Polygon(coords=coords)
+}
+
+Create Polygon from database ROI
+\preformatted{
+roi <- remotesensing$roi(group_name="hai", roi_name="HEW02")
+p <- Polygon(coords=roi$polygon)
+}
+
+Convert Polygon to Extent (bounding box)
+\preformatted{
+x <- p@coords[,1]
+y <- p@coords[,2]
+ext <- raster::extent(x=min(x), xmax=max(x), ymin=min(y), ymax=max(y))
+}
+}
+
+\examples{
+
+# open remote sensing database
+library(RSDB)
+#remotesensing <- RemoteSensing$new("http://localhost:8081", "user:password") # local
+remotesensing <- RemoteSensing$new("http://example.com:8081", "user:password") # remote server
+
+# get pointcloud names
+remotesensing$voxeldbs
+
+# open voxeldb
+voxeldb <- remotesensing$voxeldb("voxeldb_forest")
+
+# get projection as EPSG code
+voxeldb$EPSG
+
+}
+\seealso{
+\link{RemoteSensing} \link{extent} \link{PointCloud}
+}
+\author{
+woellauer
+}
+\keyword{database}
+\keyword{remote-sensing}
+\keyword{voxel}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{name}}{VoxelDB name.}
+
+\item{\code{meta}}{Meta data.}
+
+\item{\code{time_slices}}{List of all time slices in this voxeldb.}
+
+\item{\code{extent}}{Full extent of voxel as 'Extent' object. Note: Do not use this full extent to request data as the full voxeldb may be many gigabytes large!}
+
+\item{\code{extent3d}}{Full extent of voxel as range value in x,y,z dimensions. Note: Do not use this full extent to request data as the full voxeldb may be many gigabytes large!}
+
+\item{\code{xmin}}{Minimum coordinate at x-dimension.}
+
+\item{\code{xmax}}{Maximum coordinate at x-dimension.}
+
+\item{\code{ymin}}{Minimum coordinate at y-dimension.}
+
+\item{\code{ymax}}{Maximum coordinate at y-dimension.}
+
+\item{\code{zmin}}{Minimum coordinate at z-dimension.}
+
+\item{\code{zmax}}{Maximum coordinate at z-dimension.}
+
+\item{\code{res}}{Voxel resolution (voxel size) at x,y,z-dimensions}
+
+\item{\code{PROJ4}}{Projection in PROJ4.}
+
+\item{\code{EPSG}}{Projection as EPSG code.}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -22,15 +157,31 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 \if{html}{\out{<a id="method-VoxelDB-new"></a>}}
 \if{latex}{\out{\hypertarget{method-VoxelDB-new}{}}}
 \subsection{Method \code{new()}}{
+Use instance of \link{RemoteSensing} class to create instances of VoxelDB class.
+This initialize function is for internal use only.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$new(rsdbConnector, name)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{rsdbConnector}}{rsdb server connection.}
+
+\item{\code{name}}{VoxelDB name.}
+
+\item{\code{base_url}}{RSDB server URL.}
+
+\item{\code{curlHandle}}{connection handler.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-VoxelDB-voxels"></a>}}
 \if{latex}{\out{\hypertarget{method-VoxelDB-voxels}{}}}
 \subsection{Method \code{voxels()}}{
+Retrieve subsets of voxeldb voxels.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$voxels(
   ext = NULL,
@@ -46,11 +197,42 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{ext}}{Subset of voxeldb.
+
+ext is of type 'bbox' or 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).}
+
+\item{\code{xmin}}{Optional.}
+
+\item{\code{xmax}}{Optional.}
+
+\item{\code{ymin}}{Optional.}
+
+\item{\code{ymax}}{Optional.}
+
+\item{\code{zmin}}{Optional.}
+
+\item{\code{zmax}}{Optional.}
+
+\item{\code{product}}{Optional.}
+
+\item{\code{time_slice_id}}{Optionally, get voxels of specified time slice id.}
+
+\item{\code{time_slice_name}}{Optionally, get voxels of specified time slice name.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+voxels.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-VoxelDB-aggregated_voxels"></a>}}
 \if{latex}{\out{\hypertarget{method-VoxelDB-aggregated_voxels}{}}}
 \subsection{Method \code{aggregated_voxels()}}{
+Retrieve subsets of aggregated voxeldb voxels.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$aggregated_voxels(
   ext = NULL,
@@ -71,11 +253,52 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{ext}}{Subset of voxeldb.
+
+ext is of type 'bbox' or 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).}
+
+\item{\code{xmin}}{Optional.}
+
+\item{\code{xmax}}{Optional.}
+
+\item{\code{ymin}}{Optional.}
+
+\item{\code{ymax}}{Optional.}
+
+\item{\code{zmin}}{Optional.}
+
+\item{\code{zmax}}{Optional.}
+
+\item{\code{time_slice_id}}{Optionally, get voxels of specified time slice id.}
+
+\item{\code{time_slice_name}}{Optionally, get voxels of specified time slice name.}
+
+\item{\code{aggregation_factor}}{Optional.}
+
+\item{\code{aggregation_factor_x}}{Optional.}
+
+\item{\code{aggregation_factor_y}}{Optional.}
+
+\item{\code{aggregation_factor_z}}{Optional.}
+
+\item{\code{crop}}{Optional.}
+
+\item{\code{product}}{Optional.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+voxels.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-VoxelDB-raster"></a>}}
 \if{latex}{\out{\hypertarget{method-VoxelDB-raster}{}}}
 \subsection{Method \code{raster()}}{
+Process subsets of aggregated voxeldb voxels to raster.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{VoxelDB$raster(
   ext,
@@ -90,5 +313,33 @@ Instance object of VoxelDB class are created by instances of RemoteSensing class
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{ext}}{Subset of voxeldb.
+
+ext is of type 'bbox' or 'Extent' (rectangular area) or 'Polygon' (polygon area, see \link{convert_Polygon_to_matrix}) or 'polygons' (polygon area, see \link{convert_Polygons_to_matrix}) or 'Matrix' (polygon area, two columns (x,y) and one row per point, first and last point need to be same for closed polygons).}
+
+\item{\code{zmin}}{Optional.}
+
+\item{\code{zmax}}{Optional.}
+
+\item{\code{time_slice_id}}{Optionally, get voxels of specified time slice id.}
+
+\item{\code{time_slice_name}}{Optionally, get voxels of specified time slice name.}
+
+\item{\code{aggregation_factor}}{Optional.}
+
+\item{\code{aggregation_factor_x}}{Optional.}
+
+\item{\code{aggregation_factor_y}}{Optional.}
+
+\item{\code{product}}{Optional.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+raster.
+}
 }
 }

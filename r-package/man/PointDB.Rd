@@ -22,7 +22,7 @@ pointdb$roi_groups
 pointdb$poi_groups
 }
 \description{
-PointDB class provides methods to access (LiDAR) point-clouds of Remote Sensing Database.
+\strong{!! Obsolete: Only for old layer data, for new data use \code{\link{PointCloud}} layers. !!} PointDB class provides methods to access (LiDAR) point-clouds of Remote Sensing Database.
 }
 \section{Details}{
 

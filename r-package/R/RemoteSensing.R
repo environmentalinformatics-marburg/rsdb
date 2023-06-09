@@ -232,7 +232,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 
 #' RemoteSensing class
 #'
-#' Remote sensing database manages (hyperspectral) \strong{rasters} and (LiDAR) \strong{point-clouds} and \strong{vector} data
+#' Remote sensing database manages (hyperspectral) \strong{rasters}, (LiDAR) \strong{point-clouds}, \strong{voxel} data and \strong{vector} data
 #' as well as auxiliary ROIs (regions of interest as named polygons) and POIs (points of interest as named points).
 #'
 #' Objects of RemoteSensing class encapsulate connections to one remote sensing database.
@@ -240,7 +240,7 @@ RemoteSensing_private <- list( #      *********** private **********************
 #' @docType class
 #' @export
 #' @author woellauer
-#' @seealso \link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB} \link{RemoteTask}
+#' @seealso \link{RasterDB} \link{PointCloud} \link{PointDB} \link{VectorDB} \link{VoxelDB} \link{RemoteTask}
 #'
 #' @format
 #' RemoteSensing \code{\link{R6Class}} object.
