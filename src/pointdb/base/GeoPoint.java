@@ -2,6 +2,9 @@ package pointdb.base;
 
 import java.util.Comparator;
 
+import pointcloud.Rect2d;
+import pointcloud.Rect3d;
+
 public class GeoPoint {
 	
 	public static final GeoPoint MAX_Z = GeoPoint.of(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
@@ -66,22 +69,68 @@ public class GeoPoint {
 				x, y, z, (int)intensity, returnNumber, returns, scanAngleRank, classification, classificationFlags);
 	}
 	
-	public static class GeoPointStatistics {
-		public double x_min = Double.MAX_VALUE;
-		public double y_min = Double.MAX_VALUE;
-		public double x_max = -Double.MAX_VALUE;
-		public double y_max = -Double.MAX_VALUE;
+	public static Rect2d getRect2d(Iterable<GeoPoint> points) {
+		double xmin = Double.MAX_VALUE;
+		double ymin = Double.MAX_VALUE;
+		double xmax = -Double.MAX_VALUE;
+		double ymax = -Double.MAX_VALUE;
+		for(GeoPoint p:points) {
+			if(p.x < xmin) xmin = p.x;
+			if(p.y < ymin) ymin = p.y;
+			if(p.x > xmax) xmax = p.x;
+			if(p.y > ymax) ymax = p.y;
+		}
+		return new Rect2d(xmin, ymin, xmax, ymax);
 	}
 	
-	public static GeoPointStatistics getStatistics(Iterable<GeoPoint> points) {
-		GeoPointStatistics s = new GeoPointStatistics();
+	public static Rect2d getRect2d(GeoPoint[] points) {
+		double xmin = Double.MAX_VALUE;
+		double ymin = Double.MAX_VALUE;
+		double xmax = -Double.MAX_VALUE;
+		double ymax = -Double.MAX_VALUE;
 		for(GeoPoint p:points) {
-			if(p.x<s.x_min) s.x_min = p.x;
-			if(p.y<s.y_min) s.y_min = p.y;
-			if(p.x>s.x_max) s.x_max = p.x;
-			if(p.y>s.y_max) s.y_max = p.y;
+			if(p.x < xmin) xmin = p.x;
+			if(p.y < ymin) ymin = p.y;
+			if(p.x > xmax) xmax = p.x;
+			if(p.y > ymax) ymax = p.y;
 		}
-		return s;
+		return new Rect2d(xmin, ymin, xmax, ymax);
+	}
+	
+	public static Rect3d getRect3d(Iterable<GeoPoint> points) {
+		double xmin = Double.MAX_VALUE;
+		double ymin = Double.MAX_VALUE;
+		double zmin = Double.MAX_VALUE;
+		double xmax = -Double.MAX_VALUE;
+		double ymax = -Double.MAX_VALUE;
+		double zmax = -Double.MAX_VALUE;
+		for(GeoPoint p:points) {
+			if(p.x < xmin) xmin = p.x;
+			if(p.y < ymin) ymin = p.y;
+			if(p.z < zmin) zmin = p.z;
+			if(p.x > xmax) xmax = p.x;
+			if(p.y > ymax) ymax = p.y;
+			if(p.z > zmax) zmax = p.z;
+		}
+		return new Rect3d(xmin, ymin, zmin, xmax, ymax, zmax);
+	}
+	
+	public static Rect3d getRect3d(GeoPoint[] points) {
+		double xmin = Double.MAX_VALUE;
+		double ymin = Double.MAX_VALUE;
+		double zmin = Double.MAX_VALUE;
+		double xmax = -Double.MAX_VALUE;
+		double ymax = -Double.MAX_VALUE;
+		double zmax = -Double.MAX_VALUE;
+		for(GeoPoint p:points) {
+			if(p.x < xmin) xmin = p.x;
+			if(p.y < ymin) ymin = p.y;
+			if(p.z < zmin) zmin = p.z;
+			if(p.x > xmax) xmax = p.x;
+			if(p.y > ymax) ymax = p.y;
+			if(p.z > zmax) zmax = p.z;
+		}
+		return new Rect3d(xmin, ymin, zmin, xmax, ymax, zmax);
 	}
 	
 	/**

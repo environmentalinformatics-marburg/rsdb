@@ -173,7 +173,7 @@ public class APIHandler_identity extends APIHandler {
 				long uptime_hour = (uptime_hour_total % 24);
 				long uptime_day_total = uptime_hour_total / 24;
 
-				pw.println(uptime_day_total + " days " + String.format("%02d", uptime_hour) + ":" + String.format("%02d", uptime_min) + ":" +  String.format("%02d", uptime_s) + " uptime");
+				pw.println(uptime_day_total + " days " + String.format("%02d", uptime_hour) + ":" + String.format("%02d", uptime_min) + ":" +  String.format("%02d", uptime_s) + " RSDB uptime");
 
 				CompositeDataSupport cHeapMemoryUsage = (CompositeDataSupport) mBeanServer.getAttribute(new ObjectName("java.lang","type","Memory"), "HeapMemoryUsage");
 				CompositeDataSupport cNonHeapMemoryUsage = (CompositeDataSupport) mBeanServer.getAttribute(new ObjectName("java.lang","type","Memory"), "NonHeapMemoryUsage");

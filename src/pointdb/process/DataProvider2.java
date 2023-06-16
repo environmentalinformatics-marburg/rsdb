@@ -48,6 +48,7 @@ public class DataProvider2 {
 	private Vec<GeoPoint> sortedRegionHeightPoints = null; // all points in region with z as height above ground (DTM)
 
 	private double[] sortedCanopyHeights = null;
+	private GeoPoint[] sortedCanopyHeightPoints = null;	
 
 	public DataProvider old;
 
@@ -250,7 +251,7 @@ public class DataProvider2 {
 			} else {
 				for (int i = 0; i < border; i++) {
 					GeoPoint p = points.get(i);
-					if(p.z>=GROUND_HEIGHT) {
+					if(p.z >= GROUND_HEIGHT) {
 						zs.add(p.z);
 					}
 				}				
@@ -258,6 +259,38 @@ public class DataProvider2 {
 			sortedCanopyHeights = zs.toArray();
 		}
 		return sortedCanopyHeights;
+	}
+	
+	/**
+	 * just vegetation points, no ground points, no > 98% points
+	 * @return
+	 */
+	public synchronized GeoPoint[] get_sortedCanopyHeightPoints() {
+		if(sortedCanopyHeightPoints == null) {
+			Vec<GeoPoint> points = get_sortedRegionHeightPoints();
+			int border = points.size();
+			Vec<GeoPoint> zs = new Vec<GeoPoint>(border);
+			if(border>=100) {
+				border = (border*98)/100;
+			}
+			if(classified_vegetation) {
+				for (int i = 0; i < border; i++) {
+					GeoPoint p = points.get(i);
+					if(p.isVegetaion()) {
+						zs.add(p);
+					}
+				}
+			} else {
+				for (int i = 0; i < border; i++) {
+					GeoPoint p = points.get(i);
+					if(p.z >= GROUND_HEIGHT) {
+						zs.add(p);
+					}
+				}				
+			}
+			sortedCanopyHeightPoints = zs.toArray(GeoPoint[]::new);
+		}
+		return sortedCanopyHeightPoints;
 	}
 
 	public synchronized int getRegionPulseCount() {

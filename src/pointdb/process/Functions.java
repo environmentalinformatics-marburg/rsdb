@@ -43,6 +43,7 @@ public class Functions {
 		addContained(Fun_vegetation_coverage.class);
 		addContained(Fun_surface_area.class);
 		addContained(Fun_forest_structure.class);
+		addContained(Fun_ENL.class);
 		
 		for (int i = 1; i <= 55; i++) {
         	Functions.add(new Fun_BE_PR_INTERVAL(i));			
