@@ -223,6 +223,7 @@ export default {
         return f1(e) && f2(e);
       };
     },
+
     tagFilterFun() {
       if(this.selectedTags.length === 0) {
         return function() {
@@ -233,32 +234,64 @@ export default {
       if(this.selectedTags.length === 1) {
         var selectedTag = this.selectedTags[0];
         return function(e) {
-          var tags = e.tags;
-          return tags === undefined ? false : tags.indexOf(selectedTag) >= 0;
+          const tags = e.tags;
+          if(tags === undefined) {
+            return false;
+          }
+          const tagCat = selectedTag + '/';
+          if(!Array.isArray(tags)) {
+            return tags === selectedTag || tags.startsWith(tagCat);
+          }
+          return tags.some(e => e === selectedTag || e.startsWith(tagCat));         
         }
       }
 
       var selectedTags = this.selectedTags;
       return function(e) {
         var tags = e.tags;
-        return tags === undefined ? false : selectedTags.every(function(selectedTag) {
-          return tags.indexOf(selectedTag) >= 0;
-        })
+        if(tags === undefined) {
+          return false;
+        }
+        if(!Array.isArray(tags)) {
+          //return tags === selectedTag;
+          return selectedTags.every(function(selectedTag) {
+            const tagCat = selectedTag + '/';
+            return tags === selectedTag || tags.startsWith(tagCat);
+          });
+        }
+        return selectedTags.every(function(selectedTag) {
+            const tagCat = selectedTag + '/';
+            return tags.some(e => e === selectedTag || e.startsWith(tagCat));  
+          });
       }
     },
+
     searchFilterFun() {
-				var filter = this.searchText;
-				if (filter === undefined || filter === null || filter.length === 0) {
-					return function () { return true; };
-				}
-				filter = filter.trim().toLowerCase();
-				if (filter == '') {
-					return function () { return true; };
-				}
-				return function (f) { 
-          return f.name.toLowerCase().indexOf(filter) >= 0 || (f.title !== undefined && f.title.toLowerCase().indexOf(filter) >= 0); 
-        };			
-			},
+      var filter = this.searchText;
+      if (filter === undefined || filter === null || filter.length === 0) {
+        return function () { return true; };
+      }
+      filter = filter.trim().toLowerCase();
+      if (filter == '') {
+        return function () { return true; };
+      }
+      return function (f) { 
+        if(f.name.toLowerCase().includes(filter)) {
+          return true;
+        }
+        if(f.title !== undefined && f.title.toLowerCase().includes(filter)) {
+          return true;
+        }
+        const tags = f.tags;
+        if(tags === undefined) {
+          return false;
+        }
+        if(!Array.isArray(tags)) {
+          return tags.toLowerCase().includes(filter);
+        }
+        return tags.some(e => e.toLowerCase().includes(filter));
+      };			
+		},
   },
   watch: {
     filteredCatalog() {

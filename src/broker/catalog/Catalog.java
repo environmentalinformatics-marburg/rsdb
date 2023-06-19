@@ -650,7 +650,19 @@ public class Catalog {
 		for(CatalogEntry e:map.values()) {
 			if(AclUtil.isAllowed(e.acl, e.acl_mod, userIdentity)) {
 				for(String tag:e.tags) {
-					collector.add(tag);
+					String insertTag = tag;
+					while(true) {
+						if(insertTag.isBlank()) {
+							break;
+						}
+						collector.add(insertTag);
+						int sepIndex = insertTag.lastIndexOf('/');
+						if(sepIndex < 0) {
+							break;
+						}
+						insertTag = insertTag.substring(0, sepIndex);
+					}
+					
 				}
 			}
 		}
