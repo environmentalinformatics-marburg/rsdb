@@ -1,0 +1,58 @@
+name,fixed,description
+accrualMethod,,The method by which items are added to a collection.
+accrualPeriodicity,,The frequency with which items are added to a collection.
+accrualPolicy,,The policy governing the addition of items to a collection.
+audience,,A class of agents for whom the resource is intended or useful.
+audience.educationLevel,,"A class of agents, defined in terms of progression through an educational or training context, for which the described resource is intended."
+audience.mediator,,An entity that mediates access to the resource.
+contributor,,An entity responsible for making contributions to the resource.
+contributor.creator,,An entity responsible for making the resource.
+coverage,,"The spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant."
+coverage.spatial,,Spatial characteristics of the resource.
+coverage.temporal,,Temporal characteristics of the resource.
+creator,,An entity responsible for making the resource.
+date,,A point or period of time associated with an event in the lifecycle of the resource.
+date.available,,Date that the resource became or will become available.
+#date.created,Y,(default field) Date of creation of the resource.
+date.dateAccepted,,Date of acceptance of the resource.
+date.dateCopyrighted,,Date of copyright of the resource.
+date.dateSubmitted,,Date of submission of the resource.
+date.issued,,Date of formal issuance of the resource.
+date.modified,,Date on which the resource was changed.
+date.valid,,Date (often a range) of validity of a resource.
+description,,An account of the resource.
+#description.abstract,,(default field) Layer description.
+description.tableOfContents,,A list of subunits of the resource.
+format,,"The file format, physical medium, or dimensions of the resource."
+format.extent,,The size or duration of the resource.
+format.medium,,The material or physical carrier of the resource.
+identifier,,An unambiguous reference to the resource within a given context.
+identifier.bibliographicCitation,,A bibliographic reference for the resource.
+instructionalMethod,,"A process, used to engender knowledge, attitudes and skills, that the described resource is designed to support."
+language,,A language of the resource.
+provenance,,"A statement of any changes in ownership and custody of the resource since its creation that are significant for its authenticity, integrity, and interpretation."
+#publisher,Y,(default field) An entity responsible for making the resource available.
+relation,,A related resource.
+relation.conformsTo,,An established standard to which the described resource conforms.
+relation.hasFormat,,"A related resource that is substantially the same as the pre-existing described resource, but in another format."
+relation.hasPart,,A related resource that is included either physically or logically in the described resource.
+relation.hasVersion,,"A related resource that is a version, edition, or adaptation of the described resource."
+relation.isFormatOf,,"A pre-existing related resource that is substantially the same as the described resource, but in another format."
+relation.isPartOf,,A related resource in which the described resource is physically or logically included.
+relation.isReferencedBy,,"A related resource that references, cites, or otherwise points to the described resource."
+relation.isReplacedBy,,"A related resource that supplants, displaces, or supersedes the described resource."
+relation.isRequiredBy,,"A related resource that requires the described resource to support its function, delivery, or coherence."
+relation.isVersionOf,,"A related resource of which the described resource is a version, edition, or adaptation."
+relation.references,,"A related resource that is referenced, cited, or otherwise pointed to by the described resource."
+relation.replaces,,"A related resource that is supplanted, displaced, or superseded by the described resource."
+relation.requires,,"A related resource that is required by the described resource to support its function, delivery, or coherence."
+relation.source,,A related resource from which the described resource is derived.
+rights,,Information about rights held in and over the resource.
+rights.accessRights,,Information about who access the resource or an indication of its security status.
+rights.license,,A legal document giving official permission to do something with the resource.
+rightsHolder,,A person or organization owning or managing rights over the resource.
+source,,A related resource from which the described resource is derived.
+#subject,,(default field) Layer tags.
+#title,,(default field) Layer name.
+title.alternative,,An alternative name for the resource.
+type,,The nature or genre of the resource.

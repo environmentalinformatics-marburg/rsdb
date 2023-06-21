@@ -83,6 +83,10 @@ public class Broker implements AutoCloseable {
 	private PublicAccessManager publicAccessManager;
 	private volatile PublicAccessManager publicAccessManagerVolatile;
 	private Object publicAccessManagerLoadLock = new Object();
+	
+	private MetaDataSchema metaDataSchema;
+	private volatile MetaDataSchema metaDataSchemaVolatile;
+	private Object metaDataSchemaLoadLock = new Object();
 
 	public Broker() {		
 		if(new File("config.yaml").exists()) {
@@ -1021,6 +1025,27 @@ public class Broker implements AutoCloseable {
 			a = new PublicAccessManager(Paths.get("public_access.yaml"));
 			publicAccessManagerVolatile = a;
 			publicAccessManager = a;
+			return a;
+		}
+	}
+	
+	public MetaDataSchema metaDataSchema() {		
+		return metaDataSchema != null ? metaDataSchema: loadMetaDataSchema();
+	}
+
+	private MetaDataSchema loadMetaDataSchema() {
+		MetaDataSchema  a = metaDataSchemaVolatile;
+		if(a != null) {
+			return a;
+		}
+		synchronized (metaDataSchemaLoadLock) {
+			a = metaDataSchemaVolatile;
+			if(a != null) {
+				return a;
+			}
+			a = new MetaDataSchema(Paths.get(brokerConfig.serverConfig.meta_data_schema_file), brokerConfig.serverConfig.meta_data_schema_description);
+			metaDataSchemaVolatile = a;
+			metaDataSchema = a;
 			return a;
 		}
 	}

@@ -9,12 +9,11 @@
                     <div class="headline">Set Infos of layer &nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
                 <v-card-text>
-                    <ul>
+                    <span><ul>
                         <li>Scroll down to commit changes by <b>'save'-button.</b></li>
                         <li><b>Mouse hover</b> over edit-lines to show field definitions at tooltip.</li>
-                        <li>Fields comply with <a href="https://www.dublincore.org" target="_blank">Dublin Core</a> metadata standard.</li>
-                    </ul>
-                    
+                    </ul></span>
+                    <span style="color: #062744;"><br>{{identity?.meta_data_schema?.description}}</span>
                 </v-card-text>
                 <v-divider />
                 <v-card-text>
@@ -29,7 +28,7 @@
                     <v-textarea v-model="new_corresponding_contact" label="publisher" auto-grow rows="1" title="Person or group that provides the layer." />
 
                     <template v-for="(contents, tag) in newProperties">
-                        <v-textarea v-for="(content, index) in contents" :key="tag + ':' + index" :label="tag" v-model="newProperties[tag][index]" :title="tag + ' field'" auto-grow rows="1" append-outer-icon="remove_circle" @click:append-outer="removeField(tag, index)" />
+                        <v-textarea v-for="(content, index) in contents" :key="tag + ':' + index" :label="tag" v-model="newProperties[tag][index]" :title="meta_keys_map[tag] && meta_keys_map[tag].description ? (meta_keys_map[tag].description) : (tag + ' field')" auto-grow rows="1" append-outer-icon="remove_circle" @click:append-outer="removeField(tag, index)" />
                     </template>
                                     
                 </v-card-text>
@@ -50,7 +49,14 @@
 
                         <v-card>
                             <v-card-title>
-                                <v-select v-model="selectedPropertyTag" :items="propertyTags" label="Field" solo>
+                                <!--<v-select v-model="selectedPropertyTag" :items="propertyTags" label="Field" solo>
+                                    <template v-slot:append-outer>
+                                        <v-btn class="indigo--text" :disabled="selectedPropertyTag === undefined" @click="appendField(selectedPropertyTag)" title="Append Field to list of properties">
+                                            <v-icon>add</v-icon> Add Field
+                                        </v-btn>
+                                    </template>
+                                </v-select>-->
+                                <v-select v-model="selectedPropertyTag" :items="meta_keys" :item-text="x => x.name + (x.description ? ' - ' + x.description : '')" item-value="name" label="Field" solo>
                                     <template v-slot:append-outer>
                                         <v-btn class="indigo--text" :disabled="selectedPropertyTag === undefined" @click="appendField(selectedPropertyTag)" title="Append Field to list of properties">
                                             <v-icon>add</v-icon> Add Field
@@ -94,7 +100,7 @@ function optArray(a) {
 
 
 export default {
-    name: 'admin-rasterdb-dialog-set-info',
+    name: 'dialog-set-info',
     props: ['meta', 'url', 'data_name'],
 
     components: {
@@ -182,10 +188,21 @@ export default {
     computed: {
         ...mapState({
             availableTags: state => state.layer_tags.data,
+            identity: state => state.identity.data,
         }),
         layer_tags() {
             return this.availableTags === undefined ? this.createdTags : this.availableTags.concat(this.createdTags);
         },
+        meta_keys() {
+            const identity = this.identity;
+            if(identity === undefined || identity.meta_data_schema === undefined || identity.meta_data_schema.keys === undefined) {
+                return [];
+            }
+            return identity.meta_data_schema.keys;
+        },
+        meta_keys_map() {
+            return Object.fromEntries(this.meta_keys.map(e => [e.name, e]));
+        }
     },    
     methods: {
         createTag(newTag) {

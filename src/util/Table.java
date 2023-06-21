@@ -57,6 +57,20 @@ public class Table {
 		}
 	}
 	
+	public static class ColumnReaderStringOptional extends ColumnReaderString {
+		private final String missing;
+		public ColumnReaderStringOptional(int rowIndex, String missing) {
+			super(rowIndex);
+			this.missing = missing;
+		}
+		public String get(String[] row) {
+			if(row.length <= rowIndex) {
+				return missing;
+			}
+			return row[rowIndex];
+		}		
+	}
+
 	public static class ColumnReaderStringMissing extends ColumnReaderString {
 		private String missing;
 		public ColumnReaderStringMissing(String missing) {
@@ -161,15 +175,15 @@ public class Table {
 			int parse(String text);
 		}
 	}
-	
-	
+
+
 	public static abstract class ColumnReaderBoolean extends ColumnReader {
 		public ColumnReaderBoolean(int rowIndex) {
 			super(rowIndex);
 		}
 		public abstract boolean get(String[] row);
 	}
-	
+
 	public static class ColumnReaderBooleanMissing extends ColumnReaderBoolean {
 		private final boolean missing;
 		public ColumnReaderBooleanMissing(boolean missing) {
@@ -181,7 +195,7 @@ public class Table {
 			return missing;
 		}		
 	}
-	
+
 	public static class ColumnReaderBooleanYN extends ColumnReaderBoolean {
 		private final boolean missing;
 		public ColumnReaderBooleanYN(int rowIndex, boolean missing) {
@@ -207,6 +221,61 @@ public class Table {
 			}
 			Logger.warn("boolean not parsed "+text);
 			return missing;
+		}		
+	}
+
+	public static class ColumnReaderBooleanGeneral extends ColumnReaderBoolean {
+		private final boolean missing;
+		public ColumnReaderBooleanGeneral(int rowIndex, boolean missing) {
+			super(rowIndex);
+			this.missing = missing;
+		}
+		@Override
+		public boolean get(String[] row) {
+			if(row.length <= rowIndex) {
+				return missing;
+			}
+			String text = row[rowIndex].strip().toLowerCase();
+			if(text.isEmpty()) {
+				return missing;
+			}
+			if(text.length() == 1) {
+				char c = text.charAt(0);
+				switch(c) {
+				case 'y':
+					return true;
+				case 'n':
+					return false;
+				case 't':
+					return true;
+				case 'f':
+					return false;
+				case '1':
+					return true;
+				case '0':
+					return false;
+				case 'x':
+					return true;
+				case 'o':
+					return false;
+				default:
+					Logger.warn("boolean not parsed "+text);
+					return missing;
+				}
+			}
+			switch(text) {
+			case "yes":
+				return true;
+			case "no":
+				return false;
+			case "true":
+				return true;
+			case "false":
+				return false;
+			default:
+				Logger.warn("boolean not parsed "+text);
+				return missing;
+			}
 		}		
 	}
 
@@ -238,7 +307,7 @@ public class Table {
 	public static Table readCSV(String filename, char separator) {
 		return readCSV(new File(filename), separator);
 	}
-	
+
 	/**
 	 * create a Table Object from CSV-File
 	 * @param filename
@@ -252,7 +321,7 @@ public class Table {
 			return null;
 		}
 	}
-	
+
 	public static Table readCSV(InputStream in, char separator) {
 		try(InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
 			return readCSV(reader, separator);			
@@ -261,7 +330,7 @@ public class Table {
 			return null;
 		}
 	}
-	
+
 	public static Table readCSV(Reader reader, char separator) {
 		try {
 			Table table = new Table();
@@ -288,7 +357,7 @@ public class Table {
 		}
 		return table;	 	
 	}
-	
+
 	public static Table readCSVFirstDataRow(String filename, char separator) {
 		try {
 			return readCSVFirstDataRow(new FileReader(filename), separator);
@@ -297,7 +366,7 @@ public class Table {
 			return null;
 		}
 	}
-	
+
 	public static Table readCSVFirstDataRow(Reader reader, char separator) {
 		try {
 			Table table = new Table();
@@ -319,7 +388,7 @@ public class Table {
 			return null;
 		}
 	}
-	
+
 	static CSVReader buildCSVReader(Reader reader, char separator) {
 		CSVParser csvParser = new CSVParserBuilder().withSeparator(separator).build();
 		return new CSVReaderBuilder(reader).withCSVParser(csvParser).build();
@@ -347,7 +416,7 @@ public class Table {
 		String[][] tabeRows = dataRowList.toArray(new String[0][]);
 		this.rows = tabeRows;
 	}
-	
+
 	public static Vec<String[]> readRowList(CSVReader reader) throws IOException {
 		Vec<String[]> dataRowList = new Vec<String[]>();
 		String[] curRow = reader.readNextSilently();
@@ -357,7 +426,7 @@ public class Table {
 		}				
 		return dataRowList;
 	}
-	
+
 	public void updateNames(String[] columnNames) {
 		HashMap<String, Integer> map = new HashMap<String, Integer>();
 
@@ -376,7 +445,7 @@ public class Table {
 				map.put(columnNames[i], i);
 			}
 		}
-		
+
 		this.names = columnNames;
 		this.nameMap = map;
 	}
@@ -421,7 +490,7 @@ public class Table {
 	public static interface ReaderConstructor<T> {
 		T create(int a);
 	}
-	
+
 	public <T> T getColumnReader(String name, ReaderConstructor<T> readerConstructor) {
 		int columnIndex = getColumnIndex(name);
 		if(columnIndex<0) {
@@ -429,14 +498,14 @@ public class Table {
 		}
 		return readerConstructor.create(columnIndex);
 	}
-	
-	
+
+
 	public ColumnReaderString createColumnReader(String name, String missing) {
 		int columnIndex = getColumnIndex(name, false);
 		if(columnIndex<0) {
 			return new ColumnReaderStringMissing(missing);
 		}
-		return new ColumnReaderString(columnIndex);
+		return new ColumnReaderStringOptional(columnIndex, missing);
 	}
 
 	public ColumnReaderFloat createColumnReaderFloat(String name) {
@@ -485,6 +554,14 @@ public class Table {
 		return new ColumnReaderBooleanYN(columnIndex, missing);
 	}
 
+	public ColumnReaderBoolean createColumnReaderBooleanGeneral(String name, boolean missing) {
+		int columnIndex = getColumnIndex(name, false);
+		if(columnIndex<0) {
+			return new ColumnReaderBooleanMissing(missing);
+		}
+		return new ColumnReaderBooleanGeneral(columnIndex, missing);
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
@@ -502,7 +579,7 @@ public class Table {
 		}
 		return s.toString();
 	}
-	
+
 	public String getName(ColumnReader cr) {
 		return names[cr.rowIndex];
 	}

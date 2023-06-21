@@ -27,6 +27,7 @@ import org.tinylog.Logger;
 
 import broker.Account;
 import broker.Broker;
+import broker.MetaDataSchema;
 import broker.acl.FastUserIdentity;
 import jakarta.servlet.http.HttpServletResponse;
 import server.api.APIHandler;
@@ -143,6 +144,17 @@ public class APIHandler_identity extends APIHandler {
 
 		json.key("url_base");
 		json.value(url.substring(0, url.indexOf("/api/identity")));
+		
+		
+		MetaDataSchema metaDataSchema = broker.metaDataSchema();
+		json.key("meta_data_schema");
+		json.object();
+		json.key("description");
+		json.value(metaDataSchema.meta_data_schema_description);
+		json.key("keys");
+		metaDataSchema.toJSON(json);
+		json.endObject();
+		
 
 		try {			
 			StringWriter sw = new StringWriter();

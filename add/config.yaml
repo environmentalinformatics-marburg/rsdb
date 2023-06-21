@@ -18,6 +18,10 @@ server:
   
   # JWS port (default none), (port 0 disables that connection)
   #jws_port: 8083
+  
+  # Custom layer meta data porperty names
+  meta_data_schema_file: 'meta_data_schema_dublin_core.csv'
+  meta_data_schema_description: 'Fields conform to the Dublin Core metadata standard.'  
 
 # JWS config: list of JWS provider entries  
 jws:
