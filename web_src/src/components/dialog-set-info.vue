@@ -23,7 +23,7 @@
                         <multiselect v-model="selectedTags" :options="layer_tags" multiple :taggable="true" @tag="createTag" placeholder="select or type subjects" tagPlaceholder="Press enter to create a tag"/>
                     </div>
 
-                    <v-textarea v-model="newDescription" label="description.abstract" auto-grow rows="1" title="Concise layer description. For extensive details, use field 'description'." />
+                    <v-textarea v-model="newDescription" label="description" auto-grow rows="1" title="Layer description." />
                     <v-textarea v-model="newAcquisition_date" label="date.created" auto-grow rows="1" title="Creation or processing date of the layer." />
                     <v-textarea v-model="new_corresponding_contact" label="publisher" auto-grow rows="1" title="Person or group that provides the layer." />
 

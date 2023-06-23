@@ -87,6 +87,10 @@ public class Broker implements AutoCloseable {
 	private MetaDataSchema metaDataSchema;
 	private volatile MetaDataSchema metaDataSchemaVolatile;
 	private Object metaDataSchemaLoadLock = new Object();
+	
+	private PostgisLayerManager postgisLayerManager;
+	private volatile PostgisLayerManager postgisLayerManagerVolatile;
+	private Object postgisLayerManagerLoadLock = new Object();
 
 	public Broker() {		
 		if(new File("config.yaml").exists()) {
@@ -1047,6 +1051,27 @@ public class Broker implements AutoCloseable {
 			metaDataSchemaVolatile = a;
 			metaDataSchema = a;
 			return a;
+		}
+	}
+	
+	public PostgisLayerManager postgisLayerManager() {		
+		return postgisLayerManager != null ? postgisLayerManager : loadPostgisLayerManager();
+	}
+
+	private PostgisLayerManager loadPostgisLayerManager() {
+		PostgisLayerManager p = postgisLayerManagerVolatile;
+		if(p != null) {
+			return p;
+		}
+		synchronized (postgisLayerManagerLoadLock) {
+			p = postgisLayerManagerVolatile;
+			if(p != null) {
+				return p;
+			}
+			p = new PostgisLayerManager(this);
+			postgisLayerManagerVolatile = p;
+			postgisLayerManager = p;
+			return p;
 		}
 	}
 }

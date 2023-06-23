@@ -2,7 +2,7 @@
 
 <table style="padding-right: 420px;">
     <tr v-if="meta.description.length !== 0">
-        <td><b>description.abstract:</b></td>
+        <td><b>description:</b></td>
         <td><span v-if="meta.description.length === 0" style="color: grey;">(none)</span><span v-else>{{meta.description}}</span></td>                        
     </tr>
     <tr v-if="meta.acquisition_date !== undefined">

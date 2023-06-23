@@ -13,8 +13,7 @@ import pointdb.base.PointdbConfig;
 import util.Util;
 import util.yaml.YamlMap;
 
-public class BrokerConfigYaml extends BrokerConfig {
-	
+public class BrokerConfigYaml extends BrokerConfig {	
 
 	public BrokerConfigYaml(String filename) {
 		try {
@@ -61,7 +60,8 @@ public class BrokerConfigYaml extends BrokerConfig {
 				Logger.warn(e);
 			}
 
-			this.serverConfig = configMap.funMap("server", m->ServerConfig.ofYAML(m), ServerConfig::new);
+			this.serverConfig = configMap.funMap("server", m -> ServerConfig.ofYAML(m), ServerConfig::new);
+			this.postgisConfig = configMap.funMap("postgis", m -> PostgisConfig.ofYAML(m), PostgisConfig::new);
 		}catch (Exception e) {
 			e.printStackTrace();
 			Logger.error("config YAML file error in "+filename+"  "+e);

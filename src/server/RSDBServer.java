@@ -57,6 +57,7 @@ import server.api.poi_groups.APIHandler_poi_groups;
 import server.api.pointclouds.APIHandler_pointclouds;
 import server.api.pointdb.APICollectionHandler;
 import server.api.pointdbs.APIHandler_pointdbs;
+import server.api.postgis.APIHandler_postgis;
 import server.api.rasterdb.RasterdbHandler;
 import server.api.rasterdb.RasterdbsHandler;
 import server.api.rasterdb.WmsHandler;
@@ -82,6 +83,7 @@ public class RSDBServer {
 	private static final String VECTORDBS_URL = "/vectordbs";
 	private static final String POI_GROUPS_URL = "/poi_groups";
 	private static final String ROI_GROUPS_URL = "/roi_groups";
+	private static final String POSTGIS_URL = "/postgis";
 
 	private static final String WEBCONTENT_PATH = "webcontent"; //static files for web pages (no folder listing)
 	private static final String WEBFILES_PATH = "webfiles"; //static files for user download (with folder listing)
@@ -449,6 +451,7 @@ public class RSDBServer {
 				createContext(prefixPath + VECTORDBS_URL, true, new VectordbsHandler(broker)),
 				createContext(prefixPath + POI_GROUPS_URL, true, new APIHandler_poi_groups(broker)),
 				createContext(prefixPath + ROI_GROUPS_URL, true, new APIHandler_roi_groups(broker)),
+				createContext(prefixPath + POSTGIS_URL, true, new APIHandler_postgis(broker)),
 				createContext(prefixPath + MAIN_API_URL, new MainAPICollectionHandler(broker)),
 				createContext(prefixPath + "/rasterdb_wms", true, new WmsHandler(broker)),
 				createContext(prefixPath + "/rasterdbs.json", true, new RasterdbsHandler(broker)),

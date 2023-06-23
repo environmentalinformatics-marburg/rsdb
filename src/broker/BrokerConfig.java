@@ -16,6 +16,7 @@ public class BrokerConfig {
 	protected TreeMap<String, ExternalGroupConfig> roiGroupMap = new TreeMap<String, ExternalGroupConfig>();
 	protected ServerConfig serverConfig = new ServerConfig();
 	protected Vec<JwsConfig> jwsConfigs = new Vec<JwsConfig>();
+	protected PostgisConfig postgisConfig = new PostgisConfig();
 
 	public ServerConfig server() {
 		return serverConfig;
@@ -35,5 +36,9 @@ public class BrokerConfig {
 
 	public Map<String, PointdbConfig> pointdbMap() {
 		return Collections.unmodifiableMap(pointdbMap);
+	}
+	
+	public PostgisConfig postgis() {
+		return postgisConfig;
 	}
 }
