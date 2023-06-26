@@ -39,8 +39,12 @@ public class APIHandler_postgis_layer {
 				String name = i < 0 ? target.substring(1) : target.substring(1, i);
 				String next = i < 0 ? "/" : target.substring(i);
 				switch(name) {
+				case "geojson":
+					PostgisLayer postgisLayer = layerManager.getPostgisLayer(layerName);
+					handleGeojson(postgisLayer, request, response, userIdentity);
+					break;
 				default:
-					throw new RuntimeException("unknown target");
+					throw new RuntimeException("unknown target: ");
 				}
 			}
 		} catch(Exception e) {
@@ -62,6 +66,17 @@ public class APIHandler_postgis_layer {
 		json.object();
 		json.key("layer");
 		json.value(count);
+		json.endObject();
+	}
+	
+	private void handleGeojson(PostgisLayer postgisLayer, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(Web.MIME_JSON);
+		JSONWriter json = new JSONWriter(response.getWriter());
+		
+		json.object();
+		json.key("geojson");
+		postgisLayer.getGeo(json);
 		json.endObject();
 	}
 }

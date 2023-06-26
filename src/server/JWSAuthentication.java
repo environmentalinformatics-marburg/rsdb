@@ -283,7 +283,7 @@ public class JWSAuthentication extends AbstractHandler {
 			Claims claims = jws.getBody();
 			String userName = claims.getSubject();
 			JwsConfig jwsConfig = broker.brokerConfig.jws().first();			
-			Account account = new Account(userName, null, jwsConfig.roles, false);
+			Account account = new Account(userName, null, jwsConfig.roles, false, null, null);
 			Authentication authentication = new UserAuthentication("jws", account);
 			session.setAttribute("authentication", authentication);
 
@@ -325,7 +325,7 @@ public class JWSAuthentication extends AbstractHandler {
 			Claims claims = jws.getBody();
 			String userName = claims.getSubject();
 			JwsConfig jwsConfig = broker.brokerConfig.jws().first();
-			Account account = new Account(userName, null, jwsConfig.roles, false);
+			Account account = new Account(userName, null, jwsConfig.roles, false, null, null);
 			Authentication authentication = new UserAuthentication("jws", account);
 			request.setAuthentication(authentication);
 		} catch (Exception e) {			

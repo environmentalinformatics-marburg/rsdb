@@ -8,12 +8,17 @@
           <v-btn flat icon color="green" @click="refresh()" title="reload accounts from source and refresh view">
             <v-icon>refresh</v-icon>
           </v-btn>
+          <v-btn style="margin-left: 100px;" @click="$refs.add_account.show = true;" title="Insert a new account."><v-icon>add</v-icon> create account</v-btn>
           {{refreshMessage}}
           <dialog-add-account ref="add_account" @changed="refresh"/>
-          <v-btn @click="$refs.add_account.show = true;" title="Insert a new account."><v-icon>add</v-icon> create account</v-btn>
+          <v-text-field
+            label="Search"
+            placeholder="Username or role"
+            v-model="search"
+          />
           </h3>
           <v-divider></v-divider>
-          <v-data-table :headers="headers" :items="accounts" v-if="accounts != undefined" hide-actions>
+          <v-data-table :headers="headers" :items="accounts" v-if="accounts != undefined" hide-actions :search="search">
               <template slot="items" slot-scope="props">
                 <td :class="{admin: accountIsAdmin(props.item), empty: props.item.roles.length == 0}">
                   <v-icon v-if="accountIsAdmin(props.item)" title="Account is admin.">admin_panel_settings</v-icon><v-icon v-else title="User account, no admin.">account_box</v-icon>
@@ -101,6 +106,7 @@ export default {
       ],
 
       selectedAccount: undefined,
+      search: undefined,
     }
   },
   methods: {
@@ -146,6 +152,9 @@ export default {
         return {role: acl_role, users: users};
       })
       return roles;
+    },
+    filteredAccount() {
+      return null;
     },
   },
   mounted() {

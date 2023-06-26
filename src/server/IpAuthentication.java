@@ -59,7 +59,7 @@ public class IpAuthentication extends AbstractHandler {
 			if(account == null) {
 				Logger.warn("no identiy for user "+user);
 				account = userHelperCache.computeIfAbsent(user, name -> {
-					return new Account(name, user, null, false);
+					return new Account(name, user, null, false, null, null);
 				});
 			}
 			//Logger.info("identity "+userIdentity);

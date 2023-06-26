@@ -32,7 +32,7 @@ import util.yaml.YamlUtil;
 
 
 public class AccountManager extends UserStore implements IdentityService, LoginService {
-	
+
 
 	private final Path accountsPath;
 	private final Path realmPropertiesPath;
@@ -70,7 +70,7 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 						if (rolesText != null && rolesText.length() > 0) {
 							roles = StringUtil.csvSplit(rolesText);
 						}
-						Account account = new Account(username, credentialsText, roles, false);
+						Account account = new Account(username, credentialsText, roles, false, null, null);
 						accountMap.put(account.user, account);
 					}
 				}
@@ -94,7 +94,8 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 
 		for(YamlMap a:accountList) {
 			Account account = Account.ofYAML(a, true);
-			accountMap.put(account.user, account);		}
+			accountMap.put(account.user, account);
+		}
 		readRealmProperties(accountMap);
 		this.accountMap = accountMap;
 		return true;
@@ -258,7 +259,7 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 			throw new RuntimeException("could not read accounts");
 		}
 	}
-	
+
 	public synchronized void setAccount(Account account) {
 		if(!account.managed) {
 			throw new RuntimeException("account needs to be managed");
@@ -280,7 +281,7 @@ public class AccountManager extends UserStore implements IdentityService, LoginS
 			}
 		}
 	}
-	
+
 	public Account getAccount(String user) {
 		return accountMap.get(user);
 	}

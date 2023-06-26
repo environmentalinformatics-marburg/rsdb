@@ -1,6 +1,8 @@
 package server.api.main;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -26,7 +28,7 @@ import util.Web;
  *
  */
 public class APIHandler_accounts extends APIHandler {
-	
+
 
 	public APIHandler_accounts(Broker broker) {
 		super(broker, "accounts");
@@ -68,10 +70,27 @@ public class APIHandler_accounts extends APIHandler {
 			json.value(account.roles);
 			json.key("managed");
 			json.value(account.managed);
+			if(account.date_created != null) {
+				json.key("date_created");
+				json.value(account.date_created);
+			}
+			if(account.comment != null) {
+				json.key("comment");
+				json.value(account.comment);
+			}
 			json.endObject();
 		});
 		json.endArray();
 		json.endObject();		
+	}
+
+	private static final DateTimeFormatter ZONED_TIME_TEXT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
+
+
+	public static String timeTextOfNow() {
+		ZonedDateTime zonedDateTime = ZonedDateTime.now();
+		String s = zonedDateTime.format(ZONED_TIME_TEXT_FORMATTER);
+		return s;
 	}
 
 	private void handlePOST(String target, Request request, Response response) throws IOException {
@@ -88,7 +107,9 @@ public class APIHandler_accounts extends APIHandler {
 					String user = action.getString("user");
 					String password = action.getString("password");
 					String[] roles = JsonUtil.optStringTrimmedArray(action, "roles");
-					Account account = new Account(user, password, roles, true);
+					String date_created = timeTextOfNow();
+					String comment = action.optString("comment");
+					Account account = new Account(user, password, roles, true, date_created, comment);
 					broker.accountManager().addAccount(account);
 					Logger.info(user);
 					break;
@@ -119,6 +140,7 @@ public class APIHandler_accounts extends APIHandler {
 								//Logger.info("set pw  " + builder.password);
 							}
 						}
+						builder.comment = action.optString("comment");
 						accountManager.setAccount(builder.build());
 					}					
 					Logger.info(user);

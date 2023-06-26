@@ -18,6 +18,8 @@ public class Account implements UserIdentity, Principal {
 	public final String password;
 	public final String[] roles;
 	public final boolean managed;	
+	public final String date_created; // nullable
+	public final String comment; // nullable
 
 	private final Credential credential;
 	
@@ -26,24 +28,30 @@ public class Account implements UserIdentity, Principal {
 		public String password;
 		public String[] roles;
 		public boolean managed;
+		public String date_created; // nullable
+		public String comment; // nullable
 		
 		public Builder(Account account) {
 			this.user = account.user;
 			this.password = account.password;
 			this.roles = account.roles;
 			this.managed = account.managed;
+			this.date_created = account.date_created;
+			this.comment = account.comment;
 		}
 		
 		public Account build() {
-			return new Account(user, password, roles, managed);
+			return new Account(user, password, roles, managed, date_created, comment);
 		}
 	}
 
-	public Account(String user, String password, String[] roles, boolean managed) {
+	public Account(String user, String password, String[] roles, boolean managed, String date_created, String comment) {
 		this.user = user;
 		this.password = password;
 		this.roles = roles;
 		this.managed = managed;
+		this.date_created = date_created;
+		this.comment = comment;
 		this.credential = new Password(password);
 	}
 
@@ -51,7 +59,9 @@ public class Account implements UserIdentity, Principal {
 		String user = yamlMap.getString("user");
 		String password = yamlMap.getString("password");
 		String[] roles = yamlMap.optList("roles").asStringArray();
-		return new Account(user, password, roles, managed);
+		String date_created = yamlMap.optString("date_created");
+		String comment = yamlMap.optString("comment");
+		return new Account(user, password, roles, managed, date_created, comment);
 	}
 
 	public LinkedHashMap<String, Object> toMap() {
@@ -59,6 +69,12 @@ public class Account implements UserIdentity, Principal {
 		map.put("user", user);
 		map.put("password", password);
 		map.put("roles", roles);
+		if(date_created != null) {
+			map.put("date_created", date_created);
+		}
+		if(comment != null && !comment.isBlank()) {
+			map.put("comment", comment);
+		}
 		return map;
 	}
 
@@ -100,6 +116,7 @@ public class Account implements UserIdentity, Principal {
 
 	@Override
 	public String toString() {
-		return "Account [user=" + user + ", roles=" + Arrays.toString(roles) + ", managed=" + managed + "]";
-	}
+		return "Account [user=" + user + ", roles=" + Arrays.toString(roles) + ", managed=" + managed
+				+ ", date_created=" + date_created + ", comment=" + comment + "]";
+	}		
 }

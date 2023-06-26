@@ -14,7 +14,10 @@
             @tag="createAclRole" 
             placeholder="select roles" 
             tagPlaceholder="Press enter to create a role"
-          />          
+          />
+        </v-card-text>          
+        <v-card-text>
+          <v-textarea label="Comment, e.g. email address" auto-grow rows="1" v-model="comment" title="A comment describing the account. E.g. the full user name, the user email address, etc." />          
         </v-card-text>
         <v-card-text>
           {{postMessage}}
@@ -51,7 +54,8 @@ export default {
             postMessage: undefined,
             selectedRoles: [],
             availableRoles: [],
-            createdAclRoles: [],            
+            createdAclRoles: [],
+            comment: '',            
         }
     },
     computed: {
@@ -70,12 +74,16 @@ export default {
         if(this.valid) {
           try {
             this.postMessage = "Sending add account...";  
-            let data = {actions: [{
+            let action = {
               action: 'add_account', 
               user: this.username, 
               password: this.password,
               roles: this.selectedRoles,
-            }]};
+            };
+            if(this.comment !== undefined && this.comment !== null && this.comment.length > 0) {
+              action.comment = this.comment;
+            }
+            let data = {actions: [action]};
             var url = this.$store.getters.apiUrl('api/accounts');             
             await axios.post(url, data);
             this.postMessage = undefined;
@@ -123,6 +131,7 @@ export default {
           this.password = '';
           this.postMessage = undefined;
           this.selectedRoles = [];
+          this.comment = '';
           if(this.show) {
             this.refresh();
           }

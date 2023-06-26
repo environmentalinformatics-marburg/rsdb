@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.json.JSONWriter;
 import org.tinylog.Logger;
 
 import util.Timer;
@@ -35,6 +36,32 @@ public class PostgisLayer {
 				Logger.info(area);
 				featureCount++;
 			}
+			Logger.info("features " + featureCount);
+			Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;	
+		}	
+	}
+	
+	public long getGeo(JSONWriter json) {
+		try {
+			Timer.start("query");
+			
+			String sql = String.format("SELECT ST_AsGeoJSON(geom) FROM %s",  name);			
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			json.array();
+			while(rs.next()) {
+				String area = rs.getString(1);
+				Logger.info(area);
+				json.value(area);
+				featureCount++;
+			}
+			json.endArray();
 			Logger.info("features " + featureCount);
 			Logger.info(Timer.stop("query"));
 			return featureCount;

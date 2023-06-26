@@ -21,6 +21,12 @@
           Password, leave empty to keep current password.
          <v-textarea auto-grow rows="1" v-model="password" title="Password. Leave empty if you do not want to change the password." append-outer-icon="create" @click:append-outer="password = generate_nonce(12)" />
         </v-card-text>
+        <v-card-text v-if="account.date_created !== undefined">
+          <b>date_created:</b> {{account.date_created}}
+        </v-card-text>
+        <v-card-text>
+          <v-textarea label="Comment, e.g. email address" auto-grow rows="1" v-model="comment" title="A comment describing the account. E.g. the full user name, the user email address, etc." />          
+        </v-card-text>        
         <v-card-text>
           {{postMessage}}
         </v-card-text>
@@ -59,6 +65,7 @@ export default {
             createdAclRoles: [],
 
             password: '',
+            comment: '',
         }
     },
     computed: {
@@ -81,7 +88,10 @@ export default {
             };
             if(this.password !== undefined && this.password !== null && this.password.length > 0) {
               action.password = this.password;
-            } 
+            }
+            if(this.comment !== undefined && this.comment !== null && this.comment.length > 0) {
+              action.comment = this.comment;
+            }  
             let data = {actions: [action]};
             var url = this.$store.getters.apiUrl('api/accounts');             
             await axios.post(url, data);
@@ -111,8 +121,12 @@ export default {
 
         this.selectedRoles = [];
         this.password = '';
+        this.comment = '';
         if(this.account !== undefined) {
           this.selectedRoles = this.account.roles;
+        }
+        if(this.account !== undefined && this.account.comment !== undefined) {
+          this.comment = this.account.comment;
         }
       },
       

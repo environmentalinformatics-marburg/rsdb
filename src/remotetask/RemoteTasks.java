@@ -30,6 +30,7 @@ public class RemoteTasks {
 
 	static {
 		//task_rsdb
+		put(remotetask.rsdb.Task_refresh.class);
 		put(remotetask.rsdb.Task_testing.class);		
 		
 		//task_rasterdb
