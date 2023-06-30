@@ -159,9 +159,17 @@ public class ImportProcessor extends RemoteProxy {
 		switch(bandSpec.gdal_raster_data_type) {
 		case GdalReader.GDAL_BYTE:
 		case GdalReader.GDAL_UINT16:
-		case GdalReader.GDAL_INT16: {
+		case GdalReader.GDAL_INT16:
+		case GdalReader.GDAL_UINT32:
+		case GdalReader.GDAL_INT32: {
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
-				Logger.warn("convert uint16 raster data to int16");
+				Logger.warn("The conversion of UINT16 to INT16 does not preserve the full value range.");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT32) {
+				Logger.warn("The conversion of UINT32 to INT16 does not preserve the full value range.");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_INT32) {
+				Logger.warn("The conversion of INT32 to INT16 does not preserve the full value range.");
 			}
 			dataShort = gdalreader.getDataShort(bandSpec.file_band_index, null, yoff, ysize);			
 			if(bandSpec.no_data_value != null) {
@@ -182,11 +190,11 @@ public class ImportProcessor extends RemoteProxy {
 		}
 		case GdalReader.GDAL_FLOAT64:
 		case GdalReader.GDAL_FLOAT32: {
-			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
-				Logger.warn("convert float64 raster data to int16");
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {				
+				Logger.warn("The conversion of FLOAT64 to INT16 does not preserve the full value range and precision.");
 			}
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
-				Logger.warn("convert float32 raster data to int16");
+				Logger.warn("The conversion of FLOAT32 to INT16 does not preserve the full value range and precision.");
 			}			
 			float[][] dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, yoff, ysize);
 			short bandNaShort = rasterdbBand.getInt16NA();
@@ -227,11 +235,21 @@ public class ImportProcessor extends RemoteProxy {
 	private static void importBand_TYPE_FLOAT(RasterDB rasterdb, BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize) throws IOException {
 		switch(bandSpec.gdal_raster_data_type) {
 		case GdalReader.GDAL_FLOAT64:
-			Logger.warn("convert float64 raster data to float32");
 		case GdalReader.GDAL_FLOAT32:
 		case GdalReader.GDAL_BYTE:
 		case GdalReader.GDAL_UINT16:
-		case GdalReader.GDAL_INT16: {
+		case GdalReader.GDAL_INT16:
+		case GdalReader.GDAL_UINT32:
+		case GdalReader.GDAL_INT32: {
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
+				Logger.warn("The conversion of FLOAT64 to FLOAT32 may not be completely lossless.");				
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT32) {
+				Logger.warn("The conversion of UINT32 to FLOAT32 may not be completely lossless.");				
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_INT32) {
+				Logger.warn("The conversion of INT32 to FLOAT32 may not be completely lossless.");				
+			}
 			float[][] dataFloat;
 			if(bandSpec.no_data_value == null) {
 				dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, yoff, ysize);					
@@ -263,19 +281,27 @@ public class ImportProcessor extends RemoteProxy {
 		case GdalReader.GDAL_BYTE:
 		case GdalReader.GDAL_UINT16:
 		case GdalReader.GDAL_INT16:
+		case GdalReader.GDAL_UINT32:
+		case GdalReader.GDAL_INT32:
 		case GdalReader.GDAL_FLOAT64:
 		case GdalReader.GDAL_FLOAT32: {
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT16) {
-				Logger.warn("convert uint16 raster data to int8");
+				Logger.warn("The conversion of UINT16 to INT8 does not preserve the full value range.");
 			}
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_INT16) {
-				Logger.warn("convert int16 raster data to int8");
+				Logger.warn("The conversion of INT16 to INT8 does not preserve the full value range.");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT32) {
+				Logger.warn("The conversion of UINT32 to INT8 does not preserve the full value range.");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_INT32) {
+				Logger.warn("The conversion of INT32 to INT8 does not preserve the full value range.");
 			}
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {
-				Logger.warn("convert float64 raster data to int8");
+				Logger.warn("The conversion of FLOAT64 to INT8 does not preserve the full value range and precision.");
 			}
 			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
-				Logger.warn("convert float32 raster data to int8");
+				Logger.warn("The conversion of FLOAT32 to INT8 does not preserve the full value range and precision.");
 			}
 			dataBytes = gdalreader.getDataByte(bandSpec.file_band_index, null, yoff, ysize);	
 			break;

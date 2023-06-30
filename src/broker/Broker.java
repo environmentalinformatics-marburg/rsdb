@@ -873,7 +873,7 @@ public class Broker implements AutoCloseable {
 	}
 
 	public synchronized boolean deleteVectordb(String name) {
-		Util.checkID(name);
+		Util.checkIDForSafePath(name);
 		closeVectordb(name);
 		System.gc(); // close GDAL opened files ?
 		Path vectordbPath = vectordb_root.resolve(name);

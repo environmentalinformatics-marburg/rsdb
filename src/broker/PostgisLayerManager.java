@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import org.tinylog.Logger;
+
 public class PostgisLayerManager {
 
 	private final Broker broker;
@@ -12,7 +14,7 @@ public class PostgisLayerManager {
 
 	public PostgisLayerManager(Broker broker) {
 		this.broker = broker;
-		if(broker.brokerConfig.postgis().hasUrl()) {
+		if(broker.brokerConfig.postgis().hasUrl()) {			
 			connect();		
 		}
 	}
@@ -22,7 +24,8 @@ public class PostgisLayerManager {
 			PostgisConfig config = broker.brokerConfig.postgis();
 			conn = DriverManager.getConnection(config.url, config.user, config.password);
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			//throw new RuntimeException(e);
+			Logger.warn(e.getMessage());
 		}
 	}
 

@@ -315,19 +315,35 @@ public class Util {
 	}
 
 	public static final String VALID_ID_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+	
+	public static boolean isValidIDChar(char c) {
+		return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '_';
+	}
 
-	public static boolean isValidIdentifier(String name) {
-		int len = name.length();
+	public static boolean isValidID(String id) {
+		int len = id.length();
 		if(len<1) {
 			return false;
 		}
 		for (int i = 0; i < len; i++) {
-			char c = name.charAt(i);
-			if( !( ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '_' ) ) {
+			char c = id.charAt(i);
+			if( !isValidIDChar(c) ) {
 				return false;
 			}
 		}
 		return true;		
+	}
+	
+	public static void checkIDForSafePath(String id) {
+		if(id.isEmpty() || id.contains("/") || id.contains("\\") || id.contains("..")) {
+			throw new RuntimeException("unsafe ID");
+		}
+	}
+
+	public static void checkStrictID(String id) {
+		if(!id.chars().allMatch(c-> isValidIDChar((char) c))) {
+			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_");
+		}
 	}
 
 	public static int[] getRange(int[] data) {
@@ -385,19 +401,7 @@ public class Util {
 		if(Files.isSymbolicLink(path)) {
 			throw new RuntimeException("is link");
 		}
-	}
-
-	public static void checkID(String id) {
-		if(id.isEmpty() || id.contains("/") || id.contains("\\") || id.contains("..")) {
-			throw new RuntimeException("unsafe ID");
-		}
-	}
-
-	public static void checkStrictID(String id) {
-		if(!id.chars().allMatch(c-> ('0'<=c && c<='9') || ('a'<=c && c<='z') || ('A'<=c && c<='Z')  || c=='_')) {
-			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_");
-		}
-	}
+	}	
 
 	public static void safeDeleteIfExists(Path root, Path path) throws IOException {
 		checkIsParent(root, path);

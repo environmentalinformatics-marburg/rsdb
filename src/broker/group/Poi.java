@@ -41,7 +41,7 @@ public class Poi {
 			while(it.hasNext()) {
 				String[] row = it.next();
 				String id = row[0];
-				if(Util.isValidIdentifier(id)) {
+				if(Util.isValidID(id)) {
 					poiList.add(new Poi(id, Double.parseDouble(row[1]), Double.parseDouble(row[2])));
 				} else {
 					Logger.warn("POI not inserted: invalid identifier: "+id+" at "+Arrays.toString(row)+" in "+filename);

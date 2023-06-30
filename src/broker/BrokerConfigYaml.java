@@ -22,7 +22,7 @@ public class BrokerConfigYaml extends BrokerConfig {
 
 			for(YamlMap pc:configMap.optList("pointdb").asMaps()) {
 				PointdbConfig pointdbConfig = PointdbConfig.ofYAML(pc);
-				if(Util.isValidIdentifier(pointdbConfig.name)) {
+				if(Util.isValidID(pointdbConfig.name)) {
 					pointdbMap.put(pointdbConfig.name, pointdbConfig);
 				} else {
 					Logger.warn("pointdb not inserted: invalid identifier: "+pointdbConfig.name+" in "+filename);
@@ -31,7 +31,7 @@ public class BrokerConfigYaml extends BrokerConfig {
 
 			for(YamlMap pc:configMap.optList("Points_of_interest").asMaps()) {
 				ExternalGroupConfig poiConfig = ExternalGroupConfig.ofYAML(pc);
-				if(Util.isValidIdentifier(poiConfig.name)) {
+				if(Util.isValidID(poiConfig.name)) {
 					poiGroupMap.put(poiConfig.name, poiConfig);
 				} else {
 					Logger.warn("poiGroup not inserted: invalid identifier: "+poiConfig.name+" in "+filename);
@@ -40,7 +40,7 @@ public class BrokerConfigYaml extends BrokerConfig {
 
 			for(YamlMap pc:configMap.optList("Regions_of_interest").asMaps()) {
 				ExternalGroupConfig roiConfig = ExternalGroupConfig.ofYAML(pc);
-				if(Util.isValidIdentifier(roiConfig.name)) {
+				if(Util.isValidID(roiConfig.name)) {
 					roiGroupMap.put(roiConfig.name, roiConfig);
 				} else {
 					Logger.warn("roiGroup not inserted: invalid identifier: "+roiConfig.name+" in "+filename);

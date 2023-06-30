@@ -37,6 +37,11 @@ import util.Web;
 import util.collections.vec.Vec;
 
 public class APIHandler_identity extends APIHandler {
+	
+	static {
+		gdal.AllRegister();
+		Logger.info("GDAL version "+gdal.VersionInfo());
+	}
 
 	private static final Field FIELD_ROLES;
 

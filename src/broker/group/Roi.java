@@ -68,7 +68,7 @@ public class Roi {
 					Point2d point = new Point2d(x, y);
 					points.add(point);
 				}
-				if(Util.isValidIdentifier(name)) {
+				if(Util.isValidID(name)) {
 					Roi roi = new Roi(name, points.toArray(new Point2d[0]));
 					//Logger.info(roi);
 					rois.add(roi);

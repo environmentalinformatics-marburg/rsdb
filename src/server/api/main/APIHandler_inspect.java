@@ -29,6 +29,7 @@ import server.api.main.ChunkedUploader.ChunkedUpload;
 import util.CharArrayReaderUnsync;
 import util.CharArrayWriterUnsync;
 import util.TimeUtil;
+import util.Util;
 import util.Web;
 import util.raster.GdalReader;
 
@@ -129,7 +130,7 @@ public class APIHandler_inspect extends APIHandler {
 		}
 
 		if(strategy.isCreate() && rasterdbID == null && fileID != null) {
-			rasterdbID = fileID;
+			/*rasterdbID = fileID;
 			int li = fileID.lastIndexOf('.');
 			if(li > 0) {
 				rasterdbID = rasterdbID.substring(0, li);
@@ -139,7 +140,18 @@ public class APIHandler_inspect extends APIHandler {
 			rasterdbID = rasterdbID.replace('\n', '_');
 			rasterdbID = rasterdbID.replace('/', '_');
 			rasterdbID = rasterdbID.replace('\\', '_');
-			rasterdbID = rasterdbID.replace('.', '_');
+			rasterdbID = rasterdbID.replace('.', '_');*/			
+			int idLen = fileID.length();
+			int extensionIndex = fileID.lastIndexOf('.');
+			if(extensionIndex > 0) {
+				idLen = extensionIndex;
+			}
+			char[] idChars = new char[idLen];
+			for(int i = 0; i < idLen; i++) {
+				char c = fileID.charAt(i);
+				idChars[i] = Util.isValidIDChar(c) ? c : '_';
+			}
+			rasterdbID = new String(idChars);
 		}
 		json.key("id");
 		json.value(rasterdbID);
