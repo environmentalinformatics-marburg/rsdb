@@ -1,4 +1,4 @@
-// gradle version 7.0.2, in eclipse gradle version 7.0.1 
+// gradle version 7.4.2
 
 plugins {
   id 'org.kordamp.gradle.markdown' version '2.2.0' // https://github.com/aalmiray/markdown-gradle-plugin
@@ -12,7 +12,7 @@ plugins {
 //gradle dependencies
 
 // upgrade gradle wrapper
-//./gradlew wrapper --gradle-version=7.0.2
+//./gradlew wrapper --gradle-version=7.4.2
 
 def isNonStable = { String version ->
   return version.contains('alpha') || version.contains('beta') 
@@ -62,9 +62,8 @@ dependencies {
   	
   	implementation group: 'org.mapdb', name: 'mapdb', version: '2.0-beta13' // warning: newer versions v3 do break storage layout
   	
-  	implementation group: 'org.json', name: 'json', version: '20230227'
+  	implementation group: 'org.json', name: 'json', version: '20230618'
   	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.33'  // TODO: check compatibility with newer version 2
-  	//implementation group: 'com.opencsv', name: 'opencsv', version: '4.6' // warning: API at v5.0 breaks
   	implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'  	
   	implementation group: 'com.github.mreutegg', name: 'laszip4j', version: '0.14'
   	implementation group: 'ar.com.hjg', name: 'pngj', version: '2.1.0'

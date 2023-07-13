@@ -38,12 +38,22 @@ public class Task_remove_bands extends RemoteTask {
 		}*/
 		for(int band: bands) {
 			setMessage("remove band " + band);
+			if(rasterdb.hasRasterUnit()) {
+				rasterdb.rasterUnit().removeAllTilesOfBand(band);
+			}
+			if(rasterdb.hasRasterPyr1Unit()) {
+				rasterdb.rasterPyr1Unit().removeAllTilesOfBand(band);
+			}
+			if(rasterdb.hasRasterPyr2Unit()) {
+				rasterdb.rasterPyr2Unit().removeAllTilesOfBand(band);
+			}
+			if(rasterdb.hasRasterPyr3Unit()) {
+				rasterdb.rasterPyr3Unit().removeAllTilesOfBand(band);
+			}
+			if(rasterdb.hasRasterPyr4Unit()) {
+				rasterdb.rasterPyr4Unit().removeAllTilesOfBand(band);
+			}
 			rasterdb.removeBand(band);
-			rasterdb.rasterUnit().removeAllTilesOfBand(band);
-			rasterdb.rasterPyr1Unit().removeAllTilesOfBand(band);
-			rasterdb.rasterPyr2Unit().removeAllTilesOfBand(band);
-			rasterdb.rasterPyr3Unit().removeAllTilesOfBand(band);
-			rasterdb.rasterPyr4Unit().removeAllTilesOfBand(band);
 			setMessage("remove band " + band + "  " + TimeUtil.toPrettyText(band) + "  done.");
 		}
 		setMessage("remove bands done.");

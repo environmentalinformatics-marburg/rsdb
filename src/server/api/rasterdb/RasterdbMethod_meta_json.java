@@ -260,12 +260,12 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				}
 			}
 			if(requestStorageSize && rasterdb.hasRasterUnit()) {
-				try {
-					long storage_size = rasterdb.rasterUnit().calculateStorageSize();
-					storage_size += rasterdb.rasterPyr1Unit().calculateStorageSize();
-					storage_size += rasterdb.rasterPyr2Unit().calculateStorageSize();
-					storage_size += rasterdb.rasterPyr3Unit().calculateStorageSize();
-					storage_size += rasterdb.rasterPyr4Unit().calculateStorageSize();
+				try {					
+					long storage_size = rasterdb.hasRasterUnit() ? rasterdb.rasterUnit().calculateStorageSize() : 0;
+					storage_size += rasterdb.hasRasterPyr1Unit() ? rasterdb.rasterPyr1Unit().calculateStorageSize() : 0;
+					storage_size += rasterdb.hasRasterPyr2Unit() ? rasterdb.rasterPyr2Unit().calculateStorageSize() : 0;
+					storage_size += rasterdb.hasRasterPyr3Unit() ? rasterdb.rasterPyr3Unit().calculateStorageSize() : 0;
+					storage_size += rasterdb.hasRasterPyr4Unit() ? rasterdb.rasterPyr4Unit().calculateStorageSize() : 0;					
 					json.key("storage_size");
 					json.value(storage_size);
 				} catch(Exception e) {
@@ -275,10 +275,10 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			if(requestInternalStorageInternalFreeSize) {
 				try {
 					long storage_internal_free_size = rasterdb.hasRasterUnit() ? rasterdb.rasterUnit().calculateInternalFreeSize() : 0;
-					storage_internal_free_size += rasterdb.rasterPyr1Unit().calculateInternalFreeSize();
-					storage_internal_free_size += rasterdb.rasterPyr2Unit().calculateInternalFreeSize();
-					storage_internal_free_size += rasterdb.rasterPyr3Unit().calculateInternalFreeSize();
-					storage_internal_free_size += rasterdb.rasterPyr4Unit().calculateInternalFreeSize();
+					storage_internal_free_size += rasterdb.hasRasterPyr1Unit() ? rasterdb.rasterPyr1Unit().calculateInternalFreeSize() : 0;
+					storage_internal_free_size += rasterdb.hasRasterPyr2Unit() ? rasterdb.rasterPyr2Unit().calculateInternalFreeSize() : 0;
+					storage_internal_free_size += rasterdb.hasRasterPyr3Unit() ? rasterdb.rasterPyr3Unit().calculateInternalFreeSize() : 0;
+					storage_internal_free_size += rasterdb.hasRasterPyr4Unit() ? rasterdb.rasterPyr4Unit().calculateInternalFreeSize() : 0;
 					json.key("storage_internal_free_size");
 					json.value(storage_internal_free_size);
 				} catch(Exception e) {
@@ -314,5 +314,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 			response.getWriter().println(e);
 		}		
 	}
+	
+
 
 }

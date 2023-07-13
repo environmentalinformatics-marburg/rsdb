@@ -37,12 +37,22 @@ public class Task_remove_timestamps extends RemoteTask {
 			throw new RuntimeException("my new error");
 		}*/
 		for(int timestamp: timestamps) {
-			setMessage("remove timestamp " + timestamp + "  " + TimeUtil.toPrettyText(timestamp));			
-			rasterdb.rasterUnit().removeAllTilesOfTimestamp(timestamp);
-			rasterdb.rasterPyr1Unit().removeAllTilesOfTimestamp(timestamp);
-			rasterdb.rasterPyr2Unit().removeAllTilesOfTimestamp(timestamp);
-			rasterdb.rasterPyr3Unit().removeAllTilesOfTimestamp(timestamp);
-			rasterdb.rasterPyr4Unit().removeAllTilesOfTimestamp(timestamp);
+			setMessage("remove timestamp " + timestamp + "  " + TimeUtil.toPrettyText(timestamp));	
+			if(rasterdb.hasRasterUnit()) {
+				rasterdb.rasterUnit().removeAllTilesOfTimestamp(timestamp);
+			}
+			if(rasterdb.hasRasterPyr1Unit()) {
+				rasterdb.rasterPyr1Unit().removeAllTilesOfTimestamp(timestamp);
+			}
+			if(rasterdb.hasRasterPyr2Unit()) {
+				rasterdb.rasterPyr2Unit().removeAllTilesOfTimestamp(timestamp);
+			}
+			if(rasterdb.hasRasterPyr3Unit()) {
+				rasterdb.rasterPyr3Unit().removeAllTilesOfTimestamp(timestamp);
+			}
+			if(rasterdb.hasRasterPyr4Unit()) {
+				rasterdb.rasterPyr4Unit().removeAllTilesOfTimestamp(timestamp);
+			}			
 			rasterdb.removeTimeSlice(timestamp);
 			setMessage("remove timestamp " + timestamp + "  " + TimeUtil.toPrettyText(timestamp) + "  done.");
 		}

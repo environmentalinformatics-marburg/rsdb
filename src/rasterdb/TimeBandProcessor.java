@@ -58,7 +58,7 @@ public class TimeBandProcessor implements TimeFrameProducer {
 			setScaleInternalPyramid(scale);
 		} else {
 			this.pyramid = 0;
-			setScale(scale);
+			setScaleExternalPyramid(scale);
 		}
 	}
 
@@ -107,7 +107,7 @@ public class TimeBandProcessor implements TimeFrameProducer {
 		return 1;
 	}
 
-	private void setScale(int scale) {
+	private void setScaleExternalPyramid(int scale) {
 		//Logger.info("scale " + scale);
 		switch(scale) {
 		case 1:

@@ -19,10 +19,12 @@ public class APIHandler_postgis_layer {
 
 	private final Broker broker;
 	private final PostgisLayerManager layerManager;
+	private final PostgisHandler_wfs postgisHandler_wfs;
 
 	public APIHandler_postgis_layer(Broker broker) {
 		this.broker = broker;
 		this.layerManager = broker.postgisLayerManager();
+		this.postgisHandler_wfs = new PostgisHandler_wfs();
 	}
 
 	public void handle(String layerName, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
@@ -39,10 +41,16 @@ public class APIHandler_postgis_layer {
 				String name = i < 0 ? target.substring(1) : target.substring(1, i);
 				String next = i < 0 ? "/" : target.substring(i);
 				switch(name) {
-				case "geojson":
+				case "wfs": {
+					PostgisLayer postgisLayer = layerManager.getPostgisLayer(layerName);
+					postgisHandler_wfs.handle(postgisLayer, next, request, response, userIdentity);
+					break;
+				}
+				case "geojson": {
 					PostgisLayer postgisLayer = layerManager.getPostgisLayer(layerName);
 					handleGeojson(postgisLayer, request, response, userIdentity);
 					break;
+				}
 				default:
 					throw new RuntimeException("unknown target: ");
 				}
@@ -55,25 +63,25 @@ public class APIHandler_postgis_layer {
 			response.getWriter().println(e);
 		}
 	}
-	
+
 	private void handleList(PostgisLayer postgisLayer, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
-		
+
 		long count = postgisLayer.getFeatures();
-		
+
 		json.object();
 		json.key("layer");
 		json.value(count);
 		json.endObject();
 	}
-	
+
 	private void handleGeojson(PostgisLayer postgisLayer, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
-		
+
 		json.object();
 		json.key("geojson");
 		postgisLayer.getGeo(json);

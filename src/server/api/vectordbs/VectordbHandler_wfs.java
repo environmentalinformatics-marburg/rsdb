@@ -4,23 +4,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -32,27 +23,13 @@ import util.CharArrayReaderUnsync;
 import util.IndentedXMLStreamWriter;
 import util.Timer;
 import util.Web;
+import util.XmlUtil;
 import vectordb.VectorDB;
 
-public class VectordbHandler_wfs extends VectordbHandler {
-	
+public class VectordbHandler_wfs extends VectordbHandler {	
 
 	private static final String FEATURE_NAME = "feature";
 	private static final String GEOMETRY_PROPERTY_NAME = "geometry";
-
-	private static final DocumentBuilder DOCUMENT_BUILDER;
-	static {
-		try {
-			DOCUMENT_BUILDER = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@FunctionalInterface
-	public static interface NodeCreator {
-		Node create(Document doc) throws Exception;
-	}
 
 	public VectordbHandler_wfs(Broker broker) {
 		super(broker, "wfs");
@@ -101,7 +78,7 @@ public class VectordbHandler_wfs extends VectordbHandler {
 		PrintWriter out = response.getWriter();	
 		try {
 			//out.write(cc);
-			writeXML(out, doc -> xmlGetCapabilities(vectordb, doc));
+			XmlUtil.writeXML(out, doc -> xmlGetCapabilities(vectordb, doc));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -112,7 +89,7 @@ public class VectordbHandler_wfs extends VectordbHandler {
 		PrintWriter out = response.getWriter();	
 		try {
 			//out.write(dd);
-			writeXML(out, doc -> xmlDescribeFeatureType(vectordb, doc));
+			XmlUtil.writeXML(out, doc -> xmlDescribeFeatureType(vectordb, doc));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -228,7 +205,7 @@ public class VectordbHandler_wfs extends VectordbHandler {
 
 			String gml = vectorFeature.getGeometryGML();
 			InputSource inputGML = new InputSource(CharArrayReaderUnsync.of(gml));		
-			Element eGML = DOCUMENT_BUILDER.parse(inputGML).getDocumentElement();
+			Element eGML = XmlUtil.DOCUMENT_BUILDER.parse(inputGML).getDocumentElement();
 			eGML.removeAttribute("srsName");
 			doc.adoptNode(eGML);
 			emsGeometry.appendChild(eGML);
@@ -281,20 +258,6 @@ public class VectordbHandler_wfs extends VectordbHandler {
 
 		return rootElement;
 	}	
-
-	private static void writeXML(PrintWriter out, NodeCreator creator) throws Exception {
-		Document doc = DOCUMENT_BUILDER.newDocument();
-		Node root = creator.create(doc);
-		doc.appendChild(root);
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-		DOMSource source = new DOMSource(doc);
-		StreamResult result = new StreamResult(out);
-		transformer.transform(source, result);
-
-	}
 
 	public static Element addElement(Element root, String name) {
 		Element element = root.getOwnerDocument().createElement(name);

@@ -634,6 +634,56 @@ public class RasterDB implements AutoCloseable {
 		RasterUnitStorage r = rasterPyr4Unit;
 		return r == null ? loadRasterPyr4Unit() : r;
 	}
+	
+	public synchronized RasterUnitStorage rasterUnitIfExist() {
+		if(rasterUnit != null) {
+			return rasterUnit;
+		}
+		if(hasRasterUnit()) {
+			return loadRasterUnit();
+		}
+		return null;
+	}
+	
+	public synchronized RasterUnitStorage rasterPyr1UnitIfExist() {
+		if(rasterPyr1Unit != null) {
+			return rasterPyr1Unit;
+		}
+		if(hasRasterPyr1Unit()) {
+			return loadRasterPyr1Unit();
+		}
+		return null;
+	}
+	
+	public synchronized RasterUnitStorage rasterPyr2UnitIfExist() {
+		if(rasterPyr2Unit != null) {
+			return rasterPyr2Unit;
+		}
+		if(hasRasterPyr2Unit()) {
+			return loadRasterPyr2Unit();
+		}
+		return null;
+	}
+	
+	public synchronized RasterUnitStorage rasterPyr3UnitIfExist() {
+		if(rasterPyr3Unit != null) {
+			return rasterPyr3Unit;
+		}
+		if(hasRasterPyr3Unit()) {
+			return loadRasterPyr3Unit();
+		}
+		return null;
+	}
+	
+	public synchronized RasterUnitStorage rasterPyr4UnitIfExist() {
+		if(rasterPyr4Unit != null) {
+			return rasterPyr4Unit;
+		}
+		if(hasRasterPyr4Unit()) {
+			return loadRasterPyr4Unit();
+		}
+		return null;
+	}	
 
 	private RasterUnitStorage openStorage(String name) {
 		switch(storageType) {
@@ -694,8 +744,51 @@ public class RasterDB implements AutoCloseable {
 			return Files.exists(path.resolve("raster.idx"));
 		default:
 			throw new RuntimeException("unknown storage_type: |" + storageType + "|");
-		}	
+		}
+	}
 
+	public synchronized boolean hasRasterPyr1Unit() {
+		switch(storageType) {
+		case "RasterUnit":
+			return Files.exists(path.resolve("raster1"));
+		case "TileStorage":
+			return Files.exists(path.resolve("raster1.idx"));
+		default:
+			throw new RuntimeException("unknown storage_type: |" + storageType + "|");
+		}
+	}
+
+	public synchronized boolean hasRasterPyr2Unit() {
+		switch(storageType) {
+		case "RasterUnit":
+			return Files.exists(path.resolve("raster2"));
+		case "TileStorage":
+			return Files.exists(path.resolve("raster2.idx"));
+		default:
+			throw new RuntimeException("unknown storage_type: |" + storageType + "|");
+		}
+	}
+
+	public synchronized boolean hasRasterPyr3Unit() {
+		switch(storageType) {
+		case "RasterUnit":
+			return Files.exists(path.resolve("raster3"));
+		case "TileStorage":
+			return Files.exists(path.resolve("raster3.idx"));
+		default:
+			throw new RuntimeException("unknown storage_type: |" + storageType + "|");
+		}
+	}
+
+	public synchronized boolean hasRasterPyr4Unit() {
+		switch(storageType) {
+		case "RasterUnit":
+			return Files.exists(path.resolve("raster4"));
+		case "TileStorage":
+			return Files.exists(path.resolve("raster4.idx"));
+		default:
+			throw new RuntimeException("unknown storage_type: |" + storageType + "|");
+		}
 	}
 
 	public int getTilePixelLen() {
