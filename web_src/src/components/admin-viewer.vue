@@ -708,6 +708,18 @@ export default {
           return 'background-grey';          
         case 'white':
           return 'background-white';
+        case 'red':
+          return 'background-red';
+        case 'green':
+          return 'background-green';
+        case 'blue':
+          return 'background-blue';
+        case 'yellow':
+          return 'background-yellow';
+        case 'magenta':
+          return 'background-magenta';
+        case 'cyan':
+          return 'background-cyan';                              
         default:
           return '';
       }
@@ -1109,6 +1121,30 @@ export default {
 
 .background-white {
   background-color: white !important;
+}
+
+.background-red{
+  background-color: red !important;
+}
+
+.background-green {
+  background-color: green !important;
+}
+
+.background-blue {
+  background-color: blue !important;
+}
+
+.background-yellow {
+  background-color: yellow !important;
+}
+
+.background-magenta {
+  background-color: magenta !important;
+}
+
+.background-cyan {
+  background-color: cyan !important;
 }
 
 #top {

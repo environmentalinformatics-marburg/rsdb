@@ -96,6 +96,12 @@ export default {
         {name: "black", title: "black"},
         {name: "grey", title: "grey"},
         {name: "white", title: "white"},
+        {name: "red", title: "red"},
+        {name: "green", title: "green"},
+        {name: "blue", title: "blue"},
+        {name: "yellow", title: "yellow"},
+        {name: "magenta", title: "magenta"},
+        {name: "cyan", title: "cyan"},                        
       ],
       selectedBackground: undefined,     
 

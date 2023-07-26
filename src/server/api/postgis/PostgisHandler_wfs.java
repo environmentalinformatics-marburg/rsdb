@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import broker.PostgisLayer;
+import broker.PostgisLayer.PostgisColumn;
 import pointcloud.Rect2d;
 import util.IndentedXMLStreamWriter;
 import util.Timer;
@@ -29,13 +30,13 @@ public class PostgisHandler_wfs {
 
 	public void handle(PostgisLayer postgisLayer, String target, Request request, Response response, UserIdentity userIdentity) {
 		String reqParam = Web.getLastString(request, "REQUEST", null);
-		if(reqParam==null) {
+		if(reqParam == null) {
 			reqParam = Web.getLastString(request, "Request", null);
 		}
-		if(reqParam==null) {
+		if(reqParam == null) {
 			reqParam = Web.getLastString(request, "request", null);
 		}
-		if(reqParam==null) {
+		if(reqParam == null) {
 			reqParam = "GetCapabilities";
 		}
 
@@ -53,7 +54,7 @@ public class PostgisHandler_wfs {
 				Logger.info(Timer.stop("GetFeature"));
 				break;			
 			default:
-				throw new RuntimeException("unknown request "+reqParam);
+				throw new RuntimeException("unknown request " + reqParam);
 			}		
 		} catch(IOException e) {
 			throw new RuntimeException(e);
@@ -113,13 +114,13 @@ public class PostgisHandler_wfs {
 		Element esequence = XmlUtil.addElement(eextension, "sequence");
 
 		Element esequenceElement1 = XmlUtil.addElement(esequence, "element");
-		esequenceElement1.setAttribute("name", postgisLayer.geoColumnName);
+		esequenceElement1.setAttribute("name", postgisLayer.primaryGeometryColumn);
 		esequenceElement1.setAttribute("type", "gml:GeometryPropertyType");
 		
-		for(String fieldName : postgisLayer.fieldNames) {
+		for(PostgisColumn field : postgisLayer.fields) {
 			Element esequenceElement2 = XmlUtil.addElement(esequence, "element");
-			esequenceElement2.setAttribute("name", fieldName);
-			esequenceElement2.setAttribute("type", "string");
+			esequenceElement2.setAttribute("name", field.name);			
+			esequenceElement2.setAttribute("type", "string"); // TODO
 		}	
 
 		return rootElement;
@@ -156,14 +157,15 @@ public class PostgisHandler_wfs {
 		while(rs.next()) {
 			xmlWriter.writeStartElement("gml:featureMember");
 			xmlWriter.writeStartElement(postgisLayer.name);
-			xmlWriter.writeStartElement(postgisLayer.geoColumnName);
+			xmlWriter.writeStartElement(postgisLayer.primaryGeometryColumn);
 			String gml = rs.getString(1);
 			xmlWriter.writeCharacters(gml);
-			xmlWriter.writeEndElement(); // postgisLayer.geoColumnName
-			for (int i = 0; i < postgisLayer.fieldNames.size(); i++) {
-				String fieldName = postgisLayer.fieldNames.get(i);
+			xmlWriter.writeEndElement(); // postgisLayer.geoColumnName			
+			
+			for (int i = 0; i < postgisLayer.fields.size(); i++) {
+				PostgisColumn field = postgisLayer.fields.get(i);
 				String fieldValue = rs.getString(i + 2);
-				xmlWriter.writeStartElement(fieldName);
+				xmlWriter.writeStartElement(field.name);
 				xmlWriter.writeCharacters(fieldValue);
 				xmlWriter.writeEndElement(); // fieldName
 			}

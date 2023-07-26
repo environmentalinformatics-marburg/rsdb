@@ -144,6 +144,10 @@ RemoteSensing_public <- list( #      *********** public ************************
     } else {
       return(remote_task)
     }
+  },
+
+  postgis = function(name) {
+    return(PostGIS$new(rsdbConnector = private$rsdbConnector, name = name))
   }
 
 )

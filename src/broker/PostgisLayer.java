@@ -12,26 +12,33 @@ import org.tinylog.Logger;
 
 import pointcloud.Rect2d;
 import util.Timer;
-import util.Util;
 import util.collections.array.ReadonlyArray;
+import util.collections.vec.Vec;
 
 public class PostgisLayer {
 
 	private final Connection conn;
 	public final String name;
-	private final String[] colAllNames;
-	private final String[] colAllTypes;	
-	public final ReadonlyArray<String> columnAllNames;
-	public final ReadonlyArray<String> columnAllTypes;
-	public final String geoColumnName;
-	private final String[] fldNames;
-	private final String[] fldTypes;
-	public final ReadonlyArray<String> fieldNames;
-	public final ReadonlyArray<String> fieldTypes;
+	private final PostgisColumn[] colsAll;
+	public final ReadonlyArray<PostgisColumn> columnsAll;
+	private final PostgisColumn[] flds;
+	public final ReadonlyArray<PostgisColumn> fields;
+	public final String primaryGeometryColumn;	
 	private final String gmlQuerySelector;
+	
+	public static class PostgisColumn {
+		
+		public String name;
+		public String type;
+		
+		public PostgisColumn(String name, String type) {
+			this.name = name;
+			this.type = type;
+		}
+	}
 
 	public PostgisLayer(Connection conn, String name) {		
-		Util.checkStrictID(name);		
+		//Util.checkStrictID(name);		
 		this.name = name;
 		this.conn = conn;
 		
@@ -41,44 +48,38 @@ public class PostgisLayer {
 			ResultSet rs = stmt.executeQuery();
 			ResultSetMetaData meta = rs.getMetaData();
 			int cnt = meta.getColumnCount();
-			colAllNames = new String[cnt];
-			colAllTypes = new String[cnt];
+			colsAll = new PostgisColumn[cnt];
 			for (int i = 0; i < cnt; i++) {
 				String colName = meta.getColumnName(i + 1);
 				String colType = meta.getColumnTypeName(i + 1);
-				colAllNames[i] = colName;
-				colAllTypes[i] = colType;
+				PostgisColumn postgisColumn = new PostgisColumn(colName, colType);
+				colsAll[i] = postgisColumn;
 			}
-			columnAllNames = new ReadonlyArray<String>(colAllNames);
-			columnAllTypes = new ReadonlyArray<String>(colAllTypes);
+			columnsAll = new ReadonlyArray<PostgisColumn>(colsAll);
 			
-			Logger.info(columnAllNames);
-			Logger.info(columnAllTypes);
-			
-			int geometryIndex = columnAllTypes.indexOf("geometry");
-			if(geometryIndex < 0) {
-				throw new RuntimeException("missing geometry column in table");
-			}
-			if(geometryIndex != columnAllTypes.lastIndexOf("geometry")) {
-				throw new RuntimeException("more than one geometry column in table");
-			}
-			geoColumnName = colAllNames[geometryIndex];
-			fldNames = new String[cnt - 1];
-			fldTypes = new String[cnt - 1];
-			int pos = 0;
-			for (int i = 0; i < cnt; i++) {
-				if(i != geometryIndex) {
-					fldNames[pos] = colAllNames[i];
-					fldTypes[pos] = colAllTypes[i];
-					pos++;
+			String pgc = null;
+			Vec<PostgisColumn> f = new Vec<PostgisColumn>();
+			for(PostgisColumn col : colsAll) {
+				if(col.type.equals("geometry")) {
+					if(pgc == null) {
+						pgc = col.name;
+					} else {
+						Logger.warn("more than one geometry column in table");
+					}
+				} else {
+					f.add(col);
 				}
 			}
-			fieldNames = new ReadonlyArray<String>(fldNames);
-			fieldTypes = new ReadonlyArray<String>(fldTypes);
+			if(pgc == null) {
+				throw new RuntimeException("missing geometry column");
+			}
+			primaryGeometryColumn = pgc;
+			flds = f.toArray(PostgisColumn[]::new);
+			fields = new ReadonlyArray<PostgisColumn>(flds);			
 			
-			String s = "ST_AsGML(3," + geoColumnName + ",8,2)";
-			for (String fldName : fldNames) {
-				s += "," + fldName;
+			String s = "ST_AsGML(3," + primaryGeometryColumn + ",8,2)";
+			for (PostgisColumn field : flds) {
+				s += "," + field.name;
 			}
 			gmlQuerySelector = s;
 		} catch (SQLException e) {
@@ -111,6 +112,29 @@ public class PostgisLayer {
 		}	
 	}
 	
+	public long forEachGeoJSON(Consumer<String> consumer) {
+		try {
+			Timer.start("query");
+			String sql = String.format("SELECT ST_AsGeoJSON(geom) FROM %s",  name);	
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			while(rs.next()) {
+				String geojson = rs.getString(1);
+				//Logger.info(geojson);
+				consumer.accept(geojson);
+				featureCount++;
+			}
+			Logger.info("features " + featureCount);
+			Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;	
+		}	
+	}
+	
 	public long getGeo(JSONWriter json) {
 		try {
 			Timer.start("query");
@@ -124,7 +148,17 @@ public class PostgisLayer {
 			while(rs.next()) {
 				String area = rs.getString(1);
 				Logger.info(area);
+				
+				json.object();
+				
+				json.key("type");
+				json.value("Feature");
+				
+				json.key("geometry");
 				json.value(area);
+				
+				json.endObject();				
+
 				featureCount++;
 			}
 			json.endArray();
@@ -199,4 +233,6 @@ public class PostgisLayer {
 			throw new RuntimeException(e);
 		}	
 	}
+	
+
 }

@@ -45,13 +45,13 @@ public class VectordbHandler_wfs extends VectordbHandler {
 		}*/		
 
 		String reqParam = Web.getLastString(request, "REQUEST", null);
-		if(reqParam==null) {
+		if(reqParam == null) {
 			reqParam = Web.getLastString(request, "Request", null);
 		}
-		if(reqParam==null) {
+		if(reqParam == null) {
 			reqParam = Web.getLastString(request, "request", null);
 		}
-		if(reqParam==null) {
+		if(reqParam == null) {
 			reqParam = "GetCapabilities";
 		}		
 
