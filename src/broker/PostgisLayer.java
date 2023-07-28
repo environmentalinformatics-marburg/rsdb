@@ -5,13 +5,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.json.JSONWriter;
 import org.tinylog.Logger;
 
+import broker.PostgisLayer.PostgisColumn;
 import pointcloud.Rect2d;
 import util.Timer;
+import util.Util;
 import util.collections.array.ReadonlyArray;
 import util.collections.vec.Vec;
 
@@ -24,13 +27,15 @@ public class PostgisLayer {
 	private final PostgisColumn[] flds;
 	public final ReadonlyArray<PostgisColumn> fields;
 	public final String primaryGeometryColumn;	
-	private final String gmlQuerySelector;
-	
+	private final String gmlQuerySelectorWithFields;
+	private final String geoJSONQuerySelector;
+	private final String geoJSONQuerySelectorWithFields;
+
 	public static class PostgisColumn {
-		
+
 		public String name;
 		public String type;
-		
+
 		public PostgisColumn(String name, String type) {
 			this.name = name;
 			this.type = type;
@@ -38,10 +43,10 @@ public class PostgisLayer {
 	}
 
 	public PostgisLayer(Connection conn, String name) {		
-		//Util.checkStrictID(name);		
+		Util.checkStrictDotID(name);		
 		this.name = name;
 		this.conn = conn;
-		
+
 		try {
 			String sql = String.format("SELECT * FROM %s WHERE false",  name);	
 			PreparedStatement stmt = conn.prepareStatement(sql);
@@ -56,7 +61,7 @@ public class PostgisLayer {
 				colsAll[i] = postgisColumn;
 			}
 			columnsAll = new ReadonlyArray<PostgisColumn>(colsAll);
-			
+
 			String pgc = null;
 			Vec<PostgisColumn> f = new Vec<PostgisColumn>();
 			for(PostgisColumn col : colsAll) {
@@ -76,23 +81,34 @@ public class PostgisLayer {
 			primaryGeometryColumn = pgc;
 			flds = f.toArray(PostgisColumn[]::new);
 			fields = new ReadonlyArray<PostgisColumn>(flds);			
-			
-			String s = "ST_AsGML(3," + primaryGeometryColumn + ",8,2)";
-			for (PostgisColumn field : flds) {
-				s += "," + field.name;
+
+			{
+				String s = "ST_AsGML(3," + primaryGeometryColumn + ",8,2)";
+				for (PostgisColumn field : flds) {
+					s += "," + field.name;
+				}
+				gmlQuerySelectorWithFields = s;
 			}
-			gmlQuerySelector = s;
+
+			{
+				String s = "ST_AsGeoJSON(" + primaryGeometryColumn + ")";
+				geoJSONQuerySelector = s;
+				for (PostgisColumn field : flds) {
+					s += "," + field.name;
+				}
+				geoJSONQuerySelectorWithFields = s;
+			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
-		
-		
+
+
 	}
 
 	public long getFeatures() {
 		try {
 			Timer.start("query");
-			
+
 			String sql = String.format("SELECT LB_AKT FROM %s WHERE ST_Intersects(ST_MakeEnvelope(529779, 5363962, 530354, 5364330, 25832), geom)",  name);			
 			Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
@@ -111,11 +127,22 @@ public class PostgisLayer {
 			return -1;	
 		}	
 	}
-	
-	public long forEachGeoJSON(Consumer<String> consumer) {
+
+	/**
+	 * 
+	 * @param rect2d  nullable
+	 * @param consumer
+	 * @return
+	 */
+	public long forEachGeoJSON(Rect2d rect2d, Consumer<String> consumer) {
 		try {
 			Timer.start("query");
-			String sql = String.format("SELECT ST_AsGeoJSON(geom) FROM %s",  name);	
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT %s FROM %s",  geoJSONQuerySelector, name);
+			} else {
+				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)",  geoJSONQuerySelector, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+			}
 			Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
@@ -134,11 +161,84 @@ public class PostgisLayer {
 			return -1;	
 		}	
 	}
-	
+
+	public interface FeatureConsumer {
+		void acceptFeatureStart(boolean isFirstFeature);
+		void acceptFeatureGeometry(String geometry);
+		void acceptFeatureFieldsStart();
+		void acceptFeatureField(PostgisColumn field, String fieldValue, boolean isFirstFeatureField);
+		void acceptFeatureFieldNull(PostgisColumn field, boolean isFirstFeatureField);
+		void acceptFeatureFieldInt32(PostgisColumn field, int fieldValue, boolean isFirstFeatureField);
+		void acceptFeatureFieldsEnd();
+		void acceptFeatureEnd();
+	}
+
+	/**
+	 * 
+	 * @param rect2d  nullable
+	 * @param consumer
+	 * @return
+	 */
+	public long forEachGeoJSONWithProperties(Rect2d rect2d, FeatureConsumer consumer) {
+		try {
+			Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT %s FROM %s",  geoJSONQuerySelectorWithFields, name);
+			} else {
+				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)",  geoJSONQuerySelectorWithFields, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+			}
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			while(rs.next()) {
+				consumer.acceptFeatureStart(featureCount == 0);
+				String geometry = rs.getString(1);
+				consumer.acceptFeatureGeometry(geometry);
+				consumer.acceptFeatureFieldsStart();
+				for (int i = 0; i < flds.length; i++) {
+					PostgisColumn field = flds[i];
+					switch(field.type) {
+					case "serial":
+					case "int4": {
+						int fieldValue = rs.getInt(i + 2);
+						if(rs.wasNull()) {
+							consumer.acceptFeatureFieldNull(field, i == 0);
+						} else {
+							consumer.acceptFeatureFieldInt32(field, fieldValue, i == 0);
+						}
+						break;
+					}
+					case "varchar":
+					default: {
+						//Logger.info("field type: " + field.type);
+						String fieldValue = rs.getString(i + 2);
+						if(rs.wasNull()) {
+							consumer.acceptFeatureFieldNull(field, i == 0);
+						} else {
+							consumer.acceptFeatureField(field, fieldValue, i == 0);
+						}
+					}
+					}
+				}
+				consumer.acceptFeatureFieldsEnd();
+				consumer.acceptFeatureEnd();
+				featureCount++;
+			}
+			Logger.info("features " + featureCount);
+			Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;	
+		}	
+	}
+
 	public long getGeo(JSONWriter json) {
 		try {
 			Timer.start("query");
-			
+
 			String sql = String.format("SELECT ST_AsGeoJSON(geom) FROM %s",  name);			
 			Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
@@ -148,15 +248,15 @@ public class PostgisLayer {
 			while(rs.next()) {
 				String area = rs.getString(1);
 				Logger.info(area);
-				
+
 				json.object();
-				
+
 				json.key("type");
 				json.value("Feature");
-				
+
 				json.key("geometry");
 				json.value(area);
-				
+
 				json.endObject();				
 
 				featureCount++;
@@ -170,7 +270,7 @@ public class PostgisLayer {
 			return -1;	
 		}	
 	}
-	
+
 	public long forEachGML(Rect2d rect2d, Consumer<String> consumer) {
 		try {
 			Timer.start("query");
@@ -198,15 +298,15 @@ public class PostgisLayer {
 			return -1;	
 		}	
 	}
-	
+
 	public ResultSet queryGML(Rect2d rect2d) {
 		try {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
-				sql = String.format("SELECT %s FROM %s", gmlQuerySelector, name);		
+				sql = String.format("SELECT %s FROM %s", gmlQuerySelectorWithFields, name);		
 			} else {
-				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", gmlQuerySelector, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", gmlQuerySelectorWithFields, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
 			}	
 			Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
@@ -217,7 +317,7 @@ public class PostgisLayer {
 			return null;	
 		}	
 	}
-	
+
 	public int getEPSG() {
 		try {
 			String sql = String.format("SELECT ST_SRID(geom) FROM %s LIMIT 1",  name);	
@@ -233,6 +333,6 @@ public class PostgisLayer {
 			throw new RuntimeException(e);
 		}	
 	}
-	
+
 
 }

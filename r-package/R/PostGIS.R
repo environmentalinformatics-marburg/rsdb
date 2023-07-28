@@ -49,13 +49,33 @@ PostGIS <- R6::R6Class("PostGIS",
       private$meta_ <- m
     },
 
-    getVectors = function() {
-      response <- private$rsdbConnector$GET(paste0("/postgis/layers/", private$name_, '/geojson'))
+    getVectors = function(bbox = NULL) {
+      args <- list()
+      if(!is.null(bbox)) {
+        if(class(bbox) != 'bbox') {
+          stop('optional parameter bbox needs to be of class bbox')
+        }
+        args$bbox <- paste(bbox$xmin, bbox$ymin, bbox$xmax, bbox$ymax, sep = ',')
+      }
+      response <- private$rsdbConnector$GET(paste0("/postgis/layers/", private$name_, '/geojson'), args)
       tempFileName <- tempfile()
       writeBin(response, tempFileName)
       vectors <- sf::st_read(tempFileName, quiet=TRUE)
       file.remove(tempFileName)
       return(vectors)
+    },
+
+    getRaster = function(bbox, dx = 1, dy = 1) {
+      if(is.null(bbox)) {
+        stop('missing bbox')
+      }
+      if(is.na(sf::st_crs(bbox))) {
+        sf::st_crs(bbox) <- self$epsg
+      }
+      vectors <- self$getVectors(bbox)
+      template <- stars::st_as_stars(bbox, dx, dy)
+      r <- stars::st_rasterize(sf = vectors, template = template)
+      return(r)
     }
 
   ),
@@ -79,13 +99,9 @@ PostGIS <- R6::R6Class("PostGIS",
   ),
   private = list( #      *********** private *******************************
 
+    rsdbConnector = NULL,
     name_ = NULL,
-    curlHandle = NULL,
-    base_url = NULL,
-    path_url = NULL,
-    url = NULL,
-    meta_ = NULL,
-    rsdbConnector = NULL
+    meta_ = NULL
 
   ),
   lock_class = TRUE,

@@ -319,6 +319,10 @@ public class Util {
 	public static boolean isValidIDChar(char c) {
 		return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '_';
 	}
+	
+	public static boolean isValidDotIDChar(char c) {
+		return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '_' || c == '.';
+	}
 
 	public static boolean isValidID(String id) {
 		int len = id.length();
@@ -343,6 +347,12 @@ public class Util {
 	public static void checkStrictID(String id) {
 		if(!id.chars().allMatch(c-> isValidIDChar((char) c))) {
 			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_");
+		}
+	}
+	
+	public static void checkStrictDotID(String id) {
+		if(!id.chars().allMatch(c-> isValidDotIDChar((char) c))) {
+			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_.");
 		}
 	}
 
