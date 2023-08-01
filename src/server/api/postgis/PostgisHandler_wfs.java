@@ -18,9 +18,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import broker.PostgisLayer;
-import broker.PostgisLayer.PostgisColumn;
 import pointcloud.Rect2d;
+import postgis.PostgisLayer;
+import postgis.PostgisLayer.PostgisColumn;
 import util.IndentedXMLStreamWriter;
 import util.Timer;
 import util.Web;

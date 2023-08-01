@@ -6,6 +6,7 @@ import java.util.TreeMap;
 
 import broker.group.ExternalGroupConfig;
 import pointdb.base.PointdbConfig;
+import postgis.PostgisConfig;
 import util.collections.ReadonlyList;
 import util.collections.vec.Vec;
 

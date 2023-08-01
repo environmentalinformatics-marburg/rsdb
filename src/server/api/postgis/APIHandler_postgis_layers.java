@@ -10,15 +10,18 @@ import org.tinylog.Logger;
 
 import broker.Broker;
 import jakarta.servlet.http.HttpServletResponse;
+import postgis.PostgisLayerManager;
 import util.Web;
 
 public class APIHandler_postgis_layers {
 
 	private final Broker broker;
+	private PostgisLayerManager postgisLayerManager;
 	private final APIHandler_postgis_layer apihandler_postgis_layer;
 
 	public APIHandler_postgis_layers(Broker broker) {
 		this.broker = broker;
+		this.postgisLayerManager = broker.postgisLayerManager();
 		apihandler_postgis_layer = new APIHandler_postgis_layer(broker);
 	}
 
@@ -49,8 +52,15 @@ public class APIHandler_postgis_layers {
 		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 		json.object();
-		json.key("layers");
-		json.value("ok");
+		json.key("postgis_layers");
+		json.array();
+		postgisLayerManager.forEach(userIdentity, postgisLayerBase -> {
+			json.object();
+			json.key("name");
+			json.value(postgisLayerBase.name);
+			json.endObject();
+		});
+		json.endArray();
 		json.endObject();
 	}
 }

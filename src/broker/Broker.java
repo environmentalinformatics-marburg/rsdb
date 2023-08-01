@@ -33,6 +33,7 @@ import pointcloud.PointCloudConfig;
 import pointdb.PdbException;
 import pointdb.PointDB;
 import pointdb.base.PointdbConfig;
+import postgis.PostgisLayerManager;
 import rasterdb.RasterDB;
 import rasterdb.RasterdbConfig;
 import server.api.vectordbs.VectordbDetails;

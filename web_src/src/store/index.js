@@ -5,6 +5,7 @@ import rasterdbs from './rasterdbs'
 import pointclouds from './pointclouds'
 import voxeldbs from './voxeldbs'
 import vectordbs from './vectordbs'
+import postgis_layers from './postgis_layers'
 import pointdbs from './pointdbs'
 import identity from './identity'
 import poi_groups from './poi_groups'
@@ -22,6 +23,7 @@ const modules = {
     pointclouds,
     voxeldbs,
     vectordbs,
+    postgis_layers,
     pointdbs,
     identity,
     poi_groups,

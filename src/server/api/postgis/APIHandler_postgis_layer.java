@@ -12,12 +12,12 @@ import org.json.JSONWriter;
 import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.PostgisLayer;
-import broker.PostgisLayer.PostgisColumn;
-import broker.PostgisLayer.FeatureConsumer;
-import broker.PostgisLayerManager;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
+import postgis.PostgisLayer;
+import postgis.PostgisLayerManager;
+import postgis.PostgisLayer.FeatureConsumer;
+import postgis.PostgisLayer.PostgisColumn;
 import util.Util;
 import util.Web;
 

@@ -10,6 +10,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import broker.group.ExternalGroupConfig;
 import pointdb.base.PointdbConfig;
+import postgis.PostgisConfig;
 import util.Util;
 import util.yaml.YamlMap;
 

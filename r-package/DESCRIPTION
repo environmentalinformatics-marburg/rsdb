@@ -1,7 +1,7 @@
 Package: RSDB
 Type: Package
 Title: R to RSDB Server Connection Package
-Version: 1.3.1
+Version: 1.3.2
 Author: woellauer
 Maintainer: woellauer <email@email>
 Description: RSDB (Remote Sensing Database) manages (hyperspectral) rasters and (LiDAR) point-clouds as well as vector data and auxiliary ROIs (regions of interest as named polygons) and POIs (points of interest as named points). Contained data can be queried, processed and analysed. 

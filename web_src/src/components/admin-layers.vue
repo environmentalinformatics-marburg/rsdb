@@ -94,7 +94,23 @@
             <v-list-tile-title>{{ item.title !== undefined ? item.title : item.name }}</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
-      </v-list-group> 
+      </v-list-group>
+      
+      <v-list-group v-if="filteredPostgisLayers.length !== 0">
+        <v-list-tile slot="activator">
+            <v-list-tile-content>
+              <v-list-tile-title><v-icon style="font-size: 1em;">category</v-icon>&nbsp;<b>PostGIS layers</b> ({{filteredPostgisLayers.length}})</v-list-tile-title>
+            </v-list-tile-content>
+        </v-list-tile>
+        <v-list-tile v-for="item in filteredPostgisLayers" :key="item.name" @click="navigation = 'postgis/' + item.name;" :class="{activeNavigation: navigation === 'postgis/' + item.name}" :to="'/layers/postgis/' + item.name" replace>
+          <v-list-tile-action>
+            <v-icon>category</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>{{ item.title !== undefined ? item.title : item.name }}</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list-group>
 
       <v-list-group v-if="filteredPoi_groups.length !== 0">
         <v-list-tile slot="activator">
@@ -465,7 +481,30 @@ export default {
     },
     vectordbsErrorMessage() {
       return this.$store.state.vectordbs.message;
+    },
+    
+    filteredPostgisLayers() {
+      return this.postgisLayers === undefined ? [] : this.postgisLayers.filter(this.filterFun).sort(layerComparator);
     },    
+    postgisLayers() {
+      return this.$store.state.postgis_layers.data;
+    },
+    postgisLayersMode() {
+      return this.$store.state.postgis_layers.mode;
+    },
+    postgisLayersError: {
+      get() {
+        return this.$store.state.postgis_layers.mode === 'error' && this.$store.state.postgis_layers.messageActive; 
+      },
+      set(v) {
+        if(v == false) {
+          this.$store.commit('postgis_layers/closeMessage');
+        }
+      },
+    },
+    postgisLayersErrorMessage() {
+      return this.$store.state.postgis_layers.message;
+    },
 
     filteredPoi_groups() {
       return this.poi_groups === undefined ? [] : this.poi_groups.filter(this.filterFun).sort(layerComparator);
@@ -519,6 +558,7 @@ export default {
     this.$store.dispatch('pointclouds/init');
     this.$store.dispatch('voxeldbs/init');
     this.$store.dispatch('vectordbs/init');
+    this.$store.dispatch('postgis_layers/init');
     this.$store.dispatch('poi_groups/init');
     this.$store.dispatch('roi_groups/init');
     this.$store.dispatch('layer_tags/init');

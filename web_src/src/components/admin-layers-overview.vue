@@ -42,9 +42,20 @@
                 <h3 class="headline mb-0"><v-icon style="font-size: 1em;">category</v-icon>&nbsp;VectorDB</h3> 
               </v-card-title>
               <v-card-text>
-                Layers of this type store spatial <b>general vector data</b>.
+                Layers of this type store spatial <b>general vector data</b> in RSDB.
               </v-card-text>
               <admin-vectordb-create @created_vectordb="$router.push({path: '/layers/vectordbs/' + $event});" /> Add an empty VectorDB-layer and upload vector data.
+            </v-card>
+          </v-flex>
+
+          <v-flex xs12>
+            <v-card>
+              <v-card-title primary-title>
+                <h3 class="headline mb-0"><v-icon style="font-size: 1em;">category</v-icon>&nbsp;PostGIS layer</h3> 
+              </v-card-title>
+              <v-card-text>
+                Layers of this type connect to spatial <b>vector data</b> stored in a PostGIS database.
+              </v-card-text>
             </v-card>
           </v-flex>
 

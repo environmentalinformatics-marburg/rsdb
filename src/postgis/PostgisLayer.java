@@ -1,27 +1,27 @@
-package broker;
+package postgis;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
 import org.tinylog.Logger;
 
-import broker.PostgisLayer.PostgisColumn;
 import pointcloud.Rect2d;
 import util.Timer;
 import util.Util;
 import util.collections.array.ReadonlyArray;
 import util.collections.vec.Vec;
 
-public class PostgisLayer {
+public class PostgisLayer extends PostgisLayerBase {
 
-	private final Connection conn;
-	public final String name;
+	private final PostgisLayerConfig postgisLayerConfig;
+	private final PostgisConnector postgisConnector;
+	
 	private final PostgisColumn[] colsAll;
 	public final ReadonlyArray<PostgisColumn> columnsAll;
 	private final PostgisColumn[] flds;
@@ -30,6 +30,8 @@ public class PostgisLayer {
 	private final String gmlQuerySelectorWithFields;
 	private final String geoJSONQuerySelector;
 	private final String geoJSONQuerySelectorWithFields;
+
+
 
 	public static class PostgisColumn {
 
@@ -42,12 +44,13 @@ public class PostgisLayer {
 		}
 	}
 
-	public PostgisLayer(Connection conn, String name) {		
-		Util.checkStrictDotID(name);		
-		this.name = name;
-		this.conn = conn;
+	public PostgisLayer(PostgisLayerConfig postgisLayerConfig, PostgisConnector postgisConnector) {	
+		super(postgisLayerConfig.name, postgisLayerConfig.path);
+		this.postgisLayerConfig = postgisLayerConfig;
+		Util.checkStrictDotID(postgisLayerConfig.name);		
+		this.postgisConnector = postgisConnector;
 
-		try {
+		try (Connection conn = postgisConnector.getConnection()) {
 			String sql = String.format("SELECT * FROM %s WHERE false",  name);	
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
@@ -106,7 +109,7 @@ public class PostgisLayer {
 	}
 
 	public long getFeatures() {
-		try {
+		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
 
 			String sql = String.format("SELECT LB_AKT FROM %s WHERE ST_Intersects(ST_MakeEnvelope(529779, 5363962, 530354, 5364330, 25832), geom)",  name);			
@@ -135,7 +138,7 @@ public class PostgisLayer {
 	 * @return
 	 */
 	public long forEachGeoJSON(Rect2d rect2d, Consumer<String> consumer) {
-		try {
+		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
@@ -180,7 +183,7 @@ public class PostgisLayer {
 	 * @return
 	 */
 	public long forEachGeoJSONWithProperties(Rect2d rect2d, FeatureConsumer consumer) {
-		try {
+		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
@@ -236,7 +239,7 @@ public class PostgisLayer {
 	}
 
 	public long getGeo(JSONWriter json) {
-		try {
+		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
 
 			String sql = String.format("SELECT ST_AsGeoJSON(geom) FROM %s",  name);			
@@ -272,7 +275,7 @@ public class PostgisLayer {
 	}
 
 	public long forEachGML(Rect2d rect2d, Consumer<String> consumer) {
-		try {
+		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
@@ -300,7 +303,7 @@ public class PostgisLayer {
 	}
 
 	public ResultSet queryGML(Rect2d rect2d) {
-		try {
+		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
@@ -319,7 +322,7 @@ public class PostgisLayer {
 	}
 
 	public int getEPSG() {
-		try {
+		try (Connection conn = postgisConnector.getConnection()) {
 			String sql = String.format("SELECT ST_SRID(geom) FROM %s LIMIT 1",  name);	
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
@@ -334,5 +337,8 @@ public class PostgisLayer {
 		}	
 	}
 
-
+	@Override
+	public boolean isAllowed(UserIdentity userIdentity) {
+		return postgisLayerConfig.isAllowed(userIdentity);
+	}
 }

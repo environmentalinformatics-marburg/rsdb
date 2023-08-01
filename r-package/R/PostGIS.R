@@ -65,7 +65,7 @@ PostGIS <- R6::R6Class("PostGIS",
       return(vectors)
     },
 
-    getRaster = function(bbox, dx = 1, dy = 1) {
+    getRaster = function(bbox, attribute = NULL, dx = 1, dy = 1) {
       if(is.null(bbox)) {
         stop('missing bbox')
       }
@@ -73,6 +73,9 @@ PostGIS <- R6::R6Class("PostGIS",
         sf::st_crs(bbox) <- self$epsg
       }
       vectors <- self$getVectors(bbox)
+      if(!is.null(attribute)) {
+        vectors <- vectors[attribute]
+      }
       template <- stars::st_as_stars(bbox, dx, dy)
       r <- stars::st_rasterize(sf = vectors, template = template)
       return(r)

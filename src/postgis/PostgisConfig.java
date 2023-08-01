@@ -1,4 +1,4 @@
-package broker;
+package postgis;
 
 import util.yaml.YamlMap;
 

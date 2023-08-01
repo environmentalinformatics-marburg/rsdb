@@ -4,7 +4,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 
-import broker.PostgisLayer;
+import postgis.PostgisLayer;
 
 public class PostgisHandler_indices {
 
