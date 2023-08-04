@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.HashMap;
 
 import org.eclipse.jetty.server.UserIdentity;
 import org.tinylog.Logger;
@@ -46,7 +45,7 @@ public class PostgisLayerConfig extends PostgisLayerBase {
 	@Override
 	public boolean isAllowed(UserIdentity userIdentity) {
 		if(this.map == null) {
-			File file = path.toFile();
+			File file = metaPath.toFile();
 			try {
 				if (file.exists()) {
 					try(InputStream in = new FileInputStream(file)) {

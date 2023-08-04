@@ -1,27 +1,51 @@
 package postgis;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
 import org.tinylog.Logger;
+import org.yaml.snakeyaml.Yaml;
 
+import broker.Informal;
+import broker.acl.ACL;
+import broker.acl.AclUtil;
+import broker.acl.EmptyACL;
+import net.postgis.jdbc.PGbox2d;
+import net.postgis.jdbc.PGgeometry;
+import net.postgis.jdbc.geometry.Geometry;
+import net.postgis.jdbc.geometry.MultiPolygon;
+import net.postgis.jdbc.geometry.Point;
+import net.postgis.jdbc.geometry.Polygon;
 import pointcloud.Rect2d;
 import util.Timer;
 import util.Util;
 import util.collections.array.ReadonlyArray;
 import util.collections.vec.Vec;
+import util.yaml.YamlMap;
 
 public class PostgisLayer extends PostgisLayerBase {
 
-	private final PostgisLayerConfig postgisLayerConfig;
+	private static final String TYPE = "PostGIS";
+
 	private final PostgisConnector postgisConnector;
-	
+
 	private final PostgisColumn[] colsAll;
 	public final ReadonlyArray<PostgisColumn> columnsAll;
 	private final PostgisColumn[] flds;
@@ -31,7 +55,15 @@ public class PostgisLayer extends PostgisLayerBase {
 	private final String geoJSONQuerySelector;
 	private final String geoJSONQuerySelectorWithFields;
 
+	private ReadonlyArray<String> class_attributes;
 
+	private ACL acl = EmptyACL.ADMIN;
+	private ACL acl_mod = EmptyACL.ADMIN;
+	private ACL acl_owner = EmptyACL.ADMIN;
+	private Informal informal = Informal.EMPTY;
+
+	private final Path metaPathTemp;
+	private final File metaFileTemp;
 
 	public static class PostgisColumn {
 
@@ -45,8 +77,14 @@ public class PostgisLayer extends PostgisLayerBase {
 	}
 
 	public PostgisLayer(PostgisLayerConfig postgisLayerConfig, PostgisConnector postgisConnector) {	
-		super(postgisLayerConfig.name, postgisLayerConfig.path);
-		this.postgisLayerConfig = postgisLayerConfig;
+		super(postgisLayerConfig.name, postgisLayerConfig.metaPath);
+		class_attributes = new ReadonlyArray<String>(new String[]{});
+
+		metaPathTemp = Paths.get(postgisLayerConfig.metaPath.toString()+"_temp");
+		metaFileTemp = metaPathTemp.toFile();
+
+		readMeta();
+
 		Util.checkStrictDotID(postgisLayerConfig.name);		
 		this.postgisConnector = postgisConnector;
 
@@ -337,8 +375,321 @@ public class PostgisLayer extends PostgisLayerBase {
 		}	
 	}
 
-	@Override
+	private String getName() {
+		return name;
+	}
+
+	public synchronized void readMeta() { // throws if read error
+		try {
+			if (metaFile.exists()) {
+				YamlMap map;
+				try(InputStream in = new FileInputStream(metaFile)) {
+					map = YamlMap.ofObject(new Yaml().load(in));
+				}
+				yamlToMeta(map);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			Logger.warn(e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public synchronized void writeMeta() {
+		try {
+			LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+			metaToYaml(map);
+			Yaml yaml = new Yaml();
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(metaFileTemp)));
+			yaml.dump(map, out);
+			out.close();
+			Files.move(metaPathTemp, metaPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Logger.warn(e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	private synchronized void yamlToMeta(YamlMap yamlMap) {
+		String type = yamlMap.getString("type");
+		if (!type.equals(TYPE)) {
+			throw new RuntimeException("wrong type: " + type);
+		}
+		acl = ACL.ofRoles(yamlMap.optList("acl").asStrings());
+		acl_mod = ACL.ofRoles(yamlMap.optList("acl_mod").asStrings());
+		acl_owner = ACL.ofRoles(yamlMap.optList("acl_owner").asStrings());		
+		informal = Informal.ofYaml(yamlMap);
+		class_attributes = yamlMap.optList("class_attributes").asReadonlyStrings();
+	}
+
+	private synchronized void metaToYaml(LinkedHashMap<String, Object> map) {
+		map.put("type", TYPE);
+		map.put("acl", acl.toYaml());
+		map.put("acl_mod", acl_mod.toYaml());
+		map.put("acl_owner", acl_owner.toYaml());
+		informal.writeYaml(map);
+		map.put("class_attributes", class_attributes);
+	}
+
+	public ACL getACL() {
+		return acl;
+	}
+
+	public ACL getACL_mod() {
+		return acl_mod;
+	}
+
+	public ACL getACL_owner() {
+		return acl_owner;
+	}
+
 	public boolean isAllowed(UserIdentity userIdentity) {
-		return postgisLayerConfig.isAllowed(userIdentity);
+		return AclUtil.isAllowed(acl_owner, acl_mod, acl, userIdentity);
+	}
+
+	public void check(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, acl_mod, acl, userIdentity, "postgis " + this.getName() + " read");
+	}
+
+	public void check(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, acl_mod, acl, userIdentity,  "postgis " + this.getName() + " read " + " at " + location);
+	}
+
+	public boolean isAllowedMod(UserIdentity userIdentity) {
+		return AclUtil.isAllowed(acl_owner, acl_mod, userIdentity);
+	}
+
+	public void checkMod(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, acl_mod, userIdentity, "postgis " + this.getName() + " modifiy");
+	}
+
+	public void checkMod(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, acl_mod, userIdentity, "postgis " + this.getName() + " modify " + " at " + location);
+	}
+
+	public boolean isAllowedOwner(UserIdentity userIdentity) {
+		return AclUtil.isAllowed(acl_owner, userIdentity);
+	}
+
+	public void checkOwner(UserIdentity userIdentity) {
+		AclUtil.check(acl_owner, userIdentity, "postgis " + this.getName() + " owner");
+	}
+
+	public void checkOwner(UserIdentity userIdentity, String location) {
+		AclUtil.check(acl_owner, userIdentity, "postgis " + this.getName() + " owner" + " at " + location);
+	}
+
+	public void setACL(ACL acl) {
+		this.acl = acl;
+		writeMeta();	
+	}
+
+	public void setACL_mod(ACL acl_mod) {
+		this.acl_mod = acl_mod;
+		writeMeta();	
+	}
+
+	public void setACL_owner(ACL acl_owner) {
+		this.acl_owner = acl_owner;
+		writeMeta();		
+	}
+
+	public Informal informal() {
+		return informal;
+	}
+
+	public void setInformal(Informal informal) {
+		this.informal = informal;
+		writeMeta();
+	}
+
+	public ReadonlyArray<String> getClass_attributes() {
+		return class_attributes;
+	}
+
+	public interface GeometryConsumer {
+
+		void acceptPolygon(Polygon polygon);
+
+		default void acceptMultiPolygon(MultiPolygon multiPolygon) {
+			Polygon[] polygons = multiPolygon.getPolygons();
+			for(Polygon polygon : polygons) {
+				acceptPolygon(polygon);
+			}
+		}
+	}
+
+	public long forEachGeometry(Rect2d rect2d, GeometryConsumer consumer) {
+		Logger.info("getGeometry");
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
+			} else {
+				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+			}	
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			while(rs.next()) {
+				Object obj = rs.getObject(1);
+				if(obj != null) {
+					if(obj instanceof PGgeometry) {
+						PGgeometry pgGeometry = (PGgeometry) obj;
+						Geometry geo = pgGeometry.getGeometry();
+						if(geo instanceof Polygon) {
+							consumer.acceptPolygon((Polygon) geo);
+						} else if(geo instanceof MultiPolygon) {
+							consumer.acceptMultiPolygon((MultiPolygon) geo);
+						} else {
+							Logger.info("unknown geometry: " + geo.getClass());
+						}
+						featureCount++;
+					} else {
+						Logger.info("unknown object: " + obj.getClass());
+					}
+				} else {
+					//Logger.info("object null");
+				}
+			}
+			Logger.info("features " + featureCount);
+			Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;	
+		}
+	}
+
+	private Rect2d extent = null;
+
+	public Rect2d getExtent() {
+		Rect2d e = extent;
+		if(e == null) {
+			e = calcExtent();
+			extent = e;
+		}
+		return e;
+	}
+
+	private synchronized Rect2d calcExtent() {
+		if(extent != null) {
+			return extent;
+		}
+		Logger.info("calcExtent");
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			Timer.start("query");
+			String sql = String.format("SELECT ST_Extent(%s) FROM %s", primaryGeometryColumn, name);		
+
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			if(rs.next()) {
+				Object obj = rs.getObject(1);
+				Logger.info(Timer.stop("query"));
+				if(obj != null) {
+					if(obj instanceof PGbox2d) {
+						PGbox2d box = (PGbox2d) obj;
+						Point p1 = box.getLLB();
+						Point p2 = box.getURT();
+						Rect2d rect2d = new Rect2d(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y), Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));						
+						return rect2d;
+					} else {
+						Logger.info(obj.getClass());
+						return null;
+					}
+				} else {
+					return null;
+				}
+			} else {
+				return null;
+			}			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;	
+		}
+	}
+
+	private int itemCount = Integer.MIN_VALUE;
+
+	public int getItemCount() {
+		int i = itemCount;
+		if(i == Integer.MIN_VALUE) {
+			i = calcItemCount();
+			itemCount = i;
+		}
+		return i;
+	}
+
+	private synchronized int calcItemCount() {
+		if(itemCount != Integer.MIN_VALUE) {
+			return itemCount;
+		}
+		Logger.info("calcItemCount");
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			Timer.start("query");
+			String sql = String.format("SELECT count(*) FROM %s", name);		
+
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			if(rs.next()) {
+				int i = rs.getInt(1);
+				return i;
+			} else {
+				return -1;
+			}			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;	
+		}
+	}
+
+	ReadonlyArray<String> geometryTypes = null;
+
+	public ReadonlyArray<String> getGeometryTypes() {
+		ReadonlyArray<String> e = geometryTypes;
+		if(e == null) {
+			e = calcGeometryTypes();
+			geometryTypes = e;
+		}
+		return e;
+	}
+
+	private synchronized ReadonlyArray<String> calcGeometryTypes() {
+		if(geometryTypes != null) {
+			return geometryTypes;
+		}
+		Logger.info("calcGeometryTypes");
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			Timer.start("query");
+			String sql = String.format("SELECT DISTINCT ST_GeometryType(%s) FROM %s", primaryGeometryColumn, name);		
+
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			Vec<String> vec = new Vec<String>();
+			while(rs.next()) {
+				String s = rs.getString(1);
+				if(s != null && !s.isBlank()) {
+					if(s.startsWith("ST_")) {
+						vec.add(s.substring(3));
+					} else {
+						vec.add(s);	
+					}
+				}
+			}			
+			return vec.copyReadonly();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;	
+		}
 	}
 }

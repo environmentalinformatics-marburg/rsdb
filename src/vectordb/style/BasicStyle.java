@@ -3,14 +3,12 @@ package vectordb.style;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Stroke;
 import java.util.Arrays;
 import java.util.Map;
 
-
-import org.tinylog.Logger;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import pointdb.base.Point2d;
 import util.JsonUtil;
@@ -26,17 +24,27 @@ public class BasicStyle extends Style implements PolygonDrawer {
 
 	private static final float DEFAULT_STROKE_WIDTH = 2f;
 
-	private BasicStroke stroke = createStroke(DEFAULT_STROKE_WIDTH, null);	
+	private BasicStroke stroke = createStroke(DEFAULT_STROKE_WIDTH);	
 	private Color stroke_color = Renderer.COLOR_POINT;
 	private Color fill_color = Renderer.COLOR_POLYGON;
+	
+	public static BasicStroke createStroke(float stroke_width) {
+		return createStroke(stroke_width, null);
+	}
 
-	private static BasicStroke createStroke(float stroke_width, float[] stroke_dash) {
+	public static BasicStroke createStroke(float stroke_width, float[] stroke_dash) {
 		float miterlimit = 10.0f;
 		float dash_phase = 0.0f;
 		return new BasicStroke(stroke_width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, miterlimit, stroke_dash, dash_phase);
 	}
 
 	public BasicStyle() {}
+	
+	public BasicStyle(BasicStroke stroke, Color stroke_color, Color fill_color) {
+		this.stroke = stroke;
+		this.stroke_color = stroke_color;
+		this.fill_color = fill_color;
+	}
 
 	@Override
 	public void parseYamlProperties(YamlMap yamlMap) {

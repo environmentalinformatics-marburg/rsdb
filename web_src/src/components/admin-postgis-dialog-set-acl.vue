@@ -6,7 +6,7 @@
             </v-btn>
             <v-card>
                 <v-card-title>
-                    <div class="headline">Set access control of <i>PointCloud</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
+                    <div class="headline">Set access control of <i>PostGIS layer</i>&nbsp;&nbsp;&nbsp;<b>{{meta.name}}</b></div>
                 </v-card-title>
                 <v-divider></v-divider>
                 <v-card-text>
@@ -30,7 +30,7 @@
                     <p><b>Read roles</b> are allowed to read only. Changeable by users with role of owner. 
                     <br><b>Modify roles</b> are allowed to read and modify. Changeable by users with role of owner. 
                     <br><b>Owner roles</b> are allowed to read, modify and change permissions. Changeable by admin users only.</p>                      
-                    <p>Type a <b>username</b> to assign specifically that user to the lists, any user has a role of the username.</p>
+                    <p>Type a <b>username</b> to assign specifically that user to the lists, any user has a role of the username.</p>                    
                     <p><a href="https://github.com/environmentalinformatics-marburg/rsdb/wiki/Access-control" target="_blank"><v-icon>arrow_forward</v-icon> Access control documentation.</a></p>
                 </v-card-text>                
                 <v-card-actions>
@@ -56,7 +56,7 @@ import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 
 export default {
-    name: 'admin-pointcloud-dialog-set-acl',
+    name: 'admin-postgis-dialog-set-acl',
     props: ['meta'],
 
     components: {
@@ -84,7 +84,7 @@ export default {
         }),
         ...mapGetters({
             isAdmin: 'identity/isAdmin',
-        }),        
+        }),         
         acl_roles() {
             return this.availableRoles.concat(this.createdAclRoles);
         },
@@ -102,7 +102,7 @@ export default {
         createAclOwnerRole(newAclOwnerRole) {
             this.createdAclRoles.push(newAclOwnerRole);
             this.selectedRolesOwner.push(newAclOwnerRole);
-        },
+        },        
         
         refresh() {
             var self = this;
@@ -122,14 +122,12 @@ export default {
 
         set() {
             var self = this;
-            var url = this.urlPrefix + '../../pointclouds/' + self.meta.name;
+            var url = this.urlPrefix + '../../postgis/layers/' + self.meta.name;
             axios.post(url, {
-                pointcloud: {
-                    acl: self.selectedRoles,
-                    acl_mod: self.selectedRolesMod,
-                    acl_owner: self.selectedRolesOwner,
-                }
-            }).then(function(response) {
+                acl: self.selectedRoles,
+                acl_mod: self.selectedRolesMod,
+                acl_owner: self.selectedRolesOwner,
+              }).then(function(response) {
                 console.log(response);
                 self.$emit('changed');
                 self.dialog = false;

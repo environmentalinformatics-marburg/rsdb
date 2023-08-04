@@ -3,6 +3,7 @@ package util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -24,6 +25,7 @@ public final class Web {
 	public static final String MIME_TEXT = "text/plain;charset=utf-8";
 	public static final String MIME_XML = "application/xml;charset=utf-8";
 	public static final String MIME_JSON = "application/json;charset=utf-8";
+	public static final String MIME_GEO_JSON = "application/geo+json;charset=utf-8";
 	//public static final String MIME_CSV = "text/csv;charset=utf-8";
 	public static final String MIME_HTML = "text/html;charset=utf-8";
 	public static final String MIME_BINARY = "application/octet-stream";
@@ -330,8 +332,8 @@ public final class Web {
 	}
 
 	//derived from JDK 9
-	public static byte[] readAllBytes(InputStream in, int startBufferSize) throws IOException {
-		byte[] buf = new byte[DEFAULT_BUFFER_SIZE];
+	public static byte[] readAllBytes(InputStream in, int startBufferSize) throws IOException {		
+		byte[] buf = new byte[startBufferSize < DEFAULT_BUFFER_SIZE ? DEFAULT_BUFFER_SIZE : startBufferSize];
 		int capacity = buf.length;
 		int nread = 0;
 		int n;
@@ -364,12 +366,12 @@ public final class Web {
 			//Logger.info("read at "+pos+" of "+reqest_size);
 			int read_size = in.read(raw, pos, (int) (reqest_size - pos));
 			if(read_size < 1) {
-				throw new RuntimeException("not all bytes read "+pos+"  of  " + reqest_size);
+				throw new RuntimeException("not all bytes read " + pos + "  of  " + reqest_size);
 			}
 			pos += read_size;
 		}
 		if(pos != reqest_size) {
-			throw new RuntimeException("not all bytes read "+pos+"  of  " + reqest_size);
+			throw new RuntimeException("not all bytes read " + pos + "  of  " + reqest_size);
 		}
 		return raw;
 	}

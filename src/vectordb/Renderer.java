@@ -30,7 +30,7 @@ public class Renderer {
 	public static Color COLOR_POINT = new Color(255, 0, 0, 255);
 	//private static Color COLOR_POINT_TOP = new Color(0, 0, 0, 100);
 	
-	private static final BasicStyle STYLE_DEFAULT = new BasicStyle();
+	public static final BasicStyle STYLE_DEFAULT = new BasicStyle();
 
 	public static String colorToString(Color c) {
 		int v = (c.getRed() << 24) | (c.getGreen() << 16) | (c.getBlue() << 8) | (c.getAlpha() << 0);		

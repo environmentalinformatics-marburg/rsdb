@@ -103,6 +103,7 @@ RsdbConnector_public <- list( #      *********** public ************************
     }
 
     t <- httr::http_type(r)
+    #print(t)
     if(t == "application/json") {
       text <- httr::content(r, as = "text", encoding = "UTF-8")
       json <- jsonlite::fromJSON(text)

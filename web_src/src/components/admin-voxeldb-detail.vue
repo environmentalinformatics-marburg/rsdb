@@ -268,7 +268,7 @@ import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 export default {
     name: 'admin-voxeldb-detail',
     components: {
-        'dialog-set-info':dialogSetInfo,
+        'dialog-set-info': dialogSetInfo,
         'box-info': boxInfo,
         'admin-voxeldb-dialog-set-projection': adminVoxeldbDialogSetProjection,
         'admin-voxeldb-dialog-set-associated': adminVoxeldbDialogSetAssociated,

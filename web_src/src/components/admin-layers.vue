@@ -275,6 +275,7 @@ export default {
       this.$store.dispatch('pointclouds/refresh');
       this.$store.dispatch('voxeldbs/refresh');
       this.$store.dispatch('vectordbs/refresh');
+      this.$store.dispatch('postgis_layers/refresh');
       this.$store.dispatch('poi_groups/refresh');
       this.$store.dispatch('roi_groups/refresh');
       this.$store.dispatch('layer_tags/refresh');

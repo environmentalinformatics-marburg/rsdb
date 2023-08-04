@@ -15,6 +15,86 @@
             <b>ERROR</b> 
             {{metaErrorMessage}}
         </div>
+        <div v-if="meta != undefined">
+            <v-divider class="meta-divider"></v-divider> 
+            <h3 class="subheading mb-0"> 
+                <dialog-set-info 
+                    @changed="refresh" 
+                    v-if="modify"
+                    :meta="meta" 
+                    :url="$store.getters.apiUrl('postgis/layers/' + meta.name)" 
+                />                
+                Info
+            </h3>
+            <div class="meta-content">
+                <img :key="meta.name" :src="$store.getters.apiUrl('postgis/layers/' + meta.name + '/image.png?width=400&height=600')" alt="" class="thumbnail" /> 
+                <box-info :meta="meta" />
+            </div>
+            
+            <v-divider class="meta-divider"></v-divider> 
+            <h3 class="subheading mb-0"> 
+                Details
+            </h3>
+            <div class="meta-content">
+                <table style="border-spacing: 4px;">
+                    <tr><td><b>EPSG:</b></td><td>{{meta.epsg}}</td></tr>   
+                    <tr><td><b>Extent:</b></td><td v-if="meta.extent !== undefined">{{meta.extent.xmin.toPrecision(8)}}<b>,</b> {{meta.extent.ymin.toPrecision(8)}} <b>-</b> {{meta.extent.xmax.toPrecision(8)}}<b>,</b> {{meta.extent.ymax.toPrecision(8)}}</td></tr>             
+                    <tr  v-if="meta.item_count !== undefined"><td><b>Items:</b></td><td>{{meta.item_count}}</td></tr>  
+                    <tr v-if="meta.geometry_types !== undefined">
+                        <td><b>Types:</b></td>
+                        <td style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.geometry_types" :key="name"><span>{{name}}</span></span></td>
+                    </tr>
+                    <tr><td><b>Geometry attribute:</b></td><td><span class="geo_attribute">{{meta.geometry_attribute}}</span></td></tr>   
+                    <tr>
+                        <td><b>Class attributes:</b></td>
+                        <td>
+                            <span v-if="meta.class_attributes.length > 0" style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.class_attributes" :key="name"><span class="class_attribute">{{name}}</span></span></span>
+                            <span v-else>(none)</span>
+                        </td>
+                    </tr>                    
+                    <tr>
+                        <td><b>Attributes:</b></td>
+                        <td>
+                            <span v-if="meta.attributes.length > 0" style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.attributes" :key="name"><span :class="isClass_attribute(name) ? 'class_attribute' : 'attribute'">{{name}}</span></span></span>
+                            <span v-else>(none)</span>
+                        </td>
+                    </tr>
+                </table>
+                <admin-vectordb-dialog-data-table :meta="meta" @changed="refresh" />
+            </div>
+
+            <v-divider class="meta-divider"></v-divider>  
+            <h3 class="subheading mb-0"> 
+                <admin-postgis-dialog-set-acl :meta="meta" @changed="refresh" v-if="isAdmin" />
+                Access control
+            </h3>                        
+            <div class="meta-content">
+                <table>
+                    <tr>
+                        <td><b>access roles:</b></td>
+                        <td>
+                            <span v-for="role in meta.acl" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                            <span v-if="meta.acl.length === 0" style="color: grey;">(none)</span>
+                        </td>
+                    </tr>                
+                    <tr>
+                        <td><b>modify roles:</b></td>
+                        <td>
+                            <span v-for="role in meta.acl_mod" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                            <span v-if="meta.acl_mod.length === 0" style="color: grey;">(none)</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>owner roles:</b></td>
+                        <td>
+                            <span v-for="role in meta.acl_owner" :key="role"><span class="meta-list">{{role}}</span>&nbsp;&nbsp;&nbsp;</span>
+                            <span v-if="meta.acl_owner.length === 0" style="color: grey;">(none)</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>        
     </div>
 </template>
 
@@ -22,11 +102,17 @@
 
 import { mapGetters } from 'vuex'
 import axios from 'axios'
+import dialogSetInfo from './dialog-set-info.vue'
+import boxInfo from './box-info.vue'
+import adminPostgisDialogSetAcl from './admin-postgis-dialog-set-acl.vue'
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
 export default {
     name: 'admin-postgis-detail',
     components: {
+        'dialog-set-info': dialogSetInfo,
+        'box-info': boxInfo,
+        'admin-postgis-dialog-set-acl': adminPostgisDialogSetAcl,        
         PulseLoader,        
     },
     props: ['postgis'],
@@ -40,36 +126,32 @@ export default {
         }
     },
     methods: {
-        refresh(more_details) { 
-            var self = this;
-            this.$store.dispatch('postgis/refresh');
-            var url = this.$store.getters.apiUrl('postgis/layers/' + self.postgis);
-            var params = {};
-            if(more_details) {
-                params.storage_measures = true;
+        async refresh() {
+            const url = this.$store.getters.apiUrl('postgis/layers/' + this.postgis);
+            this.metaError = false;
+            this.metaErrorMessage = undefined;
+            this.busy = true;
+            this.busyMessage = "loading ...";
+            try {
+                let response = await axios.get(url);
+                this.meta = response.data;
+                this.busy = false;
+                this.busyMessage = undefined;
+            } catch(error) {
+                console.log(error);
+                this.metaError = true;
+                this.metaErrorMessage = "ERROR getting meta: " + error;
+                this.meta = undefined;
+                this.busy = false;
+                this.busyMessage = undefined;
             }
-            self.metaError = false;
-            self.metaErrorMessage = undefined;
-            self.busy = true;
-            self.busyMessage = "loading ...";
-            axios.get(url, {params: params})
-                .then(function(response) {
-                    self.meta = response.data.voxeldb;
-                    self.busy = false;
-                    self.busyMessage = undefined;
-                })
-                .catch(function(error) {
-                    console.log(error);
-                    self.metaError = true;
-                    self.metaErrorMessage = "ERROR getting meta: " + error;
-                    self.meta = undefined;
-                    self.busy = false;
-                    self.busyMessage = undefined;
-                });
-                /*.finally(function()  {
-                    self.busy = false;
-                    self.busyMessage = undefined;
-                });*/
+        },
+
+        isClass_attribute(attr) {
+            if(this.meta === undefined || this.meta.class_attributes === undefined) {
+                return false;
+            }
+            return this.meta.class_attributes.includes(attr);
         },
     },
     computed: {
@@ -142,7 +224,7 @@ export default {
     border-width: 1px;
 }
 
-.attributes {
+.attribute {
     background-color: rgb(232, 232, 232);
     padding: 1px;
     margin-left: 2px;
@@ -151,6 +233,30 @@ export default {
     border-style: solid;
     border-width: 2px;
     color: #544141;
+    border-radius: 5px;
+}
+
+.class_attribute {
+    background-color: rgb(212, 212, 212);
+    padding: 1px;
+    margin-left: 2px;
+    margin-right: 3px;
+    border-color: rgba(0, 0, 0, 0.637);
+    border-style: solid;
+    border-width: 2px;
+    color: #000000;
+    border-radius: 5px;
+}
+
+.geo_attribute {
+    background-color: rgb(212, 212, 212);
+    padding: 1px;
+    margin-left: 2px;
+    margin-right: 3px;
+    border-color: rgba(0, 0, 0, 0.637);
+    border-style: solid;
+    border-width: 2px;
+    color: #0004ff;
     border-radius: 5px;
 }
 

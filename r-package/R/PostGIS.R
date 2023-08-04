@@ -75,6 +75,8 @@ PostGIS <- R6::R6Class("PostGIS",
       vectors <- self$getVectors(bbox)
       if(!is.null(attribute)) {
         vectors <- vectors[attribute]
+      } else if(length(self$class_attributes) > 0) {
+        vectors <- vectors[self$class_attributes[1]]
       }
       template <- stars::st_as_stars(bbox, dx, dy)
       r <- stars::st_rasterize(sf = vectors, template = template)
@@ -97,6 +99,16 @@ PostGIS <- R6::R6Class("PostGIS",
     #' @field epsg EPSG code.
     epsg = function() {
       return(private$meta_$epsg)
+    },
+
+    #' @field attributes database table attributes.
+    attributes = function() {
+      return(private$meta_$attributes)
+    },
+
+    #' @field class_attributes database table attributes that are marked as class attributes.
+    class_attributes = function() {
+      return(private$meta_$class_attributes)
     }
 
   ),

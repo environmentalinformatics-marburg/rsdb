@@ -3,10 +3,6 @@ package server.api.voxeldbs;
 import java.io.IOException;
 import java.util.Iterator;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -16,14 +12,15 @@ import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 import org.locationtech.proj4j.proj.Projection;
 import org.locationtech.proj4j.units.Unit;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.InformalProperties;
 import broker.Informal.Builder;
+import broker.InformalProperties;
 import broker.TimeSlice;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
-import broker.acl.EmptyACL;
+import jakarta.servlet.http.HttpServletResponse;
 import util.Extent3d;
 import util.JsonUtil;
 import util.Range3d;

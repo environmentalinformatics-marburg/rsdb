@@ -56,7 +56,7 @@ import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 
 export default {
-    name: 'admin-voxeldb-dialog-set-projection',
+    name: 'admin-voxeldb-dialog-set-acl',
     props: ['meta'],
 
     components: {
