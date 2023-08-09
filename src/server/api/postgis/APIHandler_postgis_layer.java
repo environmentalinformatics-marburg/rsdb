@@ -154,17 +154,17 @@ public class APIHandler_postgis_layer {
 			json.endArray();
 		}
 
-		json.key("geometry_attribute");
+		json.key("geometry_field");
 		json.value(postgisLayer.primaryGeometryColumn);
 
-		json.key("attributes");
+		json.key("fields");
 		json.array();
 		postgisLayer.fields.forEach(pc -> json.value(pc.name));
 		json.endArray();
 
-		json.key("class_attributes");
+		json.key("class_fields");
 		json.array();
-		postgisLayer.getClass_attributes().forEach(attr -> json.value(attr));
+		postgisLayer.getClass_fields().forEach(attr -> json.value(attr));
 		json.endArray();
 
 		json.endObject();
@@ -357,7 +357,7 @@ public class APIHandler_postgis_layer {
 		sb.append(",\"features\":");
 		sb.append("[");
 
-		postgisLayer.forEachGeoJSONWithProperties(rect2d, new FeatureConsumer() {			
+		postgisLayer.forEachGeoJSONWithFields(rect2d, new FeatureConsumer() {			
 			StringBuilder sb1 = sb;			
 
 			@Override

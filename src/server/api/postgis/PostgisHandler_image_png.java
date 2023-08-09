@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -13,6 +14,7 @@ import org.tinylog.Logger;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
+import util.Timer;
 import util.Web;
 import util.image.ImageBufferARGB;
 import vectordb.Renderer;
@@ -22,6 +24,19 @@ import vectordb.style.Style;
 public class PostgisHandler_image_png {
 
 	public void handle(PostgisLayer postgisLayer, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {	
+
+		/*for (int i = 0; i < 10; i++) {
+			Timer.start("Object");
+			postgisLayer.forEachGeometryObject(null);
+			Logger.info(Timer.stop("Object"));
+		}*/
+
+		/*for (int i = 0; i < 10; i++) {
+			Timer.start("WKB");
+			postgisLayer.forEachJTSGeometry(null, null);
+			Logger.info(Timer.stop("WKB"));
+		}*/
+
 		Rect2d rect = postgisLayer.getExtent();
 		Logger.info(rect);
 
@@ -47,7 +62,7 @@ public class PostgisHandler_image_png {
 	}
 
 	private ImageBufferARGB render(PostgisLayer postgisLayer, Rect2d rect, int width, int height, Style style) {
-		
+
 		if(style == null) {
 			style = Renderer.STYLE_DEFAULT;
 		}
@@ -64,8 +79,27 @@ public class PostgisHandler_image_png {
 		double xoff = - rect.xmin + 2 * (1 / xscale);
 		double yoff = rect.ymax + 2 * (1 / yscale);
 
-		GeometryConverter geometryConverter = new GeometryConverter(xoff, yoff, xscale, yscale, style, gc);
-		postgisLayer.forEachGeometry(null, geometryConverter);
+		//GeometryConverter geometryConverter = new GeometryConverter(xoff, yoff, xscale, yscale, style, gc);
+		JTSGeometryConverter jtsGeometryConverter = new JTSGeometryConverter(xoff, yoff, xscale, yscale, style, gc);
+
+		/*for (int r = 0; r < 20; r++) {	
+			Timer.start("forEachGeometry");
+			for (int i = 0; i < 10; i++) {
+				
+				postgisLayer.forEachGeometry(null, geometryConverter);
+				
+			}
+			Logger.info(Timer.stop("forEachGeometry"));
+			Timer.start("forEachJTSGeometry");
+			for (int i = 0; i < 10; i++) {
+				
+				postgisLayer.forEachJTSGeometry(null, jtsGeometryConverter);
+				
+			}
+			Logger.info(Timer.stop("forEachJTSGeometry"));
+		}*/
+		//postgisLayer.forEachGeometry(null, geometryConverter);
+		postgisLayer.forEachJTSGeometry(null, jtsGeometryConverter);
 
 		gc.dispose();
 

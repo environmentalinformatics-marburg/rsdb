@@ -96,7 +96,7 @@ public class JsonUtil {
 		}
 		return a;
 	}
-	
+
 	public static int[] optIntArray(JSONObject json, String key) {
 		if(!json.has(key)) {
 			return new int[] {};
@@ -113,7 +113,7 @@ public class JsonUtil {
 		}
 		return a;
 	}
-	
+
 	public static String[] getStringArray(JSONObject json, String key) {
 		JSONArray jsonArray = json.optJSONArray(key);
 		if(jsonArray == null) {
@@ -242,14 +242,14 @@ public class JsonUtil {
 			fun.accept(valueF);
 		}		
 	}
-	
+
 	public static void optFunInt(JSONObject jsonObject, String name, IntConsumer fun) {
 		if(jsonObject.has(name)) {
 			int value = jsonObject.getInt(name);
 			fun.accept(value);
 		}	
 	}
-	
+
 	public static void optFunInts(JSONObject jsonObject, String name, IntConsumer fun) {
 		if(jsonObject.has(name)) {
 			JSONArray jsonArray = jsonObject.optJSONArray(name);
@@ -301,13 +301,13 @@ public class JsonUtil {
 		}
 		json.endArray();		
 	}
-	
+
 	public static <T> HashMap<String, T> parsePropertyHashMap(JSONObject json, Function<JSONObject, T> parser) {
 		HashMap<String, T> collectorMap = new HashMap<String, T>();
 		parsePropertyMap(json, parser, collectorMap);
 		return collectorMap;
 	}
-	
+
 	public static <T> void parsePropertyMap(JSONObject json, Function<JSONObject, T> parser, Map<String, T> collectorMap) {
 		Iterator<String> it = json.keys();
 		while(it.hasNext()) {
@@ -316,5 +316,12 @@ public class JsonUtil {
 			T property = parser.apply(innerJSON);
 			collectorMap.put(key, property);			
 		}
+	}
+
+	public static void putDoubleIfFinite(JSONWriter json, String key, double value) {
+		if(Double.isFinite(value)) {
+			json.key(key);
+			json.value(value);
+		}		
 	}
 }

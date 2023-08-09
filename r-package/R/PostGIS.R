@@ -3,7 +3,7 @@
 #'
 #' Use instance of \link{RemoteSensing} class to create instances of PostGIS class.
 #'
-#' In section 'Active bindings' class fields and in section 'Methods' class functions of PostGIS class are described.
+#' In section 'Active bindings' class properties and in section 'Methods' class functions of PostGIS class are described.
 #'
 #' Use instance objects of PostGIS class to call that functionality (e.g. postgis$name ).
 #'
@@ -65,7 +65,7 @@ PostGIS <- R6::R6Class("PostGIS",
       return(vectors)
     },
 
-    getRaster = function(bbox, attribute = NULL, dx = 1, dy = 1) {
+    getRaster = function(bbox, field = NULL, dx = 1, dy = 1) {
       if(is.null(bbox)) {
         stop('missing bbox')
       }
@@ -73,10 +73,10 @@ PostGIS <- R6::R6Class("PostGIS",
         sf::st_crs(bbox) <- self$epsg
       }
       vectors <- self$getVectors(bbox)
-      if(!is.null(attribute)) {
-        vectors <- vectors[attribute]
-      } else if(length(self$class_attributes) > 0) {
-        vectors <- vectors[self$class_attributes[1]]
+      if(!is.null(field)) {
+        vectors <- vectors[field]
+      } else if(length(self$class_fields) > 0) {
+        vectors <- vectors[self$class_fields[1]]
       }
       template <- stars::st_as_stars(bbox, dx, dy)
       r <- stars::st_rasterize(sf = vectors, template = template)
@@ -101,14 +101,14 @@ PostGIS <- R6::R6Class("PostGIS",
       return(private$meta_$epsg)
     },
 
-    #' @field attributes database table attributes.
-    attributes = function() {
-      return(private$meta_$attributes)
+    #' @field fields database table fields.
+    fields = function() {
+      return(private$meta_$fields)
     },
 
-    #' @field class_attributes database table attributes that are marked as class attributes.
-    class_attributes = function() {
-      return(private$meta_$class_attributes)
+    #' @field class_fields database table fields that are marked as class fields.
+    class_fields = function() {
+      return(private$meta_$class_fields)
     }
 
   ),

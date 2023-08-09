@@ -48,6 +48,12 @@ public class APIHandler_postgis_layers {
 	}
 
 	private void handleList(Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
+		
+		boolean refresh = Web.getFlagBoolean(request, "refresh");
+		if(refresh) {
+			postgisLayerManager.refresh();
+		}
+		
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());

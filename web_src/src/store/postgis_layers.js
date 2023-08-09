@@ -17,9 +17,10 @@ const actions = {
             dispatch('refresh');
         }
     },
-    refresh({state, commit, rootState}) {
+    refresh({state, commit, rootState}, refresh) {
         state.mode = 'load';
-        axios.get(rootState.identity.urlPrefix + '../../postgis/layers?vuex')
+        const url = refresh ? '../../postgis/layers?refresh' : '../../postgis/layers';
+        axios.get(rootState.identity.urlPrefix + url)
             .then(function(response) {
                 state.data = response.data.postgis_layers;
                 state.mode = 'ready';

@@ -27,7 +27,7 @@
                 Info
             </h3>
             <div class="meta-content">
-                <img :key="meta.name" :src="$store.getters.apiUrl('postgis/layers/' + meta.name + '/image.png?width=400&height=600')" alt="" class="thumbnail" /> 
+                <img :key="meta.name" :src="$store.getters.apiUrl('postgis/layers/' + meta.name + '/image.png?width=400&height=600')" alt="Loading overview map ..." class="thumbnail" /> 
                 <box-info :meta="meta" />
             </div>
             
@@ -39,23 +39,23 @@
                 <table style="border-spacing: 4px;">
                     <tr><td><b>EPSG:</b></td><td>{{meta.epsg}}</td></tr>   
                     <tr><td><b>Extent:</b></td><td v-if="meta.extent !== undefined">{{meta.extent.xmin.toPrecision(8)}}<b>,</b> {{meta.extent.ymin.toPrecision(8)}} <b>-</b> {{meta.extent.xmax.toPrecision(8)}}<b>,</b> {{meta.extent.ymax.toPrecision(8)}}</td></tr>             
-                    <tr  v-if="meta.item_count !== undefined"><td><b>Items:</b></td><td>{{meta.item_count}}</td></tr>  
+                    <tr  v-if="meta.item_count !== undefined"><td><b>Features:</b></td><td>{{meta.item_count}}</td></tr>  
                     <tr v-if="meta.geometry_types !== undefined">
-                        <td><b>Types:</b></td>
+                        <td><b>Geometry type:</b></td>
                         <td style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.geometry_types" :key="name"><span>{{name}}</span></span></td>
                     </tr>
-                    <tr><td><b>Geometry attribute:</b></td><td><span class="geo_attribute">{{meta.geometry_attribute}}</span></td></tr>   
+                    <tr><td><b>Geometry field:</b></td><td><span class="geo_field">{{meta.geometry_field}}</span></td></tr>   
                     <tr>
-                        <td><b>Class attributes:</b></td>
+                        <td><b>Class fields:</b></td>
                         <td>
-                            <span v-if="meta.class_attributes.length > 0" style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.class_attributes" :key="name"><span class="class_attribute">{{name}}</span></span></span>
+                            <span v-if="meta.class_fields.length > 0" style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.class_fields" :key="name"><span class="class_field">{{name}}</span></span></span>
                             <span v-else>(none)</span>
                         </td>
                     </tr>                    
                     <tr>
-                        <td><b>Attributes:</b></td>
-                        <td>
-                            <span v-if="meta.attributes.length > 0" style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.attributes" :key="name"><span :class="isClass_attribute(name) ? 'class_attribute' : 'attribute'">{{name}}</span></span></span>
+                        <td><b>Fields:</b></td>
+                        <td  style="padding-right: 400px;">
+                            <span v-if="meta.fields.length > 0" style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.fields" :key="name"><span :class="isclass_field(name) ? 'class_field' : 'field'">{{name}}</span></span></span>
                             <span v-else>(none)</span>
                         </td>
                     </tr>
@@ -147,11 +147,11 @@ export default {
             }
         },
 
-        isClass_attribute(attr) {
-            if(this.meta === undefined || this.meta.class_attributes === undefined) {
+        isclass_field(fld) {
+            if(this.meta === undefined || this.meta.class_fields === undefined) {
                 return false;
             }
-            return this.meta.class_attributes.includes(attr);
+            return this.meta.class_fields.includes(fld);
         },
     },
     computed: {
@@ -224,7 +224,7 @@ export default {
     border-width: 1px;
 }
 
-.attribute {
+.field {
     background-color: rgb(232, 232, 232);
     padding: 1px;
     margin-left: 2px;
@@ -236,7 +236,7 @@ export default {
     border-radius: 5px;
 }
 
-.class_attribute {
+.class_field {
     background-color: rgb(212, 212, 212);
     padding: 1px;
     margin-left: 2px;
@@ -248,7 +248,7 @@ export default {
     border-radius: 5px;
 }
 
-.geo_attribute {
+.geo_field {
     background-color: rgb(212, 212, 212);
     padding: 1px;
     margin-left: 2px;
@@ -264,8 +264,10 @@ export default {
     position: absolute;
     top: 0px;
     right: 0px;
-    max-width: 420px;
-    max-height: 600px;
+    max-width: 403px;
+    max-height: 603px;
+    min-width: 100px;
+    min-height: 100px;
     background-color: rgb(239, 239, 239);
     border-color: rgba(0, 0, 0, 0.1);
     border-style: solid;

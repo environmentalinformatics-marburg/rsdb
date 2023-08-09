@@ -56,6 +56,7 @@
               <v-card-text>
                 Layers of this type connect to spatial <b>vector data</b> stored in a PostGIS database.
               </v-card-text>
+              <v-btn @click="$store.dispatch('postgis_layers/refresh', true)">rescan layer list</v-btn>
             </v-card>
           </v-flex>
 

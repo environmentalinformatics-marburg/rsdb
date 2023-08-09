@@ -15,11 +15,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
+import org.locationtech.jts.io.WKBReader;
 import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
@@ -55,7 +59,7 @@ public class PostgisLayer extends PostgisLayerBase {
 	private final String geoJSONQuerySelector;
 	private final String geoJSONQuerySelectorWithFields;
 
-	private ReadonlyArray<String> class_attributes;
+	private ReadonlyArray<String> class_fields;
 
 	private ACL acl = EmptyACL.ADMIN;
 	private ACL acl_mod = EmptyACL.ADMIN;
@@ -78,7 +82,7 @@ public class PostgisLayer extends PostgisLayerBase {
 
 	public PostgisLayer(PostgisLayerConfig postgisLayerConfig, PostgisConnector postgisConnector) {	
 		super(postgisLayerConfig.name, postgisLayerConfig.metaPath);
-		class_attributes = new ReadonlyArray<String>(new String[]{});
+		class_fields = new ReadonlyArray<String>(new String[]{});
 
 		metaPathTemp = Paths.get(postgisLayerConfig.metaPath.toString()+"_temp");
 		metaFileTemp = metaPathTemp.toFile();
@@ -90,6 +94,7 @@ public class PostgisLayer extends PostgisLayerBase {
 
 		try (Connection conn = postgisConnector.getConnection()) {
 			String sql = String.format("SELECT * FROM %s WHERE false",  name);	
+			Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
 			ResultSetMetaData meta = rs.getMetaData();
@@ -220,7 +225,7 @@ public class PostgisLayer extends PostgisLayerBase {
 	 * @param consumer
 	 * @return
 	 */
-	public long forEachGeoJSONWithProperties(Rect2d rect2d, FeatureConsumer consumer) {
+	public long forEachGeoJSONWithFields(Rect2d rect2d, FeatureConsumer consumer) {
 		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
 			String sql;
@@ -420,7 +425,10 @@ public class PostgisLayer extends PostgisLayerBase {
 		acl_mod = ACL.ofRoles(yamlMap.optList("acl_mod").asStrings());
 		acl_owner = ACL.ofRoles(yamlMap.optList("acl_owner").asStrings());		
 		informal = Informal.ofYaml(yamlMap);
-		class_attributes = yamlMap.optList("class_attributes").asReadonlyStrings();
+		class_fields = yamlMap.optList("class_fields").asReadonlyStrings();
+		if(class_fields.isEmpty()) {
+			class_fields = yamlMap.optList("class_attributes").asReadonlyStrings(); // legacy
+		}
 	}
 
 	private synchronized void metaToYaml(LinkedHashMap<String, Object> map) {
@@ -429,7 +437,7 @@ public class PostgisLayer extends PostgisLayerBase {
 		map.put("acl_mod", acl_mod.toYaml());
 		map.put("acl_owner", acl_owner.toYaml());
 		informal.writeYaml(map);
-		map.put("class_attributes", class_attributes);
+		map.put("class_attributes", class_fields);
 	}
 
 	public ACL getACL() {
@@ -504,8 +512,8 @@ public class PostgisLayer extends PostgisLayerBase {
 		writeMeta();
 	}
 
-	public ReadonlyArray<String> getClass_attributes() {
-		return class_attributes;
+	public ReadonlyArray<String> getClass_fields() {
+		return class_fields;
 	}
 
 	public interface GeometryConsumer {
@@ -518,20 +526,30 @@ public class PostgisLayer extends PostgisLayerBase {
 				acceptPolygon(polygon);
 			}
 		}
+
+		default void acceptGeometry(Geometry geometry) {
+			if(geometry instanceof Polygon) {
+				acceptPolygon((Polygon) geometry);
+			} else if(geometry instanceof MultiPolygon) {
+				acceptMultiPolygon((MultiPolygon) geometry);
+			} else {
+				Logger.info("unknown geometry: " + geometry.getClass());
+			}
+		}
 	}
 
 	public long forEachGeometry(Rect2d rect2d, GeometryConsumer consumer) {
-		Logger.info("getGeometry");
+		//Logger.info("getGeometry");
 
 		try (Connection conn = postgisConnector.getConnection()) {
-			Timer.start("query");
+			//Timer.start("query");
 			String sql;
 			if(rect2d == null) {
 				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
 			} else {
 				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
 			}	
-			Logger.info(sql);
+			//Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
 			long featureCount = 0;
@@ -540,14 +558,8 @@ public class PostgisLayer extends PostgisLayerBase {
 				if(obj != null) {
 					if(obj instanceof PGgeometry) {
 						PGgeometry pgGeometry = (PGgeometry) obj;
-						Geometry geo = pgGeometry.getGeometry();
-						if(geo instanceof Polygon) {
-							consumer.acceptPolygon((Polygon) geo);
-						} else if(geo instanceof MultiPolygon) {
-							consumer.acceptMultiPolygon((MultiPolygon) geo);
-						} else {
-							Logger.info("unknown geometry: " + geo.getClass());
-						}
+						Geometry geometry = pgGeometry.getGeometry();
+						consumer.acceptGeometry(geometry);						
 						featureCount++;
 					} else {
 						Logger.info("unknown object: " + obj.getClass());
@@ -556,8 +568,8 @@ public class PostgisLayer extends PostgisLayerBase {
 					//Logger.info("object null");
 				}
 			}
-			Logger.info("features " + featureCount);
-			Logger.info(Timer.stop("query"));
+			//Logger.info("features " + featureCount);
+			//Logger.info(Timer.stop("query"));
 			return featureCount;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -690,6 +702,163 @@ public class PostgisLayer extends PostgisLayerBase {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;	
+		}
+	}
+
+	public long forEachGeometryObject(Rect2d rect2d) {
+		//Logger.info("getGeometry");
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			//Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
+			} else {
+				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+			}	
+			//Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			while(rs.next()) {
+				Object obj = rs.getObject(1);
+				if(obj != null) {
+
+				} else {
+					//Logger.info("object null");
+				}
+			}
+			//Logger.info("features " + featureCount);
+			//Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;	
+		}
+	}
+
+	private static int hexToInt(int h) {
+		if ('0' <= h && h <= '9') {
+			return h - '0';
+		}
+		if ('A' <= h && h <= 'F') {
+			return h - 'A' + 10;
+		}
+		return -1;
+	}
+
+	public interface JTSGeometryConsumer {
+
+		void acceptPolygon(org.locationtech.jts.geom.Polygon polygon);
+
+		default void acceptMultiPolygon(org.locationtech.jts.geom.MultiPolygon multiPolygon) {
+			final int n = multiPolygon.getNumGeometries();
+			for (int i = 0; i < n; i++) {
+				org.locationtech.jts.geom.Polygon polygon = ((org.locationtech.jts.geom.Polygon)multiPolygon.getGeometryN(0));
+				acceptPolygon(polygon);
+			}
+		}
+
+		default void acceptGeometry(org.locationtech.jts.geom.Geometry geometry) {
+			if(geometry instanceof org.locationtech.jts.geom.Polygon) {
+				acceptPolygon((org.locationtech.jts.geom.Polygon) geometry);
+			} else if(geometry instanceof org.locationtech.jts.geom.MultiPolygon) {
+				acceptMultiPolygon((org.locationtech.jts.geom.MultiPolygon) geometry);
+			} else {
+				Logger.info("unknown geometry: " + geometry.getClass());
+			}
+		}
+	}
+
+	public long forEachJTSGeometry(Rect2d rect2d, JTSGeometryConsumer consumer) {
+		//Logger.info("getGeometry");
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			//Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
+			} else {
+				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+			}	
+			//Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			WKBReader wkbReader = new WKBReader();
+			while(rs.next()) {
+				byte[] raw = rs.getBytes(1);
+				if(raw != null) {
+					if(raw.length % 2 != 0) {
+						throw new RuntimeException("read error");
+					}
+					byte[] bytes = new byte[raw.length / 2];
+					for (int i = 0; i < bytes.length; i++) {
+						int j = i << 1;
+						bytes[i] = (byte) ((hexToInt(raw[j]) << 4) + hexToInt(raw[j + 1]));
+					}
+					org.locationtech.jts.geom.Geometry geometry = wkbReader.read(bytes);
+					//Logger.info(geometry.getClass());					
+					consumer.acceptGeometry(geometry);					
+				} else {
+					//Logger.info("null");
+				}
+			}
+			//Logger.info("features " + featureCount);
+			//Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1;	
+		}
+	}
+	
+	public <T extends JTSGeometryConsumer> long forEachJTSGeometryByGroup(Rect2d rect2d, String groupField, Map<Object, T> groupMap, Supplier<T>  factory) {
+		//Logger.info("getGeometry");
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			//Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT %s, %s FROM %s", primaryGeometryColumn, groupField, name);		
+			} else {
+				sql = String.format("SELECT %s, %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, groupField, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+			}	
+			//Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			WKBReader wkbReader = new WKBReader();
+			while(rs.next()) {
+				byte[] raw = rs.getBytes(1);
+				if(raw != null) {
+					if(raw.length % 2 != 0) {
+						throw new RuntimeException("read error");
+					}
+					byte[] bytes = new byte[raw.length / 2];
+					for (int i = 0; i < bytes.length; i++) {
+						int j = i << 1;
+						bytes[i] = (byte) ((hexToInt(raw[j]) << 4) + hexToInt(raw[j + 1]));
+					}
+					org.locationtech.jts.geom.Geometry geometry = wkbReader.read(bytes);
+					//Logger.info(geometry.getClass());
+					
+					Object group = rs.getObject(2);
+					JTSGeometryConsumer consumer = groupMap.computeIfAbsent(group, key -> {
+						return factory.get();
+					});
+					
+					consumer.acceptGeometry(geometry);					
+				} else {
+					//Logger.info("null");
+				}
+			}
+			//Logger.info("features " + featureCount);
+			//Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1;	
 		}
 	}
 }

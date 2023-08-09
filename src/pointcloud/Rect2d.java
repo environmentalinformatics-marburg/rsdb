@@ -1,6 +1,9 @@
 package pointcloud;
 
+import org.json.JSONObject;
 import org.json.JSONWriter;
+
+import util.JsonUtil;
 
 public class Rect2d {
 	public final double xmin;
@@ -143,5 +146,13 @@ public class Rect2d {
 		json.key("ymax");
 		json.value(ymax);
 		json.endObject();	
+	}
+
+	public static Rect2d ofJSON(JSONObject jsonRect) {
+		double xmin = JsonUtil.getDouble(jsonRect, "xmin");
+		double ymin = JsonUtil.getDouble(jsonRect, "ymin");
+		double xmax = JsonUtil.getDouble(jsonRect, "xmax");
+		double ymax = JsonUtil.getDouble(jsonRect, "ymax");
+		return new Rect2d(xmin, ymin, xmax, ymax);
 	}
 }
