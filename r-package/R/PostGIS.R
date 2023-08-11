@@ -81,12 +81,24 @@ PostGIS <- R6::R6Class("PostGIS",
       template <- stars::st_as_stars(bbox, dx, dy)
       r <- stars::st_rasterize(sf = vectors, template = template)
       return(r)
+    },
+
+    getIndices = function(bbox, field = NULL) {
+      if(is.null(bbox)) {
+        stop('missing bbox')
+      }
+      json <- list(bbox = as.list(bbox))
+      if(!is.null(field)) {
+        json$field <- field
+      }
+      df <- private$rsdbConnector$POST_json(paste0("/postgis/layers/", private$name_, '/indices'), data = json)
+      return(df)
     }
 
   ),
   active = list( #      *********** active *********************************
 
-    #' @field name PostGIS table name.
+    #' @field name PostGIS layer name.
     name = function() {
       return(private$name_)
     },

@@ -99,7 +99,7 @@ public class PostgisHandler_image_png {
 			Logger.info(Timer.stop("forEachJTSGeometry"));
 		}*/
 		//postgisLayer.forEachGeometry(null, geometryConverter);
-		postgisLayer.forEachJTSGeometry(null, jtsGeometryConverter);
+		postgisLayer.forEachJTSGeometry(null, true, jtsGeometryConverter);
 
 		gc.dispose();
 

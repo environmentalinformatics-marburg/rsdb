@@ -15,14 +15,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.eclipse.jetty.server.UserIdentity;
-import org.json.JSONWriter;
 import org.locationtech.jts.io.WKBReader;
 import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
@@ -34,9 +32,7 @@ import broker.acl.EmptyACL;
 import net.postgis.jdbc.PGbox2d;
 import net.postgis.jdbc.PGgeometry;
 import net.postgis.jdbc.geometry.Geometry;
-import net.postgis.jdbc.geometry.MultiPolygon;
 import net.postgis.jdbc.geometry.Point;
-import net.postgis.jdbc.geometry.Polygon;
 import pointcloud.Rect2d;
 import util.Timer;
 import util.Util;
@@ -54,10 +50,8 @@ public class PostgisLayer extends PostgisLayerBase {
 	public final ReadonlyArray<PostgisColumn> columnsAll;
 	private final PostgisColumn[] flds;
 	public final ReadonlyArray<PostgisColumn> fields;
-	public final String primaryGeometryColumn;	
-	private final String gmlQuerySelectorWithFields;
-	private final String geoJSONQuerySelector;
-	private final String geoJSONQuerySelectorWithFields;
+	public final String primaryGeometryColumn;
+	private final String selectorFields;
 
 	private ReadonlyArray<String> class_fields;
 
@@ -129,239 +123,23 @@ public class PostgisLayer extends PostgisLayerBase {
 			fields = new ReadonlyArray<PostgisColumn>(flds);			
 
 			{
-				String s = "ST_AsGML(3," + primaryGeometryColumn + ",8,2)";
+				String s = "";
+				boolean first = true;
 				for (PostgisColumn field : flds) {
-					s += "," + field.name;
+					if(first) {
+						first = false;
+					} else {
+						s += ", ";
+					}
+					s += field.name;
 				}
-				gmlQuerySelectorWithFields = s;
-			}
-
-			{
-				String s = "ST_AsGeoJSON(" + primaryGeometryColumn + ")";
-				geoJSONQuerySelector = s;
-				for (PostgisColumn field : flds) {
-					s += "," + field.name;
-				}
-				geoJSONQuerySelectorWithFields = s;
+				selectorFields = s;
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 
 
-	}
-
-	public long getFeatures() {
-		try (Connection conn = postgisConnector.getConnection()) {
-			Timer.start("query");
-
-			String sql = String.format("SELECT LB_AKT FROM %s WHERE ST_Intersects(ST_MakeEnvelope(529779, 5363962, 530354, 5364330, 25832), geom)",  name);			
-			Logger.info(sql);
-			PreparedStatement stmt = conn.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			long featureCount = 0;
-			while(rs.next()) {
-				String area = rs.getString(1);
-				Logger.info(area);
-				featureCount++;
-			}
-			Logger.info("features " + featureCount);
-			Logger.info(Timer.stop("query"));
-			return featureCount;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return -1;	
-		}	
-	}
-
-	/**
-	 * 
-	 * @param rect2d  nullable
-	 * @param consumer
-	 * @return
-	 */
-	public long forEachGeoJSON(Rect2d rect2d, Consumer<String> consumer) {
-		try (Connection conn = postgisConnector.getConnection()) {
-			Timer.start("query");
-			String sql;
-			if(rect2d == null) {
-				sql = String.format("SELECT %s FROM %s",  geoJSONQuerySelector, name);
-			} else {
-				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)",  geoJSONQuerySelector, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
-			}
-			Logger.info(sql);
-			PreparedStatement stmt = conn.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			long featureCount = 0;
-			while(rs.next()) {
-				String geojson = rs.getString(1);
-				//Logger.info(geojson);
-				consumer.accept(geojson);
-				featureCount++;
-			}
-			Logger.info("features " + featureCount);
-			Logger.info(Timer.stop("query"));
-			return featureCount;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return -1;	
-		}	
-	}
-
-	public interface FeatureConsumer {
-		void acceptFeatureStart(boolean isFirstFeature);
-		void acceptFeatureGeometry(String geometry);
-		void acceptFeatureFieldsStart();
-		void acceptFeatureField(PostgisColumn field, String fieldValue, boolean isFirstFeatureField);
-		void acceptFeatureFieldNull(PostgisColumn field, boolean isFirstFeatureField);
-		void acceptFeatureFieldInt32(PostgisColumn field, int fieldValue, boolean isFirstFeatureField);
-		void acceptFeatureFieldsEnd();
-		void acceptFeatureEnd();
-	}
-
-	/**
-	 * 
-	 * @param rect2d  nullable
-	 * @param consumer
-	 * @return
-	 */
-	public long forEachGeoJSONWithFields(Rect2d rect2d, FeatureConsumer consumer) {
-		try (Connection conn = postgisConnector.getConnection()) {
-			Timer.start("query");
-			String sql;
-			if(rect2d == null) {
-				sql = String.format("SELECT %s FROM %s",  geoJSONQuerySelectorWithFields, name);
-			} else {
-				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)",  geoJSONQuerySelectorWithFields, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
-			}
-			Logger.info(sql);
-			PreparedStatement stmt = conn.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			long featureCount = 0;
-			while(rs.next()) {
-				consumer.acceptFeatureStart(featureCount == 0);
-				String geometry = rs.getString(1);
-				consumer.acceptFeatureGeometry(geometry);
-				consumer.acceptFeatureFieldsStart();
-				for (int i = 0; i < flds.length; i++) {
-					PostgisColumn field = flds[i];
-					switch(field.type) {
-					case "serial":
-					case "int4": {
-						int fieldValue = rs.getInt(i + 2);
-						if(rs.wasNull()) {
-							consumer.acceptFeatureFieldNull(field, i == 0);
-						} else {
-							consumer.acceptFeatureFieldInt32(field, fieldValue, i == 0);
-						}
-						break;
-					}
-					case "varchar":
-					default: {
-						//Logger.info("field type: " + field.type);
-						String fieldValue = rs.getString(i + 2);
-						if(rs.wasNull()) {
-							consumer.acceptFeatureFieldNull(field, i == 0);
-						} else {
-							consumer.acceptFeatureField(field, fieldValue, i == 0);
-						}
-					}
-					}
-				}
-				consumer.acceptFeatureFieldsEnd();
-				consumer.acceptFeatureEnd();
-				featureCount++;
-			}
-			Logger.info("features " + featureCount);
-			Logger.info(Timer.stop("query"));
-			return featureCount;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return -1;	
-		}	
-	}
-
-	public long getGeo(JSONWriter json) {
-		try (Connection conn = postgisConnector.getConnection()) {
-			Timer.start("query");
-
-			String sql = String.format("SELECT ST_AsGeoJSON(geom) FROM %s",  name);			
-			Logger.info(sql);
-			PreparedStatement stmt = conn.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			long featureCount = 0;
-			json.array();
-			while(rs.next()) {
-				String area = rs.getString(1);
-				Logger.info(area);
-
-				json.object();
-
-				json.key("type");
-				json.value("Feature");
-
-				json.key("geometry");
-				json.value(area);
-
-				json.endObject();				
-
-				featureCount++;
-			}
-			json.endArray();
-			Logger.info("features " + featureCount);
-			Logger.info(Timer.stop("query"));
-			return featureCount;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return -1;	
-		}	
-	}
-
-	public long forEachGML(Rect2d rect2d, Consumer<String> consumer) {
-		try (Connection conn = postgisConnector.getConnection()) {
-			Timer.start("query");
-			String sql;
-			if(rect2d == null) {
-				sql = String.format("SELECT ST_AsGML(3, geom, 8, 2) FROM %s",  name);		
-			} else {
-				sql = String.format("SELECT ST_AsGML(3, geom, 8, 2) FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)",  name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
-			}	
-			Logger.info(sql);
-			PreparedStatement stmt = conn.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			long featureCount = 0;
-			while(rs.next()) {
-				String gml = rs.getString(1);
-				//Logger.info(gml);
-				consumer.accept(gml);
-				featureCount++;
-			}
-			Logger.info("features " + featureCount);
-			Logger.info(Timer.stop("query"));
-			return featureCount;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return -1;	
-		}	
-	}
-
-	public ResultSet queryGML(Rect2d rect2d) {
-		try (Connection conn = postgisConnector.getConnection()) {
-			Timer.start("query");
-			String sql;
-			if(rect2d == null) {
-				sql = String.format("SELECT %s FROM %s", gmlQuerySelectorWithFields, name);		
-			} else {
-				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", gmlQuerySelectorWithFields, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
-			}	
-			Logger.info(sql);
-			PreparedStatement stmt = conn.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			return rs;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;	
-		}	
 	}
 
 	public int getEPSG() {
@@ -516,67 +294,6 @@ public class PostgisLayer extends PostgisLayerBase {
 		return class_fields;
 	}
 
-	public interface GeometryConsumer {
-
-		void acceptPolygon(Polygon polygon);
-
-		default void acceptMultiPolygon(MultiPolygon multiPolygon) {
-			Polygon[] polygons = multiPolygon.getPolygons();
-			for(Polygon polygon : polygons) {
-				acceptPolygon(polygon);
-			}
-		}
-
-		default void acceptGeometry(Geometry geometry) {
-			if(geometry instanceof Polygon) {
-				acceptPolygon((Polygon) geometry);
-			} else if(geometry instanceof MultiPolygon) {
-				acceptMultiPolygon((MultiPolygon) geometry);
-			} else {
-				Logger.info("unknown geometry: " + geometry.getClass());
-			}
-		}
-	}
-
-	public long forEachGeometry(Rect2d rect2d, GeometryConsumer consumer) {
-		//Logger.info("getGeometry");
-
-		try (Connection conn = postgisConnector.getConnection()) {
-			//Timer.start("query");
-			String sql;
-			if(rect2d == null) {
-				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
-			} else {
-				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
-			}	
-			//Logger.info(sql);
-			PreparedStatement stmt = conn.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			long featureCount = 0;
-			while(rs.next()) {
-				Object obj = rs.getObject(1);
-				if(obj != null) {
-					if(obj instanceof PGgeometry) {
-						PGgeometry pgGeometry = (PGgeometry) obj;
-						Geometry geometry = pgGeometry.getGeometry();
-						consumer.acceptGeometry(geometry);						
-						featureCount++;
-					} else {
-						Logger.info("unknown object: " + obj.getClass());
-					}
-				} else {
-					//Logger.info("object null");
-				}
-			}
-			//Logger.info("features " + featureCount);
-			//Logger.info(Timer.stop("query"));
-			return featureCount;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return -1;	
-		}
-	}
-
 	private Rect2d extent = null;
 
 	public Rect2d getExtent() {
@@ -705,7 +422,35 @@ public class PostgisLayer extends PostgisLayerBase {
 		}
 	}
 
-	public long forEachGeometryObject(Rect2d rect2d) {
+	private static String SQL_ST_MakeEnvelope(Rect2d rect2d, int srid) {
+		return String.format("ST_MakeEnvelope(%s, %s, %s, %s, %s)", rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, srid);
+	}
+	
+	private static String SQL_ST_Intersects(String column, Rect2d rect2d, int srid) {
+		String sql_ST_MakeEnvelope = SQL_ST_MakeEnvelope(rect2d, srid);
+		return String.format("ST_Intersects(%s, %s)", column, sql_ST_MakeEnvelope);
+	}
+	
+	private static String SQL_ST_Intersection(String column, Rect2d rect2d, int srid) {
+		String sql_ST_MakeEnvelope = SQL_ST_MakeEnvelope(rect2d, srid);
+		return String.format("ST_Intersection(%s, %s)", column, sql_ST_MakeEnvelope);
+	}
+	
+	private static String SQL_ST_AsGML(String column) {
+		return String.format("ST_AsGML(3, %s, 8, 2)", column);
+	}
+	
+	private static int hexToInt(int h) {
+		if ('0' <= h && h <= '9') {
+			return h - '0';
+		}
+		if ('A' <= h && h <= 'F') {
+			return h - 'A' + 10;
+		}
+		return -1;
+	}
+	
+	public long forEachGeometry(Rect2d rect2d, boolean crop, GeometryConsumer consumer) {
 		//Logger.info("getGeometry");
 
 		try (Connection conn = postgisConnector.getConnection()) {
@@ -714,8 +459,14 @@ public class PostgisLayer extends PostgisLayerBase {
 			if(rect2d == null) {
 				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
 			} else {
-				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
-			}	
+				int epsg = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
+				if(crop) {
+					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					sql = String.format("SELECT %s FROM %s WHERE %s", sql_ST_Intersection, name, sql_ST_Intersects);	
+				} else {
+					sql = String.format("SELECT %s FROM %s WHERE %s", primaryGeometryColumn, name, sql_ST_Intersects);
+				}				}	
 			//Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
@@ -723,7 +474,14 @@ public class PostgisLayer extends PostgisLayerBase {
 			while(rs.next()) {
 				Object obj = rs.getObject(1);
 				if(obj != null) {
-
+					if(obj instanceof PGgeometry) {
+						PGgeometry pgGeometry = (PGgeometry) obj;
+						Geometry geometry = pgGeometry.getGeometry();
+						consumer.acceptGeometry(geometry);						
+						featureCount++;
+					} else {
+						Logger.info("unknown object: " + obj.getClass());
+					}
 				} else {
 					//Logger.info("object null");
 				}
@@ -736,41 +494,8 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
-
-	private static int hexToInt(int h) {
-		if ('0' <= h && h <= '9') {
-			return h - '0';
-		}
-		if ('A' <= h && h <= 'F') {
-			return h - 'A' + 10;
-		}
-		return -1;
-	}
-
-	public interface JTSGeometryConsumer {
-
-		void acceptPolygon(org.locationtech.jts.geom.Polygon polygon);
-
-		default void acceptMultiPolygon(org.locationtech.jts.geom.MultiPolygon multiPolygon) {
-			final int n = multiPolygon.getNumGeometries();
-			for (int i = 0; i < n; i++) {
-				org.locationtech.jts.geom.Polygon polygon = ((org.locationtech.jts.geom.Polygon)multiPolygon.getGeometryN(0));
-				acceptPolygon(polygon);
-			}
-		}
-
-		default void acceptGeometry(org.locationtech.jts.geom.Geometry geometry) {
-			if(geometry instanceof org.locationtech.jts.geom.Polygon) {
-				acceptPolygon((org.locationtech.jts.geom.Polygon) geometry);
-			} else if(geometry instanceof org.locationtech.jts.geom.MultiPolygon) {
-				acceptMultiPolygon((org.locationtech.jts.geom.MultiPolygon) geometry);
-			} else {
-				Logger.info("unknown geometry: " + geometry.getClass());
-			}
-		}
-	}
-
-	public long forEachJTSGeometry(Rect2d rect2d, JTSGeometryConsumer consumer) {
+	
+	public long forEachJTSGeometry(Rect2d rect2d, boolean crop, JTSGeometryConsumer consumer) {
 		//Logger.info("getGeometry");
 
 		try (Connection conn = postgisConnector.getConnection()) {
@@ -778,10 +503,17 @@ public class PostgisLayer extends PostgisLayerBase {
 			String sql;
 			if(rect2d == null) {
 				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
-			} else {
-				sql = String.format("SELECT %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+			} else {				
+				int epsg = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
+				if(crop) {
+					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					sql = String.format("SELECT %s FROM %s WHERE %s", sql_ST_Intersection, name, sql_ST_Intersects);	
+				} else {
+					sql = String.format("SELECT %s FROM %s WHERE %s", primaryGeometryColumn, name, sql_ST_Intersects);
+				}				
 			}	
-			//Logger.info(sql);
+			Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
 			long featureCount = 0;
@@ -812,8 +544,8 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
-	
-	public <T extends JTSGeometryConsumer> long forEachJTSGeometryByGroup(Rect2d rect2d, String groupField, Map<Object, T> groupMap, Supplier<T>  factory) {
+
+	public <T extends JTSGeometryConsumer> long forEachJTSGeometryByGroup(Rect2d rect2d, boolean crop, String groupField, Map<Object, T> groupMap, Supplier<T>  factory) {
 		//Logger.info("getGeometry");
 
 		try (Connection conn = postgisConnector.getConnection()) {
@@ -822,9 +554,16 @@ public class PostgisLayer extends PostgisLayerBase {
 			if(rect2d == null) {
 				sql = String.format("SELECT %s, %s FROM %s", primaryGeometryColumn, groupField, name);		
 			} else {
-				sql = String.format("SELECT %s, %s FROM %s WHERE geom && ST_MakeEnvelope(%s, %s, %s, %s, %s)", primaryGeometryColumn, groupField, name, rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, getEPSG());	
+				int epsg = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
+				if(crop) {
+					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_Intersection, groupField, name, sql_ST_Intersects);	
+				} else {
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", primaryGeometryColumn, groupField, name, sql_ST_Intersects);
+				}
 			}	
-			//Logger.info(sql);
+			Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
 			long featureCount = 0;
@@ -842,12 +581,12 @@ public class PostgisLayer extends PostgisLayerBase {
 					}
 					org.locationtech.jts.geom.Geometry geometry = wkbReader.read(bytes);
 					//Logger.info(geometry.getClass());
-					
+
 					Object group = rs.getObject(2);
 					JTSGeometryConsumer consumer = groupMap.computeIfAbsent(group, key -> {
 						return factory.get();
 					});
-					
+
 					consumer.acceptGeometry(geometry);					
 				} else {
 					//Logger.info("null");
@@ -857,8 +596,146 @@ public class PostgisLayer extends PostgisLayerBase {
 			//Logger.info(Timer.stop("query"));
 			return featureCount;
 		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param rect2d  nullable
+	 * @param consumer
+	 * @return
+	 */
+	public long forEachGeoJSON(Rect2d rect2d, boolean crop, Consumer<String> consumer) {
+		try (Connection conn = postgisConnector.getConnection()) {
+			Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT ST_AsGeoJSON(%s) FROM %s",  primaryGeometryColumn, name);
+			} else {
+				int epsg = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
+				if(crop) {
+					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					sql = String.format("SELECT ST_AsGeoJSON(%s) FROM %s WHERE %s", sql_ST_Intersection, name, sql_ST_Intersects);	
+				} else {
+					sql = String.format("SELECT ST_AsGeoJSON(%s) FROM %s WHERE %s", primaryGeometryColumn, name, sql_ST_Intersects);
+				}
+			}
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			while(rs.next()) {
+				String geojson = rs.getString(1);
+				//Logger.info(geojson);
+				consumer.accept(geojson);
+				featureCount++;
+			}
+			Logger.info("features " + featureCount);
+			Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (SQLException e) {
 			e.printStackTrace();
 			return -1;	
-		}
+		}	
+	}
+	
+	/**
+	 * 
+	 * @param rect2d  nullable
+	 * @param consumer
+	 * @return
+	 */
+	public long forEachGeoJSONWithFields(Rect2d rect2d, boolean crop, FeatureConsumer consumer) {
+		try (Connection conn = postgisConnector.getConnection()) {
+			Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT ST_AsGeoJSON(%s), %s FROM %s", primaryGeometryColumn, selectorFields, name);
+			} else {				
+				int epsg = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
+				if(crop) {
+					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					sql = String.format("SELECT ST_AsGeoJSON(%s), %s FROM %s WHERE %s", sql_ST_Intersection, selectorFields, name, sql_ST_Intersects);	
+				} else {
+					sql = String.format("SELECT ST_AsGeoJSON(%s), %s FROM %s WHERE %s", primaryGeometryColumn, selectorFields, name, sql_ST_Intersects);
+				}
+			}
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			while(rs.next()) {
+				consumer.acceptFeatureStart(featureCount == 0);
+				String geometry = rs.getString(1);
+				consumer.acceptFeatureGeometry(geometry);
+				consumer.acceptFeatureFieldsStart();
+				for (int i = 0; i < flds.length; i++) {
+					PostgisColumn field = flds[i];
+					switch(field.type) {
+					case "serial":
+					case "int4": {
+						int fieldValue = rs.getInt(i + 2);
+						if(rs.wasNull()) {
+							consumer.acceptFeatureFieldNull(field, i == 0);
+						} else {
+							consumer.acceptFeatureFieldInt32(field, fieldValue, i == 0);
+						}
+						break;
+					}
+					case "varchar":
+					default: {
+						//Logger.info("field type: " + field.type);
+						String fieldValue = rs.getString(i + 2);
+						if(rs.wasNull()) {
+							consumer.acceptFeatureFieldNull(field, i == 0);
+						} else {
+							consumer.acceptFeatureField(field, fieldValue, i == 0);
+						}
+					}
+					}
+				}
+				consumer.acceptFeatureFieldsEnd();
+				consumer.acceptFeatureEnd();
+				featureCount++;
+			}
+			Logger.info("features " + featureCount);
+			Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;	
+		}	
+	}
+	
+	public ResultSet queryGMLWithFields(Rect2d rect2d, boolean crop) {
+		try (Connection conn = postgisConnector.getConnection()) {
+			Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				String sql_ST_AsGML = SQL_ST_AsGML(primaryGeometryColumn);
+				sql = String.format("SELECT %s, %s FROM %s", sql_ST_AsGML, selectorFields, name);		
+			} else {				
+				int epsg = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
+				if(crop) {
+					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					String sql_ST_AsGML = SQL_ST_AsGML(sql_ST_Intersection);
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_AsGML, selectorFields, name, sql_ST_Intersects);	
+				} else {
+					String sql_ST_AsGML = SQL_ST_AsGML(primaryGeometryColumn);
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_AsGML, selectorFields, name, sql_ST_Intersects);
+				}
+			}	
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			return rs;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;	
+		}	
 	}
 }

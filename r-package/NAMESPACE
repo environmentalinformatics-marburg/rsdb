@@ -2,6 +2,7 @@
 
 export(PointCloud)
 export(PointDB)
+export(PostGIS)
 export(RasterDB)
 export(RemoteSensing)
 export(RemoteTask)

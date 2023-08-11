@@ -8,7 +8,7 @@ import net.postgis.jdbc.geometry.LinearRing;
 import net.postgis.jdbc.geometry.MultiPolygon;
 import net.postgis.jdbc.geometry.Point;
 import net.postgis.jdbc.geometry.Polygon;
-import postgis.PostgisLayer.GeometryConsumer;
+import postgis.GeometryConsumer;
 import vectordb.Renderer.Drawer.PolygonDrawer;
 import vectordb.style.Style;
 

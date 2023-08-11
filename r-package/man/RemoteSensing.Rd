@@ -280,6 +280,7 @@ woellauer
 \item \href{#method-RemoteSensing-vectordb}{\code{RemoteSensing$vectordb()}}
 \item \href{#method-RemoteSensing-voxeldb}{\code{RemoteSensing$voxeldb()}}
 \item \href{#method-RemoteSensing-submit_task}{\code{RemoteSensing$submit_task()}}
+\item \href{#method-RemoteSensing-postgis}{\code{RemoteSensing$postgis()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -420,6 +421,15 @@ woellauer
 \subsection{Method \code{submit_task()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$submit_task(task, wait = TRUE, polling_interval = 0.5)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-RemoteSensing-postgis"></a>}}
+\if{latex}{\out{\hypertarget{method-RemoteSensing-postgis}{}}}
+\subsection{Method \code{postgis()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{RemoteSensing$postgis(name)}\if{html}{\out{</div>}}
 }
 
 }

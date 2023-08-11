@@ -194,6 +194,11 @@ RemoteSensing_active <- list( #      *********** active ************************
     return(json$voxeldbs)
   },
 
+  postgis_layers = function() {
+    json <- private$rsdbConnector$GET("/postgis/layers")
+    return(json$postgis_layers)
+  },
+
   tasks = function() {
     res <- private$rsdbConnector$GET("/api/remote_task_entries")
     tasks <- res$remote_task_categories

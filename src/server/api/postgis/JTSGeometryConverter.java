@@ -6,7 +6,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.Polygon;
 
-import postgis.PostgisLayer.JTSGeometryConsumer;
+import postgis.JTSGeometryConsumer;
 import vectordb.style.Style;
 
 public class JTSGeometryConverter implements JTSGeometryConsumer {

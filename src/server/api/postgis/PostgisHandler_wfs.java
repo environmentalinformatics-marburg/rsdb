@@ -153,7 +153,7 @@ public class PostgisHandler_wfs {
 		xmlWriter.writeNamespace("wfs", "http://www.opengis.net/wfs");
 		xmlWriter.writeNamespace("gml", "http://www.opengis.net/gml");	
 		
-		ResultSet rs = postgisLayer.queryGML(rect2d);		
+		ResultSet rs = postgisLayer.queryGMLWithFields(rect2d, true);		
 		while(rs.next()) {
 			xmlWriter.writeStartElement("gml:featureMember");
 			xmlWriter.writeStartElement(postgisLayer.name);

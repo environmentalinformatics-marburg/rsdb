@@ -18,8 +18,8 @@ import broker.acl.ACL;
 import broker.acl.AclUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
+import postgis.FeatureConsumer;
 import postgis.PostgisLayer;
-import postgis.PostgisLayer.FeatureConsumer;
 import postgis.PostgisLayer.PostgisColumn;
 import postgis.PostgisLayerManager;
 import util.JsonUtil;
@@ -321,7 +321,7 @@ public class APIHandler_postgis_layer {
 		sb.append(",\"features\":");
 		sb.append("[");
 
-		postgisLayer.forEachGeoJSON(rect2d, new Consumer<String>() {			
+		postgisLayer.forEachGeoJSON(rect2d, true, new Consumer<String>() {			
 			boolean isFirst = true;
 			StringBuilder sb1 = sb;			
 			@Override
@@ -357,7 +357,7 @@ public class APIHandler_postgis_layer {
 		sb.append(",\"features\":");
 		sb.append("[");
 
-		postgisLayer.forEachGeoJSONWithFields(rect2d, new FeatureConsumer() {			
+		postgisLayer.forEachGeoJSONWithFields(rect2d, true, new FeatureConsumer() {			
 			StringBuilder sb1 = sb;			
 
 			@Override
