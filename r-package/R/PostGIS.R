@@ -49,7 +49,11 @@ PostGIS <- R6::R6Class("PostGIS",
       private$meta_ <- m
     },
 
-    getVectors = function(bbox = NULL) {
+    #' @description
+    #' Get vector features and properties.
+    #' @param bbox Bounding box.
+    #' @param crop Crop vector features to bbox.
+    getFeatures = function(bbox = NULL, crop = TRUE) {
       args <- list()
       if(!is.null(bbox)) {
         if(class(bbox) != 'bbox') {
@@ -57,14 +61,21 @@ PostGIS <- R6::R6Class("PostGIS",
         }
         args$bbox <- paste(bbox$xmin, bbox$ymin, bbox$xmax, bbox$ymax, sep = ',')
       }
+      args$crop <- crop
       response <- private$rsdbConnector$GET(paste0("/postgis/layers/", private$name_, '/geojson'), args)
       tempFileName <- tempfile()
       writeBin(response, tempFileName)
-      vectors <- sf::st_read(tempFileName, quiet=TRUE)
+      features <- sf::st_read(tempFileName, quiet = TRUE)
       file.remove(tempFileName)
-      return(vectors)
+      return(features)
     },
 
+    #' @description
+    #' Get raster from rasterized vector feautures.
+    #' @param bbox Bounding box.
+    #' @param field Value field for pixel values.
+    #' @param dx Pixel x resolution.
+    #' @param dy Pixel y resolution.
     getRaster = function(bbox, field = NULL, dx = 1, dy = 1) {
       if(is.null(bbox)) {
         stop('missing bbox')
@@ -72,22 +83,47 @@ PostGIS <- R6::R6Class("PostGIS",
       if(is.na(sf::st_crs(bbox))) {
         sf::st_crs(bbox) <- self$epsg
       }
-      vectors <- self$getVectors(bbox)
+      features <- self$getFeatures(bbox, crop = TRUE)
       if(!is.null(field)) {
-        vectors <- vectors[field]
+        if(!field %in% colnames(features)) {
+          stop('Requested field does not exist: ', field);
+        }
+        features <- features[field]
+
+        fieldCol <- features[[field]]
+        if(!(is.numeric(fieldCol) || is.factor(fieldCol))) {
+          fieldFactors <- as.factor(fieldCol)
+          features[field] <- fieldFactors
+        }
+
       } else if(length(self$class_fields) > 0) {
-        vectors <- vectors[self$class_fields[1]]
+        if(!self$class_fields[1] %in% colnames(features)) {
+          stop('Requested field does not exist: ', self$class_fields[1]);
+        }
+        features <- features[self$class_fields[1]]
+
+
+        fieldCol <- features[[self$class_fields[1]]]
+        if(!(is.numeric(fieldCol) || is.factor(fieldCol))) {
+          fieldFactors <- as.factor(fieldCol)
+          features[self$class_fields[1]] <- fieldFactors
+        }
       }
-      template <- stars::st_as_stars(bbox, dx, dy)
-      r <- stars::st_rasterize(sf = vectors, template = template)
+      template <- stars::st_as_stars(bbox, dx = dx, dy = dy)
+      r <- stars::st_rasterize(sf = features, template = template)
       return(r)
     },
 
-    getIndices = function(bbox, field = NULL) {
+    #' @description
+    #' Calculate indices from vector features.
+    #' @param bbox Bounding box.
+    #' @param crop Crop vector features to bbox.
+    getIndices = function(bbox, field = NULL, crop = TRUE) {
       if(is.null(bbox)) {
         stop('missing bbox')
       }
       json <- list(bbox = as.list(bbox))
+      json$crop = crop
       if(!is.null(field)) {
         json$field <- field
       }

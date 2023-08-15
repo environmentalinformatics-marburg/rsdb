@@ -292,10 +292,11 @@ public class APIHandler_postgis_layer {
 		if(bboxParam != null) {
 			String[] bbox = bboxParam.split(",");
 			rect2d = Rect2d.parseBbox(bbox);
-		}
+		}		
+		boolean crop = Web.getBoolean(request, "crop", true);
 
 		//String geojson = getGeoJSON(postgisLayer, rect2d);
-		String geojson = getGeoJSONWithProperties(postgisLayer, rect2d);
+		String geojson = getGeoJSONWithProperties(postgisLayer, rect2d, crop);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_GEO_JSON);
 		response.getWriter().print(geojson);		
@@ -343,7 +344,7 @@ public class APIHandler_postgis_layer {
 		return sb.toString();
 	}
 
-	private String getGeoJSONWithProperties(PostgisLayer postgisLayer, Rect2d rect2d) {
+	private String getGeoJSONWithProperties(PostgisLayer postgisLayer, Rect2d rect2d, boolean crop) {
 
 		int epsg = postgisLayer.getEPSG();
 
@@ -357,7 +358,7 @@ public class APIHandler_postgis_layer {
 		sb.append(",\"features\":");
 		sb.append("[");
 
-		postgisLayer.forEachGeoJSONWithFields(rect2d, true, new FeatureConsumer() {			
+		postgisLayer.forEachGeoJSONWithFields(rect2d, crop, new FeatureConsumer() {			
 			StringBuilder sb1 = sb;			
 
 			@Override

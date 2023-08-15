@@ -60,7 +60,7 @@ woellauer
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-PostGIS-new}{\code{PostGIS$new()}}
-\item \href{#method-PostGIS-getVectors}{\code{PostGIS$getVectors()}}
+\item \href{#method-PostGIS-getFeatures}{\code{PostGIS$getFeatures()}}
 \item \href{#method-PostGIS-getRaster}{\code{PostGIS$getRaster()}}
 \item \href{#method-PostGIS-getIndices}{\code{PostGIS$getIndices()}}
 }
@@ -86,30 +86,64 @@ This initialize function is for internal use only.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-PostGIS-getVectors"></a>}}
-\if{latex}{\out{\hypertarget{method-PostGIS-getVectors}{}}}
-\subsection{Method \code{getVectors()}}{
+\if{html}{\out{<a id="method-PostGIS-getFeatures"></a>}}
+\if{latex}{\out{\hypertarget{method-PostGIS-getFeatures}{}}}
+\subsection{Method \code{getFeatures()}}{
+Get vector features and properties.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getVectors(bbox = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getFeatures(bbox = NULL, crop = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{bbox}}{Bounding box.}
+
+\item{\code{crop}}{Crop vector features to bbox.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PostGIS-getRaster"></a>}}
 \if{latex}{\out{\hypertarget{method-PostGIS-getRaster}{}}}
 \subsection{Method \code{getRaster()}}{
+Get raster from rasterized vector feautures.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PostGIS$getRaster(bbox, field = NULL, dx = 1, dy = 1)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{bbox}}{Bounding box.}
+
+\item{\code{field}}{Value field for pixel values.}
+
+\item{\code{dx}}{Pixel x resolution.}
+
+\item{\code{dy}}{Pixel y resolution.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PostGIS-getIndices"></a>}}
 \if{latex}{\out{\hypertarget{method-PostGIS-getIndices}{}}}
 \subsection{Method \code{getIndices()}}{
+Calculate indices from vector features.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getIndices(bbox, field = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getIndices(bbox, field = NULL, crop = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{bbox}}{Bounding box.}
+
+\item{\code{crop}}{Crop vector features to bbox.}
+}
+\if{html}{\out{</div>}}
+}
 }
 }

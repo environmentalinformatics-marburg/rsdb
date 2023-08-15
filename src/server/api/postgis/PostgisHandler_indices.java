@@ -15,6 +15,7 @@ import org.locationtech.jts.algorithm.construct.MaximumInscribedCircle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
+import org.tinylog.Logger;
 
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
@@ -200,6 +201,7 @@ public class PostgisHandler_indices {
 		JSONObject jsonR = new JSONObject(Web.requestContentToString(request));
 		JSONObject jsonRect = jsonR.getJSONObject("bbox");
 		Rect2d rect2d = Rect2d.ofJSON(jsonRect);
+		boolean crop = jsonR.optBoolean("crop", true);
 		String classField = jsonR.optString("field", null);
 		if(classField == null || classField.isBlank()) {
 			if(!postgisLayer.getClass_fields().isEmpty()) {
@@ -212,7 +214,7 @@ public class PostgisHandler_indices {
 		}
 
 		HashMap<Object, CalcProcessor> groupMap = new HashMap<Object, CalcProcessor>();
-		postgisLayer.forEachJTSGeometryByGroup(rect2d, true, classField, groupMap, CalcProcessor::new);
+		postgisLayer.forEachJTSGeometryByGroup(rect2d, crop, classField, groupMap, CalcProcessor::new);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
