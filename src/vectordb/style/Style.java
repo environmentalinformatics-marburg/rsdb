@@ -25,7 +25,8 @@ public abstract class Style {
 	public abstract void drawPoints(Graphics2D gc, Drawer drawer, Vec<Point2d> points);
 	public abstract void drawLines(Graphics2D gc, Drawer drawer, Vec<Object[]> lines);
 	public abstract void drawPolygons(Graphics2D gc, Drawer drawer, Vec<Object[]> polygons);
-	public abstract void drawPolygons(Graphics2D gc, int[] xs, int[] ys, int len);
+	public abstract void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
+	public abstract void drawPolygonWithHoles(Graphics2D gc, int[][][] rings);
 	
 	public final Map<String, Object> toYaml() {
 		LinkedHashMap<String, Object> yamlMap = new LinkedHashMap<String, Object>();
@@ -65,5 +66,4 @@ public abstract class Style {
 			throw new RuntimeException("unknown style type: " + type);
 		}			
 	}
-
 }

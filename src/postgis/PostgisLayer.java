@@ -51,6 +51,7 @@ public class PostgisLayer extends PostgisLayerBase {
 	private final PostgisColumn[] flds;
 	public final ReadonlyArray<PostgisColumn> fields;
 	public final String primaryGeometryColumn;
+	private String geometrySQL;
 	private final String selectorFields;
 
 	private ReadonlyArray<String> class_fields;
@@ -119,6 +120,7 @@ public class PostgisLayer extends PostgisLayerBase {
 				throw new RuntimeException("missing geometry column");
 			}
 			primaryGeometryColumn = pgc;
+			geometrySQL = primaryGeometryColumn;
 			flds = f.toArray(PostgisColumn[]::new);
 			fields = new ReadonlyArray<PostgisColumn>(flds);			
 
@@ -138,13 +140,15 @@ public class PostgisLayer extends PostgisLayerBase {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
-
-
+		
+		if(isInvalid() != null) {			
+			geometrySQL = String.format("ST_MakeValid(%s)", primaryGeometryColumn);
+		}
 	}
 
 	public int getEPSG() {
 		try (Connection conn = postgisConnector.getConnection()) {
-			String sql = String.format("SELECT ST_SRID(geom) FROM %s LIMIT 1",  name);	
+			String sql = String.format("SELECT ST_SRID(%s) FROM %s LIMIT 1", primaryGeometryColumn,  name);	
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
@@ -156,6 +160,30 @@ public class PostgisLayer extends PostgisLayerBase {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}	
+	}
+	
+	public Vec<String> isInvalid() {
+		Vec<String> vec = null;
+		try (Connection conn = postgisConnector.getConnection()) {
+			//String sql = String.format("SELECT ST_IsValidDetail(%s) FROM %s WHERE NOT ST_IsValid(%s)", primaryGeometryColumn,  name, primaryGeometryColumn);
+			String sql = String.format("WITH v as (SELECT ST_IsValidDetail(%s) as va FROM %s) SELECT (va).reason, ST_AsText((va).location) FROM v WHERE NOT (va).valid", primaryGeometryColumn,  name);
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			while(rs.next()) {
+				String reason = rs.getString(1);
+				String location = rs.getString(2);
+				String s = reason + "  " + location;
+				Logger.info(s);
+				if(vec == null) {
+					vec = new Vec<String>();
+				}
+				vec.add(s);
+			}			
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return vec;	
 	}
 
 	private String getName() {
@@ -434,6 +462,10 @@ public class PostgisLayer extends PostgisLayerBase {
 	private static String SQL_ST_Intersection(String column, Rect2d rect2d, int srid) {
 		String sql_ST_MakeEnvelope = SQL_ST_MakeEnvelope(rect2d, srid);
 		return String.format("ST_Intersection(%s, %s)", column, sql_ST_MakeEnvelope);
+		//return String.format("ST_MakeValid(ST_Intersection(%s, %s))", column, sql_ST_MakeEnvelope);
+		//return String.format("ST_Intersection(ST_MakeValid(%s), %s)", column, sql_ST_MakeEnvelope);
+		//return String.format("ST_Buffer(ST_Intersection(%s, %s), 0.0)", column, sql_ST_MakeEnvelope);
+		//return String.format("ST_Intersection(ST_Buffer(%s, 0.0), %s)", column, sql_ST_MakeEnvelope);
 	}
 	
 	private static String SQL_ST_AsGML(String column) {
@@ -457,15 +489,15 @@ public class PostgisLayer extends PostgisLayerBase {
 			//Timer.start("query");
 			String sql;
 			if(rect2d == null) {
-				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
+				sql = String.format("SELECT %s FROM %s", geometrySQL, name);		
 			} else {
 				int epsg = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
 				if(crop) {
-					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
 					sql = String.format("SELECT %s FROM %s WHERE %s", sql_ST_Intersection, name, sql_ST_Intersects);	
 				} else {
-					sql = String.format("SELECT %s FROM %s WHERE %s", primaryGeometryColumn, name, sql_ST_Intersects);
+					sql = String.format("SELECT %s FROM %s WHERE %s", geometrySQL, name, sql_ST_Intersects);
 				}				}	
 			//Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
@@ -502,15 +534,15 @@ public class PostgisLayer extends PostgisLayerBase {
 			//Timer.start("query");
 			String sql;
 			if(rect2d == null) {
-				sql = String.format("SELECT %s FROM %s", primaryGeometryColumn, name);		
+				sql = String.format("SELECT %s FROM %s", geometrySQL, name);		
 			} else {				
 				int epsg = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
 				if(crop) {
-					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
 					sql = String.format("SELECT %s FROM %s WHERE %s", sql_ST_Intersection, name, sql_ST_Intersects);	
 				} else {
-					sql = String.format("SELECT %s FROM %s WHERE %s", primaryGeometryColumn, name, sql_ST_Intersects);
+					sql = String.format("SELECT %s FROM %s WHERE %s", geometrySQL, name, sql_ST_Intersects);
 				}				
 			}	
 			Logger.info(sql);
@@ -552,15 +584,15 @@ public class PostgisLayer extends PostgisLayerBase {
 			//Timer.start("query");
 			String sql;
 			if(rect2d == null) {
-				sql = String.format("SELECT %s, %s FROM %s", primaryGeometryColumn, groupField, name);		
+				sql = String.format("SELECT %s, %s FROM %s", geometrySQL, groupField, name);		
 			} else {
 				int epsg = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
 				if(crop) {
-					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
 					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_Intersection, groupField, name, sql_ST_Intersects);	
 				} else {
-					sql = String.format("SELECT %s, %s FROM %s WHERE %s", primaryGeometryColumn, groupField, name, sql_ST_Intersects);
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", geometrySQL, groupField, name, sql_ST_Intersects);
 				}
 			}	
 			Logger.info(sql);
@@ -611,15 +643,15 @@ public class PostgisLayer extends PostgisLayerBase {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
-				sql = String.format("SELECT ST_AsGeoJSON(%s) FROM %s",  primaryGeometryColumn, name);
+				sql = String.format("SELECT ST_AsGeoJSON(%s) FROM %s",  geometrySQL, name);
 			} else {
 				int epsg = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
 				if(crop) {
-					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
 					sql = String.format("SELECT ST_AsGeoJSON(%s) FROM %s WHERE %s", sql_ST_Intersection, name, sql_ST_Intersects);	
 				} else {
-					sql = String.format("SELECT ST_AsGeoJSON(%s) FROM %s WHERE %s", primaryGeometryColumn, name, sql_ST_Intersects);
+					sql = String.format("SELECT ST_AsGeoJSON(%s) FROM %s WHERE %s", geometrySQL, name, sql_ST_Intersects);
 				}
 			}
 			Logger.info(sql);
@@ -652,15 +684,15 @@ public class PostgisLayer extends PostgisLayerBase {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
-				sql = String.format("SELECT ST_AsGeoJSON(%s), %s FROM %s", primaryGeometryColumn, selectorFields, name);
+				sql = String.format("SELECT ST_AsGeoJSON(%s), %s FROM %s", geometrySQL, selectorFields, name);
 			} else {				
 				int epsg = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
 				if(crop) {
-					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
 					sql = String.format("SELECT ST_AsGeoJSON(%s), %s FROM %s WHERE %s", sql_ST_Intersection, selectorFields, name, sql_ST_Intersects);	
 				} else {
-					sql = String.format("SELECT ST_AsGeoJSON(%s), %s FROM %s WHERE %s", primaryGeometryColumn, selectorFields, name, sql_ST_Intersects);
+					sql = String.format("SELECT ST_AsGeoJSON(%s), %s FROM %s WHERE %s", geometrySQL, selectorFields, name, sql_ST_Intersects);
 				}
 			}
 			Logger.info(sql);
@@ -715,17 +747,17 @@ public class PostgisLayer extends PostgisLayerBase {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
-				String sql_ST_AsGML = SQL_ST_AsGML(primaryGeometryColumn);
+				String sql_ST_AsGML = SQL_ST_AsGML(geometrySQL);
 				sql = String.format("SELECT %s, %s FROM %s", sql_ST_AsGML, selectorFields, name);		
 			} else {				
 				int epsg = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
 				if(crop) {
-					String sql_ST_Intersection = SQL_ST_Intersection(primaryGeometryColumn, rect2d, epsg);
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
 					String sql_ST_AsGML = SQL_ST_AsGML(sql_ST_Intersection);
 					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_AsGML, selectorFields, name, sql_ST_Intersects);	
 				} else {
-					String sql_ST_AsGML = SQL_ST_AsGML(primaryGeometryColumn);
+					String sql_ST_AsGML = SQL_ST_AsGML(geometrySQL);
 					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_AsGML, selectorFields, name, sql_ST_Intersects);
 				}
 			}	

@@ -3,6 +3,7 @@ package vectordb.style;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.Path2D;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -118,11 +119,28 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	}
 
 	@Override
-	public void drawPolygons(Graphics2D gc, int[] xs, int[] ys, int len) {
+	public void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len) {
 		gc.setColor(fill_color);
 		gc.fillPolygon(xs, ys, len);
 		gc.setStroke(stroke);
 		gc.setColor(stroke_color);
 		gc.drawPolygon(xs, ys, len);		
+	}
+
+	@Override
+	public void drawPolygonWithHoles(Graphics2D gc, int[][][] rings) {
+		Path2D path = new Path2D.Double(Path2D.WIND_NON_ZERO);
+		for(int[][] ring : rings) {
+			int len = ring[0].length;
+			path.moveTo(ring[0][0], ring[1][0]);
+			for (int i = 0; i < len; i++) {
+				path.lineTo(ring[0][i], ring[1][i]);
+			}
+		}
+		gc.setColor(fill_color);
+		gc.fill(path);
+		gc.setStroke(stroke);
+		gc.setColor(stroke_color);
+		gc.draw(path);		
 	}	
 }

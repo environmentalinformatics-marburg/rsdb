@@ -26,12 +26,14 @@ import util.JsonUtil;
 import util.Util;
 import util.Web;
 import util.collections.array.ReadonlyArray;
+import util.collections.vec.Vec;
 
 public class APIHandler_postgis_layer {
 
 	private final Broker broker;
 	private final PostgisLayerManager layerManager;
 	private final PostgisHandler_wfs postgisHandler_wfs;
+	private final PostgisHandler_wms postgisHandler_wms;
 	private final PostgisHandler_indices postgisHandler_indices;
 	private final PostgisHandler_image_png postgisHandler_image_png;
 
@@ -39,6 +41,7 @@ public class APIHandler_postgis_layer {
 		this.broker = broker;
 		this.layerManager = broker.postgisLayerManager();
 		this.postgisHandler_wfs = new PostgisHandler_wfs();
+		this.postgisHandler_wms = new PostgisHandler_wms();
 		this.postgisHandler_indices = new PostgisHandler_indices();
 		this.postgisHandler_image_png = new PostgisHandler_image_png();
 	}
@@ -75,6 +78,12 @@ public class APIHandler_postgis_layer {
 					PostgisLayer postgisLayer = layerManager.getPostgisLayer(layerName);
 					postgisLayer.check(userIdentity);
 					postgisHandler_wfs.handle(postgisLayer, next, request, response, userIdentity);
+					break;
+				}
+				case "wms": {
+					PostgisLayer postgisLayer = layerManager.getPostgisLayer(layerName);
+					postgisLayer.check(userIdentity);
+					postgisHandler_wms.handle(postgisLayer, next, request, response, userIdentity);
 					break;
 				}
 				case "geojson": {
@@ -131,6 +140,12 @@ public class APIHandler_postgis_layer {
 
 		json.key("epsg");
 		json.value(postgisLayer.getEPSG());
+		
+		Vec<String> vecInvalid = postgisLayer.isInvalid();
+		if(vecInvalid != null) {
+			json.key("invalid_geometry");
+			json.value(vecInvalid);
+		}
 
 		Rect2d extent = postgisLayer.getExtent();
 		if(extent != null) {

@@ -211,7 +211,7 @@ public class Renderer {
 		@FunctionalInterface
 		public
 		interface PolygonDrawer {
-			void drawPolygons(Graphics2D gc, int[] xs, int[] ys, int len);
+			void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
 		}
 
 		public void drawPolygon(Object[] points, PolygonDrawer polygonDrawer) {
@@ -224,7 +224,7 @@ public class Renderer {
 				ys[i] = (int) ((yoff - p[1]) * yscale);
 				//Logger.info("polygon point " + xs[i] + " " + ys[i]);
 			}
-			polygonDrawer.drawPolygons(gc, xs, ys, len);			
+			polygonDrawer.drawPolygon(gc, xs, ys, len);			
 		}
 	}
 

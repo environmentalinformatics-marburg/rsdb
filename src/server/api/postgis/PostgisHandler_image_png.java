@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -54,14 +53,14 @@ public class PostgisHandler_image_png {
 
 		//Style style = Renderer.STYLE_DEFAULT;
 		Style style = new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 0, 100), new Color(0, 150, 0, 100));
-		ImageBufferARGB image = render(postgisLayer, rect, width, height, style);
+		ImageBufferARGB image = render(postgisLayer, rect, false, width, height, style);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_PNG);
 		image.writePngCompressed(response.getOutputStream());		
 	}
 
-	private ImageBufferARGB render(PostgisLayer postgisLayer, Rect2d rect, int width, int height, Style style) {
+	public static ImageBufferARGB render(PostgisLayer postgisLayer, Rect2d rect, boolean crop, int width, int height, Style style) {
 
 		if(style == null) {
 			style = Renderer.STYLE_DEFAULT;
@@ -80,7 +79,7 @@ public class PostgisHandler_image_png {
 		double yoff = rect.ymax + 2 * (1 / yscale);
 
 		//GeometryConverter geometryConverter = new GeometryConverter(xoff, yoff, xscale, yscale, style, gc);
-		JTSGeometryConverter jtsGeometryConverter = new JTSGeometryConverter(xoff, yoff, xscale, yscale, style, gc);
+		JTSGeometryRasterizer jtsGeometryConverter = new JTSGeometryRasterizer(xoff, yoff, xscale, yscale, style, gc);
 
 		/*for (int r = 0; r < 20; r++) {	
 			Timer.start("forEachGeometry");
@@ -99,7 +98,10 @@ public class PostgisHandler_image_png {
 			Logger.info(Timer.stop("forEachJTSGeometry"));
 		}*/
 		//postgisLayer.forEachGeometry(null, geometryConverter);
-		postgisLayer.forEachJTSGeometry(null, true, jtsGeometryConverter);
+		
+		Timer.start("render");
+		postgisLayer.forEachJTSGeometry(rect, crop, jtsGeometryConverter);
+		Logger.info(Timer.stop("render"));
 
 		gc.dispose();
 

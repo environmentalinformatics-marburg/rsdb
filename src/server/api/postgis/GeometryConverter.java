@@ -51,7 +51,7 @@ public class GeometryConverter implements GeometryConsumer {
 				//Logger.info("polygon point " + xs[i] + " " + ys[i]);
 			}
 			
-			style.drawPolygons(gc, xs, ys, len);
+			style.drawPolygon(gc, xs, ys, len);
 		}
 	}	
 }

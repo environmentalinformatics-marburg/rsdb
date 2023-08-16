@@ -94,13 +94,79 @@
                 </table>
             </div>
 
-        </div>        
+            <v-divider class="meta-divider"></v-divider>
+            <h3 class="subheading mb-0"> 
+                Accessibility
+            </h3>
+            <div class="meta-content">                
+                <table>
+                    <tr>
+                        <th>Service</th>
+                        <th>URL</th>
+                        <th>Copy to clipboard</th>
+                    </tr>
+                    <tr>
+                        <td><b>WFS</b></td>
+                        <td class="url">{{wfsUrl}}</td>
+                        <td><v-btn @click="onUrlCopy(wfsUrl)" title="copy WFS URL of this PostGIS layer to clipboard" small><v-icon small>content_copy</v-icon></v-btn></td>
+                    </tr>
+                    <tr>
+                        <td><b>WMS</b></td>
+                        <td class="url">{{wmsUrl}}</td>
+                        <td><v-btn @click="onUrlCopy(wmsUrl)" title="copy WMS URL of this PostGIS layer to clipboard" small><v-icon small>content_copy</v-icon></v-btn></td>
+                    </tr>
+                </table>
+            </div>
+
+            <v-divider class="meta-divider"></v-divider>
+            <div class="meta-content">
+                <div v-if="meta.invalid_geometry === undefined"><b>Geometry valid.</b></div>
+                <div v-else>
+                    <b>Geometry invalid: ({{meta.invalid_geometry.length}})</b>
+                    <table>
+                        <tr v-for="r in meta.invalid_geometry" :key="r"><td>{{r}}</td></tr>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+        
+        <v-snackbar v-model="snackbarCopiedToClipboard" top :timeout="2000">
+            URL copied to clipboard
+            <v-btn color="pink" flat @click="snackbarCopiedToClipboard = false">Close</v-btn>
+        </v-snackbar> 
     </div>
 </template>
 
 <script>
 
-import { mapGetters } from 'vuex'
+//derived from http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+function copyTextToClipboard(text) {
+	var textArea = document.createElement("textarea");
+	textArea.style.position = 'fixed';
+	textArea.style.top = 0;
+	textArea.style.left = 0;
+	textArea.style.width = '2em';
+	textArea.style.height = '2em';
+	textArea.style.padding = 0;
+	textArea.style.border = 'none';
+	textArea.style.outline = 'none';
+	textArea.style.boxShadow = 'none';
+	textArea.style.background = 'transparent';
+	textArea.value = text;
+	document.body.appendChild(textArea);
+	textArea.select();
+	try {
+		var successful = document.execCommand('copy');
+		var msg = successful ? 'successful' : 'unsuccessful';
+		console.log('copying text command was ' + msg);
+	} catch (e) {
+		console.log('ERROR unable to copy: '+e);
+	}
+	document.body.removeChild(textArea);
+}
+
+import { mapState, mapGetters } from 'vuex'
 import axios from 'axios'
 import dialogSetInfo from './dialog-set-info.vue'
 import boxInfo from './box-info.vue'
@@ -123,6 +189,7 @@ export default {
             metaErrorMessage: undefined,
             busy: false,
             busyMessage: undefined,
+            snackbarCopiedToClipboard: false,
         }
     },
     methods: {
@@ -153,13 +220,27 @@ export default {
             }
             return this.meta.class_fields.includes(fld);
         },
+
+        onUrlCopy(url) {
+            copyTextToClipboard(url);
+            this.snackbarCopiedToClipboard = true;
+        }
     },
     computed: {
+        ...mapState({
+            identity: state => state.identity.data,
+        }),        
         ...mapGetters({
             isAdmin: 'identity/isAdmin',
         }),
         modify() {
             return this.meta === undefined || this.meta.modify == undefined ? false :  this.meta.modify;
+        },       
+        wfsUrl() {
+            return this.identity === undefined || this.meta === undefined ? '[unknown]' : (this.identity.url_base + '/postgis/layers/' + this.meta.name + '/wfs');
+        },
+        wmsUrl() {
+            return this.identity === undefined || this.meta === undefined ? '[unknown]' : (this.identity.url_base + '/postgis/layers/' + this.meta.name + '/wms');
         },        
     },
     watch: {
@@ -295,6 +376,17 @@ export default {
 .header-unit {
     color: rgba(0, 0, 0, 0.68); 
     font-weight:normal;
+}
+
+.url {
+    background-color: #0000000f;
+    color: #13274f;
+    padding: 5px;
+    font-weight: bold;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: #6868681f;
+    font-family: "Courier New", Courier, monospace;   
 }
 
 </style>

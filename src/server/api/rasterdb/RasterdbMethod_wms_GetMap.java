@@ -7,7 +7,6 @@ import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 
 import ar.com.hjg.pngj.PngjOutputException;

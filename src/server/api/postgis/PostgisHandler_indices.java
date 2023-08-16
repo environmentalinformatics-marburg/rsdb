@@ -15,7 +15,6 @@ import org.locationtech.jts.algorithm.construct.MaximumInscribedCircle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
-import org.tinylog.Logger;
 
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
@@ -34,8 +33,8 @@ public class PostgisHandler_indices {
 	public static class CalcArea extends ValuCollector {
 
 		@Override
-		public void acceptPolygon(Polygon polygon) {
-			double area = polygon.getArea();
+		public void acceptGeometry(Geometry geometry) {
+			double area = geometry.getArea();
 			collector.add(area);
 		}		
 	}
@@ -43,10 +42,10 @@ public class PostgisHandler_indices {
 	public static class CalcPerimeter extends ValuCollector {
 
 		@Override
-		public void acceptPolygon(Polygon polygon) {
-			double area = polygon.getLength();
+		public void acceptGeometry(Geometry geometry) {
+			double area = geometry.getArea();
 			collector.add(area);
-		}		
+		}	
 	}
 
 	public static class CalcMinDiameter extends ValuCollector {
