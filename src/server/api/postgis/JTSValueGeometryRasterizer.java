@@ -6,30 +6,32 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.Polygon;
 
-import postgis.JTSGeometryConsumer;
+import postgis.JTSValueGeometryConsumer;
 import vectordb.style.Style;
 
-public class JTSGeometryRasterizer implements JTSGeometryConsumer {
+public class JTSValueGeometryRasterizer implements JTSValueGeometryConsumer {
 
 	public final double xoff;
 	public final double yoff;
 	public final double xscale;
 	public final double yscale;
 
-	public final Style style;
-	public final Graphics2D gc;	
+	private Style[] styles;	
+	public final Graphics2D gc;
 
-	public JTSGeometryRasterizer(double xoff, double yoff, double xscale, double yscale, Style style, Graphics2D gc) {
+	public JTSValueGeometryRasterizer(double xoff, double yoff, double xscale, double yscale, Style[] styles, Graphics2D gc) {
 		this.xoff = xoff;
 		this.yoff = yoff;
 		this.xscale = xscale;
 		this.yscale = yscale;
-		this.style = style;
+		this.styles = styles;
 		this.gc = gc;
 	}
 
 	@Override
-	public void acceptPolygon(Polygon polygon) {
+	public void acceptPolygon(int value, Polygon polygon) {
+		int styleIndex = value % styles.length;
+		Style style = styles[styleIndex];
 		final int interiorRings = polygon.getNumInteriorRing();
 		if(interiorRings == 0) {
 			LinearRing ring = polygon.getExteriorRing();

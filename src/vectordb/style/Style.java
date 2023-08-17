@@ -26,7 +26,7 @@ public abstract class Style {
 	public abstract void drawLines(Graphics2D gc, Drawer drawer, Vec<Object[]> lines);
 	public abstract void drawPolygons(Graphics2D gc, Drawer drawer, Vec<Object[]> polygons);
 	public abstract void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
-	public abstract void drawPolygonWithHoles(Graphics2D gc, int[][][] rings);
+	public abstract void drawPolygonWithHoles(Graphics2D gc, float[][] rings);
 	
 	public final Map<String, Object> toYaml() {
 		LinkedHashMap<String, Object> yamlMap = new LinkedHashMap<String, Object>();

@@ -77,31 +77,45 @@ public class PostgisHandler_image_png {
 		double yscale = (height - 4) / ylen;
 		double xoff = - rect.xmin + 2 * (1 / xscale);
 		double yoff = rect.ymax + 2 * (1 / yscale);
-
-		//GeometryConverter geometryConverter = new GeometryConverter(xoff, yoff, xscale, yscale, style, gc);
-		JTSGeometryRasterizer jtsGeometryConverter = new JTSGeometryRasterizer(xoff, yoff, xscale, yscale, style, gc);
-
-		/*for (int r = 0; r < 20; r++) {	
-			Timer.start("forEachGeometry");
-			for (int i = 0; i < 10; i++) {
-				
-				postgisLayer.forEachGeometry(null, geometryConverter);
-				
-			}
-			Logger.info(Timer.stop("forEachGeometry"));
-			Timer.start("forEachJTSGeometry");
-			for (int i = 0; i < 10; i++) {
-				
-				postgisLayer.forEachJTSGeometry(null, jtsGeometryConverter);
-				
-			}
-			Logger.info(Timer.stop("forEachJTSGeometry"));
-		}*/
-		//postgisLayer.forEachGeometry(null, geometryConverter);
 		
-		Timer.start("render");
-		postgisLayer.forEachJTSGeometry(rect, crop, jtsGeometryConverter);
-		Logger.info(Timer.stop("render"));
+		String field = "class_1";		
+		if(postgisLayer.hasFieldName(field)) {
+			Style[] styles = new Style[] {
+					new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 0, 100), new Color(0, 150, 0, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 0, 0, 100), new Color(150, 0, 0, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(0, 0, 50, 100), new Color(0, 0, 150, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 50, 0, 100), new Color(150, 150, 0, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 50, 100), new Color(0, 150, 150, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 0, 150, 100), new Color(150, 0, 150, 100)),
+					
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 50, 25, 100), new Color(150, 150, 25, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(25, 50, 50, 100), new Color(25, 150, 150, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 25, 150, 100), new Color(150, 25, 150, 100)),
+					
+					new BasicStyle(BasicStyle.createStroke(1), new Color(25, 50, 0, 100), new Color(25, 150, 0, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 25, 0, 100), new Color(150, 25, 0, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(25, 0, 50, 100), new Color(25, 0, 150, 100)),
+					
+					new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 25, 100), new Color(0, 150, 25, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 0, 25, 100), new Color(150, 0, 25, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(0, 25, 50, 100), new Color(0, 25, 150, 100)),
+					
+					new BasicStyle(BasicStyle.createStroke(1), new Color(25, 50, 25, 100), new Color(25, 150, 25, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 25, 25, 100), new Color(150, 25, 25, 100)),
+					new BasicStyle(BasicStyle.createStroke(1), new Color(25, 25, 50, 100), new Color(25, 25, 150, 100)),
+					
+					new BasicStyle(BasicStyle.createStroke(1), new Color(50, 50, 50, 100), new Color(150, 150, 150, 100)),					
+			};
+			JTSValueGeometryRasterizer jtsValueGeometryConverter = new JTSValueGeometryRasterizer(xoff, yoff, xscale, yscale, styles, gc);		
+			Timer.start("render");
+			postgisLayer.forEachJTSValueGeometry(rect, crop, field, jtsValueGeometryConverter);
+			Logger.info(Timer.stop("render"));
+		} else {
+			JTSGeometryRasterizer jtsGeometryConverter = new JTSGeometryRasterizer(xoff, yoff, xscale, yscale, style, gc);		
+			Timer.start("render");
+			postgisLayer.forEachJTSGeometry(rect, crop, jtsGeometryConverter);
+			Logger.info(Timer.stop("render"));
+		}
 
 		gc.dispose();
 

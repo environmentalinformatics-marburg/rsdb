@@ -2,14 +2,10 @@ package server.api.postgis;
 
 import java.awt.Graphics2D;
 
-import org.tinylog.Logger;
-
 import net.postgis.jdbc.geometry.LinearRing;
-import net.postgis.jdbc.geometry.MultiPolygon;
 import net.postgis.jdbc.geometry.Point;
 import net.postgis.jdbc.geometry.Polygon;
 import postgis.GeometryConsumer;
-import vectordb.Renderer.Drawer.PolygonDrawer;
 import vectordb.style.Style;
 
 public class GeometryConverter implements GeometryConsumer {

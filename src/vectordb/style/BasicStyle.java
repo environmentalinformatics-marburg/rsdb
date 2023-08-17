@@ -20,8 +20,7 @@ import vectordb.Renderer.Drawer;
 import vectordb.Renderer.Drawer.PolygonDrawer;
 
 
-public class BasicStyle extends Style implements PolygonDrawer {
-	
+public class BasicStyle extends Style implements PolygonDrawer {	
 
 	private static final float DEFAULT_STROKE_WIDTH = 2f;
 
@@ -128,13 +127,15 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	}
 
 	@Override
-	public void drawPolygonWithHoles(Graphics2D gc, int[][][] rings) {
-		Path2D path = new Path2D.Double(Path2D.WIND_NON_ZERO);
-		for(int[][] ring : rings) {
-			int len = ring[0].length;
-			path.moveTo(ring[0][0], ring[1][0]);
-			for (int i = 0; i < len; i++) {
-				path.lineTo(ring[0][i], ring[1][i]);
+	public void drawPolygonWithHoles(Graphics2D gc, float[][] rings) {
+		Path2D.Float path = new Path2D.Float(Path2D.WIND_NON_ZERO);
+		for(float[] ring : rings) {
+			path.moveTo(ring[0], ring[1]);
+			int len = ring.length;
+			for (int pos = 2; pos < len;) {
+				float x = ring[pos++];
+				float y = ring[pos++];
+				path.lineTo(x, y);
 			}
 		}
 		gc.setColor(fill_color);
@@ -142,5 +143,5 @@ public class BasicStyle extends Style implements PolygonDrawer {
 		gc.setStroke(stroke);
 		gc.setColor(stroke_color);
 		gc.draw(path);		
-	}	
+	}
 }

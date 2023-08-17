@@ -576,6 +576,57 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
+	
+	public <T extends JTSGeometryConsumer> long forEachJTSValueGeometry(Rect2d rect2d, boolean crop, String valueField, JTSValueGeometryConsumer consumer) {
+		//Logger.info("getGeometry");
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			//Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT %s, %s FROM %s", geometrySQL, valueField, name);		
+			} else {
+				int epsg = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
+				if(crop) {
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_Intersection, valueField, name, sql_ST_Intersects);	
+				} else {
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", geometrySQL, valueField, name, sql_ST_Intersects);
+				}
+			}	
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			long featureCount = 0;
+			WKBReader wkbReader = new WKBReader();
+			while(rs.next()) {
+				byte[] raw = rs.getBytes(1);
+				if(raw != null) {
+					if(raw.length % 2 != 0) {
+						throw new RuntimeException("read error");
+					}
+					byte[] bytes = new byte[raw.length / 2];
+					for (int i = 0; i < bytes.length; i++) {
+						int j = i << 1;
+						bytes[i] = (byte) ((hexToInt(raw[j]) << 4) + hexToInt(raw[j + 1]));
+					}
+					org.locationtech.jts.geom.Geometry geometry = wkbReader.read(bytes);
+					//Logger.info(geometry.getClass());
+
+					int value = rs.getInt(2);
+					consumer.acceptGeometry(value, geometry);					
+				} else {
+					//Logger.info("null");
+				}
+			}
+			//Logger.info("features " + featureCount);
+			//Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	public <T extends JTSGeometryConsumer> long forEachJTSGeometryByGroup(Rect2d rect2d, boolean crop, String groupField, Map<Object, T> groupMap, Supplier<T>  factory) {
 		//Logger.info("getGeometry");
@@ -769,5 +820,14 @@ public class PostgisLayer extends PostgisLayerBase {
 			e.printStackTrace();
 			return null;	
 		}	
+	}
+	
+	public boolean hasFieldName(String fieldName) {
+		for(PostgisColumn fld : flds) {
+			if(fld.name.equals(fieldName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
