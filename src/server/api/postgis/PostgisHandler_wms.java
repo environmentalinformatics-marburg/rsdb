@@ -3,6 +3,13 @@ package server.api.postgis;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
@@ -17,7 +24,9 @@ import ar.com.hjg.pngj.PngjOutputException;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
+import postgis.PostgisLayer.PostgisColumn;
 import util.GeoUtil;
+import util.IndentedXMLStreamWriter;
 import util.Web;
 import util.XmlUtil;
 import util.image.ImageBufferARGB;
@@ -48,6 +57,9 @@ public class PostgisHandler_wms {
 				break;
 			case "GetCapabilities":
 				handle_GetCapabilities(postgisLayer, request, response);
+				break;
+			case "GetFeatureInfo":
+				handle_GetFeatureInfo(postgisLayer, request, response);
 				break;
 			default:
 				Logger.error("unknown request "+reqParam);
@@ -129,10 +141,20 @@ public class PostgisHandler_wms {
 		Element eGetMapDCPTypeHTTPGetOnlineResource = XmlUtil.addElement(eGetMapDCPTypeHTTPGet, "OnlineResource");
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
+
+		Element eGetFeatureInfo = XmlUtil.addElement(eRootRequest, "GetFeatureInfo");
+		XmlUtil.addElement(eGetFeatureInfo, "Format", "text/xml");
+		Element eGetFeatureInfoDCPType = XmlUtil.addElement(eGetFeatureInfo, "DCPType");
+		Element eGetFeatureInfoDCPTypeHTTP = XmlUtil.addElement(eGetFeatureInfoDCPType, "HTTP");
+		Element eGetFeatureInfoDCPTypeHTTPGet = XmlUtil.addElement(eGetFeatureInfoDCPTypeHTTP, "Get");		
+		Element eGetFeatureInfoDCPTypeHTTPGetOnlineResource = XmlUtil.addElement(eGetFeatureInfoDCPTypeHTTPGet, "OnlineResource");
+		eGetFeatureInfoDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
+		eGetFeatureInfoDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
 	private static void addRootLayer(PostgisLayer postgisLayer, Element eCapability, String name, String title) {
 		Element eRootLayer = XmlUtil.addElement(eCapability, "Layer");
+		eRootLayer.setAttribute("queryable", "1");
 
 		int layerEPSG = postgisLayer.getEPSG();
 		boolean hasLayerCRS = layerEPSG > 0;
@@ -158,7 +180,7 @@ public class PostgisHandler_wms {
 		eBoundingBox.setAttribute("maxx", "" + layerRect.xmax);
 		eBoundingBox.setAttribute("maxy", "" + layerRect.ymax);
 	}
-	
+
 	private static void tryAdd_GeographicBoundingBox(Rect2d layerRect, int layerEPSG, Element eRootLayer) {
 		try {
 			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, GeoUtil.EPSG_WGS84);
@@ -193,5 +215,70 @@ public class PostgisHandler_wms {
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_PNG);
 		image.writePngCompressed(response.getOutputStream());	
+	}
+
+	private void handle_GetFeatureInfo(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
+		String bboxParam = request.getParameter("BBOX");
+		Rect2d rect2d = null;
+		if(bboxParam != null) {
+			String[] bbox = bboxParam.split(",");
+			rect2d = Rect2d.parseBbox(bbox);
+		}		
+		int reqWidth = Web.getInt(request, "WIDTH");
+		int reqHeight = Web.getInt(request, "HEIGHT");		
+		int reqX = Web.getInt(request, "I");
+		int reqY = Web.getInt(request, "J");
+		
+		double xres = rect2d.width() / reqWidth;
+		double yres = rect2d.height() / reqHeight;
+		
+		Rect2d pixelRect2d = new Rect2d(rect2d.xmin + xres * reqX, rect2d.ymax - yres * (reqY + 1), rect2d.xmin + xres * (reqX + 1), rect2d.ymax - yres * reqY);
+		
+		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
+		Logger.info(rect2d);
+		Logger.info(pixelRect2d);
+
+		response.setContentType("text/xml; subtype=gml/3.1.1; charset=UTF-8");
+		PrintWriter out = response.getWriter();	
+		try {
+			xmlGetFeatureStream(postgisLayer, out, pixelRect2d);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}	
+	}
+
+	private void xmlGetFeatureStream(PostgisLayer postgisLayer, Writer out, Rect2d pixelRect2d) throws XMLStreamException, SQLException {
+		XMLOutputFactory factory = XMLOutputFactory.newInstance();
+		factory.setProperty("escapeCharacters", false);
+		XMLStreamWriter xmlWriterInner = factory.createXMLStreamWriter(out);
+		XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
+		xmlWriter.writeStartDocument();
+		xmlWriter.writeStartElement("wfs:FeatureCollection");
+		xmlWriter.writeNamespace("wfs", "http://www.opengis.net/wfs");
+		xmlWriter.writeNamespace("gml", "http://www.opengis.net/gml");	
+
+		ResultSet rs = postgisLayer.queryGMLWithFields(pixelRect2d, false);		
+		while(rs.next()) {
+			xmlWriter.writeStartElement("gml:featureMember");
+			xmlWriter.writeStartElement(postgisLayer.name);
+			xmlWriter.writeStartElement(postgisLayer.primaryGeometryColumn);
+			String gml = rs.getString(1);
+			xmlWriter.writeCharacters(gml);
+			xmlWriter.writeEndElement(); // postgisLayer.geoColumnName			
+
+			for (int i = 0; i < postgisLayer.fields.size(); i++) {
+				PostgisColumn field = postgisLayer.fields.get(i);
+				String fieldValue = rs.getString(i + 2);
+				xmlWriter.writeStartElement(field.name);
+				xmlWriter.writeCharacters(fieldValue);
+				xmlWriter.writeEndElement(); // fieldName
+			}
+			xmlWriter.writeEndElement(); // FEATURE_NAME
+			xmlWriter.writeEndElement(); // gml:featureMember
+		}
+
+		xmlWriter.writeEndElement(); // wfs:FeatureCollection
+		xmlWriter.writeEndDocument();
+		xmlWriter.close();
 	}
 }
