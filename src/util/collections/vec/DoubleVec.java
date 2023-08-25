@@ -180,6 +180,10 @@ public class DoubleVec {
 		return new Kurtosis().evaluate(items, 0, size);
 	}
 	
+	public double excess_kurtosis() {
+		return kurtosis() - 3d;
+	}
+	
 	public double cv() {
 		int n = size;
 		double[] data = items;

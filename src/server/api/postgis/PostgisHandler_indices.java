@@ -14,7 +14,6 @@ import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.algorithm.construct.MaximumInscribedCircle;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
 
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
@@ -43,26 +42,26 @@ public class PostgisHandler_indices {
 
 		@Override
 		public void acceptGeometry(Geometry geometry) {
-			double area = geometry.getArea();
+			double area = geometry.getLength();
 			collector.add(area);
 		}	
 	}
 
 	public static class CalcMinDiameter extends ValuCollector {
-
+		
 		@Override
-		public void acceptPolygon(Polygon polygon) {
-			double minDiameter = new MinimumDiameter(polygon).getLength();
+		public void acceptGeometry(Geometry geometry) {
+			double minDiameter = new MinimumDiameter(geometry).getLength();
 			collector.add(minDiameter);
 		}		
 	}
 
 	public static class CalcMaxDiameter extends ValuCollector {
-
+		
 		@Override
-		public void acceptPolygon(Polygon polygon) {
-			Geometry geometry = polygon.convexHull();
-			Coordinate[] cs = geometry.getCoordinates();
+		public void acceptGeometry(Geometry geometry) {
+			Geometry geometryConvex = geometry.convexHull();
+			Coordinate[] cs = geometryConvex.getCoordinates();
 			double maxDiameter = 0d;
 			for(int i = 0; i < cs.length; i++) {
 				for(int j = i + 1; j < cs.length; j++) {
@@ -73,25 +72,25 @@ public class PostgisHandler_indices {
 				}
 			}
 			collector.add(maxDiameter);
-		}		
+		}	
 	}
 	
 	public static class CalcBoundingCircle extends ValuCollector {
-
+		
 		@Override
-		public void acceptPolygon(Polygon polygon) {
-			double boundingCircle = new MinimumBoundingCircle(polygon).getRadius() * 2d;
+		public void acceptGeometry(Geometry geometry) {
+			double boundingCircle = new MinimumBoundingCircle(geometry).getRadius() * 2d;
 			collector.add(boundingCircle);
 		}		
 	}
 	
 	public static class CalcInscribedCircle extends ValuCollector {
-
+		
 		@Override
-		public void acceptPolygon(Polygon polygon) {
-			double inscribedCircle = new MaximumInscribedCircle(polygon, 0.001d).getRadiusLine().getLength() * 2d;
+		public void acceptGeometry(Geometry geometry) {
+			double inscribedCircle = new MaximumInscribedCircle(geometry, 0.001d).getRadiusLine().getLength() * 2d;
 			collector.add(inscribedCircle);
-		}		
+		}	
 	}
 
 	public static class CalcProcessor implements JTSGeometryConsumer {	
@@ -105,15 +104,15 @@ public class PostgisHandler_indices {
 
 		public CalcProcessor() {
 		}
-
+		
 		@Override
-		public void acceptPolygon(Polygon polygon) {
-			calcArea.acceptPolygon(polygon);
-			calcPerimeter.acceptPolygon(polygon);
-			calcMinDiameter.acceptPolygon(polygon);
-			calcMaxDiameter.acceptPolygon(polygon);
-			calcBoundingCircle.acceptPolygon(polygon);
-			calcInscribedCircle.acceptPolygon(polygon);
+		public void acceptGeometry(Geometry geometry) {
+			calcArea.acceptGeometry(geometry);
+			calcPerimeter.acceptGeometry(geometry);
+			calcMinDiameter.acceptGeometry(geometry);
+			calcMaxDiameter.acceptGeometry(geometry);
+			calcBoundingCircle.acceptGeometry(geometry);
+			calcInscribedCircle.acceptGeometry(geometry);
 		}
 
 		public void writeJSON(JSONWriter json) {
@@ -134,64 +133,64 @@ public class PostgisHandler_indices {
 			JsonUtil.putDoubleIfFinite(json, "area_mn", area.mean());
 			//JsonUtil.putDoubleIfFinite(json, "area_sd", area.sd());
 			JsonUtil.putDoubleIfFinite(json, "area_cv", area.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "area_skewness", area.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "area_kurtosis", area.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "area_skewness", area.skewness());
+			JsonUtil.putDoubleIfFinite(json, "area_excess", area.excess_kurtosis());
 
 			JsonUtil.putDoubleIfFinite(json, "perimeter", perimeter.sum());
 			JsonUtil.putDoubleIfFinite(json, "perimeter_mn", perimeter.mean());
 			//JsonUtil.putDoubleIfFinite(json, "perimeter_sd", perimeter.sd());
 			JsonUtil.putDoubleIfFinite(json, "perimeter_cv", perimeter.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "perimeter_skewness", perimeter.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "perimeter_kurtosis", perimeter.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "perimeter_skewness", perimeter.skewness());
+			JsonUtil.putDoubleIfFinite(json, "perimeter_excess", perimeter.excess_kurtosis());
 
 			//JsonUtil.putDoubleIfFinite(json, "para", para.sum());
 			JsonUtil.putDoubleIfFinite(json, "para_mn", para.mean());
 			//JsonUtil.putDoubleIfFinite(json, "para_sd", para.sd());
 			JsonUtil.putDoubleIfFinite(json, "para_cv", para.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "para_skewness", para.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "para_kurtosis", para.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "para_skewness", para.skewness());
+			JsonUtil.putDoubleIfFinite(json, "para_excess", para.excess_kurtosis());
 
 			//JsonUtil.putDoubleIfFinite(json, "min_diameter", minDiameter.sum());
 			JsonUtil.putDoubleIfFinite(json, "min_diameter_mn", minDiameter.mean());
 			//JsonUtil.putDoubleIfFinite(json, "min_diameter_sd", minDiameter.sd());
 			JsonUtil.putDoubleIfFinite(json, "min_diameter_cv", minDiameter.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "min_diameter_skewness", minDiameter.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "min_diameter_kurtosis", minDiameter.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "min_diameter_skewness", minDiameter.skewness());
+			JsonUtil.putDoubleIfFinite(json, "min_diameter_excess", minDiameter.excess_kurtosis());
 
 			//JsonUtil.putDoubleIfFinite(json, "max_diameter", maxDiameter.sum());
 			JsonUtil.putDoubleIfFinite(json, "max_diameter_mn", maxDiameter.mean());
 			//JsonUtil.putDoubleIfFinite(json, "max_diameter_sd", maxDiameter.sd());
 			JsonUtil.putDoubleIfFinite(json, "max_diameter_cv", maxDiameter.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "max_diameter_skewness", maxDiameter.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "max_diameter_kurtosis", maxDiameter.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "max_diameter_skewness", maxDiameter.skewness());
+			JsonUtil.putDoubleIfFinite(json, "max_diameter_excess", maxDiameter.excess_kurtosis());
 
 			//JsonUtil.putDoubleIfFinite(json, "diameter_ratio", diameter_ratio.sum());
 			JsonUtil.putDoubleIfFinite(json, "diameter_ratio_mn", diameter_ratio.mean());
 			//JsonUtil.putDoubleIfFinite(json, "diameter_ratio_sd", diameter_ratio.sd());
 			JsonUtil.putDoubleIfFinite(json, "diameter_ratio_cv", diameter_ratio.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "diameter_ratio_skewness", diameter_ratio.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "diameter_ratio_kurtosis", diameter_ratio.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "diameter_ratio_skewness", diameter_ratio.skewness());
+			JsonUtil.putDoubleIfFinite(json, "diameter_ratio_excess", diameter_ratio.excess_kurtosis());
 			
 			//JsonUtil.putDoubleIfFinite(json, "boundig_circle", boundig_circle.sum());
 			JsonUtil.putDoubleIfFinite(json, "boundig_circle_mn", boundig_circle.mean());
 			//JsonUtil.putDoubleIfFinite(json, "boundig_circle_sd", boundig_circle.sd());
 			JsonUtil.putDoubleIfFinite(json, "boundig_circle_cv", boundig_circle.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "boundig_circle_skewness", boundig_circle.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "boundig_circle_kurtosis", boundig_circle.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "boundig_circle_skewness", boundig_circle.skewness());
+			JsonUtil.putDoubleIfFinite(json, "boundig_circle_excess", boundig_circle.excess_kurtosis());
 			
 			//JsonUtil.putDoubleIfFinite(json, "inscribed_circle", inscribed_circle.sum());
 			JsonUtil.putDoubleIfFinite(json, "inscribed_circle_mn", inscribed_circle.mean());
 			//JsonUtil.putDoubleIfFinite(json, "inscribed_circle_sd", inscribed_circle.sd());
 			JsonUtil.putDoubleIfFinite(json, "inscribed_circle_cv", inscribed_circle.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "inscribed_circle_skewness", inscribed_circle.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "inscribed_circle_kurtosis", inscribed_circle.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "inscribed_circle_skewness", inscribed_circle.skewness());
+			JsonUtil.putDoubleIfFinite(json, "inscribed_circle_excess", inscribed_circle.excess_kurtosis());
 			
 			//JsonUtil.putDoubleIfFinite(json, "circle_ratio", circle_ratio.sum());
 			JsonUtil.putDoubleIfFinite(json, "circle_ratio_mn", circle_ratio.mean());
 			//JsonUtil.putDoubleIfFinite(json, "circle_ratio_sd", circle_ratio.sd());
 			JsonUtil.putDoubleIfFinite(json, "circle_ratio_cv", circle_ratio.cv());			
-			//JsonUtil.putDoubleIfFinite(json, "circle_ratio_skewness", circle_ratio.skewness());
-			//JsonUtil.putDoubleIfFinite(json, "circle_ratio_kurtosis", circle_ratio.kurtosis());
+			JsonUtil.putDoubleIfFinite(json, "circle_ratio_skewness", circle_ratio.skewness());
+			JsonUtil.putDoubleIfFinite(json, "circle_ratio_excess", circle_ratio.excess_kurtosis());
 		}
 	}
 
@@ -219,61 +218,14 @@ public class PostgisHandler_indices {
 		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
 
-		//json.object();
-		//json.key("groups");
 		json.array();
 		groupMap.forEach((group, calcProcessor) -> {
 			json.object();
-			json.key("group");
+			json.key("class");
 			json.value(group);
 			calcProcessor.writeJSON(json);
 			json.endObject();
 		});
-		json.endArray();
-		//json.endObject();	
-
-		/*CalcArea calcArea = new CalcArea();
-		CalcPerimeter calcPerimeter = new CalcPerimeter();
-
-		DoubleVec area = calcArea.collector;
-		DoubleVec perimeter = calcPerimeter.collector;
-
-		postgisLayer.forEachJTSGeometry(rect2d, calcArea);
-		postgisLayer.forEachJTSGeometry(rect2d, calcPerimeter);
-
-		HashMap<Object, CalcArea> groupMap = new HashMap<Object, CalcArea>();
-		postgisLayer.forEachJTSGeometryByGroup(rect2d, "class_0", groupMap, () -> {
-			return new CalcArea();
-		});
-
-		Logger.info("keys " + groupMap.keySet());
-
-		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(Web.MIME_JSON);
-		JSONWriter json = new JSONWriter(response.getWriter());
-		json.object();
-		json.key("count");
-		json.value(area.size());
-		json.key("area_sum");
-		json.value(area.sum());
-		json.key("area_mean");
-		json.value(area.mean());
-		json.key("perimeter_sum");
-		json.value(perimeter.sum());
-		json.key("perimeter_mean");
-		json.value(perimeter.mean());
-		json.key("groups");
-		json.array();
-		groupMap.forEach((group, value) -> {
-			json.object();
-			json.key("group");
-			json.value(group);
-			json.key("value");
-			json.value(value.collector.sum());
-			json.endObject();
-		});
-
-		json.endArray();
-		json.endObject();	*/
+		json.endArray();		
 	}	
 }
