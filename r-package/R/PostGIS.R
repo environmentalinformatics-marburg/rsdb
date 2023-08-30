@@ -71,12 +71,29 @@ PostGIS <- R6::R6Class("PostGIS",
     },
 
     #' @description
-    #' Get raster from rasterized vector feautures.
+    #' Get raster from rasterized vector features.
+    #'
+    #' Raster pixel values are the values of field parameter.
+    #'
+    #' If priority parameter = NULL, order of feature painting is unspecified, so for overlapping features of different field values the final pixel value is the value of one of the overlapping features.
+    #'
+    #' The priority parameter specifies order of feature painting. For overlapping features the last entry in the priority vector determines the pixel value.
+    #' Only features values listed in the priority vector are painted, all other features are omitted in the final raster.
+    #'
+    #' Example:
+    #'
+    #' feature field values: 1 2 3 4
+    #'
+    #' priority = c(2,3)  => Only features of value 2 and 3 are painted. For overlapping features value 3 is the pixel value.
+    #'
+    #' priority = c(3,2)  => Only features of value 2 and 3 are painted. For overlapping features value 2 is the pixel value.
+    #'
     #' @param bbox Bounding box.
     #' @param field Value field for pixel values.
     #' @param dx Pixel x resolution.
     #' @param dy Pixel y resolution.
-    getRaster = function(bbox, field = NULL, dx = 1, dy = 1) {
+    #' @param priority Features rasterization order.
+    getRaster = function(bbox, field = NULL, dx = 1, dy = 1, priority = NULL) {
       if(is.null(bbox)) {
         stop('missing bbox')
       }
@@ -84,30 +101,29 @@ PostGIS <- R6::R6Class("PostGIS",
         sf::st_crs(bbox) <- self$epsg
       }
       features <- self$getFeatures(bbox, crop = TRUE)
-      if(!is.null(field)) {
-        if(!field %in% colnames(features)) {
-          stop('Requested field does not exist: ', field);
+      if(is.null(field)) {
+        if(length(self$class_fields) > 0) {
+          field <- self$class_fields[1]
+        } else {
+          stop('Missing field parameter and no default.');
         }
-        features <- features[field]
-
-        fieldCol <- features[[field]]
-        if(!(is.numeric(fieldCol) || is.factor(fieldCol))) {
-          fieldFactors <- as.factor(fieldCol)
-          features[field] <- fieldFactors
-        }
-
-      } else if(length(self$class_fields) > 0) {
-        if(!self$class_fields[1] %in% colnames(features)) {
-          stop('Requested field does not exist: ', self$class_fields[1]);
-        }
-        features <- features[self$class_fields[1]]
-
-
-        fieldCol <- features[[self$class_fields[1]]]
-        if(!(is.numeric(fieldCol) || is.factor(fieldCol))) {
-          fieldFactors <- as.factor(fieldCol)
-          features[self$class_fields[1]] <- fieldFactors
-        }
+      }
+      if(!field %in% colnames(features)) {
+        stop('Requested field does not exist: ', field);
+      }
+      features <- features[field]
+      fieldCol <- features[[field]]
+      if(!(is.numeric(fieldCol) || is.factor(fieldCol))) {
+        fieldFactors <- as.factor(fieldCol)
+        features[field] <- fieldFactors
+      }
+      if(!is.null(priority)) {
+        matched <- match(features[[field]], priority)
+        features_clean <- features[!is.na(matched), ]
+        matched_clean <- matched[!is.na(matched)]
+        ord <- order(matched_clean)
+        features_clean_ord <- features_clean[ord, ]
+        features <- features_clean_ord
       }
       template <- stars::st_as_stars(bbox, dx = dx, dy = dy)
       r <- stars::st_rasterize(sf = features, template = template)
@@ -117,8 +133,10 @@ PostGIS <- R6::R6Class("PostGIS",
     #' @description
     #' Calculate indices from vector features.
     #' @param bbox Bounding box.
+    #' @param field Classification field for feature aggregation.
     #' @param crop Crop vector features to bbox.
-    getIndices = function(bbox, field = NULL, crop = TRUE) {
+    #' @param values If raw values should be returned instead of summary statistical measures per class.
+    getIndices = function(bbox, field = NULL, crop = TRUE, values = FALSE) {
       if(is.null(bbox)) {
         stop('missing bbox')
       }
@@ -127,6 +145,7 @@ PostGIS <- R6::R6Class("PostGIS",
       if(!is.null(field)) {
         json$field <- field
       }
+      json$values = values
       df <- private$rsdbConnector$POST_json(paste0("/postgis/layers/", private$name_, '/indices'), data = json)
       return(df)
     }

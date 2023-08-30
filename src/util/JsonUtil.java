@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import util.collections.ReadonlyList;
+import util.collections.vec.DoubleVec;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap.BooleanConsumer;
 
@@ -323,5 +324,22 @@ public class JsonUtil {
 			json.key(key);
 			json.value(value);
 		}		
+	}
+	
+	public static void writeDoubleVec(JSONWriter json, String key, DoubleVec doubleVec) {
+		json.key(key);
+		writeDoubleVec(json, doubleVec);
+	}
+	
+	public static void writeDoubleVec(JSONWriter json, DoubleVec doubleVec) {
+		json.array();
+		for(double v : doubleVec.toArray()) {
+			if(Double.isFinite(v)) {
+				json.value(v);
+			} else {
+				json.value("NA");
+			}
+		}
+		json.endArray();
 	}
 }

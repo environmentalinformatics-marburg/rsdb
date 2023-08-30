@@ -6,6 +6,8 @@ import java.util.function.DoubleConsumer;
 import org.apache.commons.math3.stat.descriptive.moment.Kurtosis;
 import org.apache.commons.math3.stat.descriptive.moment.Skewness;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
+import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 
 public class DoubleVec {
 
@@ -197,6 +199,26 @@ public class DoubleVec {
 		double mean = sum / n;
 	    double cv = Math.sqrt(qsum / n - mean * mean) / n;
 	    return cv;
+	}
+	
+	public double median() {
+		return new Median().evaluate(items, 0, size);
+	}
+	
+	public double quartile1() {
+		return new Percentile(25d).evaluate(items, 0, size);
+	}
+	
+	public double quartile2() {
+		return median();
+	}
+	
+	public double quartile3() {
+		return new Percentile(75d).evaluate(items, 0, size);
+	}
+	
+	public double quartile4() {
+		return max();
 	}
 
 	public DoubleVec div(DoubleVec v) {

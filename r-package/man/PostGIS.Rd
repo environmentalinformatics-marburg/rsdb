@@ -108,9 +108,24 @@ Get vector features and properties.
 \if{html}{\out{<a id="method-PostGIS-getRaster"></a>}}
 \if{latex}{\out{\hypertarget{method-PostGIS-getRaster}{}}}
 \subsection{Method \code{getRaster()}}{
-Get raster from rasterized vector feautures.
+Get raster from rasterized vector features.
+
+Raster pixel values are the values of field parameter.
+
+If priority parameter = NULL, order of feature painting is unspecified, so for overlapping features of different field values the final pixel value is the value of one of the overlapping features.
+
+The priority parameter specifies order of feature painting. For overlapping features the last entry in the priority vector determines the pixel value.
+Only features values listed in the priority vector are painted, all other features are omitted in the final raster.
+
+Example:
+
+feature field values: 1 2 3 4
+
+priority = c(2,3)  => Only features of value 2 and 3 are painted. For overlapping features value 3 is the pixel value.
+
+priority = c(3,2)  => Only features of value 2 and 3 are painted. For overlapping features value 2 is the pixel value.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getRaster(bbox, field = NULL, dx = 1, dy = 1)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getRaster(bbox, field = NULL, dx = 1, dy = 1, priority = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -123,6 +138,8 @@ Get raster from rasterized vector feautures.
 \item{\code{dx}}{Pixel x resolution.}
 
 \item{\code{dy}}{Pixel y resolution.}
+
+\item{\code{priority}}{Features rasterization order.}
 }
 \if{html}{\out{</div>}}
 }
@@ -133,7 +150,7 @@ Get raster from rasterized vector feautures.
 \subsection{Method \code{getIndices()}}{
 Calculate indices from vector features.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getIndices(bbox, field = NULL, crop = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getIndices(bbox, field = NULL, crop = TRUE, values = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -141,7 +158,11 @@ Calculate indices from vector features.
 \describe{
 \item{\code{bbox}}{Bounding box.}
 
+\item{\code{field}}{Classification field for feature aggregation.}
+
 \item{\code{crop}}{Crop vector features to bbox.}
+
+\item{\code{values}}{If raw values should be returned instead of summary statistical measures per class.}
 }
 \if{html}{\out{</div>}}
 }
