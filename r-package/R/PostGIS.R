@@ -53,7 +53,8 @@ PostGIS <- R6::R6Class("PostGIS",
     #' Get vector features and properties.
     #' @param bbox Bounding box.
     #' @param crop Crop vector features to bbox.
-    getFeatures = function(bbox = NULL, crop = TRUE) {
+    #' @param field One or more fields to return in addition to the geometry. If NULL, all fields are returned.
+    getFeatures = function(bbox = NULL, crop = TRUE, field = NULL) {
       args <- list()
       if(!is.null(bbox)) {
         if(class(bbox) != 'bbox') {
@@ -67,6 +68,9 @@ PostGIS <- R6::R6Class("PostGIS",
       writeBin(response, tempFileName)
       features <- sf::st_read(tempFileName, quiet = TRUE)
       file.remove(tempFileName)
+      if(!is.null(field)) {
+        features <- features[field]
+      }
       return(features)
     },
 
@@ -77,10 +81,10 @@ PostGIS <- R6::R6Class("PostGIS",
     #'
     #' If priority parameter = NULL, order of feature painting is unspecified, so for overlapping features of different field values the final pixel value is the value of one of the overlapping features.
     #'
-    #' The priority parameter specifies order of feature painting. For overlapping features the last entry in the priority vector determines the pixel value.
+    #' \strong{Basic usage:} The priority parameter (as a vector of numbers) specifies order of feature painting. For overlapping features the last entry in the priority vector determines the pixel value.
     #' Only features values listed in the priority vector are painted, all other features are omitted in the final raster.
     #'
-    #' Example:
+    #' \strong{Basic example:}
     #'
     #' feature field values: 1 2 3 4
     #'
@@ -88,12 +92,28 @@ PostGIS <- R6::R6Class("PostGIS",
     #'
     #' priority = c(3,2)  => Only features of value 2 and 3 are painted. For overlapping features value 2 is the pixel value.
     #'
+    #'
+    #' \strong{Advanced usage:} Merge multiple field values to one pixel value each.
+    #'
+    #' For this variant the priority parameter has to be a list of vectors of numbers.
+    #'
+    #' Each entry in the list (a vector of numbers) merges to one value (the first number in the vector).
+    #'
+    #' \strong{Advanced example:}
+    #'
+    #' feature field values: 1 2 3 4
+    #'
+    #' priority = list(c(2,3))  => Only features of value 2 and 3 are painted. The pixel values are 2.
+    #'
+    #' priority = list(c(1,2), c(3,4))  => Only features of value 1,2,3,4 are painted. The pixel values are 1 or 3. If overlapping it is 3.
+    #'
     #' @param bbox Bounding box.
     #' @param field Value field for pixel values.
     #' @param dx Pixel x resolution.
     #' @param dy Pixel y resolution.
-    #' @param priority Features rasterization order.
-    getRaster = function(bbox, field = NULL, dx = 1, dy = 1, priority = NULL) {
+    #' @param priority Features rasterization order. Vector of numbers or List of vector of numbers.
+    #' @param bypass Just return the prepared features before rasterize step. Utility to diagnose and fix issues.
+    getRaster = function(bbox, field = NULL, dx = 1, dy = 1, priority = NULL, bypass = FALSE) {
       if(is.null(bbox)) {
         stop('missing bbox')
       }
@@ -118,12 +138,31 @@ PostGIS <- R6::R6Class("PostGIS",
         features[field] <- fieldFactors
       }
       if(!is.null(priority)) {
-        matched <- match(features[[field]], priority)
-        features_clean <- features[!is.na(matched), ]
-        matched_clean <- matched[!is.na(matched)]
-        ord <- order(matched_clean)
-        features_clean_ord <- features_clean[ord, ]
-        features <- features_clean_ord
+        if(!is.list(priority)) {
+          matched <- match(features[[field]], priority)
+          features_clean <- features[!is.na(matched), ]
+          matched_clean <- matched[!is.na(matched)]
+          ord <- order(matched_clean)
+          features_clean_ord <- features_clean[ord, ]
+          features <- features_clean_ord
+        } else {
+          features_prio_list <- lapply(priority, function(prio) {
+            matched <- match(features[[field]], prio)
+            features_matched <- features[!is.na(matched), ]
+            if(nrow(features_matched) > 0) {
+              features_agg <- features_matched
+              features_agg[field] <- prio[1]
+              return(features_agg)
+            } else {
+              return(NULL)
+            }
+          })
+          features_prio_list <- features_prio_list[!sapply(features_prio_list, is.null)]
+          features <- do.call(rbind, features_prio_list)
+        }
+      }
+      if(bypass) {
+        return(features)
       }
       template <- stars::st_as_stars(bbox, dx = dx, dy = dy)
       r <- stars::st_rasterize(sf = features, template = template)

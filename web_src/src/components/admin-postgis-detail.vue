@@ -8,6 +8,9 @@
         <div style="text-align: center; padding-right: 400px;">
             <h3 class="headline mb-0">
                 {{meta === undefined || meta.title === undefined || meta.title === '' ? postgis : meta.title}}
+                <v-btn icon class="indigo--text" :href="$store.getters.apiUrl('web/app/#/?postgis=' + postgis)" target="_blank" title="open layer in viewer on new tab">
+                    <v-icon>zoom_in</v-icon>
+                </v-btn>
             </h3>
             <span v-if="meta !== undefined && meta.title !== undefined && meta.title !== ''"><span style="user-select: none;">id: </span><b>{{postgis}}</b></span>
         </div>

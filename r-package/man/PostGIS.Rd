@@ -91,7 +91,7 @@ This initialize function is for internal use only.
 \subsection{Method \code{getFeatures()}}{
 Get vector features and properties.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getFeatures(bbox = NULL, crop = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getFeatures(bbox = NULL, crop = TRUE, field = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -100,6 +100,8 @@ Get vector features and properties.
 \item{\code{bbox}}{Bounding box.}
 
 \item{\code{crop}}{Crop vector features to bbox.}
+
+\item{\code{field}}{One or more fields to return in addition to the geometry. If NULL, all fields are returned.}
 }
 \if{html}{\out{</div>}}
 }
@@ -114,18 +116,40 @@ Raster pixel values are the values of field parameter.
 
 If priority parameter = NULL, order of feature painting is unspecified, so for overlapping features of different field values the final pixel value is the value of one of the overlapping features.
 
-The priority parameter specifies order of feature painting. For overlapping features the last entry in the priority vector determines the pixel value.
+\strong{Basic usage:} The priority parameter (as a vector of numbers) specifies order of feature painting. For overlapping features the last entry in the priority vector determines the pixel value.
 Only features values listed in the priority vector are painted, all other features are omitted in the final raster.
 
-Example:
+\strong{Basic example:}
 
 feature field values: 1 2 3 4
 
 priority = c(2,3)  => Only features of value 2 and 3 are painted. For overlapping features value 3 is the pixel value.
 
 priority = c(3,2)  => Only features of value 2 and 3 are painted. For overlapping features value 2 is the pixel value.
+
+
+\strong{Advanced usage:} Merge multiple field values to one pixel value each.
+
+For this variant the priority parameter has to be a list of vectors of numbers.
+
+Each entry in the list (a vector of numbers) merges to one value (the first number in the vector).
+
+\strong{Advanced example:}
+
+feature field values: 1 2 3 4
+
+priority = list(c(2,3))  => Only features of value 2 and 3 are painted. The pixel values are 2.
+
+priority = list(c(1,2), c(3,4))  => Only features of value 1,2,3,4 are painted. The pixel values are 1 or 3. If overlapping it is 3.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getRaster(bbox, field = NULL, dx = 1, dy = 1, priority = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PostGIS$getRaster(
+  bbox,
+  field = NULL,
+  dx = 1,
+  dy = 1,
+  priority = NULL,
+  bypass = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -139,7 +163,9 @@ priority = c(3,2)  => Only features of value 2 and 3 are painted. For overlappin
 
 \item{\code{dy}}{Pixel y resolution.}
 
-\item{\code{priority}}{Features rasterization order.}
+\item{\code{priority}}{Features rasterization order. Vector of numbers or List of vector of numbers.}
+
+\item{\code{bypass}}{Just return the prepared features before rasterize step. Utility to diagnose and fix issues.}
 }
 \if{html}{\out{</div>}}
 }

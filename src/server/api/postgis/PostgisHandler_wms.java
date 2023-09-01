@@ -210,7 +210,7 @@ public class PostgisHandler_wms {
 
 		//Style style = Renderer.STYLE_DEFAULT;
 		Style style = new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 0, 100), new Color(0, 150, 0, 100));
-		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, true , width, height, style);
+		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, false, width, height, style);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_PNG);
