@@ -3,7 +3,7 @@ package rasterdb;
 
 import org.tinylog.Logger;
 
-import server.api.rasterdb.WmsHandler.Interruptor;
+import util.Interruptor;
 import util.Timer;
 import util.frame.DoubleFrame;
 import util.frame.FloatFrame;

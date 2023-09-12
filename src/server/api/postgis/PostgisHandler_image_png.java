@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -13,6 +14,7 @@ import org.tinylog.Logger;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
+import util.Interruptor;
 import util.Timer;
 import util.Web;
 import util.image.ImageBufferARGB;
@@ -21,6 +23,8 @@ import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class PostgisHandler_image_png {
+	
+	private ConcurrentHashMap<Long, Interruptor> sessionMap = new ConcurrentHashMap<Long, Interruptor>();
 
 	public void handle(PostgisLayer postgisLayer, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {	
 
@@ -38,6 +42,35 @@ public class PostgisHandler_image_png {
 
 		Rect2d rect = postgisLayer.getExtent();
 		Logger.info(rect);
+		
+		long session = Web.getLong(request, "session", -1);
+		long sessionCnt = Web.getLong(request, "cnt", -1);
+		Interruptor interruptor = null;
+		if(session >= 0 && sessionCnt >= 0) {
+			interruptor = new Interruptor(sessionCnt);			
+			while(true) {
+				Interruptor prevInterruptor = sessionMap.get(session);
+				if(prevInterruptor == null) {
+					if(sessionMap.putIfAbsent(session, interruptor) == null) {
+						break; // new value set
+					}
+				} else {
+					if(prevInterruptor.id < interruptor.id) {
+						if(sessionMap.replace(session, prevInterruptor, interruptor)) {
+							prevInterruptor.interrupted = true;
+							Logger.info("set interrupted (not started) " + prevInterruptor.id + "    " + interruptor.id);
+							break;  // new value set and prev interrupted
+						}
+					} else {
+						if(prevInterruptor.id == interruptor.id) {
+							Logger.warn("same id");
+						}
+						Logger.info("interrupted (not started)");
+						return;
+					}
+				}
+			}			
+		}
 
 		int reqWidth = Web.getInt(request, "width", -1);
 		int reqHeight = Web.getInt(request, "height", -1);		
@@ -53,14 +86,14 @@ public class PostgisHandler_image_png {
 
 		//Style style = Renderer.STYLE_DEFAULT;
 		Style style = new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 0, 100), new Color(0, 150, 0, 100));
-		ImageBufferARGB image = render(postgisLayer, rect, false, width, height, style);
+		ImageBufferARGB image = render(postgisLayer, rect, false, width, height, style, interruptor);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_PNG);
 		image.writePngCompressed(response.getOutputStream());		
 	}
 
-	public static ImageBufferARGB render(PostgisLayer postgisLayer, Rect2d rect, boolean crop, int width, int height, Style style) {
+	public static ImageBufferARGB render(PostgisLayer postgisLayer, Rect2d rect, boolean crop, int width, int height, Style style, Interruptor interruptor) {
 
 		if(style == null) {
 			style = Renderer.STYLE_DEFAULT;
@@ -108,12 +141,12 @@ public class PostgisHandler_image_png {
 			};
 			JTSValueGeometryRasterizer jtsValueGeometryConverter = new JTSValueGeometryRasterizer(xoff, yoff, xscale, yscale, styles, gc);		
 			Timer.start("render");
-			postgisLayer.forEachJTSValueGeometry(rect, crop, field, jtsValueGeometryConverter);
+			postgisLayer.forEachJTSValueGeometry(rect, crop, field, interruptor, jtsValueGeometryConverter);
 			Logger.info(Timer.stop("render"));
 		} else {
 			JTSGeometryRasterizer jtsGeometryConverter = new JTSGeometryRasterizer(xoff, yoff, xscale, yscale, style, gc);		
 			Timer.start("render");
-			postgisLayer.forEachJTSGeometry(rect, crop, jtsGeometryConverter);
+			postgisLayer.forEachJTSGeometry(rect, crop, interruptor, jtsGeometryConverter);
 			Logger.info(Timer.stop("render"));
 		}
 

@@ -180,6 +180,19 @@ public final class Web {
 			return defaultValue;
 		}
 	}
+	
+	public  static long getLong(Request request, String name, long defaultValue) {
+		String text = request.getParameter(name);
+		if(text==null) {
+			return defaultValue;
+		}
+		try {
+			return Long.parseLong(text);
+		} catch (Exception e) {
+			Logger.warn(e);
+			return defaultValue;
+		}
+	}
 
 	public  static int getInt(Request request, String name, IntSupplier defaultValue) {
 		String text = request.getParameter(name);

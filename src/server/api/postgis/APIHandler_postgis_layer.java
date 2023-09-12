@@ -141,6 +141,9 @@ public class APIHandler_postgis_layer {
 		json.key("epsg");
 		json.value(postgisLayer.getEPSG());
 		
+		json.key("wkt_srs");
+		json.value(postgisLayer.getWKT_SRS());
+		
 		Vec<String> vecInvalid = postgisLayer.isInvalid();
 		if(vecInvalid != null) {
 			json.key("invalid_geometry");

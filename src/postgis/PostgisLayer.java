@@ -34,6 +34,7 @@ import net.postgis.jdbc.PGgeometry;
 import net.postgis.jdbc.geometry.Geometry;
 import net.postgis.jdbc.geometry.Point;
 import pointcloud.Rect2d;
+import util.Interruptor;
 import util.Timer;
 import util.Util;
 import util.collections.array.ReadonlyArray;
@@ -140,7 +141,7 @@ public class PostgisLayer extends PostgisLayerBase {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
-		
+
 		if(isInvalid() != null) {			
 			geometrySQL = String.format("ST_MakeValid(%s)", primaryGeometryColumn);
 		}
@@ -161,7 +162,25 @@ public class PostgisLayer extends PostgisLayerBase {
 			throw new RuntimeException(e);
 		}	
 	}
-	
+
+	public String getWKT_SRS() {
+		int epsg = getEPSG();
+		try (Connection conn = postgisConnector.getConnection()) {
+			String sql1 = String.format("SELECT srtext FROM spatial_ref_sys WHERE srid = %s", epsg);	
+			PreparedStatement stmt1 = conn.prepareStatement(sql1);
+			ResultSet rs1 = stmt1.executeQuery();
+			if(rs1.next()) {
+				String text = rs1.getString(1);
+				Logger.info(text);
+				return text;
+			} else {
+				throw new RuntimeException("no text SRID " + epsg);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}	
+	}
+
 	public Vec<String> isInvalid() {
 		Vec<String> vec = null;
 		try (Connection conn = postgisConnector.getConnection()) {
@@ -453,12 +472,12 @@ public class PostgisLayer extends PostgisLayerBase {
 	private static String SQL_ST_MakeEnvelope(Rect2d rect2d, int srid) {
 		return String.format("ST_MakeEnvelope(%s, %s, %s, %s, %s)", rect2d.xmin, rect2d.ymin, rect2d.xmax, rect2d.ymax, srid);
 	}
-	
+
 	private static String SQL_ST_Intersects(String column, Rect2d rect2d, int srid) {
 		String sql_ST_MakeEnvelope = SQL_ST_MakeEnvelope(rect2d, srid);
 		return String.format("ST_Intersects(%s, %s)", column, sql_ST_MakeEnvelope);
 	}
-	
+
 	private static String SQL_ST_Intersection(String column, Rect2d rect2d, int srid) {
 		String sql_ST_MakeEnvelope = SQL_ST_MakeEnvelope(rect2d, srid);
 		return String.format("ST_Intersection(%s, %s)", column, sql_ST_MakeEnvelope);
@@ -467,11 +486,11 @@ public class PostgisLayer extends PostgisLayerBase {
 		//return String.format("ST_Buffer(ST_Intersection(%s, %s), 0.0)", column, sql_ST_MakeEnvelope);
 		//return String.format("ST_Intersection(ST_Buffer(%s, 0.0), %s)", column, sql_ST_MakeEnvelope);
 	}
-	
+
 	private static String SQL_ST_AsGML(String column) {
 		return String.format("ST_AsGML(3, %s, 8, 2)", column);
 	}
-	
+
 	private static int hexToInt(int h) {
 		if ('0' <= h && h <= '9') {
 			return h - '0';
@@ -481,7 +500,7 @@ public class PostgisLayer extends PostgisLayerBase {
 		}
 		return -1;
 	}
-	
+
 	public long forEachGeometry(Rect2d rect2d, boolean crop, GeometryConsumer consumer) {
 		//Logger.info("getGeometry");
 
@@ -526,9 +545,13 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
-	
-	public long forEachJTSGeometry(Rect2d rect2d, boolean crop, JTSGeometryConsumer consumer) {
+
+	public long forEachJTSGeometry(Rect2d rect2d, boolean crop, Interruptor interruptor, JTSGeometryConsumer consumer) {
 		//Logger.info("getGeometry");
+
+		if(Interruptor.isInterrupted(interruptor)) {
+			return -1;
+		}
 
 		try (Connection conn = postgisConnector.getConnection()) {
 			//Timer.start("query");
@@ -550,6 +573,9 @@ public class PostgisLayer extends PostgisLayerBase {
 			ResultSet rs = stmt.executeQuery();
 			long featureCount = 0;
 			WKBReader wkbReader = new WKBReader();
+			if(Interruptor.isInterrupted(interruptor)) {
+				return -1;
+			}
 			while(rs.next()) {
 				byte[] raw = rs.getBytes(1);
 				if(raw != null) {
@@ -562,10 +588,13 @@ public class PostgisLayer extends PostgisLayerBase {
 						bytes[i] = (byte) ((hexToInt(raw[j]) << 4) + hexToInt(raw[j + 1]));
 					}
 					org.locationtech.jts.geom.Geometry geometry = wkbReader.read(bytes);
-					//Logger.info(geometry.getClass());					
+					//Logger.info(geometry.getClass());
 					consumer.acceptGeometry(geometry);					
 				} else {
 					//Logger.info("null");
+				}
+				if(Interruptor.isInterrupted(interruptor)) {
+					return -1;
 				}
 			}
 			//Logger.info("features " + featureCount);
@@ -576,9 +605,14 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
-	
-	public <T extends JTSGeometryConsumer> long forEachJTSValueGeometry(Rect2d rect2d, boolean crop, String valueField, JTSValueGeometryConsumer consumer) {
+
+	public <T extends JTSGeometryConsumer> long forEachJTSValueGeometry(Rect2d rect2d, boolean crop, String valueField, Interruptor interruptor, JTSValueGeometryConsumer consumer) {
 		//Logger.info("getGeometry");
+
+		if(Interruptor.isInterrupted(interruptor)) {
+			Logger.info("interrupted " + interruptor.id + "     out");
+			return -1;
+		}
 
 		try (Connection conn = postgisConnector.getConnection()) {
 			//Timer.start("query");
@@ -600,6 +634,10 @@ public class PostgisLayer extends PostgisLayerBase {
 			ResultSet rs = stmt.executeQuery();
 			long featureCount = 0;
 			WKBReader wkbReader = new WKBReader();
+			if(Interruptor.isInterrupted(interruptor)) {
+				Logger.info("interrupted " + interruptor.id);
+				return -1;
+			}
 			while(rs.next()) {
 				byte[] raw = rs.getBytes(1);
 				if(raw != null) {
@@ -618,6 +656,10 @@ public class PostgisLayer extends PostgisLayerBase {
 					consumer.acceptGeometry(value, geometry);					
 				} else {
 					//Logger.info("null");
+				}
+				if(Interruptor.isInterrupted(interruptor)) {
+					Logger.info("interrupted " + interruptor.id + "     inner");
+					return -1;
 				}
 			}
 			//Logger.info("features " + featureCount);
@@ -682,7 +724,7 @@ public class PostgisLayer extends PostgisLayerBase {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	/**
 	 * 
 	 * @param rect2d  nullable
@@ -723,7 +765,7 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}	
 	}
-	
+
 	/**
 	 * 
 	 * @param rect2d  nullable
@@ -792,7 +834,7 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}	
 	}
-	
+
 	public ResultSet queryGMLWithFields(Rect2d rect2d, boolean crop) {
 		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
@@ -821,7 +863,7 @@ public class PostgisLayer extends PostgisLayerBase {
 			return null;	
 		}	
 	}
-	
+
 	public boolean hasFieldName(String fieldName) {
 		for(PostgisColumn fld : flds) {
 			if(fld.name.equals(fieldName)) {

@@ -8,7 +8,7 @@ import rasterdb.Rasterizer;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
 import server.api.rasterdb.RequestProcessor.OutputProcessingType;
-import server.api.rasterdb.WmsHandler.Interruptor;
+import util.Interruptor;
 import util.Range2d;
 import util.Receiver;
 import util.image.ImageBufferARGB;

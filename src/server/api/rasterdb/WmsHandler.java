@@ -22,6 +22,8 @@ import rasterdb.TimeBand;
 import rasterdb.dsl.DSL;
 import rasterdb.dsl.ErrorCollector;
 import server.api.main.APIHandler_session;
+import util.Interruptor;
+import util.InterruptorInterruptedException;
 import util.Range2d;
 import util.Timer;
 import util.Web;
@@ -90,35 +92,6 @@ public class WmsHandler extends AbstractHandler {
 		WmsCapabilities wmsCapabilities = new WmsCapabilities(broker, request.getRequestURL().toString());
 		response.setContentType(Web.MIME_XML);
 		wmsCapabilities.capabilities(response.getOutputStream(), Web.getUserIdentity(request));		
-	}
-
-	public static class InterruptorInterruptedException extends RuntimeException {
-		private static final long serialVersionUID = -8405416244955848549L;
-	}
-
-	public static class Interruptor {
-
-		public volatile boolean interrupted;
-		public final long id;
-
-		public Interruptor(long id) {
-			this.id = id;
-		}
-
-		public static boolean isInterrupted(Interruptor interruptor) {
-			return interruptor != null && interruptor.interrupted;
-		}
-
-		/**
-		 * 
-		 * @param interruptor nullable
-		 */
-		public static void checkInterrupted(Interruptor interruptor) {
-			//Logger.info("checkInterrupted " + interruptor);
-			if(interruptor != null && interruptor.interrupted) {
-				throw new InterruptorInterruptedException();
-			}
-		}
 	}
 
 	private static ConcurrentHashMap<Long, Interruptor> taskMap = new ConcurrentHashMap<Long, Interruptor>();

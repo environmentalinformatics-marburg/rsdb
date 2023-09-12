@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -27,6 +28,7 @@ import postgis.PostgisLayer;
 import postgis.PostgisLayer.PostgisColumn;
 import util.GeoUtil;
 import util.IndentedXMLStreamWriter;
+import util.Interruptor;
 import util.Web;
 import util.XmlUtil;
 import util.image.ImageBufferARGB;
@@ -34,6 +36,8 @@ import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class PostgisHandler_wms {
+
+	private ConcurrentHashMap<Long, Interruptor> sessionMap = new ConcurrentHashMap<Long, Interruptor>();
 
 	public void handle(PostgisLayer postgisLayer, String target, Request request, Response response, UserIdentity userIdentity) {
 
@@ -203,18 +207,51 @@ public class PostgisHandler_wms {
 	}
 
 	private void handle_GetMap(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
+
+		long session = Web.getLong(request, "session", -1);
+		long sessionCnt = Web.getLong(request, "cnt", -1);
+		Interruptor interruptor = null;
+		if(session >= 0 && sessionCnt >= 0) {
+			interruptor = new Interruptor(sessionCnt);			
+			while(true) {
+				Interruptor prevInterruptor = sessionMap.get(session);
+				if(prevInterruptor == null) {
+					if(sessionMap.putIfAbsent(session, interruptor) == null) {
+						break; // new value set
+					}
+				} else {
+					if(prevInterruptor.id < interruptor.id) {
+						if(sessionMap.replace(session, prevInterruptor, interruptor)) {
+							prevInterruptor.interrupted = true;
+							//Logger.info("set interrupted " + prevInterruptor.id + "    " + interruptor.id);
+							break;  // new value set and prev interrupted
+						}
+					} else {
+						if(prevInterruptor.id == interruptor.id) {
+							Logger.warn("interrupted same id " + interruptor.id);
+						}
+						Logger.info("interrupted (not started) " + interruptor.id);
+						return;
+					}
+				}
+			}			
+		}
+
 		String[] bbox = request.getParameter("BBOX").split(",");
 		Rect2d wmsRect = Rect2d.parseBbox(bbox);
 		int width = Web.getInt(request, "WIDTH");
-		int height = Web.getInt(request, "HEIGHT");
+		int height = Web.getInt(request, "HEIGHT");		
 
 		//Style style = Renderer.STYLE_DEFAULT;
 		Style style = new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 0, 100), new Color(0, 150, 0, 100));
-		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, false, width, height, style);
-
-		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(Web.MIME_PNG);
-		image.writePngCompressed(response.getOutputStream());	
+		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, false, width, height, style, interruptor);
+		if(Interruptor.isInterrupted(interruptor)) {
+			response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
+		} else {
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setContentType(Web.MIME_PNG);
+			image.writePngCompressed(response.getOutputStream());
+		}
 	}
 
 	private void handle_GetFeatureInfo(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
@@ -228,12 +265,12 @@ public class PostgisHandler_wms {
 		int reqHeight = Web.getInt(request, "HEIGHT");		
 		int reqX = Web.getInt(request, "I");
 		int reqY = Web.getInt(request, "J");
-		
+
 		double xres = rect2d.width() / reqWidth;
 		double yres = rect2d.height() / reqHeight;
-		
+
 		Rect2d pixelRect2d = new Rect2d(rect2d.xmin + xres * reqX, rect2d.ymax - yres * (reqY + 1), rect2d.xmin + xres * (reqX + 1), rect2d.ymax - yres * reqY);
-		
+
 		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
 		Logger.info(rect2d);
 		Logger.info(pixelRect2d);
