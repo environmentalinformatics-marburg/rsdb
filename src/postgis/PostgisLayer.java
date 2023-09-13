@@ -193,7 +193,7 @@ public class PostgisLayer extends PostgisLayerBase {
 				String reason = rs.getString(1);
 				String location = rs.getString(2);
 				String s = reason + "  " + location;
-				Logger.info(s);
+				//Logger.info(s);
 				if(vec == null) {
 					vec = new Vec<String>();
 				}

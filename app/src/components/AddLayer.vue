@@ -19,7 +19,7 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="OK" color="primary" v-close-popup @click="onOk" />
+        <q-btn flat label="Add" color="primary" v-close-popup @click="onOk" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -38,7 +38,7 @@ export default defineComponent({
 
   data() {
     return {
-      dialog: true,
+      dialog: false,
       postgis: undefined,
     };
   },
@@ -52,6 +52,7 @@ export default defineComponent({
 
     onOk() {
       this.layers.push({ name: this.postgis.name, type: "postgis" });
+      this.$emit("close");
     },
   },
 

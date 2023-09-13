@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -36,8 +37,32 @@ import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class PostgisHandler_wms {
+	
+	private static class SessionLayerKey {
+		public final long session;
+		public final String layer;
+		public SessionLayerKey(long session, String layer) {
+			this.session = session;
+			this.layer = layer;
+		}
+		@Override
+		public int hashCode() {
+			return Objects.hash(layer, session);
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			SessionLayerKey other = (SessionLayerKey) obj;
+			return session == other.session && Objects.equals(layer, other.layer);
+		}
+	}
 
-	private ConcurrentHashMap<Long, Interruptor> sessionMap = new ConcurrentHashMap<Long, Interruptor>();
+	private ConcurrentHashMap<SessionLayerKey, Interruptor> sessionMap = new ConcurrentHashMap<SessionLayerKey, Interruptor>();
 
 	public void handle(PostgisLayer postgisLayer, String target, Request request, Response response, UserIdentity userIdentity) {
 
@@ -214,14 +239,15 @@ public class PostgisHandler_wms {
 		if(session >= 0 && sessionCnt >= 0) {
 			interruptor = new Interruptor(sessionCnt);			
 			while(true) {
-				Interruptor prevInterruptor = sessionMap.get(session);
+				SessionLayerKey sessionLayerKey = new SessionLayerKey(session, postgisLayer.name);
+				Interruptor prevInterruptor = sessionMap.get(sessionLayerKey);
 				if(prevInterruptor == null) {
-					if(sessionMap.putIfAbsent(session, interruptor) == null) {
+					if(sessionMap.putIfAbsent(sessionLayerKey, interruptor) == null) {
 						break; // new value set
 					}
 				} else {
 					if(prevInterruptor.id < interruptor.id) {
-						if(sessionMap.replace(session, prevInterruptor, interruptor)) {
+						if(sessionMap.replace(sessionLayerKey, prevInterruptor, interruptor)) {
 							prevInterruptor.interrupted = true;
 							//Logger.info("set interrupted " + prevInterruptor.id + "    " + interruptor.id);
 							break;  // new value set and prev interrupted

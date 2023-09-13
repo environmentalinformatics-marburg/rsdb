@@ -12,20 +12,91 @@
       dense
     >
       <q-list bordered separator>
-        <q-btn @click="$refs.AddLayer.dialog = true">Add layer</q-btn>
-        <AddLayer ref="AddLayer"></AddLayer>
         <q-item
-          v-for="layer in layers"
+          v-for="(layer, index) in layers"
           :key="layer.name + ':' + layer.type"
           clickable
           v-ripple
         >
-          <q-item-section>
-            <q-item-label overline>PostGIS layer</q-item-label>
-            <q-item-label caption>{{ layer.name }}</q-item-label>
-          </q-item-section>
+          <template v-if="layer.type === 'postgis'">
+            <q-item-section side top
+              ><q-btn
+                size="sm"
+                flat
+                round
+                color="grey"
+                icon="delete_forever"
+                @click.stop="
+                  layers.splice(index, 1);
+                  refreshLayers();
+                  console.log('done!');
+                "
+            /></q-item-section>
+            <q-item-section>
+              <q-item-label caption>PostGIS</q-item-label>
+              <q-item-label>{{ layer.name }}</q-item-label>
+            </q-item-section>
+            <q-item-section side top
+              ><q-checkbox
+                size="xs"
+                v-model="layer.visible"
+                val="xs"
+                color="grey"
+                @update:model-value="refreshLayerVisibility"
+            /></q-item-section>
+          </template>
+          <template v-else-if="layer.type === 'background'">
+            <q-item-section>
+              <q-item-label caption>Background</q-item-label>
+              <q-item-label>{{ layer.name }}</q-item-label>
+            </q-item-section>
+            <q-item-section side top
+              ><q-checkbox
+                size="xs"
+                v-model="layer.visible"
+                val="xs"
+                color="grey"
+                @update:model-value="refreshLayerVisibility"
+            /></q-item-section>
+          </template>
+          <template v-else>
+            <q-item-section>
+              <q-item-label caption>{{ layer.type }} layer</q-item-label>
+              <q-item-label>{{ layer.name }}</q-item-label>
+            </q-item-section>
+            <q-item-section side top
+              ><q-checkbox
+                size="xs"
+                v-model="layer.visible"
+                val="xs"
+                color="grey"
+                @update:model-value="refreshLayerVisibility"
+            /></q-item-section>
+          </template>
+          <q-menu>
+            <q-list style="min-width: 300px">
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Opacity</q-item-label>
+                  <q-item-label>
+                    <q-slider
+                      v-model="layer.opacity"
+                      :min="0"
+                      :max="100"
+                      @update:model-value="
+                        layer.layer.setOpacity(layer.opacity / 100)
+                      "
+                    />
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
         </q-item>
       </q-list>
+      <q-btn @click="$refs.AddLayer.dialog = true"
+        >Add layer <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer
+      ></q-btn>
     </div>
   </div>
 </template>
@@ -72,34 +143,45 @@ export default defineComponent({
   methods: {
     ...mapActions(useLayersStore, { layersInit: "init" }),
 
-    async setPostgisLayer() {
+    completeLayer(layerEntry) {
+      if (layerEntry.visible === undefined) {
+        layerEntry.visible = true;
+      }
+      if (layerEntry.opacity === undefined) {
+        layerEntry.opacity = 100;
+      }
+    },
+
+    async completePostgisLayer(layerEntry) {
       try {
-        const postgisLayerURLPart = "postgis/layers/" + this.postgisLayerID;
+        if (layerEntry.postgisLayerURLPart === undefined) {
+          layerEntry.postgisLayerURLPart = "postgis/layers/" + layerEntry.name;
+        }
 
-        const response = await this.$api.get(postgisLayerURLPart);
-        const meta = response.data;
-        //console.log(meta);
+        if (layerEntry.meta === undefined) {
+          const response = await this.$api.get(layerEntry.postgisLayerURLPart);
+          layerEntry.meta = response.data;
+        }
 
-        const extent = [
-          meta.extent.xmin,
-          meta.extent.ymin,
-          meta.extent.xmax,
-          meta.extent.ymax,
-        ];
+        if (layerEntry.extent === undefined) {
+          layerEntry.extent = [
+            layerEntry.meta.extent.xmin,
+            layerEntry.meta.extent.ymin,
+            layerEntry.meta.extent.xmax,
+            layerEntry.meta.extent.ymax,
+          ];
+        }
 
-        //console.log(this.$api.getUri());
+        if (layerEntry.wmsURL === undefined) {
+          layerEntry.wmsURL =
+            this.$api.getUri() + layerEntry.postgisLayerURLPart + "/wms";
+        }
 
-        const wmsURL = this.$api.getUri() + postgisLayerURLPart + "/wms";
-        //console.log(wmsURL);
-
-        const layers = [
-          new TileLayer({
-            source: new OSM(),
-          }),
-          new ImageLayer({
-            extent: extent,
+        if (layerEntry.layer === undefined) {
+          layerEntry.layer = new ImageLayer({
+            extent: layerEntry.extent,
             source: new ImageWMS({
-              url: wmsURL,
+              url: layerEntry.wmsURL,
               ratio: 1,
               interpolate: false,
               imageLoadFunction: (image, src) => {
@@ -112,44 +194,102 @@ export default defineComponent({
                 image.getImage().src = srcUrl;
               },
             }),
-          }),
-        ];
+          });
+        }
 
-        this.map.setLayers(layers);
+        if (layerEntry.projection === undefined) {
+          const srs = "EPSG" + layerEntry.meta.epsg;
 
-        console.log(meta);
+          proj4.defs(srs, layerEntry.meta.wkt_srs);
+          register(proj4);
 
-        const srs = "EPSG" + meta.epsg;
-
-        proj4.defs(srs, meta.wkt_srs);
-        register(proj4);
-
-        const projection = new Projection({
-          code: srs,
-          units: "m",
-        });
-
-        this.view = new View({
-          projection: projection,
-        });
-
-        this.map.setView(this.view);
-
-        this.view.fit(extent);
+          layerEntry.projection = new Projection({
+            code: srs,
+            units: "m",
+          });
+        }
       } catch (e) {
-        Console.log(e);
+        console.log(e);
+      }
+    },
+
+    async refreshLayers() {
+      try {
+        if (this.layers.length > 0) {
+          for (const layerEntry of this.layers) {
+            this.completeLayer(layerEntry);
+            if (layerEntry.type === "background") {
+              // nothing
+            } else if (layerEntry.type === "postgis") {
+              await this.completePostgisLayer(layerEntry);
+            } else {
+              console.log("unknown layer type");
+            }
+          }
+          const mainLayer =
+            this.layers.length > 1 ? this.layers[1] : this.layers[0];
+          const layers = [];
+          /*layers.push(
+            new TileLayer({
+              source: new OSM(),
+            })
+          );*/
+          for (const layerEntry of this.layers) {
+            if (layerEntry.layer !== undefined) {
+              layerEntry.layer.setVisible(layerEntry.visible);
+              layers.push(layerEntry.layer);
+            }
+          }
+          this.map.setLayers(layers);
+
+          this.view = new View({
+            projection: mainLayer.projection,
+          });
+
+          this.map.setView(this.view);
+
+          if (mainLayer.extent !== undefined) {
+            this.view.fit(mainLayer.extent);
+          }
+        } else {
+          this.map.setLayers([]);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    },
+
+    refreshLayerVisibility() {
+      //console.log("refreshLayerVisibility");
+      for (const layerEntry of this.layers) {
+        const layer = layerEntry.layer;
+        if (layer !== undefined) {
+          layer.setVisible(layerEntry.visible);
+        }
       }
     },
   },
 
-  mounted() {
-    console.log(this.layersInit);
+  async mounted() {
     this.layersInit(this);
 
+    this.layers.length = 0;
+    this.layers.push({
+      name: "OpenStreetMap",
+      type: "background",
+      layer: new TileLayer({
+        source: new OSM(),
+      }),
+      visible: false,
+      extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+    });
+
     const query = this.route.query;
-    console.log(query);
+    //console.log(query);
     if (query.postgis !== undefined) {
       this.postgisLayerID = query.postgis;
+
+      this.layers.push({ name: query.postgis, type: "postgis" });
     }
 
     const projection = new Projection({
@@ -170,16 +310,16 @@ export default defineComponent({
     let cntStart = 0;
     let cntEnd = 0;
 
-    this.map.on("loadstart", () => {
+    this.map.on("loadstart", (e) => {
       this.map.getTargetElement().classList.add("spinner");
-      console.log("loadstart");
+      //console.log("loadstart");
     });
-    this.map.on("loadend", () => {
+    this.map.on("loadend", (e) => {
       this.map.getTargetElement().classList.remove("spinner");
-      console.log("loadend");
+      //console.log("loadend");
     });
 
-    this.setPostgisLayer();
+    await this.refreshLayers();
   },
 });
 </script>
