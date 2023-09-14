@@ -1,4 +1,4 @@
-package server.api.postgis;
+package postgis.style;
 
 import java.awt.Graphics2D;
 
@@ -6,32 +6,27 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.Polygon;
 
-import postgis.JTSValueGeometryConsumer;
 import vectordb.style.Style;
 
-public class JTSValueGeometryRasterizer implements JTSValueGeometryConsumer {
+public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 
 	public final double xoff;
 	public final double yoff;
 	public final double xscale;
 	public final double yscale;
 
-	private Style[] styles;	
 	public final Graphics2D gc;
 
-	public JTSValueGeometryRasterizer(double xoff, double yoff, double xscale, double yscale, Style[] styles, Graphics2D gc) {
+	public StyleJtsGeometryRasterizer(double xoff, double yoff, double xscale, double yscale, Graphics2D gc) {
 		this.xoff = xoff;
 		this.yoff = yoff;
 		this.xscale = xscale;
 		this.yscale = yscale;
-		this.styles = styles;
 		this.gc = gc;
 	}
 
 	@Override
-	public void acceptPolygon(int value, Polygon polygon) {
-		int styleIndex = value % styles.length;
-		Style style = styles[styleIndex];
+	public void acceptPolygon(Style style, Polygon polygon) {
 		final int interiorRings = polygon.getNumInteriorRing();
 		if(interiorRings == 0) {
 			LinearRing ring = polygon.getExteriorRing();

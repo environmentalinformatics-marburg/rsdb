@@ -6,7 +6,7 @@ import net.postgis.jdbc.geometry.Geometry;
 import net.postgis.jdbc.geometry.MultiPolygon;
 import net.postgis.jdbc.geometry.Polygon;
 
-public interface GeometryConsumer {
+public interface PGgeometryConsumer {
 
 	void acceptPolygon(Polygon polygon);
 

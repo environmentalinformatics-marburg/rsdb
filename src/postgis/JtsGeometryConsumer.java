@@ -11,73 +11,73 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.tinylog.Logger;
 
-public interface JTSValueGeometryConsumer {
+public interface JtsGeometryConsumer {
 
-	default void acceptPolygon(int value, Polygon polygon) {
+	default void acceptPolygon(Polygon polygon) {
 		//Logger.info("Polygon");
 	}
 
-	default void acceptMultiPolygon(int value, MultiPolygon multiPolygon) {
+	default void acceptMultiPolygon(MultiPolygon multiPolygon) {
 		final int n = multiPolygon.getNumGeometries();
 		for (int i = 0; i < n; i++) {
 			Polygon polygon = ((Polygon) multiPolygon.getGeometryN(i));
-			acceptPolygon(value, polygon);
+			acceptPolygon(polygon);
 		}
 	}
 	
-	default void acceptLineString(int value, LineString lineString) {
+	default void acceptLineString(LineString lineString) {
 		//Logger.info("LineString");
 	}
 	
-	default void acceptMultiLineString(int value, MultiLineString multiLineString) {
+	default void acceptMultiLineString(MultiLineString multiLineString) {
 		final int n = multiLineString.getNumGeometries();
 		for (int i = 0; i < n; i++) {
 			LineString lineString = ((LineString) multiLineString.getGeometryN(i));
-			acceptLineString(value, lineString);
+			acceptLineString(lineString);
 		}
 	}
 
-	default void acceptMultiPoint(int value, MultiPoint multiPoint) {
+	default void acceptMultiPoint(MultiPoint multiPoint) {
 		final int n = multiPoint.getNumGeometries();
 		for (int i = 0; i < n; i++) {
 			Point point = ((Point) multiPoint.getGeometryN(i));
-			acceptPoint(value, point);
+			acceptPoint(point);
 		}
 	}
 
-	default void acceptLinearRing(int value, LinearRing linearRing) {
-		acceptLineString(value, linearRing);
+	default void acceptLinearRing(LinearRing linearRing) {
+		acceptLineString(linearRing);
 	}
 
-	default void acceptPoint(int value, Point point) {
+	default void acceptPoint(Point point) {
 		//Logger.info("Point");
 	}
 
-	default void acceptGeometryCollection(int value, GeometryCollection geometryCollection) {
+	default void acceptGeometryCollection(GeometryCollection geometryCollection) {
 		final int n = geometryCollection.getNumGeometries();
 		for (int i = 0; i < n; i++) {
 			Geometry geometry = geometryCollection.getGeometryN(i);
-			acceptGeometry(value, geometry);
+			acceptGeometry(geometry);
 		}
 	}
 
-	default void acceptGeometry(int value, Geometry geometry) {
+	default void acceptGeometry(Geometry geometry) {
 		if(geometry instanceof Polygon) {
-			acceptPolygon(value, (Polygon) geometry);
+			acceptPolygon((Polygon) geometry);
 		} else if(geometry instanceof MultiPolygon) {
-			acceptMultiPolygon(value, (MultiPolygon) geometry);
+			acceptMultiPolygon((MultiPolygon) geometry);
 		}  else if(geometry instanceof GeometryCollection) {
-			acceptGeometryCollection(value, (GeometryCollection) geometry);
+			acceptGeometryCollection((GeometryCollection) geometry);
 		}  else if(geometry instanceof LineString) {
-			acceptLineString(value, (LineString) geometry);			
+			acceptLineString((LineString) geometry);			
 		}  else if(geometry instanceof Point) {
-			acceptPoint(value, (Point) geometry);			
+			acceptPoint((Point) geometry);			
 		}  else if(geometry instanceof LinearRing) {
-			acceptLinearRing(value, (LinearRing) geometry);			
+			acceptLinearRing((LinearRing) geometry);			
 		}  else if(geometry instanceof MultiPoint) {
-			acceptMultiPoint(value, (MultiPoint) geometry);			
+			acceptMultiPoint((MultiPoint) geometry);			
 		}  else if(geometry instanceof MultiLineString) {
-			acceptMultiLineString(value, (MultiLineString) geometry);
+			acceptMultiLineString((MultiLineString) geometry);
 		} else {
 			Logger.info("unknown geometry: " + geometry.getClass());
 		}

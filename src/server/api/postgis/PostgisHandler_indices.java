@@ -17,7 +17,7 @@ import org.locationtech.jts.geom.Geometry;
 
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
-import postgis.JTSGeometryConsumer;
+import postgis.JtsGeometryConsumer;
 import postgis.PostgisLayer;
 import util.JsonUtil;
 import util.Web;
@@ -25,7 +25,7 @@ import util.collections.vec.DoubleVec;
 
 public class PostgisHandler_indices {
 
-	public static abstract class ValuCollector implements JTSGeometryConsumer {		
+	public static abstract class ValuCollector implements JtsGeometryConsumer {		
 		public DoubleVec collector = new DoubleVec();
 	}
 
@@ -93,7 +93,7 @@ public class PostgisHandler_indices {
 		}	
 	}
 
-	public static class CalcProcessor implements JTSGeometryConsumer {	
+	public static class CalcProcessor implements JtsGeometryConsumer {	
 
 		private CalcArea calcArea = new CalcArea();
 		private CalcPerimeter calcPerimeter = new CalcPerimeter();
@@ -267,9 +267,13 @@ public class PostgisHandler_indices {
 		}
 		
 		boolean writeValues = jsonR.optBoolean("values", false);
-
+		
 		HashMap<Object, CalcProcessor> groupMap = new HashMap<Object, CalcProcessor>();
-		postgisLayer.forEachJTSGeometryByGroup(rect2d, crop, classField, groupMap, CalcProcessor::new);
+		
+		postgisLayer.forEachObjectJtsGeometry(rect2d, crop, classField, (value, geometry) -> {
+			JtsGeometryConsumer consumer = groupMap.computeIfAbsent(value, o -> new CalcProcessor());
+			consumer.acceptGeometry(geometry);	
+		});
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);

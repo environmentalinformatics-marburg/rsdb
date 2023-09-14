@@ -16,11 +16,10 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import org.eclipse.jetty.server.UserIdentity;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBReader;
 import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
@@ -31,8 +30,6 @@ import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
 import net.postgis.jdbc.PGbox2d;
 import net.postgis.jdbc.PGgeometry;
-import net.postgis.jdbc.geometry.Geometry;
-import net.postgis.jdbc.geometry.Point;
 import pointcloud.Rect2d;
 import util.Interruptor;
 import util.Timer;
@@ -371,8 +368,8 @@ public class PostgisLayer extends PostgisLayerBase {
 				if(obj != null) {
 					if(obj instanceof PGbox2d) {
 						PGbox2d box = (PGbox2d) obj;
-						Point p1 = box.getLLB();
-						Point p2 = box.getURT();
+						net.postgis.jdbc.geometry.Point p1 = box.getLLB();
+						net.postgis.jdbc.geometry.Point p2 = box.getURT();
 						Rect2d rect2d = new Rect2d(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y), Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));						
 						return rect2d;
 					} else {
@@ -501,7 +498,7 @@ public class PostgisLayer extends PostgisLayerBase {
 		return -1;
 	}
 
-	public long forEachGeometry(Rect2d rect2d, boolean crop, GeometryConsumer consumer) {
+	public long forEachPGgeometry(Rect2d rect2d, boolean crop, PGgeometryConsumer consumer) {
 		//Logger.info("getGeometry");
 
 		try (Connection conn = postgisConnector.getConnection()) {
@@ -527,7 +524,7 @@ public class PostgisLayer extends PostgisLayerBase {
 				if(obj != null) {
 					if(obj instanceof PGgeometry) {
 						PGgeometry pgGeometry = (PGgeometry) obj;
-						Geometry geometry = pgGeometry.getGeometry();
+						net.postgis.jdbc.geometry.Geometry geometry = pgGeometry.getGeometry();
 						consumer.acceptGeometry(geometry);						
 						featureCount++;
 					} else {
@@ -545,8 +542,8 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
-
-	public long forEachJTSGeometry(Rect2d rect2d, boolean crop, Interruptor interruptor, JTSGeometryConsumer consumer) {
+	
+	public long forEachJtsGeometry(Rect2d rect2d, boolean crop, Interruptor interruptor, Consumer<Geometry> consumer) {
 		//Logger.info("getGeometry");
 
 		if(Interruptor.isInterrupted(interruptor)) {
@@ -587,9 +584,9 @@ public class PostgisLayer extends PostgisLayerBase {
 						int j = i << 1;
 						bytes[i] = (byte) ((hexToInt(raw[j]) << 4) + hexToInt(raw[j + 1]));
 					}
-					org.locationtech.jts.geom.Geometry geometry = wkbReader.read(bytes);
+					Geometry geometry = wkbReader.read(bytes);
 					//Logger.info(geometry.getClass());
-					consumer.acceptGeometry(geometry);					
+					consumer.accept(geometry);				
 				} else {
 					//Logger.info("null");
 				}
@@ -605,8 +602,13 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
-
-	public <T extends JTSGeometryConsumer> long forEachJTSValueGeometry(Rect2d rect2d, boolean crop, String valueField, Interruptor interruptor, JTSValueGeometryConsumer consumer) {
+	
+	@FunctionalInterface
+	public static interface IntJtsGeometryConsumer {
+	    void accept(int value, Geometry geometry);
+	}
+	
+	public <T extends JtsGeometryConsumer> long forEachIntJtsGeometry(Rect2d rect2d, boolean crop, String valueField, Interruptor interruptor, IntJtsGeometryConsumer consumer) {
 		//Logger.info("getGeometry");
 
 		if(Interruptor.isInterrupted(interruptor)) {
@@ -649,11 +651,11 @@ public class PostgisLayer extends PostgisLayerBase {
 						int j = i << 1;
 						bytes[i] = (byte) ((hexToInt(raw[j]) << 4) + hexToInt(raw[j + 1]));
 					}
-					org.locationtech.jts.geom.Geometry geometry = wkbReader.read(bytes);
+					Geometry geometry = wkbReader.read(bytes);
 					//Logger.info(geometry.getClass());
 
 					int value = rs.getInt(2);
-					consumer.acceptGeometry(value, geometry);					
+					consumer.accept(value, geometry);					
 				} else {
 					//Logger.info("null");
 				}
@@ -669,23 +671,28 @@ public class PostgisLayer extends PostgisLayerBase {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@FunctionalInterface
+	public static interface ObjectJtsGeometryConsumer {
+	    void accept(Object value, Geometry geometry);
+	}
 
-	public <T extends JTSGeometryConsumer> long forEachJTSGeometryByGroup(Rect2d rect2d, boolean crop, String groupField, Map<Object, T> groupMap, Supplier<T>  factory) {
+	public <T extends JtsGeometryConsumer> long forEachObjectJtsGeometry(Rect2d rect2d, boolean crop, String valueField, ObjectJtsGeometryConsumer consumer) {
 		//Logger.info("getGeometry");
 
 		try (Connection conn = postgisConnector.getConnection()) {
 			//Timer.start("query");
 			String sql;
 			if(rect2d == null) {
-				sql = String.format("SELECT %s, %s FROM %s", geometrySQL, groupField, name);		
+				sql = String.format("SELECT %s, %s FROM %s", geometrySQL, valueField, name);		
 			} else {
 				int epsg = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
 				if(crop) {
 					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
-					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_Intersection, groupField, name, sql_ST_Intersects);	
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_Intersection, valueField, name, sql_ST_Intersects);	
 				} else {
-					sql = String.format("SELECT %s, %s FROM %s WHERE %s", geometrySQL, groupField, name, sql_ST_Intersects);
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s", geometrySQL, valueField, name, sql_ST_Intersects);
 				}
 			}	
 			Logger.info(sql);
@@ -704,15 +711,11 @@ public class PostgisLayer extends PostgisLayerBase {
 						int j = i << 1;
 						bytes[i] = (byte) ((hexToInt(raw[j]) << 4) + hexToInt(raw[j + 1]));
 					}
-					org.locationtech.jts.geom.Geometry geometry = wkbReader.read(bytes);
+					Geometry geometry = wkbReader.read(bytes);
 					//Logger.info(geometry.getClass());
 
-					Object group = rs.getObject(2);
-					JTSGeometryConsumer consumer = groupMap.computeIfAbsent(group, key -> {
-						return factory.get();
-					});
-
-					consumer.acceptGeometry(geometry);					
+					Object value = rs.getObject(2);
+					consumer.accept(value, geometry);					
 				} else {
 					//Logger.info("null");
 				}
@@ -724,7 +727,7 @@ public class PostgisLayer extends PostgisLayerBase {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
 	/**
 	 * 
 	 * @param rect2d  nullable

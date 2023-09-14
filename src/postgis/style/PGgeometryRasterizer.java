@@ -1,14 +1,14 @@
-package server.api.postgis;
+package postgis.style;
 
 import java.awt.Graphics2D;
 
 import net.postgis.jdbc.geometry.LinearRing;
 import net.postgis.jdbc.geometry.Point;
 import net.postgis.jdbc.geometry.Polygon;
-import postgis.GeometryConsumer;
+import postgis.PGgeometryConsumer;
 import vectordb.style.Style;
 
-public class GeometryConverter implements GeometryConsumer {
+public class PGgeometryRasterizer implements PGgeometryConsumer {
 	
 	public final double xoff;
 	public final double yoff;
@@ -18,7 +18,7 @@ public class GeometryConverter implements GeometryConsumer {
 	public final Style style;
 	public final Graphics2D gc;
 
-	public GeometryConverter(double xoff, double yoff, double xscale, double yscale, Style style, Graphics2D gc) {
+	public PGgeometryRasterizer(double xoff, double yoff, double xscale, double yscale, Style style, Graphics2D gc) {
 		this.xoff = xoff;
 		this.yoff = yoff;
 		this.xscale = xscale;

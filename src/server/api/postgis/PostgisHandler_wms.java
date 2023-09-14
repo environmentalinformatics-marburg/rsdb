@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
 import postgis.PostgisLayer.PostgisColumn;
+import postgis.style.SimpleStyleProvider;
 import util.GeoUtil;
 import util.IndentedXMLStreamWriter;
 import util.Interruptor;
@@ -268,9 +269,7 @@ public class PostgisHandler_wms {
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");		
 
-		//Style style = Renderer.STYLE_DEFAULT;
-		Style style = new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 0, 100), new Color(0, 150, 0, 100));
-		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, false, width, height, style, interruptor);
+		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, false, width, height, PostgisHandler_image_png.DEFAULT_STYLE_PROVIDER, interruptor);
 		if(Interruptor.isInterrupted(interruptor)) {
 			response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
 		} else {

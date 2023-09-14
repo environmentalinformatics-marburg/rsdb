@@ -29,9 +29,7 @@ public class PostgisLayerManager {
 		this.broker = broker;
 		this.postgisConnector = new PostgisConnector(broker.brokerConfig.postgis());
 		refresh();
-	}
-
-	
+	}	
 	
 	public PostgisLayer getPostgisLayer(String name) {
 		PostgisLayer postgisLayer = postgisLayerMap.get(name);
