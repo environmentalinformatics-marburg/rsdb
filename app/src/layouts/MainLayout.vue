@@ -11,14 +11,117 @@
       "
       dense
     >
+      <!--<draggable v-model="layers" item-key="name" @update="refreshLayers(true)">
+        <template #item="{ element, index }">
+          <div>{{ element.name }} {{ index }}</div>
+        </template>
+      </draggable>-->
+
       <q-list bordered separator>
+        <draggable
+          v-model="layers"
+          item-key="name"
+          @update="refreshLayers(true)"
+        >
+          <template #item="{ element, index }">
+            <div>
+              <q-item clickable v-ripple>
+                <template v-if="element.type === 'postgis'">
+                  <q-item-section side top
+                    ><q-btn
+                      size="sm"
+                      flat
+                      round
+                      color="grey"
+                      icon="delete_forever"
+                      @click.stop="
+                        layers.splice(index, 1);
+                        refreshLayers(true);
+                        //console.log('done!');
+                      "
+                  /></q-item-section>
+                  <q-item-section>
+                    <q-item-label caption>PostGIS</q-item-label>
+                    <q-item-label>{{ element.name }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side top
+                    ><q-checkbox
+                      size="xs"
+                      v-model="element.visible"
+                      val="xs"
+                      color="grey"
+                      @update:model-value="refreshLayerVisibility"
+                  /></q-item-section>
+                </template>
+                <template v-else-if="element.type === 'background'">
+                  <q-item-section>
+                    <q-item-label caption>Background</q-item-label>
+                    <q-item-label>{{ element.name }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side top
+                    ><q-checkbox
+                      size="xs"
+                      v-model="element.visible"
+                      val="xs"
+                      color="grey"
+                      @update:model-value="refreshLayerVisibility"
+                  /></q-item-section>
+                </template>
+                <template v-else>
+                  <q-item-section>
+                    <q-item-label caption
+                      >{{ element.type }} layer</q-item-label
+                    >
+                    <q-item-label>{{ element.name }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side top
+                    ><q-checkbox
+                      size="xs"
+                      v-model="element.visible"
+                      val="xs"
+                      color="grey"
+                      @update:model-value="refreshLayerVisibility"
+                  /></q-item-section>
+                </template>
+                <q-menu>
+                  <q-list style="min-width: 300px">
+                    <q-item>
+                      <q-item-section>
+                        <q-item-label caption>
+                          Opacity
+                          <span v-show="!element.visible" style="color: red">
+                            (not visible)
+                          </span>
+                        </q-item-label>
+                        <q-item-label>
+                          <q-slider
+                            v-model="element.opacity"
+                            :min="0"
+                            :max="100"
+                            @update:model-value="
+                              element.layer.setOpacity(element.opacity / 100)
+                            "
+                          />
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+              <q-separator />
+            </div>
+          </template>
+        </draggable>
+      </q-list>
+
+      <!--<q-list bordered separator>
         <q-item
-          v-for="(layer, index) in layers"
-          :key="layer.name + ':' + layer.type"
+          v-for="(element, index) in layers"
+          :key="element.name + ':' + element.type"
           clickable
           v-ripple
         >
-          <template v-if="layer.type === 'postgis'">
+          <template v-if="element.type === 'postgis'">
             <q-item-section side top
               ><q-btn
                 size="sm"
@@ -28,32 +131,32 @@
                 icon="delete_forever"
                 @click.stop="
                   layers.splice(index, 1);
-                  refreshLayers();
+                  refreshLayers(true);
                   console.log('done!');
                 "
             /></q-item-section>
             <q-item-section>
               <q-item-label caption>PostGIS</q-item-label>
-              <q-item-label>{{ layer.name }}</q-item-label>
+              <q-item-label>{{ element.name }}</q-item-label>
             </q-item-section>
             <q-item-section side top
               ><q-checkbox
                 size="xs"
-                v-model="layer.visible"
+                v-model="element.visible"
                 val="xs"
                 color="grey"
                 @update:model-value="refreshLayerVisibility"
             /></q-item-section>
           </template>
-          <template v-else-if="layer.type === 'background'">
+          <template v-else-if="element.type === 'background'">
             <q-item-section>
               <q-item-label caption>Background</q-item-label>
-              <q-item-label>{{ layer.name }}</q-item-label>
+              <q-item-label>{{ element.name }}</q-item-label>
             </q-item-section>
             <q-item-section side top
               ><q-checkbox
                 size="xs"
-                v-model="layer.visible"
+                v-model="element.visible"
                 val="xs"
                 color="grey"
                 @update:model-value="refreshLayerVisibility"
@@ -61,13 +164,13 @@
           </template>
           <template v-else>
             <q-item-section>
-              <q-item-label caption>{{ layer.type }} layer</q-item-label>
-              <q-item-label>{{ layer.name }}</q-item-label>
+              <q-item-label caption>{{ element.type }} layer</q-item-label>
+              <q-item-label>{{ element.name }}</q-item-label>
             </q-item-section>
             <q-item-section side top
               ><q-checkbox
                 size="xs"
-                v-model="layer.visible"
+                v-model="element.visible"
                 val="xs"
                 color="grey"
                 @update:model-value="refreshLayerVisibility"
@@ -77,14 +180,19 @@
             <q-list style="min-width: 300px">
               <q-item>
                 <q-item-section>
-                  <q-item-label caption>Opacity</q-item-label>
+                  <q-item-label caption>
+                    Opacity
+                    <span v-show="!element.visible" style="color: red">
+                      (not visible)
+                    </span>
+                  </q-item-label>
                   <q-item-label>
                     <q-slider
-                      v-model="layer.opacity"
+                      v-model="element.opacity"
                       :min="0"
                       :max="100"
                       @update:model-value="
-                        layer.layer.setOpacity(layer.opacity / 100)
+                        element.layer.setOpacity(element.opacity / 100)
                       "
                     />
                   </q-item-label>
@@ -93,7 +201,7 @@
             </q-list>
           </q-menu>
         </q-item>
-      </q-list>
+      </q-list>-->
       <q-btn @click="$refs.AddLayer.dialog = true"
         >Add layer <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer
       ></q-btn>
@@ -104,7 +212,7 @@
 <script>
 import { defineComponent, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { mapState } from "pinia";
+import { mapWritableState } from "pinia";
 import { mapActions } from "pinia";
 import { useLayersStore } from "../stores/layers-store";
 
@@ -116,13 +224,14 @@ import Projection from "ol/proj/Projection";
 import Attribution from "ol/control/Attribution";
 import proj4 from "proj4";
 import { register } from "ol/proj/proj4.js";
+import draggable from "vuedraggable";
 
 import AddLayer from "../components/AddLayer.vue";
 
 export default defineComponent({
   name: "MainLayout",
 
-  components: { AddLayer },
+  components: { draggable, AddLayer },
 
   data() {
     return {
@@ -133,11 +242,12 @@ export default defineComponent({
       postgisLayerID: "atkis.merged_layers_alb",
       session: Math.floor(Math.random() * 1000000000),
       sessionCnt: 0,
+      drag: false,
     };
   },
 
   computed: {
-    ...mapState(useLayersStore, { layers: "layers" }),
+    ...mapWritableState(useLayersStore, { layers: "layers" }),
   },
 
   methods: {
@@ -213,7 +323,7 @@ export default defineComponent({
       }
     },
 
-    async refreshLayers() {
+    async refreshLayers(keepView) {
       try {
         if (this.layers.length > 0) {
           for (const layerEntry of this.layers) {
@@ -242,14 +352,14 @@ export default defineComponent({
           }
           this.map.setLayers(layers);
 
-          this.view = new View({
-            projection: mainLayer.projection,
-          });
-
-          this.map.setView(this.view);
-
-          if (mainLayer.extent !== undefined) {
-            this.view.fit(mainLayer.extent);
+          if (keepView === undefined || !keepView) {
+            this.view = new View({
+              projection: mainLayer.projection,
+            });
+            this.map.setView(this.view);
+            if (mainLayer.extent !== undefined) {
+              this.view.fit(mainLayer.extent);
+            }
           }
         } else {
           this.map.setLayers([]);
@@ -272,7 +382,6 @@ export default defineComponent({
 
   async mounted() {
     this.layersInit(this);
-
     this.layers.length = 0;
     this.layers.push({
       name: "OpenStreetMap",

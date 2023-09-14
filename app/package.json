@@ -20,7 +20,8 @@
     "proj4": "^2.9.0",
     "quasar": "^2.12.6",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0"
+    "vue-router": "^4.0.0",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@quasar/app-vite": "^1.5.0",
