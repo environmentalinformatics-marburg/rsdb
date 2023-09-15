@@ -1,5 +1,9 @@
 package postgis.style;
 
+import java.util.Map;
+
+import org.json.JSONWriter;
+
 import vectordb.style.Style;
 
 public class RotatingArrayStyleProvider extends StyleProvider {
@@ -20,5 +24,20 @@ public class RotatingArrayStyleProvider extends StyleProvider {
 	@Override
 	public Style getStyle() {
 		return styles[0];
+	}
+
+	@Override
+	public Map<String, Object> toYaml() {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public void writeJson(JSONWriter json) {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
+	public String getValueField() {
+		return null;
 	}
 }

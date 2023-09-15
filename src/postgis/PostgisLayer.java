@@ -31,6 +31,8 @@ import broker.acl.EmptyACL;
 import net.postgis.jdbc.PGbox2d;
 import net.postgis.jdbc.PGgeometry;
 import pointcloud.Rect2d;
+import postgis.style.StyleProvider;
+import postgis.style.StyleProviderFactory;
 import util.Interruptor;
 import util.Timer;
 import util.Util;
@@ -61,6 +63,8 @@ public class PostgisLayer extends PostgisLayerBase {
 
 	private final Path metaPathTemp;
 	private final File metaFileTemp;
+	
+	private StyleProvider styleProvider = StyleProviderFactory.DEFAULT_STYLE_PROVIDER;
 
 	public static class PostgisColumn {
 
@@ -251,6 +255,8 @@ public class PostgisLayer extends PostgisLayerBase {
 		if(class_fields.isEmpty()) {
 			class_fields = yamlMap.optList("class_attributes").asReadonlyStrings(); // legacy
 		}
+		YamlMap styleMap = yamlMap.optMap("style");
+		styleProvider = StyleProviderFactory.ofYaml(styleMap);
 	}
 
 	private synchronized void metaToYaml(LinkedHashMap<String, Object> map) {
@@ -260,6 +266,9 @@ public class PostgisLayer extends PostgisLayerBase {
 		map.put("acl_owner", acl_owner.toYaml());
 		informal.writeYaml(map);
 		map.put("class_attributes", class_fields);
+		if(styleProvider != StyleProviderFactory.DEFAULT_STYLE_PROVIDER) {
+			map.put("style", styleProvider.toYaml());
+		}
 	}
 
 	public ACL getACL() {
@@ -874,5 +883,9 @@ public class PostgisLayer extends PostgisLayerBase {
 			}
 		}
 		return false;
+	}
+	
+	public StyleProvider getStyleProvider() {
+		return styleProvider;
 	}
 }

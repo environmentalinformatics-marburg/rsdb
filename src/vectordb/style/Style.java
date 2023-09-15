@@ -30,6 +30,10 @@ public abstract class Style {
 	
 	public final Map<String, Object> toYaml() {
 		LinkedHashMap<String, Object> yamlMap = new LinkedHashMap<String, Object>();
+		return toYaml(yamlMap);
+	}
+	
+	public final Map<String, Object> toYaml(LinkedHashMap<String, Object> yamlMap) {
 		yamlMap.put("type", type);
 		toYamlProperties(yamlMap);
 		return yamlMap;
@@ -37,9 +41,13 @@ public abstract class Style {
 	
 	public final void writeJson(JSONWriter json) {
 		json.object();
+		writeJsonInside(json);
+		json.endObject();
+	}
+	
+	public final void writeJsonInside(JSONWriter json) {
 		JsonUtil.put(json, "type", type);
 		writeJsonProperties(json);
-		json.endObject();
 	}
 
 	public static Style ofYaml(YamlMap yamlMap) {

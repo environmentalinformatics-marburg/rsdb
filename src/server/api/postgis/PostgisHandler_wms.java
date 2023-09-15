@@ -269,7 +269,7 @@ public class PostgisHandler_wms {
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");		
 
-		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, false, width, height, PostgisHandler_image_png.DEFAULT_STYLE_PROVIDER, interruptor);
+		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
 		if(Interruptor.isInterrupted(interruptor)) {
 			response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
 		} else {

@@ -132,6 +132,28 @@
                 </div>
             </div>
 
+            <v-divider class="meta-divider"></v-divider>
+            <div class="meta-content" v-if="meta.style !== undefined">
+                <table>
+                    <tr>
+                        <th>Style</th>
+                    </tr>
+                    <tr v-for="(value, key) in meta.style" :key="key">
+                        <td><b>{{key}}</b></td>
+                        <td v-if="key === 'values'">
+                            <table>
+                                <tr v-for="(value1, key1) in value" :key="key1">
+                                    <td><b>{{key1}}</b></td>
+                                    <td>{{JSON.stringify(value1, undefined, 1)}}</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td v-else>{{JSON.stringify(value, undefined, 1)}}</td>
+                    </tr>
+                </table>
+                
+            </div>
+
         </div>
         
         <v-snackbar v-model="snackbarCopiedToClipboard" top :timeout="2000">

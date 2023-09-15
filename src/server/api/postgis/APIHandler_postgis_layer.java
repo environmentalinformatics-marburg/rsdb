@@ -22,6 +22,7 @@ import postgis.FeatureConsumer;
 import postgis.PostgisLayer;
 import postgis.PostgisLayer.PostgisColumn;
 import postgis.PostgisLayerManager;
+import postgis.style.StyleProviderFactory;
 import util.JsonUtil;
 import util.Util;
 import util.Web;
@@ -140,10 +141,10 @@ public class APIHandler_postgis_layer {
 
 		json.key("epsg");
 		json.value(postgisLayer.getEPSG());
-		
+
 		json.key("wkt_srs");
 		json.value(postgisLayer.getWKT_SRS());
-		
+
 		Vec<String> vecInvalid = postgisLayer.isInvalid();
 		if(vecInvalid != null) {
 			json.key("invalid_geometry");
@@ -155,13 +156,13 @@ public class APIHandler_postgis_layer {
 			json.key("extent");
 			extent.toJSON(json);
 		}
-		
+
 		int itemCount = postgisLayer.getItemCount();
 		if(0 <= itemCount) {
 			json.key("item_count");
 			json.value(itemCount);
 		}
-		
+
 		ReadonlyArray<String> geometryTypes = postgisLayer.getGeometryTypes();
 		if(geometryTypes != null && !geometryTypes.isEmpty()) {
 			json.key("geometry_types");
@@ -184,6 +185,11 @@ public class APIHandler_postgis_layer {
 		json.array();
 		postgisLayer.getClass_fields().forEach(attr -> json.value(attr));
 		json.endArray();
+
+		if(postgisLayer.getStyleProvider() != StyleProviderFactory.DEFAULT_STYLE_PROVIDER) {
+			json.key("style");
+			postgisLayer.getStyleProvider().writeJson(json);
+		}
 
 		json.endObject();
 	}

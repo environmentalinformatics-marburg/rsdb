@@ -24,41 +24,7 @@ import util.image.ImageBufferARGB;
 import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
-public class PostgisHandler_image_png {
-	
-	public static final StyleProvider DEFAULT_STYLE_PROVIDER;
-	
-	static {
-		Style[] styles = new Style[] {
-				new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 0, 100), new Color(0, 150, 0, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 0, 0, 100), new Color(150, 0, 0, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(0, 0, 50, 100), new Color(0, 0, 150, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 50, 0, 100), new Color(150, 150, 0, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 50, 100), new Color(0, 150, 150, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 0, 150, 100), new Color(150, 0, 150, 100)),
-				
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 50, 25, 100), new Color(150, 150, 25, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(25, 50, 50, 100), new Color(25, 150, 150, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 25, 150, 100), new Color(150, 25, 150, 100)),
-				
-				new BasicStyle(BasicStyle.createStroke(1), new Color(25, 50, 0, 100), new Color(25, 150, 0, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 25, 0, 100), new Color(150, 25, 0, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(25, 0, 50, 100), new Color(25, 0, 150, 100)),
-				
-				new BasicStyle(BasicStyle.createStroke(1), new Color(0, 50, 25, 100), new Color(0, 150, 25, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 0, 25, 100), new Color(150, 0, 25, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(0, 25, 50, 100), new Color(0, 25, 150, 100)),
-				
-				new BasicStyle(BasicStyle.createStroke(1), new Color(25, 50, 25, 100), new Color(25, 150, 25, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 25, 25, 100), new Color(150, 25, 25, 100)),
-				new BasicStyle(BasicStyle.createStroke(1), new Color(25, 25, 50, 100), new Color(25, 25, 150, 100)),
-				
-				new BasicStyle(BasicStyle.createStroke(1), new Color(50, 50, 50, 100), new Color(150, 150, 150, 100)),					
-		};
-		DEFAULT_STYLE_PROVIDER = new RotatingArrayStyleProvider(styles);
-	}
-	
-	
+public class PostgisHandler_image_png {	
 	
 	private ConcurrentHashMap<Long, Interruptor> sessionMap = new ConcurrentHashMap<Long, Interruptor>();
 
@@ -121,7 +87,7 @@ public class PostgisHandler_image_png {
 		int height = (int) Math.ceil(targetScale * yGeoLen);
 
 		
-		ImageBufferARGB image = render(postgisLayer, rect, false, width, height, DEFAULT_STYLE_PROVIDER, interruptor);
+		ImageBufferARGB image = render(postgisLayer, rect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_PNG);
@@ -143,8 +109,12 @@ public class PostgisHandler_image_png {
 		
 		StyleJtsGeometryRasterizer styleJtsGeometryRasterizer = new StyleJtsGeometryRasterizer(xoff, yoff, xscale, yscale, gc);
 		
-		String field = "class_1";		
-		if(postgisLayer.hasFieldName(field)) {
+		String field = styleProvider.getValueField();
+		if(field == null) {
+			field = "class_1";
+		}
+		
+		if(field != null && postgisLayer.hasFieldName(field)) {
 			Timer.start("render");
 			postgisLayer.forEachIntJtsGeometry(rect, crop, field, interruptor, (value, geometry) -> {
 				Style style = styleProvider.getStyleByValue(value);
