@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.json.JSONWriter;
 
-import server.api.postgis.PostgisHandler_image_png;
 import vectordb.style.Style;
 
 public class MappedStyleProvider extends StyleProvider {

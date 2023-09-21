@@ -53,6 +53,33 @@
                       @update:model-value="refreshLayerVisibility"
                   /></q-item-section>
                 </template>
+                <template v-else-if="element.type === 'rasterdb'">
+                  <q-item-section side top
+                    ><q-btn
+                      size="sm"
+                      flat
+                      round
+                      color="grey"
+                      icon="delete_forever"
+                      @click.stop="
+                        layers.splice(index, 1);
+                        refreshLayers(true);
+                        //console.log('done!');
+                      "
+                  /></q-item-section>
+                  <q-item-section>
+                    <q-item-label caption>RasterDB</q-item-label>
+                    <q-item-label>{{ element.name }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side top
+                    ><q-checkbox
+                      size="xs"
+                      v-model="element.visible"
+                      val="xs"
+                      color="grey"
+                      @update:model-value="refreshLayerVisibility"
+                  /></q-item-section>
+                </template>
                 <template v-else-if="element.type === 'background'">
                   <q-item-section>
                     <q-item-label caption>Background</q-item-label>
@@ -101,6 +128,13 @@
                             @update:model-value="
                               element.layer.setOpacity(element.opacity / 100)
                             "
+                          />
+                          <q-btn
+                            flat
+                            round
+                            icon="crop_free"
+                            title="Zoom to layer"
+                            @click="onZoomToLayer(element)"
                           />
                         </q-item-label>
                       </q-item-section>
@@ -202,9 +236,26 @@
           </q-menu>
         </q-item>
       </q-list>-->
-      <q-btn @click="$refs.AddLayer.dialog = true"
-        >Add layer <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer
+      <q-btn
+        @click="$refs.AddLayer.dialog = true"
+        icon="add_to_photos"
+        title="Add a layer to the list of viewer layers."
+      >
+        <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer
       ></q-btn>
+    </div>
+    <div
+      v-if="initializingLayers"
+      style="
+        position: absolute;
+        top: 50px;
+        left: 700px;
+        background-color: #eaeaea;
+        padding: 10px;
+      "
+    >
+      <q-spinner-tail color="grey" size="2em" />
+      Initializing layers ...
     </div>
   </div>
 </template>
@@ -222,6 +273,7 @@ import { OSM } from "ol/source";
 import ImageWMS from "ol/source/ImageWMS";
 import Projection from "ol/proj/Projection";
 import Attribution from "ol/control/Attribution";
+import { transformExtent } from "ol/proj";
 import proj4 from "proj4";
 import { register } from "ol/proj/proj4.js";
 import draggable from "vuedraggable";
@@ -239,10 +291,11 @@ export default defineComponent({
       view: undefined,
       router: useRouter(),
       route: useRoute(),
-      postgisLayerID: "atkis.merged_layers_alb",
       session: Math.floor(Math.random() * 1000000000),
       sessionCnt: 0,
       drag: false,
+      initializingLayers: false,
+      mainLayer: undefined,
     };
   },
 
@@ -323,20 +376,123 @@ export default defineComponent({
       }
     },
 
+    async completeRasterdbLayer(layerEntry) {
+      try {
+        if (layerEntry.rasterdbLayerURLPart === undefined) {
+          layerEntry.rasterdbLayerURLPart = "rasterdb/" + layerEntry.name;
+        }
+
+        if (layerEntry.meta === undefined) {
+          const response = await this.$api.get(
+            layerEntry.rasterdbLayerURLPart + "/meta.json"
+          );
+          layerEntry.meta = response.data;
+        }
+
+        if (layerEntry.extent === undefined) {
+          layerEntry.extent = [
+            layerEntry.meta.ref.extent[0],
+            layerEntry.meta.ref.extent[1],
+            layerEntry.meta.ref.extent[2],
+            layerEntry.meta.ref.extent[3],
+          ];
+        }
+
+        /*const resX = layerEntry.meta.ref.pixel_size.x;
+        const resY = layerEntry.meta.ref.pixel_size.y;
+        const res = resX <= resY ? resX : resY;*/
+
+        if (layerEntry.wmsURL === undefined) {
+          layerEntry.wmsURL =
+            this.$api.getUri() + layerEntry.rasterdbLayerURLPart + "/wms";
+        }
+
+        if (layerEntry.layer === undefined) {
+          layerEntry.layer = new ImageLayer({
+            extent: layerEntry.extent,
+            //minResolution: res,
+            source: new ImageWMS({
+              url: layerEntry.wmsURL,
+              ratio: 1,
+              interpolate: false,
+              /*resolutions: [
+                res,
+                res * 2,
+                res * 4,
+                res * 8,
+                res * 16,
+                res * 32,
+                res * 64,
+                res * 128,
+                res * 256,
+              ],*/
+              imageLoadFunction: (image, src) => {
+                const srcUrl =
+                  src +
+                  "&session=" +
+                  this.session +
+                  "&cnt=" +
+                  this.sessionCnt++;
+                image.getImage().src = srcUrl;
+              },
+            }),
+          });
+        }
+
+        if (layerEntry.projection === undefined) {
+          //const srs = layerEntry.meta.ref.code;
+          const srs = "SRS:" + layerEntry.name;
+
+          proj4.defs(srs, layerEntry.meta.ref.proj4);
+          register(proj4);
+
+          layerEntry.projection = new Projection({
+            code: srs,
+            units: "m",
+          });
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    },
+
+    completeBackgroundLayer(layerEntry) {
+      try {
+        if (layerEntry.projection === undefined) {
+          if (layerEntry.layer !== undefined) {
+            layerEntry.projection = layerEntry.layer
+              .getSource()
+              .getProjection();
+          }
+        }
+        if (layerEntry.projection === undefined) {
+          layerEntry.projection = new Projection({
+            code: "EPSG:3857",
+            units: "m",
+          });
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    },
+
     async refreshLayers(keepView) {
       try {
+        this.initializingLayers = true;
         if (this.layers.length > 0) {
           for (const layerEntry of this.layers) {
             this.completeLayer(layerEntry);
             if (layerEntry.type === "background") {
-              // nothing
+              this.completeBackgroundLayer(layerEntry);
             } else if (layerEntry.type === "postgis") {
               await this.completePostgisLayer(layerEntry);
+            } else if (layerEntry.type === "rasterdb") {
+              await this.completeRasterdbLayer(layerEntry);
             } else {
               console.log("unknown layer type");
             }
           }
-          const mainLayer =
+          this.mainLayer =
             this.layers.length > 1 ? this.layers[1] : this.layers[0];
           const layers = [];
           /*layers.push(
@@ -354,18 +510,20 @@ export default defineComponent({
 
           if (keepView === undefined || !keepView) {
             this.view = new View({
-              projection: mainLayer.projection,
+              projection: this.mainLayer.projection,
             });
             this.map.setView(this.view);
-            if (mainLayer.extent !== undefined) {
-              this.view.fit(mainLayer.extent);
+            if (this.mainLayer.extent !== undefined) {
+              this.view.fit(this.mainLayer.extent);
             }
           }
         } else {
           this.map.setLayers([]);
         }
+        this.initializingLayers = false;
       } catch (e) {
         console.log(e);
+        this.initializingLayers = false;
       }
     },
 
@@ -376,6 +534,26 @@ export default defineComponent({
         if (layer !== undefined) {
           layer.setVisible(layerEntry.visible);
         }
+      }
+    },
+
+    onZoomToLayer(layer) {
+      try {
+        console.log(layer);
+        console.log(layer.extent);
+        if (this.mainLayer !== undefined) {
+          const targetExtent = transformExtent(
+            layer.extent,
+            layer.projection,
+            this.mainLayer.projection
+          );
+          if (targetExtent !== undefined) {
+            console.log(targetExtent);
+            this.view.fit(targetExtent);
+          }
+        }
+      } catch (e) {
+        console.log(e);
       }
     },
   },
@@ -395,9 +573,10 @@ export default defineComponent({
 
     const query = this.route.query;
     //console.log(query);
+    if (query.rasterdb !== undefined) {
+      this.layers.push({ name: query.rasterdb, type: "rasterdb" });
+    }
     if (query.postgis !== undefined) {
-      this.postgisLayerID = query.postgis;
-
       this.layers.push({ name: query.postgis, type: "postgis" });
     }
 

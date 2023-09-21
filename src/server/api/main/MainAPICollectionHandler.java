@@ -26,6 +26,7 @@ public class MainAPICollectionHandler extends APICollectionHandler {
 		addMethod(new APIHandler_proxy(broker));
 		addMethod(new APIHandler_connection_test(broker));
 		addMethod(new APIHandler_mbtiles(broker));
+		addMethod(new APIHandler_layers(broker));
 	}
 
 }

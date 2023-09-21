@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONWriter;
 
@@ -33,6 +34,7 @@ public class RasterdbsHandler extends AbstractHandler {
 	@Override
 	public void handle(String target, Request request, HttpServletRequest internal, HttpServletResponse response)
 			throws IOException, ServletException {
+		UserIdentity userIdentity = Web.getUserIdentity(request);
 
 		boolean includeBands = request.getParameter("bands") != null;
 		boolean includeCode = request.getParameter("code") != null;
@@ -51,7 +53,7 @@ public class RasterdbsHandler extends AbstractHandler {
 			json.array();			
 			for (String name : broker.getRasterdbNames()) {				
 				RasterDB rasterdb = broker.getRasterdb(name);
-				if (rasterdb.isAllowed(Web.getUserIdentity(request))) {
+				if (rasterdb.isAllowed(userIdentity)) {
 					json.object();
 					JsonUtil.put(json, "name", name);
 

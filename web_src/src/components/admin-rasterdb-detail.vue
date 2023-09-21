@@ -11,6 +11,9 @@
                 <v-btn icon class="indigo--text" :href="'#/viewer/' + rasterdb" target="_blank" title="open layer in viewer on new tab">
                     <v-icon>zoom_in</v-icon>
                 </v-btn>
+                <v-btn class="indigo--text" :href="$store.getters.apiUrl('web/app/#/?rasterdb=' + rasterdb)" target="_blank" title="open layer in viewer app (beta) on new tab">
+                    <v-icon>launch</v-icon> Viewer app (beta)
+                </v-btn>
             </h3> 
             <span v-if="meta !== undefined && meta.title !== undefined && meta.title !== ''"><span style="user-select: none;">Identifier: </span><b>{{rasterdb}}</b></span>
         </div>

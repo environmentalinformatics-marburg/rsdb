@@ -100,7 +100,6 @@ public class PostgisLayerManager {
 	
 	public void forEach(UserIdentity userIdentity, Consumer<PostgisLayerBase> consumer) {
 		for(PostgisLayerConfig postgisLayerConfig : postgisLayerConfigMap.values()) {
-			Logger.info(postgisLayerConfig.name);
 			
 			PostgisLayerBase postgisLayerBase = postgisLayerMap.get(postgisLayerConfig.name);
 			if(postgisLayerBase == null) {
