@@ -54,6 +54,7 @@ public class APIHandler_layers extends APIHandler {
 		boolean refresh = Web.getFlagBoolean(request, "refresh");
 		if(refresh) {
 			postgisLayerManager.refresh();
+			broker.refreshRasterdbConfigs();
 		}
 		
 		response.setStatus(HttpServletResponse.SC_OK);

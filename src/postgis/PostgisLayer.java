@@ -17,6 +17,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 import org.eclipse.jetty.server.UserIdentity;
 import org.locationtech.jts.geom.Geometry;
@@ -63,7 +64,7 @@ public class PostgisLayer extends PostgisLayerBase {
 
 	private final Path metaPathTemp;
 	private final File metaFileTemp;
-	
+
 	private StyleProvider styleProvider = StyleProviderFactory.DEFAULT_STYLE_PROVIDER;
 
 	public static class PostgisColumn {
@@ -551,7 +552,7 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
-	
+
 	public long forEachJtsGeometry(Rect2d rect2d, boolean crop, Interruptor interruptor, Consumer<Geometry> consumer) {
 		//Logger.info("getGeometry");
 
@@ -611,12 +612,12 @@ public class PostgisLayer extends PostgisLayerBase {
 			return -1;	
 		}
 	}
-	
+
 	@FunctionalInterface
 	public static interface IntJtsGeometryConsumer {
-	    void accept(int value, Geometry geometry);
+		void accept(int value, Geometry geometry);
 	}
-	
+
 	public <T extends JtsGeometryConsumer> long forEachIntJtsGeometry(Rect2d rect2d, boolean crop, String valueField, Interruptor interruptor, IntJtsGeometryConsumer consumer) {
 		//Logger.info("getGeometry");
 
@@ -680,10 +681,10 @@ public class PostgisLayer extends PostgisLayerBase {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	@FunctionalInterface
 	public static interface ObjectJtsGeometryConsumer {
-	    void accept(Object value, Geometry geometry);
+		void accept(Object value, Geometry geometry);
 	}
 
 	public <T extends JtsGeometryConsumer> long forEachObjectJtsGeometry(Rect2d rect2d, boolean crop, String valueField, ObjectJtsGeometryConsumer consumer) {
@@ -736,7 +737,7 @@ public class PostgisLayer extends PostgisLayerBase {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	/**
 	 * 
 	 * @param rect2d  nullable
@@ -884,8 +885,26 @@ public class PostgisLayer extends PostgisLayerBase {
 		}
 		return false;
 	}
-	
+
 	public StyleProvider getStyleProvider() {
 		return styleProvider;
+	}
+
+	public <T extends JtsGeometryConsumer> int forEachInt(String valueField, IntConsumer consumer) {
+		try (Connection conn = postgisConnector.getConnection()) {
+			String sql = String.format("SELECT DISTINCT %s FROM %s ORDER BY %s", valueField, name, valueField);		
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			int count = 0;
+			while(rs.next()) {
+				int value = rs.getInt(1);
+				consumer.accept(value);
+				count++;
+			}
+			return count;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

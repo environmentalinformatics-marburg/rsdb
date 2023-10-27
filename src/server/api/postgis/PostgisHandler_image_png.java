@@ -14,14 +14,12 @@ import org.tinylog.Logger;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
-import postgis.style.RotatingArrayStyleProvider;
 import postgis.style.StyleJtsGeometryRasterizer;
 import postgis.style.StyleProvider;
 import util.Interruptor;
 import util.Timer;
 import util.Web;
 import util.image.ImageBufferARGB;
-import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class PostgisHandler_image_png {	

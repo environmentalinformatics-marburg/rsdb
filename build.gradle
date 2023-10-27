@@ -63,7 +63,7 @@ dependencies {
   	implementation group: 'org.mapdb', name: 'mapdb', version: '2.0-beta13' // warning: newer versions v3 do break storage layout
   	
   	implementation group: 'org.json', name: 'json', version: '20230618'
-  	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.33'  // TODO: check compatibility with newer version 2
+  	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.33'  // TODO: check compatibility with newer version 2.x
   	implementation group: 'com.opencsv', name: 'opencsv', version: '5.8'  	
   	implementation group: 'com.github.mreutegg', name: 'laszip4j', version: '0.14'
   	implementation group: 'ar.com.hjg', name: 'pngj', version: '2.1.0'

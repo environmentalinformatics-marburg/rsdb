@@ -1,6 +1,9 @@
 package server.api.postgis;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -27,10 +30,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
 import postgis.PostgisLayer.PostgisColumn;
-import postgis.style.SimpleStyleProvider;
+import postgis.style.StyleJtsGeometryRasterizer;
+import postgis.style.StyleProvider;
 import util.GeoUtil;
 import util.IndentedXMLStreamWriter;
 import util.Interruptor;
+import util.Timer;
 import util.Web;
 import util.XmlUtil;
 import util.image.ImageBufferARGB;
@@ -38,7 +43,7 @@ import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class PostgisHandler_wms {
-	
+
 	private static class SessionLayerKey {
 		public final long session;
 		public final String layer;
@@ -88,9 +93,12 @@ public class PostgisHandler_wms {
 			case "GetCapabilities":
 				handle_GetCapabilities(postgisLayer, request, response);
 				break;
-			case "GetFeatureInfo":
+			case "GetFeatureInfo":				
 				handle_GetFeatureInfo(postgisLayer, request, response);
 				break;
+			case "GetLegendGraphic":
+				handle_GetLegendGraphic(postgisLayer, request, response);
+				break;				
 			default:
 				Logger.error("unknown request "+reqParam);
 				return;
@@ -146,7 +154,7 @@ public class PostgisHandler_wms {
 
 		Element eCapability = XmlUtil.addElement(rootElement, "Capability");
 		addRequest(eCapability, requestUrl);
-		addRootLayer(postgisLayer, eCapability, postgisLayer.name, postgisLayer.name);
+		addRootLayer(postgisLayer, eCapability, postgisLayer.name, postgisLayer.name, requestUrl);
 
 		return rootElement;
 	}
@@ -182,7 +190,7 @@ public class PostgisHandler_wms {
 		eGetFeatureInfoDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
-	private static void addRootLayer(PostgisLayer postgisLayer, Element eCapability, String name, String title) {
+	private static void addRootLayer(PostgisLayer postgisLayer, Element eCapability, String name, String title, String requestUrl) {
 		Element eRootLayer = XmlUtil.addElement(eCapability, "Layer");
 		eRootLayer.setAttribute("queryable", "1");
 
@@ -209,6 +217,36 @@ public class PostgisHandler_wms {
 		eBoundingBox.setAttribute("miny", "" + layerRect.ymin);
 		eBoundingBox.setAttribute("maxx", "" + layerRect.xmax);
 		eBoundingBox.setAttribute("maxy", "" + layerRect.ymax);
+
+		addStyle(postgisLayer, eRootLayer, requestUrl);
+	}
+	
+	private static int getDistictInt(PostgisLayer postgisLayer, String field) {
+		int[] cnt = new int [] {0};
+		postgisLayer.forEachInt(field, value -> {
+			cnt[0]++;
+		});
+		return cnt[0];
+	}
+	
+	private static int getHeight(PostgisLayer postgisLayer, String field) {
+		return 20 + (field == null ? 20 : (getDistictInt(postgisLayer, field) * 20)) + 5;
+	}
+
+	private static void addStyle(PostgisLayer postgisLayer, Element eRootLayer, String requestUrl) {		
+		String field = getValueField(postgisLayer);
+		int height = getHeight(postgisLayer, field);
+		
+		Element eStyle = XmlUtil.addElement(eRootLayer, "Style");
+		XmlUtil.addElement(eStyle, "Name", "default");
+		XmlUtil.addElement(eStyle, "Title", "default");
+		Element eLegendURL = XmlUtil.addElement(eStyle, "LegendURL");
+		eLegendURL.setAttribute("width", "200");
+		eLegendURL.setAttribute("height", Integer.toString(height));
+		XmlUtil.addElement(eLegendURL, "Format", "image/png");
+		Element eOnlineResource = XmlUtil.addElement(eLegendURL, "OnlineResource");
+		eOnlineResource.setAttribute("xlink:type", "simple");
+		eOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
 	private static void tryAdd_GeographicBoundingBox(Rect2d layerRect, int layerEPSG, Element eRootLayer) {
@@ -342,5 +380,68 @@ public class PostgisHandler_wms {
 		xmlWriter.writeEndElement(); // wfs:FeatureCollection
 		xmlWriter.writeEndDocument();
 		xmlWriter.close();
+	}
+
+	private void handle_GetLegendGraphic(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
+		Logger.warn("GetLegendGraphic");
+
+		ImageBufferARGB image = createLegend(postgisLayer, false, postgisLayer.getStyleProvider(), null);
+
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(Web.MIME_PNG);
+		image.writePngCompressed(response.getOutputStream());		
+	}
+	
+	private static String getValueField(PostgisLayer postgisLayer) {
+		String field = postgisLayer.getStyleProvider().getValueField();
+		if(field == null) {
+			field = "class_1";
+		}
+		if(field != null && postgisLayer.hasFieldName(field)) {	
+			return field;
+		} else {
+			return null;
+		}
+	}
+
+	private ImageBufferARGB createLegend(PostgisLayer postgisLayer, boolean crop, StyleProvider styleProvider, Interruptor interruptor) {
+		
+		String field = getValueField(postgisLayer);
+		int height = getHeight(postgisLayer, field);
+		
+		ImageBufferARGB image = new ImageBufferARGB(200, height);
+		Graphics2D gc = image.bufferedImage.createGraphics();
+		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		gc.setColor(Color.DARK_GRAY);		
+
+		
+
+		Font font = new Font("Arial", Font.PLAIN, 12);
+		gc.setFont(font);
+		gc.setColor(Color.BLACK);
+		if(field != null) {	
+			int[] vPos = new int[] {20};
+			gc.drawString(field, 2, vPos[0]);
+			vPos[0] += 20;
+			postgisLayer.forEachInt(field, value -> {
+				int y = vPos[0] - 20;
+				Logger.info("field value: " + value);
+				Style style = styleProvider.getStyleByValue(value);
+				style.drawPolygon(gc, new int[] {20, 160, 160, 20}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);
+				gc.setColor(Color.BLACK);
+				gc.drawString(""+value, 2, vPos[0]);				
+				vPos[0] += 20;
+			});
+
+		} else {
+			gc.drawString("no field", 0, 20);
+			Style style = styleProvider.getStyle();
+			int y = 20;
+			style.drawPolygon(gc, new int[] {20, 160, 160, 20}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);			
+		}
+
+		gc.dispose();
+
+		return image;
 	}
 }

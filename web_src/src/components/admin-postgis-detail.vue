@@ -153,6 +153,9 @@
                 </table>
                 
             </div>
+            <div class="legend">
+                <img :key="meta.name" :src="$store.getters.apiUrl('postgis/layers/' + meta.name + '/wms?REQUEST=GetLegendGraphic')" alt="Loading legend image ..." /> 
+            </div>
 
         </div>
         
@@ -412,6 +415,13 @@ export default {
     border-radius: 8px;
     border-color: #6868681f;
     font-family: "Courier New", Courier, monospace;   
+}
+
+.legend img {
+    background-color: rgb(239, 239, 239);
+    border-color: rgba(0, 0, 0, 0.1);
+    border-style: solid;
+    border-width: 1px;
 }
 
 </style>

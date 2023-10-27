@@ -89,6 +89,7 @@ function init() {
 					var ext = "" + (qx - radius) + "," + (qx + radius) + "," + (qy - radius) + "," + (qy + radius);
 
 					var queryParameters = { db: this.urlParameters.db, ext: ext, format: "js"/*, sort: "z"*/ };
+					queryParameters.columns = "x,y,z,classification";
 					var i = this.viewTypeMap[this.viewType];
 					if (0 <= i) {
 						queryParameters.filter = 'classification=' + i;
