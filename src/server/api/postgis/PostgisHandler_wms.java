@@ -2,6 +2,7 @@ package server.api.postgis;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.io.IOException;
@@ -20,7 +21,9 @@ import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.ogr.StyleTable;
 import org.gdal.osr.CoordinateTransformation;
+import org.json.JSONWriter;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -181,6 +184,7 @@ public class PostgisHandler_wms {
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 
 		Element eGetFeatureInfo = XmlUtil.addElement(eRootRequest, "GetFeatureInfo");
+		XmlUtil.addElement(eGetFeatureInfo, "Format", "application/geo+json");
 		XmlUtil.addElement(eGetFeatureInfo, "Format", "text/xml");
 		Element eGetFeatureInfoDCPType = XmlUtil.addElement(eGetFeatureInfo, "DCPType");
 		Element eGetFeatureInfoDCPTypeHTTP = XmlUtil.addElement(eGetFeatureInfoDCPType, "HTTP");
@@ -220,7 +224,7 @@ public class PostgisHandler_wms {
 
 		addStyle(postgisLayer, eRootLayer, requestUrl);
 	}
-	
+
 	private static int getDistictInt(PostgisLayer postgisLayer, String field) {
 		int[] cnt = new int [] {0};
 		postgisLayer.forEachInt(field, value -> {
@@ -228,7 +232,7 @@ public class PostgisHandler_wms {
 		});
 		return cnt[0];
 	}
-	
+
 	private static int getHeight(PostgisLayer postgisLayer, String field) {
 		return 20 + (field == null ? 20 : (getDistictInt(postgisLayer, field) * 20)) + 5;
 	}
@@ -236,7 +240,7 @@ public class PostgisHandler_wms {
 	private static void addStyle(PostgisLayer postgisLayer, Element eRootLayer, String requestUrl) {		
 		String field = getValueField(postgisLayer);
 		int height = getHeight(postgisLayer, field);
-		
+
 		Element eStyle = XmlUtil.addElement(eRootLayer, "Style");
 		XmlUtil.addElement(eStyle, "Name", "default");
 		XmlUtil.addElement(eStyle, "Title", "default");
@@ -337,7 +341,20 @@ public class PostgisHandler_wms {
 		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
 		Logger.info(rect2d);
 		Logger.info(pixelRect2d);
+		
+		String infoFormat = request.getParameter("INFO_FORMAT");
+		switch(infoFormat) {
+		case "application/json":
+		case "application/geo+json":
+			handle_GetFeatureInfoJSON(postgisLayer, request, response, pixelRect2d);
+			break;
+		case "text/xml":
+		default: 
+			handle_GetFeatureInfoXML(postgisLayer, request, response, pixelRect2d);
+		}
+	}
 
+	private void handle_GetFeatureInfoXML(PostgisLayer postgisLayer, Request request, Response response, Rect2d pixelRect2d) throws IOException {
 		response.setContentType("text/xml; subtype=gml/3.1.1; charset=UTF-8");
 		PrintWriter out = response.getWriter();	
 		try {
@@ -345,6 +362,13 @@ public class PostgisHandler_wms {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}	
+	}
+	
+	private void handle_GetFeatureInfoJSON(PostgisLayer postgisLayer, Request request, Response response, Rect2d pixelRect2d) throws IOException {
+		String geojson = APIHandler_postgis_layer.getGeoJSONWithProperties(postgisLayer, pixelRect2d, false);
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(Web.MIME_GEO_JSON);
+		response.getWriter().print(geojson);
 	}
 
 	private void xmlGetFeatureStream(PostgisLayer postgisLayer, Writer out, Rect2d pixelRect2d) throws XMLStreamException, SQLException {
@@ -391,7 +415,7 @@ public class PostgisHandler_wms {
 		response.setContentType(Web.MIME_PNG);
 		image.writePngCompressed(response.getOutputStream());		
 	}
-	
+
 	private static String getValueField(PostgisLayer postgisLayer) {
 		String field = postgisLayer.getStyleProvider().getValueField();
 		if(field == null) {
@@ -405,31 +429,36 @@ public class PostgisHandler_wms {
 	}
 
 	private ImageBufferARGB createLegend(PostgisLayer postgisLayer, boolean crop, StyleProvider styleProvider, Interruptor interruptor) {
-		
+
 		String field = getValueField(postgisLayer);
 		int height = getHeight(postgisLayer, field);
-		
+
 		ImageBufferARGB image = new ImageBufferARGB(200, height);
 		Graphics2D gc = image.bufferedImage.createGraphics();
 		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		gc.setColor(Color.DARK_GRAY);		
 
-		
+
 
 		Font font = new Font("Arial", Font.PLAIN, 12);
 		gc.setFont(font);
+		FontMetrics fontMetrics = gc.getFontMetrics(font);
 		gc.setColor(Color.BLACK);
 		if(field != null) {	
 			int[] vPos = new int[] {20};
-			gc.drawString(field, 2, vPos[0]);
+			gc.drawString(field, 5, vPos[0]);
 			vPos[0] += 20;
 			postgisLayer.forEachInt(field, value -> {
-				int y = vPos[0] - 20;
+				int x = 30;
+				int y = vPos[0] - 20;				
 				Logger.info("field value: " + value);
 				Style style = styleProvider.getStyleByValue(value);
-				style.drawPolygon(gc, new int[] {20, 160, 160, 20}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);
+				style.drawPolygon(gc, new int[] {5, 40, 40, 5}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);
 				gc.setColor(Color.BLACK);
-				gc.drawString(""+value, 2, vPos[0]);				
+				gc.drawString(""+value, 52 - fontMetrics.stringWidth(""+value), vPos[0]);
+				if(style.hasTitle()) {
+					gc.drawString(style.getTitle(), 60, vPos[0]);
+				}
 				vPos[0] += 20;
 			});
 

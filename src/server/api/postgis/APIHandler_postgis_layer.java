@@ -332,7 +332,7 @@ public class APIHandler_postgis_layer {
 	 * @param rect2d  nullable
 	 * @return
 	 */
-	private String getGeoJSON(PostgisLayer postgisLayer, Rect2d rect2d) {
+	private static String getGeoJSON(PostgisLayer postgisLayer, Rect2d rect2d) {
 
 		int epsg = postgisLayer.getEPSG();
 
@@ -368,7 +368,7 @@ public class APIHandler_postgis_layer {
 		return sb.toString();
 	}
 
-	private String getGeoJSONWithProperties(PostgisLayer postgisLayer, Rect2d rect2d, boolean crop) {
+	public static String getGeoJSONWithProperties(PostgisLayer postgisLayer, Rect2d rect2d, boolean crop) {
 
 		int epsg = postgisLayer.getEPSG();
 

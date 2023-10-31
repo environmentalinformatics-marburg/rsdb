@@ -2,6 +2,7 @@
   <div id="map"></div>
 
   <div id="overlay">
+    <FeatureInfo ref="FeatureInfo" />
     <div
       class="q-pa-md"
       style="
@@ -137,6 +138,12 @@
                             @click="onZoomToLayer(element)"
                           />
                         </q-item-label>
+                        <div v-if="element.type === 'postgis'">
+                          <img
+                            :src="element.wmsURL + '?REQUEST=GetLegendGraphic'"
+                            style="border: 1px solid rgba(0, 0, 0, 0.151)"
+                          />
+                        </div>
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -241,8 +248,8 @@
         icon="add_to_photos"
         title="Add a layer to the list of viewer layers."
       >
-        <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer
-      ></q-btn>
+        <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer>
+      </q-btn>
     </div>
     <div
       v-if="initializingLayers"
@@ -279,11 +286,12 @@ import { register } from "ol/proj/proj4.js";
 import draggable from "vuedraggable";
 
 import AddLayer from "../components/AddLayer.vue";
+import FeatureInfo from "../components/FeatureInfo.vue";
 
 export default defineComponent({
   name: "MainLayout",
 
-  components: { draggable, AddLayer },
+  components: { draggable, AddLayer, FeatureInfo },
 
   data() {
     return {
@@ -356,6 +364,7 @@ export default defineComponent({
                   this.sessionCnt++;
                 image.getImage().src = srcUrl;
               },
+              params: {},
             }),
           });
         }
@@ -556,6 +565,36 @@ export default defineComponent({
         console.log(e);
       }
     },
+
+    async getFeatureInfo(coordinate) {
+      console.log(coordinate);
+
+      for (const layerEntry of this.layers) {
+        if (layerEntry.type === "postgis") {
+          try {
+            console.log(layerEntry);
+            const imageWMS = layerEntry.layer.getSource();
+            console.log(imageWMS);
+            const resolution = this.view.getResolution();
+            const projection = this.view.getProjection();
+            //const params = { INFO_FORMAT: "text/html" };
+            const params = { INFO_FORMAT: "application/geo+json" };
+            const url = imageWMS.getFeatureInfoUrl(
+              coordinate,
+              resolution,
+              projection,
+              params
+            );
+            console.log(url);
+            const response = await this.$api.get(url);
+            //console.log(response.data);
+            this.$refs.FeatureInfo.show(response.data);
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      }
+    },
   },
 
   async mounted() {
@@ -605,6 +644,10 @@ export default defineComponent({
     this.map.on("loadend", (e) => {
       this.map.getTargetElement().classList.remove("spinner");
       //console.log("loadend");
+    });
+    this.map.on("singleclick", (e) => {
+      console.log("singleclick");
+      this.getFeatureInfo(e.coordinate);
     });
 
     await this.refreshLayers();

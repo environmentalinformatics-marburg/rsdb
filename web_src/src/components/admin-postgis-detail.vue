@@ -121,23 +121,16 @@
                 </table>
             </div>
 
-            <v-divider class="meta-divider"></v-divider>
-            <div class="meta-content">
-                <div v-if="meta.invalid_geometry === undefined"><b>Geometry valid.</b></div>
-                <div v-else>
-                    <b>Geometry invalid: ({{meta.invalid_geometry.length}})</b>
-                    <table>
-                        <tr v-for="r in meta.invalid_geometry" :key="r"><td>{{r}}</td></tr>
-                    </table>
-                </div>
-            </div>
 
             <v-divider class="meta-divider"></v-divider>
+            <h3 class="subheading mb-0" v-if="meta.style !== undefined"> 
+                Style
+            </h3>
             <div class="meta-content" v-if="meta.style !== undefined">
+                <div class="legend">
+                    <img :key="meta.name" :src="$store.getters.apiUrl('postgis/layers/' + meta.name + '/wms?REQUEST=GetLegendGraphic')" alt="Loading legend image ..." /> 
+                </div>                
                 <table>
-                    <tr>
-                        <th>Style</th>
-                    </tr>
                     <tr v-for="(value, key) in meta.style" :key="key">
                         <td><b>{{key}}</b></td>
                         <td v-if="key === 'values'">
@@ -150,12 +143,21 @@
                         </td>
                         <td v-else>{{JSON.stringify(value, undefined, 1)}}</td>
                     </tr>
+                </table>                
+            </div>
+
+            <v-divider class="meta-divider"></v-divider>
+            <h3 class="subheading mb-0"  v-if="meta.invalid_geometry === undefined"> 
+                Geometry valid.
+            </h3>
+            <h3 class="subheading mb-0" v-else>
+                Geometry invalid: ({{meta.invalid_geometry.length}})
+            </h3>                        
+            <div class="meta-content" v-if="meta.invalid_geometry !== undefined">
+                <table>
+                    <tr v-for="r in meta.invalid_geometry" :key="r"><td>{{r}}</td></tr>
                 </table>
-                
-            </div>
-            <div class="legend">
-                <img :key="meta.name" :src="$store.getters.apiUrl('postgis/layers/' + meta.name + '/wms?REQUEST=GetLegendGraphic')" alt="Loading legend image ..." /> 
-            </div>
+            </div>            
 
         </div>
         

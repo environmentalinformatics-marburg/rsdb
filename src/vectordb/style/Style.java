@@ -11,11 +11,13 @@ import pointdb.base.Point2d;
 import util.JsonUtil;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap;
+import util.yaml.YamlUtil;
 import vectordb.Renderer.Drawer;
 
 public abstract class Style {
 	
 	private String type;
+	private String title;
 	
 	protected abstract void toYamlProperties(Map<String, Object> yamlMap);
 	protected abstract void writeJsonProperties(JSONWriter json);
@@ -35,6 +37,7 @@ public abstract class Style {
 	
 	public final Map<String, Object> toYaml(LinkedHashMap<String, Object> yamlMap) {
 		yamlMap.put("type", type);
+		YamlUtil.optPut(yamlMap, "title", title);
 		toYamlProperties(yamlMap);
 		return yamlMap;
 	}
@@ -47,21 +50,26 @@ public abstract class Style {
 	
 	public final void writeJsonInside(JSONWriter json) {
 		JsonUtil.put(json, "type", type);
+		JsonUtil.optPut(json, "title", title);
 		writeJsonProperties(json);
 	}
 
 	public static Style ofYaml(YamlMap yamlMap) {
 		String type = yamlMap.getString("type");
+		String title = yamlMap.optString("title");
 		Style style = ofType(type);
 		style.type = type;
+		style.title = title;
 		style.parseYamlProperties(yamlMap);
 		return style;
 	}
 	
 	public static Style ofJSON(JSONObject json) {
 		String type = json.getString("type");
+		String title = json.optString("title");
 		Style style = ofType(type);
 		style.type = type;
+		style.title = title;
 		style.parseJsonProperties(json);
 		return style;
 	}
@@ -73,5 +81,11 @@ public abstract class Style {
 		default: 
 			throw new RuntimeException("unknown style type: " + type);
 		}			
+	}
+	public boolean hasTitle() {
+		return title != null && !title.isBlank();
+	}
+	public String getTitle() {
+		return title;
 	}
 }

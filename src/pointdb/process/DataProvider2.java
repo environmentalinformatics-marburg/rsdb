@@ -2,9 +2,6 @@ package pointdb.process;
 
 import java.util.stream.Stream;
 
-
-import org.tinylog.Logger;
-
 import pointcloud.GeoPointTransformer;
 import pointcloud.PointCloud;
 import pointcloud.PointTable;
@@ -23,8 +20,7 @@ import server.api.pointdb.RasterGenerator;
 import util.collections.vec.DoubleVec;
 import util.collections.vec.Vec;
 
-public class DataProvider2 {
-	
+public class DataProvider2 {	
 
 	private static final int BORDER_SIZE = 16;
 
