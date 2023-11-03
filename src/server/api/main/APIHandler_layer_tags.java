@@ -14,7 +14,6 @@ import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_layer_tags extends APIHandler {
-	//
 
 	public APIHandler_layer_tags(Broker broker) {
 		super(broker, "layer_tags");
@@ -31,8 +30,6 @@ public class APIHandler_layer_tags extends APIHandler {
 		json.object();
 		json.key("layer_tags");
 		json.value(broker.catalog.getTags(userIdentity));
-		json.endObject();
-		
-		
+		json.endObject();		
 	}
 }

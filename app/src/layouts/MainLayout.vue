@@ -138,12 +138,39 @@
                             @click="onZoomToLayer(element)"
                           />
                         </q-item-label>
+                        <div v-if="element.type === 'background'">
+                          <q-select
+                            v-model="backgroundMap"
+                            :options="backgroundMaps"
+                            label="Background map"
+                            outlined
+                            stack-label
+                            dense
+                            option-label="name"
+                          />
+                        </div>
                         <div v-if="element.type === 'postgis'">
                           <img
                             :src="element.wmsURL + '?REQUEST=GetLegendGraphic'"
                             style="border: 1px solid rgba(0, 0, 0, 0.151)"
                           />
                         </div>
+                        <RasterLayerSettings
+                          v-if="element.type === 'rasterdb'"
+                          :layer="element"
+                          @changeTimeSlice="
+                            (timeSlice) => {
+                              element.timeSlice = timeSlice;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
+                          @changeStyle="
+                            (style) => {
+                              element.style = style;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
+                        />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -275,7 +302,7 @@ import { mapActions } from "pinia";
 import { useLayersStore } from "../stores/layers-store";
 
 import { Map, View } from "ol";
-import { Image as ImageLayer, Tile as TileLayer } from "ol/layer";
+import { Image as ImageLayer, Tile as TileLayer, Layer } from "ol/layer";
 import { OSM } from "ol/source";
 import ImageWMS from "ol/source/ImageWMS";
 import Projection from "ol/proj/Projection";
@@ -287,11 +314,12 @@ import draggable from "vuedraggable";
 
 import AddLayer from "../components/AddLayer.vue";
 import FeatureInfo from "../components/FeatureInfo.vue";
+import RasterLayerSettings from "../components/RasterLayerSettings.vue";
 
 export default defineComponent({
   name: "MainLayout",
 
-  components: { draggable, AddLayer, FeatureInfo },
+  components: { draggable, AddLayer, FeatureInfo, RasterLayerSettings },
 
   data() {
     return {
@@ -304,6 +332,8 @@ export default defineComponent({
       drag: false,
       initializingLayers: false,
       mainLayer: undefined,
+      backgroundMap: undefined,
+      backgroundMaps: undefined,
     };
   },
 
@@ -396,6 +426,14 @@ export default defineComponent({
             layerEntry.rasterdbLayerURLPart + "/meta.json"
           );
           layerEntry.meta = response.data;
+
+          layerEntry.meta.time_slices.forEach((element, i) => {
+            element.index = i;
+          });
+
+          layerEntry.meta.wms.styles.forEach((element, i) => {
+            element.index = i;
+          });
         }
 
         if (layerEntry.extent === undefined) {
@@ -414,6 +452,14 @@ export default defineComponent({
         if (layerEntry.wmsURL === undefined) {
           layerEntry.wmsURL =
             this.$api.getUri() + layerEntry.rasterdbLayerURLPart + "/wms";
+        }
+
+        if (layerEntry.style === undefined) {
+          layerEntry.style = layerEntry.meta.wms.styles[0];
+        }
+
+        if (layerEntry.timeSlice === undefined) {
+          layerEntry.timeSlice = layerEntry.meta.time_slices[0];
         }
 
         if (layerEntry.layer === undefined) {
@@ -444,8 +490,10 @@ export default defineComponent({
                   this.sessionCnt++;
                 image.getImage().src = srcUrl;
               },
+              params: {},
             }),
           });
+          this.refreshRasterdbLayerParameters(layerEntry);
         }
 
         if (layerEntry.projection === undefined) {
@@ -595,20 +643,177 @@ export default defineComponent({
         }
       }
     },
+
+    refreshRasterdbLayerParameters(layerEntry) {
+      console.log("refreshRasterdbLayerParameters " + layerEntry.name);
+      const paramLayers = layerEntry.style.name + "/" + layerEntry.timeSlice.id;
+      layerEntry.layer.getSource().updateParams({ LAYERS: paramLayers });
+    },
+  },
+
+  watch: {
+    backgroundMap() {
+      const srcIndex = this.layers.findIndex((e) => e.type === "background");
+      if (srcIndex >= 0) {
+        const src = this.layers[srcIndex];
+        this.backgroundMap.visible = src.visible;
+        this.backgroundMap.opacity = src.opacity;
+        this.backgroundMap.layer.setOpacity(this.backgroundMap.opacity / 100);
+        this.layers[srcIndex] = this.backgroundMap;
+        this.refreshLayers(true);
+        this.refreshLayerVisibility();
+      }
+    },
   },
 
   async mounted() {
     this.layersInit(this);
+
+    this.backgroundMaps = [
+      {
+        name: "OpenStreetMap",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM(),
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "OpenTopoMap",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions:
+              'Kartendaten: © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende, SRTM | Kartendarstellung: © <a href="http://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+            url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
+          }),
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "Black",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(0, 0, 0, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "White",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(255, 255, 255, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "Grey",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(127, 127, 127, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "Red",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(255, 0, 0, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "Green",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(0, 255, 0, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "Blue",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(0, 0, 255, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "Yellow",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(255, 255, 0, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "Magenta",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(255, 0, 255, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+      {
+        name: "Cyan",
+        type: "background",
+        layer: new TileLayer({
+          source: new OSM({
+            attributions: "",
+            url: null,
+          }),
+          background: "rgba(0, 255, 255, 1)",
+        }),
+        visible: false,
+        extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
+      },
+    ];
+    this.backgroundMap = this.backgroundMaps[0];
+
     this.layers.length = 0;
-    this.layers.push({
-      name: "OpenStreetMap",
-      type: "background",
-      layer: new TileLayer({
-        source: new OSM(),
-      }),
-      visible: false,
-      extent: [-20037508.34, -20048966.1, 20037508.34, 20048966.1],
-    });
+    this.layers.push(this.backgroundMap);
 
     const query = this.route.query;
     //console.log(query);
