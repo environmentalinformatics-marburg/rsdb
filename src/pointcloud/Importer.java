@@ -8,6 +8,9 @@ import java.util.BitSet;
 
 
 import org.tinylog.Logger;
+
+import broker.TimeSlice;
+
 import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
 
@@ -19,8 +22,7 @@ import remotetask.PrintLineStreamAdapter;
 import util.Timer;
 import util.Util;
 
-public class Importer extends CancelableRemoteProxy {
-	
+public class Importer extends CancelableRemoteProxy {	
 
 	private static final CRSFactory CRS_FACTORY = new CRSFactory();
 
@@ -48,7 +50,7 @@ public class Importer extends CancelableRemoteProxy {
 	 * @param root directory or file
 	 * @throws IOException
 	 */
-	public void importDirectory(Path root) throws IOException {
+	public void importDirectory(Path root, TimeSlice timeSlice) throws IOException {
 		Path[] paths = null;
 		if(isCanceled()) {
 			throw new RuntimeException("canceled");
@@ -59,7 +61,7 @@ public class Importer extends CancelableRemoteProxy {
 			paths = Util.getPaths(root);
 			for(Path path:paths) {
 				if(path.toFile().isDirectory()) {
-					importDirectory(path);
+					importDirectory(path, timeSlice);
 				}
 			}
 		}
@@ -80,7 +82,7 @@ public class Importer extends CancelableRemoteProxy {
 						if(isCanceled()) {
 							throw new RuntimeException("canceled");
 						}
-						importFile(path);
+						importFile(path, timeSlice);
 						file_counter++;
 					} else {
 						//Logger.info("skip file "+path);	
@@ -108,7 +110,7 @@ public class Importer extends CancelableRemoteProxy {
 		}
 	}
 
-	private void importFile(Path filename) throws IOException {
+	private void importFile(Path filename, TimeSlice timeSlice) throws IOException {
 		Logger.info("import " + filename);
 		Timer.start("import");
 
@@ -434,7 +436,7 @@ public class Importer extends CancelableRemoteProxy {
 			}
 
 			//Logger.info(Timer.stop("convert records"));
-
+			
 			for (int y = 0; y < ycellrange; y++) {
 				for (int x = 0; x < xcellrange; x++) {
 					CellTable cellTable = cells[y][x];
@@ -444,7 +446,7 @@ public class Importer extends CancelableRemoteProxy {
 						int ty = y + ycellmin;
 						int tz = 0;
 						//Timer.resume("get old CellTable");
-						CellTable oldCellTable = pointcloud.getCellTable(tx, ty, tz);
+						CellTable oldCellTable = pointcloud.getCellTable(tx, ty, tz, timeSlice.id);
 						//Logger.info(Timer.stop("get old CellTable"));
 						if(oldCellTable != null) {
 							//Timer.resume("merge CellTable");
@@ -455,8 +457,7 @@ public class Importer extends CancelableRemoteProxy {
 							//Logger.info(Timer.stop("merge CellTable"));
 						}
 						//Timer.resume("create tile");
-						int t = 0;
-						Tile tile = pointcloud.createTile(cellTable, tx, ty, tz, t, compression_level);
+						Tile tile = pointcloud.createTile(cellTable, tx, ty, tz, timeSlice.id, compression_level);
 
 						/*pointcloud.getGriddb();
 						CellTable newCellTable = pointcloud.getCellTable(GridDB.tileToCell(tile), new AttributeSelector(true));

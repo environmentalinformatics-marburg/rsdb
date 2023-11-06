@@ -95,6 +95,23 @@ public class RasterdbMethod_wms_GetMap {
 
 			//String styles = Web.getString(request, "STYLES"); // STYLES parameter not used
 			
+			gamma = Web.getDouble(request, "gamma", gamma);
+			
+			String rangeText = Web.getString(request, "range", null);
+			if(rangeText != null) {
+				try {
+					String[] rangeTexts = rangeText.split(",", -1);
+					if(rangeTexts.length != 2) {
+						throw new RuntimeException("range parameter error");
+					}
+					double rangeMin = Double.parseDouble(rangeTexts[0]);
+					double rangeMax = Double.parseDouble(rangeTexts[1]);
+					range = new double[] {Double.isFinite(rangeMin) ? rangeMin : Double.NEGATIVE_INFINITY, Double.isFinite(rangeMax) ? rangeMax : Double.NEGATIVE_INFINITY};
+				} catch (Exception e) {
+					Logger.warn("unknown gamma value: " + e + "   " + customWMS.gamma);
+				}
+			}
+						
 			boolean doReprojection = false;
 			int layerEPSG = -1;
 			int wmsEPSG = -1;

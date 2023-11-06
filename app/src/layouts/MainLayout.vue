@@ -115,7 +115,7 @@
                   <q-list style="min-width: 300px">
                     <q-item>
                       <q-item-section>
-                        <q-item-label caption>
+                        <q-item-label overline>
                           Opacity
                           <span v-show="!element.visible" style="color: red">
                             (not visible)
@@ -167,6 +167,36 @@
                           @changeStyle="
                             (style) => {
                               element.style = style;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
+                          @changeFixedGamma="
+                            (fixedGamma) => {
+                              element.fixedGamma = fixedGamma;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
+                          @changeGammaStep="
+                            (gammaStep) => {
+                              element.gammaStep = gammaStep;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
+                          @changeFixedRange="
+                            (fixedRange) => {
+                              element.fixedRange = fixedRange;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
+                          @changeRangeMin="
+                            (rangeMin) => {
+                              element.rangeMin = rangeMin;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
+                          @changeRangeMax="
+                            (rangeMax) => {
+                              element.rangeMax = rangeMax;
                               refreshRasterdbLayerParameters(element);
                             }
                           "
@@ -434,6 +464,13 @@ export default defineComponent({
           layerEntry.meta.wms.styles.forEach((element, i) => {
             element.index = i;
           });
+
+          layerEntry.fixedGamma = false;
+          layerEntry.gammaStep = 4;
+
+          layerEntry.fixedRange = false;
+          layerEntry.rangeMin = 0;
+          layerEntry.rangeMax = 255;
         }
 
         if (layerEntry.extent === undefined) {
@@ -647,7 +684,29 @@ export default defineComponent({
     refreshRasterdbLayerParameters(layerEntry) {
       console.log("refreshRasterdbLayerParameters " + layerEntry.name);
       const paramLayers = layerEntry.style.name + "/" + layerEntry.timeSlice.id;
-      layerEntry.layer.getSource().updateParams({ LAYERS: paramLayers });
+      let params = { LAYERS: paramLayers };
+      if (layerEntry.fixedGamma) {
+        let markerLabels = [
+          { value: 1, label: "0.1" },
+          { value: 2, label: "0.2" },
+          { value: 3, label: "0.5" },
+          { value: 4, label: "1.0" },
+          { value: 5, label: "1.5" },
+          { value: 6, label: "2.0" },
+          { value: 7, label: "2.5" },
+          { value: 8, label: "3.0" },
+        ];
+        const gamma = markerLabels[layerEntry.gammaStep - 1].label;
+        params.gamma = gamma;
+      } else {
+        params.gamma = undefined;
+      }
+      if (layerEntry.fixedRange) {
+        params.range = layerEntry.rangeMin + "," + layerEntry.rangeMax;
+      } else {
+        params.range = undefined;
+      }
+      layerEntry.layer.getSource().updateParams(params);
     },
   },
 

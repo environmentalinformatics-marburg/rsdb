@@ -449,8 +449,8 @@ public class PointCloud implements AutoCloseable {
 	}
 
 
-	public CellTable getCellTable(int cx, int cy, int cz) throws IOException {
-		Cell cell = griddb.getCell(cx, cy, cz);
+	public CellTable getCellTable(int cx, int cy, int cz, int t) throws IOException {
+		Cell cell = griddb.getCell(cx, cy, cz, t);
 		if(cell == null) {
 			return null;
 		} else {
@@ -458,8 +458,8 @@ public class PointCloud implements AutoCloseable {
 		}
 	}
 
-	public CellTable getCellTable(int cx, int cy, int cz, AttributeSelector selector) throws IOException {
-		Cell cell = griddb.getCell(cx, cy, cz);
+	public CellTable getCellTable(int cx, int cy, int cz, int t, AttributeSelector selector) throws IOException {
+		Cell cell = griddb.getCell(cx, cy, cz, t);
 		if(cell == null) {
 			return null;
 		} else {
@@ -683,7 +683,7 @@ public class PointCloud implements AutoCloseable {
 	}
 
 	public TimeSlice getTimeSliceByName(String name) {
-		if(name == null || name.isEmpty()) {
+		if(name == null || name.isBlank()) {
 			return null;
 		}
 		for(TimeSlice timeSlice : timeMap.values()) {

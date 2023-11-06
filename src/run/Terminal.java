@@ -20,6 +20,7 @@ import org.gdal.gdal.gdal;
 import org.json.JSONObject;
 
 import broker.Broker;
+import broker.TimeSlice;
 import pointcloud.AttributeSelector;
 import pointcloud.CellTable;
 import pointcloud.Importer;
@@ -769,7 +770,8 @@ public class Terminal {
 				AttributeSelector selector = new AttributeSelector().all();
 				Importer importer = new Importer(pointcloud, null, selector, Integer.MIN_VALUE);
 				Timer.start("total import");
-				importer.importDirectory(root);
+				TimeSlice timeSlice = new TimeSlice(0, "default");
+				importer.importDirectory(root, timeSlice);
 				pointcloud.getGriddb().storage().flush();
 				Logger.info(Timer.stop("total import"));
 			} catch (Exception e) {

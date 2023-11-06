@@ -149,18 +149,18 @@ public class GridDB implements AutoCloseable {
 		writeMetaIfNeeded();
 	}
 
-	private Tile getTile(int tx, int ty, int tz) throws IOException {
+	/*private Tile getTile(int tx, int ty, int tz) throws IOException {
 		return storage().readTile(0, tz, ty, tx);		
-	}
+	}*/
 	
 	private Tile getTile(int tx, int ty, int tz, int t) throws IOException {
 		return storage().readTile(t, tz, ty, tx);		
 	}
 
-	public Cell getCell(int x, int y, int z) throws IOException {
+	/*public Cell getCell(int x, int y, int z) throws IOException {
 		Tile tile = getTile(x, y, z);
 		return tile == null ? null : tileToCell(tile);
-	}
+	}*/
 	
 	public Cell getCell(int x, int y, int z, int t) throws IOException {
 		Tile tile = getTile(x, y, z, t);

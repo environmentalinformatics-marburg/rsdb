@@ -163,6 +163,8 @@ public class Task_to_pointcloud extends RemoteTask{
 
 			setMessage("load pointdb tile keys");
 			TreeSet<TileKey> cachedKeySet = new TreeSet<TileKey>(pointdb.tileMetaMap.keySet());
+						
+			int t = 0;
 
 			setMessage("start transfer points");
 			long sourceTileCount = 0;
@@ -238,13 +240,12 @@ public class Task_to_pointcloud extends RemoteTask{
 							cellTable.scanAngleRank = scanAngleRank;
 							cellTable.classification = classification;
 							cellTable.cleanup();
-							CellTable oldCellTable = pointcloud.getCellTable(cellTable.cx, cellTable.cy, cellTable.cz);
+							CellTable oldCellTable = pointcloud.getCellTable(cellTable.cx, cellTable.cy, cellTable.cz, t);
 							if(oldCellTable != null) {
 								Logger.warn("merge with existing cell");
 								cellTable = CellTable.merge(oldCellTable, cellTable);
 							}
 							Timer.start("to_pointdb create tile");
-							int t = 0;
 							rasterunit.Tile tile = pointcloud.createTile(cellTable, cellTable.cx, cellTable.cy, cellTable.cz, t, Integer.MIN_VALUE);
 							Logger.info(Timer.stop("to_pointdb create tile"));
 							Timer.start("to_pointdb write");

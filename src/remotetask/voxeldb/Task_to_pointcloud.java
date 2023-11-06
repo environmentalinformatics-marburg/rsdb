@@ -157,7 +157,7 @@ public class Task_to_pointcloud extends RemoteTask {
 					cellTable.z = zs;
 					cellTable.intensity = is;
 
-					CellTable oldCellTable = pointcloud.getCellTable(cellTable.cx, cellTable.cy, cellTable.cz);
+					CellTable oldCellTable = pointcloud.getCellTable(cellTable.cx, cellTable.cy, cellTable.cz, timeSlice.id);
 					if(oldCellTable != null) {
 						cellTable = CellTable.merge(oldCellTable, cellTable);
 					}
