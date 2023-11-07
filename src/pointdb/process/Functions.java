@@ -22,9 +22,13 @@ public class Functions {
 	
 	static {
 		add(Fun_point_count.class);
+		add(Fun_ground_point_count.class);
+		add(Fun_vegetation_point_count.class);
 		add(Fun_bbox_area.class);
 		add(Fun_area.class);
 		add(Fun_point_density.class);
+		add(Fun_ground_point_density.class);
+		add(Fun_vegetation_point_density.class);
 		add(Fun_point_coverage.class);
 		//add(Fun_canopy_height.class);
 		add(Fun_LAI.class);
