@@ -11,11 +11,13 @@ import broker.TimeSlice;
 import rasterdb.Band;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
+import rasterdb.node.ProcessorNode_gap_filling;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
 import remotetask.CancelableRemoteProxy;
 import util.Range2d;
+import util.Util;
 
 public class Rasterizer extends CancelableRemoteProxy {	
 
@@ -32,16 +34,22 @@ public class Rasterizer extends CancelableRemoteProxy {
 	private Band bandElevation;
 
 	private static final int raster_pixel_per_batch_row = TilePixel.PIXELS_PER_ROW * 32;
-	private static final int border_pixels = 3;
+	//private static final int border_pixels = 3;
+	//private static final int border_pixels = 15;
+	private final int border_pixels;  // 15
+	private final int fillRadius; // 15
 
 	private AttributeSelector selectorIntensity;
 	private AttributeSelector selectorElevation;
 
 	private final String[] processing_bands;
 
-	public Rasterizer(PointCloud pointcloud, RasterDB rasterdb, double point_scale, String[] processing_bands) {
+
+	public Rasterizer(PointCloud pointcloud, RasterDB rasterdb, double point_scale, String[] processing_bands, int fillRadius) {
 		this.point_scale = point_scale;
 		this.processing_bands = processing_bands;
+		this.border_pixels = fillRadius;
+		this.fillRadius = fillRadius;
 		this.raster_pixel_size = 1d / point_scale;
 		this.pointcloud = pointcloud;
 		this.rasterdb = rasterdb;
@@ -251,8 +259,16 @@ public class Rasterizer extends CancelableRemoteProxy {
 					Stream<PointTable> pointTables = pointcloud.getPointTables(t, qxmin, qymin, qxmax, qymax, selector);
 					float[][] pixels = ProcessingFloat.createEmpty(bxmax - bxmin + 1, bymax - bymin + 1);
 					pointProcessing.process(pointTables, qxmin, qymin, pixels, point_scale);
-					pointdb.Rasterizer.fill(pixels);
-					pixels = removeBorder(pixels, border_pixels);
+					if(fillRadius > 0) {
+						//pointdb.Rasterizer.fill(pixels);
+						/*float[][] src = ProcessingFloat.copy(pixels, bxmax - bxmin + 1, bymax - bymin + 1);
+					    ProcessorNode_gap_filling.fill(src, pixels, bxmax - bxmin + 1, bymax - bymin + 1, fillRadius);*/
+						float[][] src = ProcessingFloat.copy(pixels, bxmax - bxmin + 1, bymax - bymin + 1);
+						ProcessorNode_gap_filling.fillBordered(src, pixels, bxmax - bxmin + 1, bymax - bymin + 1, fillRadius);
+					}
+					if(border_pixels > 0) {
+						pixels = removeBorder(pixels, border_pixels);
+					}
 					ProcessingFloat.writeMerge(rasterUnit, t, selectedBand, pixels, ymin, xmin);
 					rasterUnit.commit();
 					Logger.info("committed");

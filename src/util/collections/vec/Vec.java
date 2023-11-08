@@ -31,7 +31,6 @@ import util.collections.array.iterator.ReadonlyArrayReverseIterator;
 import util.collections.vec.iterator.VecListIterator;
 
 public class Vec<T> implements List<T> {
-	//
 
 	private static final Object[] DEFAULT_SIZED_EMPTY_ARRAY = {};
 

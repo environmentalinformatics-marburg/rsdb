@@ -1,7 +1,5 @@
 package rasterdb.node;
 
-
-import rasterdb.BandProcessor;
 import rasterdb.FrameProducer;
 import util.frame.DoubleFrame;
 
