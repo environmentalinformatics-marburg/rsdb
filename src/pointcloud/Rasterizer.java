@@ -17,7 +17,6 @@ import rasterdb.tile.TilePixel;
 import rasterunit.RasterUnitStorage;
 import remotetask.CancelableRemoteProxy;
 import util.Range2d;
-import util.Util;
 
 public class Rasterizer extends CancelableRemoteProxy {	
 
@@ -61,7 +60,7 @@ public class Rasterizer extends CancelableRemoteProxy {
 		rasterdb.setProj4(pointcloud.getProj4());
 		rasterdb.associated.setPointCloud(pointcloud.getName());
 		Builder informal = rasterdb.informal().toBuilder();
-		informal.description = "ratserized poindcloud " + pointcloud.getName();
+		informal.description = "rasterized poindcloud " + pointcloud.getName();
 		rasterdb.setInformal(informal.build());
 		rasterdb.writeMeta();
 

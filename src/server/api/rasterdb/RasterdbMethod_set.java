@@ -6,19 +6,15 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.Informal.Builder;
@@ -27,7 +23,7 @@ import broker.TimeSlice;
 import broker.TimeSlice.TimeSliceBuilder;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
-import broker.acl.EmptyACL;
+import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.Band;
 import rasterdb.CustomWCS;
 import rasterdb.CustomWMS;

@@ -52,12 +52,12 @@
       option-label="name"
     >
       <template v-slot:option="scope">
-        <q-item v-bind="scope.itemProps">
+        <q-item v-bind="scope.itemProps" :title="layer.style.description">
           <q-item-section>
             <q-item-label
               ><b>{{ scope.opt.name }}</b>
-              <span v-if="scope.opt.name !== scope.opt.description">
-                - {{ scope.opt.description }}</span
+              <span v-if="scope.opt.name !== scope.opt.title">
+                - {{ scope.opt.title }}</span
               ></q-item-label
             >
           </q-item-section>
@@ -65,8 +65,11 @@
       </template>
 
       <template v-slot:selected>
-        <span
-          ><b>{{ layer.style.name }}</b> - {{ layer.style.description }}</span
+        <span :title="layer.style.description"
+          ><b>{{ layer.style.name }}</b
+          ><span v-if="layer.style.name !== layer.style.title">
+            - {{ layer.style.title }}</span
+          ></span
         >
       </template>
 

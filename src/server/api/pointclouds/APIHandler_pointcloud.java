@@ -457,7 +457,8 @@ public class APIHandler_pointcloud {
 					break;
 				}
 				case "delete_pointcloud": {
-					pointcloud.checkMod(userIdentity);
+					//pointcloud.checkMod(userIdentity);
+					pointcloud.checkOwner(userIdentity); // only owner can delete
 					updateCatalog = false; // will be updated by delete pointcloud
 					String pointcloud_name = meta.getString("delete_pointcloud");
 					if(!pointcloud_name.equals(pointcloud.getName())) {

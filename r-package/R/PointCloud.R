@@ -36,6 +36,7 @@ PointCloud_private <- list( #      *********** private *************************
 #' pointcloud$raster(ext, res=1, type="point_count", fill=10, time_slice_id=NULL, time_slice_name=NULL)
 #' pointcloud$volume(ext, res=1, zres=res, time_slice_id=NULL, time_slice_name=NULL)
 #' pointcloud$indices(areas, functions, omit_empty_areas=TRUE, time_slice_id=NULL, time_slice_name=NULL)
+#' pointcloud$set_meta(meta)
 #'
 #' pointcloud$name
 #' pointcloud$meta
@@ -435,6 +436,23 @@ PointCloud <- R6::R6Class("PointCloud",
       path <- paste0("/pointclouds/", private$name_, "/indices.rdat")
       query <- list()
       result <- private$rsdbConnector$POST_json(path, query, data)
+      return(result)
+    },
+
+    #' @description
+    #' Change meta data of this pointcloud layer
+    #'
+    #' @return result
+    #'
+    #' @param meta Named list of meta data entries to be set. Named entries can be:
+    #' title, description, corresponding_contact, acquisition_date, code, proj4,
+    #' acl, acl_mod, acl_owner, tags, associated, properties
+    #'
+    set_meta = function(meta) {
+      path <- paste0("/pointclouds/", private$name_)
+      json = list(pointcloud = meta)
+      result <- private$rsdbConnector$POST_json(path, data = json)
+      #self$refresh_meta()
       return(result)
     }
 

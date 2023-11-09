@@ -19,6 +19,7 @@ pointcloud$points(ext, columns=NULL, filter=NULL, normalise=NULL, time_slice_id=
 pointcloud$raster(ext, res=1, type="point_count", fill=10, time_slice_id=NULL, time_slice_name=NULL)
 pointcloud$volume(ext, res=1, zres=res, time_slice_id=NULL, time_slice_name=NULL)
 pointcloud$indices(areas, functions, omit_empty_areas=TRUE, time_slice_id=NULL, time_slice_name=NULL)
+pointcloud$set_meta(meta)
 
 pointcloud$name
 pointcloud$meta
@@ -160,6 +161,7 @@ woellauer
 \item \href{#method-PointCloud-raster}{\code{PointCloud$raster()}}
 \item \href{#method-PointCloud-volume}{\code{PointCloud$volume()}}
 \item \href{#method-PointCloud-indices}{\code{PointCloud$indices()}}
+\item \href{#method-PointCloud-set_meta}{\code{PointCloud$set_meta()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -374,6 +376,28 @@ For available index names see "$index_list".}
 }
 \subsection{Returns}{
 data.frame
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PointCloud-set_meta"></a>}}
+\if{latex}{\out{\hypertarget{method-PointCloud-set_meta}{}}}
+\subsection{Method \code{set_meta()}}{
+Change meta data of this pointcloud layer
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PointCloud$set_meta(meta)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{meta}}{Named list of meta data entries to be set. Named entries can be:
+title, description, corresponding_contact, acquisition_date, code, proj4,
+acl, acl_mod, acl_owner, tags, associated, properties}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+result
 }
 }
 }
