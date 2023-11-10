@@ -4,8 +4,6 @@ import java.util.Arrays;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import org.tinylog.Logger;
-
 import util.Timer;
 
 public class RangerShort {

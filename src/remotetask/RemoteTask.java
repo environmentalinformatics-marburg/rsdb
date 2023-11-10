@@ -88,6 +88,14 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 		return  tstart == -1 ? 0 : (tend == -1 ? System.currentTimeMillis() - tstart : tend - tstart);
 	}
 	
+	public final long getStartMillis() {
+		return  tstart;
+	}
+	
+	public final long getEndMillis() {
+		return  tend;
+	}
+	
 	public final void setMessage(String message) {
 		lastMessageTime = System.currentTimeMillis();
 		this.message = message;

@@ -209,7 +209,7 @@ public final class Web {
 
 	public static boolean getBoolean(Request request, String name, boolean defaultValue) {
 		String text = request.getParameter(name);
-		if(text==null) {
+		if(text == null) {
 			return defaultValue;
 		}
 		if(text.equalsIgnoreCase("true")) {

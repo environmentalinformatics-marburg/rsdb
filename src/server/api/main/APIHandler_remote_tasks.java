@@ -2,6 +2,11 @@ package server.api.main;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -21,7 +26,7 @@ import server.api.APIHandler;
 import util.Web;
 
 public class APIHandler_remote_tasks extends APIHandler {
-	
+
 
 	public APIHandler_remote_tasks(Broker broker) {
 		super(broker, "remote_tasks");
@@ -96,7 +101,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 
 	protected void handleRootGET(Request request, Response response) throws IOException {
 		boolean identity = Web.getFlag(request, "identity");
-		
+
 		response.setContentType(Web.MIME_JSON);		
 		JSONWriter res = new JSONWriter(response.getWriter());
 		res.object();
@@ -201,6 +206,9 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.endObject();
 		}
 	}
+	
+	private static final ZonedDateTime TIME_ORIGIN = ZonedDateTime.of(LocalDateTime.of(1970, 1, 1, 0, 0, 0), Clock.systemUTC().getZone()).withZoneSameInstant(Clock.systemDefaultZone().getZone());
+	private static final DateTimeFormatter ZONED_FORMATTER = DateTimeFormatter.ofPattern("MM-dd-yyyy'T'HH:mm:ssX");
 
 	private void handleIdGET(long id, Request request, Response response) throws IOException {
 		RemoteTask remoteTask = RemoteTaskExecutor.getTaskByID(id);
@@ -217,7 +225,7 @@ public class APIHandler_remote_tasks extends APIHandler {
 			res.endObject();
 			return;
 		}
-		
+
 		boolean task = Web.getFlag(request, "task");
 		boolean identity = Web.getFlag(request, "identity");
 
@@ -235,6 +243,18 @@ public class APIHandler_remote_tasks extends APIHandler {
 		res.value(remoteTask.isActive());
 		res.key("runtime");
 		res.value(remoteTask.getRuntimeMillis());
+		long tstart = remoteTask.getStartMillis();
+		if(tstart > 0) {
+			ZonedDateTime zonedDateTime = TIME_ORIGIN.plus(tstart, ChronoUnit.MILLIS);
+			res.key("start");
+			res.value(zonedDateTime.format(ZONED_FORMATTER));
+		}
+		long tend = remoteTask.getEndMillis();
+		if(tend > 0) {			
+			ZonedDateTime zonedDateTime = TIME_ORIGIN.plus(tend, ChronoUnit.MILLIS);
+			res.key("end");
+			res.value(zonedDateTime.format(ZONED_FORMATTER));
+		}
 		res.key("message");
 		res.value(remoteTask.getMessage());
 		res.key("cancelable");

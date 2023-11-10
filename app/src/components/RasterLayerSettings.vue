@@ -117,7 +117,16 @@
                   ? 'linear'
                   : 'dynamic'
               "
-          /></q-item-label>
+            />
+            <q-checkbox
+              :model-value="layer.syncBands"
+              @update:model-value="onUpdateSyncBands"
+              label="Sync"
+              size="xs"
+              title="Same dynamic value range and gamma for all bands."
+              v-visible="!layer.fixedRange"
+            />
+          </q-item-label>
           <q-slider
             :model-value="layer.gammaStep"
             @update:model-value="onUpdateGammaStep"
@@ -165,6 +174,15 @@
           </q-item-label>
         </q-item-section>
       </q-item>
+    </q-expansion-item>
+
+    <q-expansion-item
+      popup
+      caption="Associated pointcloud"
+      dense
+      v-if="meta.associated.pointcloud !== undefined"
+    >
+      {{ meta.associated.pointcloud }}
     </q-expansion-item>
   </div>
 </template>
@@ -231,6 +249,10 @@ export default defineComponent({
     },
     onUpdateRangeMax(value) {
       this.$emit("changeRangeMax", value);
+      console.log(value);
+    },
+    onUpdateSyncBands(value) {
+      this.$emit("changeSyncBands", value);
       console.log(value);
     },
   },

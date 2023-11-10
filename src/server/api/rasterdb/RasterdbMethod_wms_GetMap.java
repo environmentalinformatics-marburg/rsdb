@@ -111,6 +111,8 @@ public class RasterdbMethod_wms_GetMap {
 					Logger.warn("unknown gamma value: " + e + "   " + customWMS.gamma);
 				}
 			}
+			
+			gamma_auto_sync = Web.getBoolean(request, "sync_bands", gamma_auto_sync);
 						
 			boolean doReprojection = false;
 			int layerEPSG = -1;

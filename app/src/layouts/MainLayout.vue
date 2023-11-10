@@ -200,6 +200,12 @@
                               refreshRasterdbLayerParameters(element);
                             }
                           "
+                          @changeSyncBands="
+                            (syncBands) => {
+                              element.syncBands = syncBands;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
                         />
                       </q-item-section>
                     </q-item>
@@ -471,6 +477,8 @@ export default defineComponent({
           layerEntry.fixedRange = false;
           layerEntry.rangeMin = 0;
           layerEntry.rangeMax = 255;
+
+          layerEntry.syncBands = false;
         }
 
         if (layerEntry.extent === undefined) {
@@ -705,6 +713,11 @@ export default defineComponent({
         params.range = layerEntry.rangeMin + "," + layerEntry.rangeMax;
       } else {
         params.range = undefined;
+      }
+      if (layerEntry.syncBands) {
+        params.sync_bands = true;
+      } else {
+        params.sync_bands = false;
       }
       layerEntry.layer.getSource().updateParams(params);
     },

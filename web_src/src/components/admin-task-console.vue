@@ -37,11 +37,23 @@
 {{JSON.stringify(remote_task.task, null, 2)}}
                     </pre>
                 </div>
-                <div v-if="remote_task.identity">
+                <div v-if="remote_task.identity || remote_task.start || remote_task.end">
                     <hr>
-                    <b>Identity:</b>
-                    {{remote_task.identity}}
-                </div>                
+                    <span v-if="remote_task.identity">
+                        <b>Identity:</b>
+                        {{remote_task.identity}}
+                    </span>
+
+                    <span v-if="remote_task.start">
+                        <b> Start:</b>
+                        {{remote_task.start}}
+                    </span>
+
+                    <span v-if="remote_task.end">
+                        <b> End:</b>
+                        {{remote_task.end}}
+                    </span>
+                </div>                                               
                 <hr>
                 <b>Log Messages</b> <v-btn @click="onLogCopy" small title="Copy log messages to clipboard."><v-icon>content_copy</v-icon>Copy to clipboard</v-btn>
                 <div style="color: rgb(199, 200, 225); background-color: #403e4b; padding-left: 10px; padding-right: 10px; padding-top: 3px; padding-bottom: 3px;">
