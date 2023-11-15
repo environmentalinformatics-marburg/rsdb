@@ -244,10 +244,13 @@ public class WmsHandler extends AbstractHandler {
 				Logger.info("****************************************** interrupted (pre load)*******************************************");
 				return;
 			}
+			//int per_mille = 5;
+			//int per_mille = 1;
+			int per_mille = 0;
 			PureImage image = null;
 			if(style_product.equals("color") || style_product.isEmpty()) {
 				Timer.start("render");
-				image = Rasterizer.rasterizeRGB(processor, rasterdb, timestamp, width, height, gamma, range, syncBands, currentInterruptor);
+				image = Rasterizer.rasterizeRGB(processor, rasterdb, timestamp, width, height, gamma, range, syncBands, currentInterruptor, per_mille);
 				//Logger.info(Timer.stop("render"));
 			} else if(style_product.startsWith("band")) {
 				String s = style_product.substring(4);
@@ -255,9 +258,9 @@ public class WmsHandler extends AbstractHandler {
 				TimeBand band = processor.getTimeBand(bandIndex);
 				Timer.start("render");
 				if(palette == null) {
-					image = Rasterizer.rasterizeGrey(processor, band, width, height, gamma, range, currentInterruptor);
+					image = Rasterizer.rasterizeGrey(processor, band, width, height, gamma, range, currentInterruptor, per_mille);
 				} else {
-					image = Rasterizer.rasterizePalette(processor, band, width, height, gamma, range, palette, currentInterruptor);		
+					image = Rasterizer.rasterizePalette(processor, band, width, height, gamma, range, palette, currentInterruptor, per_mille);		
 				}
 				//Logger.info(Timer.stop("render"));
 			} else {
@@ -273,14 +276,14 @@ public class WmsHandler extends AbstractHandler {
 					// nothing
 				} else if(doubleFrames.length == 1) {
 					if(palette == null) {
-						image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, range);
+						image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, range, per_mille);
 					} else {
-						image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, range, palette);					
+						image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, range, palette, per_mille);					
 					}
 				} else if(doubleFrames.length == 2) {
-					image = Renderer.renderRbDouble(doubleFrames[0], doubleFrames[1], width, height, gamma, range, syncBands);
+					image = Renderer.renderRbDouble(doubleFrames[0], doubleFrames[1], width, height, gamma, range, syncBands, per_mille);
 				} else {
-					image = Renderer.renderRgbDouble(doubleFrames[0], doubleFrames[1], doubleFrames[2], width, height, gamma, range, syncBands);
+					image = Renderer.renderRgbDouble(doubleFrames[0], doubleFrames[1], doubleFrames[2], width, height, gamma, range, syncBands, per_mille);
 				}				
 				//Logger.info(Timer.stop("render"));
 			}

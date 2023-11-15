@@ -83,10 +83,11 @@ function init() {
 				//var radius = 10;
 				var radius = 100;
 				var qx = parseFloat(this.urlParameters.x);
-				var qy = parseFloat(this.urlParameters.y);				
+				var qy = parseFloat(this.urlParameters.y);
+				let bbox = {xmin: (qx - radius), ymin: (qy - radius), xmax: (qx + radius), ymax: (qy + radius)};	
 
 				if(this.urlParameters.pointcloud === undefined) {
-					var ext = "" + (qx - radius) + "," + (qx + radius) + "," + (qy - radius) + "," + (qy + radius);
+					var ext = "" + bbox.xmin + "," + bbox.xmax + "," + bbox.ymin + "," + bbox.ymax;
 
 					var queryParameters = { db: this.urlParameters.db, ext: ext, format: "js"/*, sort: "z"*/ };
 					queryParameters.columns = "x,y,z,classification";
@@ -126,7 +127,7 @@ function init() {
 
 				} else {
 					var queryParameters = {};
-					queryParameters.ext = "" + (qx - radius) + " " + (qy - radius) + " " + (qx + radius) + " " + (qy + radius);
+					queryParameters.ext = "" + bbox.xmin + " " + bbox.ymin + " " + bbox.xmax + " " + bbox.ymax;
 					
 					if(this.urlParameters.time_slice_id !== undefined) {
 						queryParameters.time_slice_id = this.urlParameters.time_slice_id;
@@ -199,7 +200,6 @@ function init() {
 						.catch(function (error) {
 							self.loadingMessage = "ERROR loading PointCloud points " + error;
 						});
-
 				}
 			},
 
@@ -302,9 +302,22 @@ function init() {
 						}
 						break;
 					case 'color':
+						let cmin = 0;
+						let cmax = 65535;
+						for (var i = 0; i < colors.length; i++) {
+							const c = rgb_array[i];
+							if(c < cmin) {
+								cmin = c;
+							}
+							if(cmax < c) {
+								cmax = c;
+							}
+						}
+						const cdiv = cmax - cmin;
 						for (var i = 0; i < colors.length; i++) {
 							//colors[i] = rgb_array[i] / 65535;							
-							colors[i] = rgb_array[i] / 255;
+							//colors[i] = rgb_array[i] / 255;
+							colors[i] = (rgb_array[i] - cmin) / cdiv;
 						}
 						break;						
 					default:
@@ -379,13 +392,13 @@ function init() {
 			},
 
 			illuminatedPlus: function () {
-				this.fogDensity /= 1.25;
+				this.fogDensity /= 1.125;
 				this.scene.fog.density = this.fogDensity;
 				this.requestRedraw();
 			},
 
 			illuminatedMinus: function () {
-				this.fogDensity *= 1.25;
+				this.fogDensity *= 1.125;
 				this.scene.fog.density = this.fogDensity;
 				this.requestRedraw();
 			},

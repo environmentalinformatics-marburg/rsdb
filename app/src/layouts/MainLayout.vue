@@ -1,23 +1,42 @@
 <template>
-  <div id="map"></div>
+  <div id="map" :style="{ cursor: mapCursor }"></div>
 
   <div id="overlay">
     <FeatureInfo ref="FeatureInfo" />
+    <q-icon
+      :name="overlayExpand ? 'expand_less' : 'expand_more'"
+      @click="overlayExpand = !overlayExpand"
+      style="position: absolute; pointer-events: auto; cursor: pointer"
+      color="black"
+    />
+    <div
+      style="position: absolute; right: 300px; background-color: #eaeaea"
+      v-if="interaction !== undefined"
+    >
+      <span v-if="interaction.type === 'Pointcloud3dPointView'">
+        Click on a position on the map to 3D-view pointcloud points.</span
+      >
+      <span v-else>{{ interaction.type }}</span>
+      <q-btn
+        dense
+        flat
+        icon="close"
+        style="pointer-events: auto"
+        @click="interaction = undefined"
+      >
+        <q-tooltip class="bg-white text-primary">Cancel</q-tooltip>
+      </q-btn>
+    </div>
     <div
       class="q-pa-md"
       style="
         max-width: 350px;
         pointer-events: auto;
         background-color: rgba(255, 255, 255, 0.932);
+        border: 1px solid rgba(0, 0, 0, 0.24);
       "
-      dense
+      v-show="overlayExpand"
     >
-      <!--<draggable v-model="layers" item-key="name" @update="refreshLayers(true)">
-        <template #item="{ element, index }">
-          <div>{{ element.name }} {{ index }}</div>
-        </template>
-      </draggable>-->
-
       <q-list bordered separator>
         <draggable
           v-model="layers"
@@ -43,7 +62,9 @@
                   /></q-item-section>
                   <q-item-section>
                     <q-item-label caption>PostGIS</q-item-label>
-                    <q-item-label>{{ element.name }}</q-item-label>
+                    <q-item-label class="ellipsis">{{
+                      element.name
+                    }}</q-item-label>
                   </q-item-section>
                   <q-item-section side top
                     ><q-checkbox
@@ -70,7 +91,9 @@
                   /></q-item-section>
                   <q-item-section>
                     <q-item-label caption>RasterDB</q-item-label>
-                    <q-item-label>{{ element.name }}</q-item-label>
+                    <q-item-label class="ellipsis">{{
+                      element.name
+                    }}</q-item-label>
                   </q-item-section>
                   <q-item-section side top
                     ><q-checkbox
@@ -84,7 +107,9 @@
                 <template v-else-if="element.type === 'background'">
                   <q-item-section>
                     <q-item-label caption>Background</q-item-label>
-                    <q-item-label>{{ element.name }}</q-item-label>
+                    <q-item-label class="ellipsis">{{
+                      element.name
+                    }}</q-item-label>
                   </q-item-section>
                   <q-item-section side top
                     ><q-checkbox
@@ -100,7 +125,9 @@
                     <q-item-label caption
                       >{{ element.type }} layer</q-item-label
                     >
-                    <q-item-label>{{ element.name }}</q-item-label>
+                    <q-item-label class="ellipsis">{{
+                      element.name
+                    }}</q-item-label>
                   </q-item-section>
                   <q-item-section side top
                     ><q-checkbox
@@ -206,6 +233,10 @@
                               refreshRasterdbLayerParameters(element);
                             }
                           "
+                          @interaction="
+                            interaction = $event;
+                            interaction.layer = element;
+                          "
                         />
                       </q-item-section>
                     </q-item>
@@ -218,94 +249,6 @@
         </draggable>
       </q-list>
 
-      <!--<q-list bordered separator>
-        <q-item
-          v-for="(element, index) in layers"
-          :key="element.name + ':' + element.type"
-          clickable
-          v-ripple
-        >
-          <template v-if="element.type === 'postgis'">
-            <q-item-section side top
-              ><q-btn
-                size="sm"
-                flat
-                round
-                color="grey"
-                icon="delete_forever"
-                @click.stop="
-                  layers.splice(index, 1);
-                  refreshLayers(true);
-                  console.log('done!');
-                "
-            /></q-item-section>
-            <q-item-section>
-              <q-item-label caption>PostGIS</q-item-label>
-              <q-item-label>{{ element.name }}</q-item-label>
-            </q-item-section>
-            <q-item-section side top
-              ><q-checkbox
-                size="xs"
-                v-model="element.visible"
-                val="xs"
-                color="grey"
-                @update:model-value="refreshLayerVisibility"
-            /></q-item-section>
-          </template>
-          <template v-else-if="element.type === 'background'">
-            <q-item-section>
-              <q-item-label caption>Background</q-item-label>
-              <q-item-label>{{ element.name }}</q-item-label>
-            </q-item-section>
-            <q-item-section side top
-              ><q-checkbox
-                size="xs"
-                v-model="element.visible"
-                val="xs"
-                color="grey"
-                @update:model-value="refreshLayerVisibility"
-            /></q-item-section>
-          </template>
-          <template v-else>
-            <q-item-section>
-              <q-item-label caption>{{ element.type }} layer</q-item-label>
-              <q-item-label>{{ element.name }}</q-item-label>
-            </q-item-section>
-            <q-item-section side top
-              ><q-checkbox
-                size="xs"
-                v-model="element.visible"
-                val="xs"
-                color="grey"
-                @update:model-value="refreshLayerVisibility"
-            /></q-item-section>
-          </template>
-          <q-menu>
-            <q-list style="min-width: 300px">
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>
-                    Opacity
-                    <span v-show="!element.visible" style="color: red">
-                      (not visible)
-                    </span>
-                  </q-item-label>
-                  <q-item-label>
-                    <q-slider
-                      v-model="element.opacity"
-                      :min="0"
-                      :max="100"
-                      @update:model-value="
-                        element.layer.setOpacity(element.opacity / 100)
-                      "
-                    />
-                  </q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-item>
-      </q-list>-->
       <q-btn
         @click="$refs.AddLayer.dialog = true"
         icon="add_to_photos"
@@ -343,6 +286,9 @@ import { OSM } from "ol/source";
 import ImageWMS from "ol/source/ImageWMS";
 import Projection from "ol/proj/Projection";
 import Attribution from "ol/control/Attribution";
+import ScaleLine from "ol/control/ScaleLine";
+import { createStringXY } from "ol/coordinate.js";
+import MousePosition from "ol/control/MousePosition";
 import { transformExtent } from "ol/proj";
 import proj4 from "proj4";
 import { register } from "ol/proj/proj4.js";
@@ -359,6 +305,7 @@ export default defineComponent({
 
   data() {
     return {
+      overlayExpand: true,
       map: undefined,
       view: undefined,
       router: useRouter(),
@@ -370,6 +317,9 @@ export default defineComponent({
       mainLayer: undefined,
       backgroundMap: undefined,
       backgroundMaps: undefined,
+      mapCursor: "auto",
+      mapCursorStandard: "auto",
+      interaction: undefined,
     };
   },
 
@@ -479,6 +429,10 @@ export default defineComponent({
           layerEntry.rangeMax = 255;
 
           layerEntry.syncBands = false;
+
+          let bandMap = {};
+          layerEntry.meta.bands.forEach((band) => (bandMap[band.index] = band));
+          layerEntry.bandMap = bandMap;
         }
 
         if (layerEntry.extent === undefined) {
@@ -660,7 +614,7 @@ export default defineComponent({
     },
 
     async getFeatureInfo(coordinate) {
-      console.log(coordinate);
+      //console.log(coordinate);
 
       for (const layerEntry of this.layers) {
         if (layerEntry.type === "postgis") {
@@ -735,6 +689,24 @@ export default defineComponent({
         this.refreshLayers(true);
         this.refreshLayerVisibility();
       }
+    },
+    interaction() {
+      console.log("watch interaction");
+      console.log(this.interaction);
+      if (this.interaction !== undefined) {
+        if (this.interaction.type === "Pointcloud3dPointView") {
+          console.log("Pointcloud3dPointView");
+          this.mapCursorStandard = "crosshair";
+          this.mapCursor = this.mapCursorStandard;
+        } else {
+          this.mapCursorStandard = "cell";
+          this.mapCursor = this.mapCursorStandard;
+        }
+      } else {
+        this.mapCursorStandard = "auto";
+        this.mapCursor = this.mapCursorStandard;
+      }
+      console.log("watched interaction");
     },
   },
 
@@ -905,10 +877,22 @@ export default defineComponent({
       projection: projection,
     });
 
+    const scaleControl = new ScaleLine({
+      units: "metric",
+      bar: true,
+      steps: 4,
+      text: false,
+      minWidth: 140,
+    });
+
+    const mousePositionControl = new MousePosition({
+      coordinateFormat: createStringXY(4),
+    });
+
     this.map = new Map({
       target: "map",
       view: this.view,
-      controls: [new Attribution()],
+      controls: [new Attribution(), scaleControl, mousePositionControl],
     });
 
     let cntStart = 0;
@@ -924,7 +908,31 @@ export default defineComponent({
     });
     this.map.on("singleclick", (e) => {
       console.log("singleclick");
-      this.getFeatureInfo(e.coordinate);
+      console.log(e);
+      console.log(e.coordinate);
+      if (this.interaction !== undefined) {
+        if (this.interaction.type === "Pointcloud3dPointView") {
+          let url = this.$api.getUri();
+          url += "web/pointcloud_view/pointcloud_view.html#/?";
+          url += "&pointcloud=" + this.interaction.pointcloud;
+          url += "&x=" + e.coordinate[0];
+          url += "&y=" + e.coordinate[1];
+          url += "&time_slice_id=" + this.interaction.layer.timeSlice.id;
+          window.open(url, "_blank", "noreferrer");
+        } else {
+          console.log("unknown interaction");
+        }
+      } else {
+        this.getFeatureInfo(e.coordinate);
+      }
+    });
+    this.map.on("movestart", (e) => {
+      //console.log("movestart");
+      this.mapCursor = "move";
+    });
+    this.map.on("moveend", (e) => {
+      //console.log("moveend");
+      this.mapCursor = this.mapCursorStandard;
     });
 
     await this.refreshLayers();
@@ -980,5 +988,24 @@ body,
   border: 5px solid rgba(180, 180, 180, 0.6);
   border-top-color: rgba(0, 0, 0, 0.6);
   animation: spinner 0.6s linear infinite;
+}
+
+.ol-mouse-position {
+  top: unset;
+  right: unset;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  position: absolute;
+  font-size: 0.75em;
+  /*background-color: #ffffff9e;*/
+  padding-left: 1px;
+  padding-right: 1px;
+  text-shadow: 0px 0px 3px white, 1px 1px 2px white, -1px -1px 2px white,
+    -1px 1px 2px white, 1px -1px 2px white;
+}
+
+.ol-scale-bar {
+  bottom: 4px;
 }
 </style>

@@ -109,9 +109,12 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 			break;
 		}
 		case "png": {
+			//int per_mille = 5;
+			//int per_mille = 1;
+			int per_mille = 0;
 			RasterSubGrid r = rasterSubGrids[0];
 			DoubleFrame frame = new DoubleFrame(r.copySubData(), 0, 0, 0, 0);
-			ImageBufferARGB image = Renderer.renderGreyDouble(frame , frame.width, frame.height, Double.NaN, null);
+			ImageBufferARGB image = Renderer.renderGreyDouble(frame , frame.width, frame.height, Double.NaN, null, per_mille);
 			receiver.setStatus(HttpServletResponse.SC_OK);
 			receiver.setContentType(Web.MIME_PNG);
 			image.writePngCompressed(receiver.getOutputStream());

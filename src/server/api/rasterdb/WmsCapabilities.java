@@ -190,39 +190,41 @@ public class WmsCapabilities {
 		public final String name;
 		public final String title;
 		public final String description;
+		public final int bandIndex; // -1 for no band
 
-		public WmsStyle(String name, String title, String description) {
+		public WmsStyle(String name, String title, String description, int bandIndex) {
 			this.name = name;
 			this.title = title;
 			this.description = description;
+			this.bandIndex = bandIndex;
 		}
 	}
 
 	public static List<WmsStyle> getWmsStyles(RasterDB rasterdb) {
 		ArrayList<WmsStyle> list = new ArrayList<WmsStyle>();
 		if (rasterdb.bandMapReadonly.size() > 1) {
-			list.add(new WmsStyle("color", "color", "best fitting rgb visualisation"));
+			list.add(new WmsStyle("color", "color", "best fitting rgb visualisation", -1));
 		}
 		for (Band band : rasterdb.bandMapReadonly.values()) {
 			String bandName = "band" + band.index;
 			String bandTitle = band.has_title() ? band.title
 					: band.has_wavelength() ? band.wavelength + " nm wavelength" : bandName;
 			String bandDescription = "one band visualisation";
-			list.add(new WmsStyle(bandName, bandTitle, bandDescription));
+			list.add(new WmsStyle(bandName, bandTitle, bandDescription, band.index));
 		}
 		if (rasterdb.bandMapReadonly.size() > 1) {
 			if (rasterdb.bandMapReadonly.values().stream().anyMatch(Band::has_wavelength)) {
-				list.add(new WmsStyle("ndvi", "NDVI", "ndvi"));
-				list.add(new WmsStyle("evi", "EVI", "evi"));
-				list.add(new WmsStyle("evi2", "EVI2", "evi2"));
-				list.add(new WmsStyle("savi", "SAVI", "savi"));
-				list.add(new WmsStyle("mpri", "MPRI", "mpri"));
-				list.add(new WmsStyle("mgvri", "MGVRI", "mgvri"));
-				list.add(new WmsStyle("gli", "GLI", "gli"));
-				list.add(new WmsStyle("rgvbi", "RGVBI", "rgvbi"));
-				list.add(new WmsStyle("exg", "ExG", "exg"));
-				list.add(new WmsStyle("veg", "VEG", "veg"));
-				list.add(new WmsStyle("tgi", "TGI", "tgi"));
+				list.add(new WmsStyle("ndvi", "NDVI", "ndvi", -1));
+				list.add(new WmsStyle("evi", "EVI", "evi", -1));
+				list.add(new WmsStyle("evi2", "EVI2", "evi2", -1));
+				list.add(new WmsStyle("savi", "SAVI", "savi", -1));
+				list.add(new WmsStyle("mpri", "MPRI", "mpri", -1));
+				list.add(new WmsStyle("mgvri", "MGVRI", "mgvri", -1));
+				list.add(new WmsStyle("gli", "GLI", "gli", -1));
+				list.add(new WmsStyle("rgvbi", "RGVBI", "rgvbi", -1));
+				list.add(new WmsStyle("exg", "ExG", "exg", -1));
+				list.add(new WmsStyle("veg", "VEG", "veg", -1));
+				list.add(new WmsStyle("tgi", "TGI", "tgi", -1));
 			}
 		}
 		return list;

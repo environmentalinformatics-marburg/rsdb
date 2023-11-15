@@ -11,14 +11,14 @@ import util.Timer;
 public class RangerDouble {
 	
 
-	public static double[] range(double[][] data) {
+	public static double[] range(double[][] data, int per_mille) {
 		int height = data.length;
 		int yStart = 0;
 		int yEnd = height - 1;
-		return range(data, yStart, yEnd);
+		return range(data, yStart, yEnd, per_mille);
 	}
 
-	public static double[] rangeSync(double[][][] data) {
+	public static double[] rangeSync(double[][][] data, int per_mille) {
 		int bands = data.length;
 		int lines = data[0].length;
 		int columns = data[0][0].length;
@@ -45,8 +45,8 @@ public class RangerDouble {
 		}
 		Arrays.parallelSort(stat, 0, cnt);
 		long pro = (long) cnt;
-		int lower = (int) ((pro * 5) / 1000);
-		int upper = (int) ((pro * 995) / 1000);
+		int lower = (int) ((pro * per_mille) / 1000);
+		int upper = ((int) ((pro * (1000 - per_mille)) / 1000)) - 1;
 		int cntd2 = cnt >>> 1;
 			double median = (cnt % 2 == 0) ? ((stat[cntd2 - 1] + stat[cntd2]) / 2) : stat[cntd2];
 			return new double[] {stat[lower], stat[upper], median};		
@@ -92,7 +92,7 @@ public class RangerDouble {
 		return min == Double.POSITIVE_INFINITY ? null : new double[] {min, max};
 	}
 
-	public static double[] range(double[][] data, int yStart, int yEnd) {
+	public static double[] range(double[][] data, int yStart, int yEnd, int per_mille) {
 		if(data.length == 0 || data[0].length == 0) {
 			return null;
 		}
@@ -115,14 +115,14 @@ public class RangerDouble {
 		}
 		Arrays.parallelSort(stat, 0, cnt);
 		long pro = (long) cnt;
-		int lower = (int) ((pro * 5) / 1000);
-		int upper = (int) ((pro * 995) / 1000);
+		int lower = (int) ((pro * per_mille) / 1000);
+		int upper = ((int) ((pro * (1000 - per_mille)) / 1000)) - 1;
 		int cntd2 = cnt >>> 1;
 		double median = (cnt % 2 == 0) ? ((stat[cntd2 - 1] + stat[cntd2]) / 2) : stat[cntd2];
 		return new double[] {stat[lower], stat[upper], median};		
 	}
 
-	public static double[] getRange(double[][] data, double[] setRange) {
+	public static double[] getRange(double[][] data, double[] setRange, int per_mille) {
 		double min = Double.NEGATIVE_INFINITY;
 		double max = Double.NEGATIVE_INFINITY;
 		double med = Double.NEGATIVE_INFINITY;
@@ -132,7 +132,7 @@ public class RangerDouble {
 		}
 		if(min == Double.NEGATIVE_INFINITY || max == Double.NEGATIVE_INFINITY) {
 			Timer.start("Ranger");
-			double[] r = range(data);
+			double[] r = range(data, per_mille);
 			//Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
@@ -152,7 +152,7 @@ public class RangerDouble {
 		return new double[] {min, max, med};
 	}
 
-	public static double[] getRangeSync(double[][][] data, double[] setRange) {
+	public static double[] getRangeSync(double[][][] data, double[] setRange, int per_mille) {
 		double min = Double.NEGATIVE_INFINITY;
 		double max = Double.NEGATIVE_INFINITY;
 		double med = Double.NEGATIVE_INFINITY;
@@ -162,7 +162,7 @@ public class RangerDouble {
 		}
 		if(min == Double.NEGATIVE_INFINITY || max == Double.NEGATIVE_INFINITY) {
 			Timer.start("Ranger");
-			double[] r = rangeSync(data);
+			double[] r = rangeSync(data, per_mille);
 			Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];

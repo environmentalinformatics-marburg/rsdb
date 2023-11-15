@@ -107,6 +107,10 @@ public class RasterdbMethod_webwms_GetMap {
 			if(layerEPSG <= 0) {
 				throw new RuntimeException("no EPSG projection information");
 			}
+			
+			//int per_mille = 5;
+			//int per_mille = 1;
+			int per_mille = 0;
 
 			int wmsEPSG = GeoUtil.EPSG_WEB_MERCATOR;
 			/*CoordinateTransformation ctToLayer = CoordinateTransformation.CreateCoordinateTransformation(srWMS, srLayer);
@@ -117,22 +121,22 @@ public class RasterdbMethod_webwms_GetMap {
 			FrameReprojector processor = new FrameReprojector(rasterdb, timestamp, layerEPSG, wmsEPSG, wmsRect, width, height);
 			ImageBufferARGB image = null;
 			if(bandText.equals("color")) {
-				image = Rasterizer.rasterizeRGB(processor, rasterdb, timestamp, width, height, gamma, range, gamma_auto_sync, null);
+				image = Rasterizer.rasterizeRGB(processor, rasterdb, timestamp, width, height, gamma, range, gamma_auto_sync, null, per_mille);
 			} else if(bandText.startsWith("band")) {
 				int bandIndex = Integer.parseInt(bandText.substring(4));
 				TimeBand timeBand = rasterdb.getTimeBand(timestamp, bandIndex);
 				if(palette == null) {
-					image = Rasterizer.rasterizeGrey(processor, timeBand, width, height, gamma, range, null);
+					image = Rasterizer.rasterizeGrey(processor, timeBand, width, height, gamma, range, null, per_mille);
 				} else {
-					image = Rasterizer.rasterizePalette(processor, timeBand, width, height, gamma, range, palette, null);	
+					image = Rasterizer.rasterizePalette(processor, timeBand, width, height, gamma, range, palette, null, per_mille);	
 				}
 			} else {
 				ErrorCollector errorCollector = new ErrorCollector();
 				DoubleFrame[] doubleFrames = DSL.process(bandText, errorCollector, rasterdb, processor);
 				if(palette == null) {
-					image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, range);
+					image = Renderer.renderGreyDouble(doubleFrames[0], width, height, gamma, range, per_mille);
 				} else {
-					image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, range, palette);
+					image = Renderer.renderPaletteDouble(doubleFrames[0], width, height, gamma, range, palette, per_mille);
 				}
 			}
 

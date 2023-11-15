@@ -10,7 +10,12 @@
       dense
       option-label="name"
       :display-value="layer.timeSlice.name"
-      v-if="timeSlices.length > 1"
+      v-if="
+        timeSlices.length > 0 &&
+        (timeSlices.length !== 1 || timeSlices[0].name !== '---')
+      "
+      :readonly="timeSlices.length == 1"
+      :dropdown-icon="timeSlices.length == 1 ? 'none' : 'arrow_drop_down'"
     >
       <template v-slot:before>
         <q-btn
@@ -52,12 +57,30 @@
       option-label="name"
     >
       <template v-slot:option="scope">
-        <q-item v-bind="scope.itemProps" :title="layer.style.description">
+        <q-item v-bind="scope.itemProps" :title="scope.opt.description">
           <q-item-section>
             <q-item-label
-              ><b>{{ scope.opt.name }}</b>
-              <span v-if="scope.opt.name !== scope.opt.title">
-                - {{ scope.opt.title }}</span
+              ><b
+                v-if="
+                  scope.opt.band_index !== undefined &&
+                  scope.opt.name === 'band' + scope.opt.band_index
+                "
+                ><span class="band">band</span> {{ scope.opt.band_index }}</b
+              >
+              <b v-else>{{ scope.opt.name }}</b>
+              <span
+                v-if="scope.opt.name !== scope.opt.title"
+                style="padding-left: 10px"
+              >
+                {{ scope.opt.title }}</span
+              ><span
+                class="wavelength"
+                v-if="
+                  scope.opt.band_index !== undefined &&
+                  layer.bandMap[scope.opt.band_index].wavelength !== undefined
+                "
+              >
+                {{ layer.bandMap[scope.opt.band_index].wavelength }} nm</span
               ></q-item-label
             >
           </q-item-section>
@@ -66,9 +89,27 @@
 
       <template v-slot:selected>
         <span :title="layer.style.description"
-          ><b>{{ layer.style.name }}</b
-          ><span v-if="layer.style.name !== layer.style.title">
-            - {{ layer.style.title }}</span
+          ><b
+            v-if="
+              layer.style.band_index !== undefined &&
+              layer.style.name === 'band' + layer.style.band_index
+            "
+            ><span class="band">band</span> {{ layer.style.band_index }}</b
+          >
+          <b v-else>{{ layer.style.name }}</b
+          ><span
+            v-if="layer.style.name !== layer.style.title"
+            style="padding-left: 10px"
+          >
+            {{ layer.style.title }}</span
+          ><span
+            class="wavelength"
+            v-if="
+              layer.style.band_index !== undefined &&
+              layer.bandMap[layer.style.band_index].wavelength !== undefined
+            "
+          >
+            {{ layer.bandMap[layer.style.band_index].wavelength }} nm</span
           ></span
         >
       </template>
@@ -183,6 +224,15 @@
       v-if="meta.associated.pointcloud !== undefined"
     >
       {{ meta.associated.pointcloud }}
+      <q-btn
+        @click="
+          $emit('interaction', {
+            type: 'Pointcloud3dPointView',
+            pointcloud: meta.associated.pointcloud,
+          })
+        "
+        >3D-view</q-btn
+      >
     </q-expansion-item>
   </div>
 </template>
@@ -260,3 +310,15 @@ export default defineComponent({
   mounted() {},
 });
 </script>
+
+<style scoped>
+.wavelength {
+  padding-left: 10px;
+  color: grey;
+  font-size: 0.75em;
+}
+
+.band {
+  font-size: 0.75em;
+}
+</style>

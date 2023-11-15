@@ -9,14 +9,14 @@ import util.Timer;
 public class RangerShort {
 	
 
-	public static short[] range(short[][] data, short na) {
+	public static short[] range(short[][] data, short na, int per_mille) {
 		int height = data.length;
 		int yStart = 0;
 		int yEnd = height - 1;
-		return range(data, na, yStart, yEnd);
+		return range(data, na, yStart, yEnd, per_mille);
 	}
 
-	public static short[] rangeSync(short[][][] data, short[] nas) {
+	public static short[] rangeSync(short[][][] data, short[] nas, int per_mille) {
 		int bands = data.length;
 		int lines = data[0].length;
 		int columns = data[0][0].length;
@@ -44,8 +44,8 @@ public class RangerShort {
 		}
 		Arrays.parallelSort(stat, 0, cnt);
 		long pro = (long) cnt;
-		int lower = (int) ((pro * 5) / 1000);
-		int upper = (int) ((pro * 995) / 1000);
+		int lower = (int) ((pro * per_mille) / 1000);
+		int upper = ((int) ((pro * (1000 - per_mille)) / 1000)) - 1;
 		int cntd2 = cnt >>> 1;
 		short median = (cnt % 2 == 0) ? (short)(((((int)stat[cntd2 - 1]) + ((int)stat[cntd2])) >> 1)) : stat[cntd2];
 		return new short[] {stat[lower], stat[upper], median};
@@ -94,7 +94,7 @@ public class RangerShort {
 		//return Double.isFinite(min) && Double.isFinite(max) ? new short[] {0, (short) max} : null;
 	}
 
-	public static short[] range(short[][] data, short na, int yStart, int yEnd) {
+	public static short[] range(short[][] data, short na, int yStart, int yEnd, int per_mille) {
 		if(data.length == 0 || data[0].length == 0) {
 			return null;
 		}
@@ -117,14 +117,14 @@ public class RangerShort {
 		}
 		Arrays.parallelSort(stat, 0, cnt);
 		long pro = (long) cnt;
-		int lower = (int) ((pro * 5) / 1000);
-		int upper = (int) ((pro * 995) / 1000);
+		int lower = (int) ((pro * per_mille) / 1000);
+		int upper = ((int) ((pro * (1000 - per_mille)) / 1000)) - 1;
 		int cntd2 = cnt >>> 1;
 		short median = (cnt % 2 == 0) ? (short)(((((int)stat[cntd2 - 1]) + ((int)stat[cntd2])) >> 1)) : stat[cntd2];
 		return new short[] {stat[lower], stat[upper], median};
 	}
 
-	public static int[] getRange(short[][] data, short na, double[] setRange) {
+	public static int[] getRange(short[][] data, short na, double[] setRange, int per_mille) {
 		int min = Integer.MIN_VALUE;
 		int max = Integer.MIN_VALUE;
 		int med = Integer.MIN_VALUE;
@@ -134,7 +134,7 @@ public class RangerShort {
 		}
 		if(min == Integer.MIN_VALUE || max == Integer.MIN_VALUE) {
 			Timer.start("Ranger");
-			short[] r = RangerShort.range(data, na);
+			short[] r = RangerShort.range(data, na, per_mille);
 			//Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];
@@ -154,7 +154,7 @@ public class RangerShort {
 		return new int[] {min, max, med};
 	}
 
-	public static int[] getRangeSync(short[][][] data, short[] na, double[] setRange) {
+	public static int[] getRangeSync(short[][][] data, short[] na, double[] setRange, int per_mille) {
 		int min = Integer.MIN_VALUE;
 		int max = Integer.MIN_VALUE;
 		int med = Integer.MIN_VALUE;
@@ -164,7 +164,7 @@ public class RangerShort {
 		}
 		if(min == Integer.MIN_VALUE || max == Integer.MIN_VALUE) {
 			Timer.start("Ranger");
-			short[] r = RangerShort.rangeSync(data, na);
+			short[] r = RangerShort.rangeSync(data, na, per_mille);
 			//Logger.info(Timer.stop("Ranger"));
 			if(r != null) {
 				min = r[0];

@@ -186,7 +186,7 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 					json.value(band.fwhm);
 				}
 				json.key("title");
-				json.value(band.has_title() ? band.title : "band"+band.index);
+				json.value(band.has_title() ? band.title : "band" + band.index);
 				json.key("datatype");
 				json.value(band.getPixelTypeName());
 				if(band.has_visualisation()) {
@@ -216,6 +216,10 @@ public class RasterdbMethod_meta_json extends RasterdbMethod {
 				json.value(style.title);
 				json.key("description");
 				json.value(style.description);
+				if(style.bandIndex >= 0) {
+					json.key("band_index");
+					json.value(style.bandIndex);
+				}
 				json.endObject();
 			}
 			json.endArray(); // end array style

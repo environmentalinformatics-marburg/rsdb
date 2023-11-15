@@ -38,7 +38,10 @@ public class RequestProcessorBands {
 				throw new RuntimeException("unknown format " + format);
 			}
 			break;
-		case VISUALISATION:
+		case VISUALISATION: {
+			//int per_mille = 5;
+			//int per_mille = 1;
+			int per_mille = 0;
 			if(processingBands.size() >= 3) {
 				Iterator<TimeBand> it = processingBands.iterator();
 				TimeBand[] timebands = {it.next(), it.next(), it.next()};
@@ -46,7 +49,7 @@ public class RequestProcessorBands {
 				double[] range = null;
 				boolean syncBands = false;
 				Interruptor interruptor = null;
-				ImageBufferARGB image = Rasterizer.rasterizeRGB(processor, timebands, reqWidth, reqHeight, gamma, range, syncBands, interruptor);
+				ImageBufferARGB image = Rasterizer.rasterizeRGB(processor, timebands, reqWidth, reqHeight, gamma, range, syncBands, interruptor, per_mille);
 				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", receiver);	
 			} else if(processingBands.size() >= 2) {
 				Iterator<TimeBand> it = processingBands.iterator();
@@ -57,22 +60,22 @@ public class RequestProcessorBands {
 				double[] range = null;
 				boolean syncBands = false;
 				Interruptor interruptor = null;
-				ImageBufferARGB image = Rasterizer.rasterizeRGB(processor, bands, reqWidth, reqHeight, gamma, range, syncBands, interruptor);
+				ImageBufferARGB image = Rasterizer.rasterizeRGB(processor, bands, reqWidth, reqHeight, gamma, range, syncBands, interruptor, per_mille);
 				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", receiver);						
 			} else if(processingBands.size() >= 1) {
 				TimeBand band = processingBands.iterator().next();
 				double gamma = Double.NaN;
 				double[] range = null;
 				Interruptor interruptor = null;
-				ImageBufferARGB image = Rasterizer.rasterizeGrey(processor, band, reqWidth, reqHeight, gamma, range, interruptor);
+				ImageBufferARGB image = Rasterizer.rasterizeGrey(processor, band, reqWidth, reqHeight, gamma, range, interruptor, per_mille);
 				RequestProcessorProductWriters.writeImage(image, format, processor, "visualisation", receiver);	
 			} else {
 				throw new RuntimeException("no bands");
 			}					
 			break;
+		}
 		default:
 			throw new RuntimeException("unknown output processing type");
-
 		}
 
 

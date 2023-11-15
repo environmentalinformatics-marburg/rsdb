@@ -11,22 +11,22 @@ import util.frame.ShortFrame;
 public class Renderer {
 	
 
-	public static ImageBufferARGB renderRgbShort(ShortFrame frameR, ShortFrame frameG, ShortFrame frameB, short naR, short naG, short naB, int width, int height, double gamma, double[] range, boolean syncBands) {
+	public static ImageBufferARGB renderRgbShort(ShortFrame frameR, ShortFrame frameG, ShortFrame frameB, short naR, short naG, short naB, int width, int height, double gamma, double[] range, boolean syncBands, int per_mille) {
 		Timer.start("prep");
 		short[] rlut;
 		short[] glut;
 		short[] blut;
 		if(syncBands) {
-			int[] syncRange = RangerShort.getRangeSync(new short[][][] {frameR.data, frameG.data, frameB.data}, new short[] {naR, naG, naB}, range);
+			int[] syncRange = RangerShort.getRangeSync(new short[][][] {frameR.data, frameG.data, frameB.data}, new short[] {naR, naG, naB}, range, per_mille);
 			double syncGamma = RangerDouble.getGamma(syncRange, gamma);
 			short[] syncLut = Lut.getGammaLUT256s(syncRange[0], syncRange[1], syncGamma);
 			rlut = syncLut;
 			glut = syncLut;
 			blut = syncLut;
 		} else {
-			int[] rrange = RangerShort.getRange(frameR.data, naR, range);
-			int[] grange = RangerShort.getRange(frameG.data, naG, range);
-			int[] brange = RangerShort.getRange(frameB.data, naB, range);
+			int[] rrange = RangerShort.getRange(frameR.data, naR, range, per_mille);
+			int[] grange = RangerShort.getRange(frameG.data, naG, range, per_mille);
+			int[] brange = RangerShort.getRange(frameB.data, naB, range, per_mille);
 			double rgamma = RangerDouble.getGamma(rrange, gamma);
 			double ggamma = RangerDouble.getGamma(grange, gamma);
 			double bgamma = RangerDouble.getGamma(brange, gamma);
@@ -45,18 +45,18 @@ public class Renderer {
 		return scaled;
 	}
 
-	public static ImageBufferARGB renderRbShort(ShortFrame frameR, ShortFrame frameB, short naR, short naB, int width, int height, double gamma, double[] range, boolean syncBands) {
+	public static ImageBufferARGB renderRbShort(ShortFrame frameR, ShortFrame frameB, short naR, short naB, int width, int height, double gamma, double[] range, boolean syncBands, int per_mille) {
 		short[] rlut;
 		short[] blut;
 		if(syncBands) {
-			int[] syncRange = RangerShort.getRangeSync(new short[][][] {frameR.data, frameB.data}, new short[] {naR, naB}, range);
+			int[] syncRange = RangerShort.getRangeSync(new short[][][] {frameR.data, frameB.data}, new short[] {naR, naB}, range, per_mille);
 			double syncGamma = RangerDouble.getGamma(syncRange, gamma);
 			short[] syncLut = Lut.getGammaLUT256s(syncRange[0], syncRange[1], syncGamma);
 			rlut = syncLut;
 			blut = syncLut;			
 		} else {
-			int[] rrange = RangerShort.getRange(frameR.data, naR, range);
-			int[] brange = RangerShort.getRange(frameB.data, naB, range);
+			int[] rrange = RangerShort.getRange(frameR.data, naR, range, per_mille);
+			int[] brange = RangerShort.getRange(frameB.data, naB, range, per_mille);
 			rlut = Lut.getGammaLUT256s(rrange[0], rrange[1], RangerDouble.getGamma(rrange, gamma));
 			blut = Lut.getGammaLUT256s(brange[0], brange[1], RangerDouble.getGamma(brange, gamma));
 		}
@@ -68,8 +68,8 @@ public class Renderer {
 		return scaled;
 	}
 
-	public static ImageBufferARGB renderGreyShort(ShortFrame frame, short na, int width, int height, double gamma, double[] range) {
-		int[] irange = RangerShort.getRange(frame.data, na, range);
+	public static ImageBufferARGB renderGreyShort(ShortFrame frame, short na, int width, int height, double gamma, double[] range, int per_mille) {
+		int[] irange = RangerShort.getRange(frame.data, na, range, per_mille);
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frame.width, frame.height);
 		Timer.start("tonemapping3");
 		short[] lut = Lut.getGammaLUT256s(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
@@ -80,8 +80,8 @@ public class Renderer {
 		return scaled;		
 	}
 
-	public static ImageBufferARGB renderPaletteShort(ShortFrame frame, short na, int width, int height, double gamma, double[] range, int[] palette) {
-		int[] irange = RangerShort.getRange(frame.data, na, range);
+	public static ImageBufferARGB renderPaletteShort(ShortFrame frame, short na, int width, int height, double gamma, double[] range, int[] palette, int per_mille) {
+		int[] irange = RangerShort.getRange(frame.data, na, range, per_mille);
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frame.width, frame.height);
 		Timer.start("tonemapping3");
 		short[] lut = Lut.getGammaLUT256s(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
@@ -91,21 +91,21 @@ public class Renderer {
 		return scaled;		
 	}
 
-	public static ImageBufferARGB renderRgbDouble(DoubleFrame frameR, DoubleFrame frameG, DoubleFrame frameB, int width, int height, double gamma, double[] range, boolean syncBands) {
+	public static ImageBufferARGB renderRgbDouble(DoubleFrame frameR, DoubleFrame frameG, DoubleFrame frameB, int width, int height, double gamma, double[] range, boolean syncBands, int per_mille) {
 		double[] rlut;
 		double[] glut;
 		double[] blut;
 		if(syncBands) {
-			double[] syncRange = RangerDouble.getRangeSync(new double[][][] {frameR.data, frameG.data, frameB.data}, range);
+			double[] syncRange = RangerDouble.getRangeSync(new double[][][] {frameR.data, frameG.data, frameB.data}, range, per_mille);
 			double syncGamma = RangerDouble.getGamma(syncRange, gamma);
 			double[] syncLut = Lut.getGammaLUT256d(syncRange[0], syncRange[1], syncGamma);
 			rlut = syncLut;
 			glut = syncLut;
 			blut = syncLut;
 		} else {
-			double[] rrange = RangerDouble.getRange(frameR.data, range);
-			double[] grange = RangerDouble.getRange(frameG.data, range);
-			double[] brange = RangerDouble.getRange(frameB.data, range);
+			double[] rrange = RangerDouble.getRange(frameR.data, range, per_mille);
+			double[] grange = RangerDouble.getRange(frameG.data, range, per_mille);
+			double[] brange = RangerDouble.getRange(frameB.data, range, per_mille);
 			rlut = Lut.getGammaLUT256d(rrange[0], rrange[1], RangerDouble.getGamma(rrange, gamma));
 			glut = Lut.getGammaLUT256d(grange[0], grange[1], RangerDouble.getGamma(grange, gamma));
 			blut = Lut.getGammaLUT256d(brange[0], brange[1], RangerDouble.getGamma(brange, gamma));
@@ -118,18 +118,18 @@ public class Renderer {
 		return scaled;
 	}
 
-	public static ImageBufferARGB renderRbDouble(DoubleFrame frameR, DoubleFrame frameB, int width, int height, double gamma, double[] range, boolean syncBands) {
+	public static ImageBufferARGB renderRbDouble(DoubleFrame frameR, DoubleFrame frameB, int width, int height, double gamma, double[] range, boolean syncBands, int per_mille) {
 		double[] rlut;
 		double[] blut;
 		if(syncBands) {
-			double[] syncRange = RangerDouble.getRangeSync(new double[][][] {frameR.data, frameB.data}, range);
+			double[] syncRange = RangerDouble.getRangeSync(new double[][][] {frameR.data, frameB.data}, range, per_mille);
 			double syncGamma = RangerDouble.getGamma(syncRange, gamma);
 			double[] syncLut = Lut.getGammaLUT256d(syncRange[0], syncRange[1], syncGamma);
 			rlut = syncLut;
 			blut = syncLut;
 		} else {
-			double[] rrange = RangerDouble.getRange(frameR.data, range);
-			double[] brange = RangerDouble.getRange(frameB.data, range);
+			double[] rrange = RangerDouble.getRange(frameR.data, range, per_mille);
+			double[] brange = RangerDouble.getRange(frameB.data, range, per_mille);
 			rlut = Lut.getGammaLUT256d(rrange[0], rrange[1], RangerDouble.getGamma(rrange, gamma));
 			blut = Lut.getGammaLUT256d(brange[0], brange[1], RangerDouble.getGamma(brange, gamma));
 		}		
@@ -141,8 +141,8 @@ public class Renderer {
 		return scaled;
 	}	
 
-	public static ImageBufferARGB renderGreyDouble(DoubleFrame frame, int width, int height, double gamma, double[] range) {
-		double[] irange = RangerDouble.getRange(frame.data, range);
+	public static ImageBufferARGB renderGreyDouble(DoubleFrame frame, int width, int height, double gamma, double[] range, int per_mille) {
+		double[] irange = RangerDouble.getRange(frame.data, range, per_mille);
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frame.width, frame.height);
 		Timer.start("tonemapping3 double");
 		double[] lut = Lut.getGammaLUT256d(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
@@ -152,8 +152,8 @@ public class Renderer {
 		return scaled;
 	}
 
-	public static ImageBufferARGB renderPaletteDouble(DoubleFrame frame, int width, int height, double gamma, double[] range, int[] palette) {
-		double[] irange = RangerDouble.getRange(frame.data, range);
+	public static ImageBufferARGB renderPaletteDouble(DoubleFrame frame, int width, int height, double gamma, double[] range, int[] palette, int per_mille) {
+		double[] irange = RangerDouble.getRange(frame.data, range, per_mille);
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frame.width, frame.height);
 		Timer.start("tonemapping3 double");
 		double[] lut = Lut.getGammaLUT256d(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
@@ -163,21 +163,21 @@ public class Renderer {
 		return scaled;
 	}
 
-	public static ImageBufferARGB renderRgbFloat(FloatFrame frameR, FloatFrame frameG, FloatFrame frameB, int width, int height, double gamma, double[] range, boolean syncBands) {
+	public static ImageBufferARGB renderRgbFloat(FloatFrame frameR, FloatFrame frameG, FloatFrame frameB, int width, int height, double gamma, double[] range, boolean syncBands, int per_mille) {
 		float[] rlut;
 		float[] glut;
 		float[] blut;
 		if(syncBands) {
-			double[] syncRange = RangerFloat.getRangeSync(new float[][][] {frameR.data, frameG.data, frameB.data}, range);
+			double[] syncRange = RangerFloat.getRangeSync(new float[][][] {frameR.data, frameG.data, frameB.data}, range, per_mille);
 			double syncGamma = RangerDouble.getGamma(syncRange, gamma);
 			float[] syncLut = Lut.getGammaLUT256f(syncRange[0], syncRange[1], syncGamma);
 			rlut = syncLut;
 			glut = syncLut;
 			blut = syncLut;			 
 		} else {
-			double[] rrange = RangerFloat.getRange(frameR.data, range);
-			double[] grange = RangerFloat.getRange(frameG.data, range);
-			double[] brange = RangerFloat.getRange(frameB.data, range);
+			double[] rrange = RangerFloat.getRange(frameR.data, range, per_mille);
+			double[] grange = RangerFloat.getRange(frameG.data, range, per_mille);
+			double[] brange = RangerFloat.getRange(frameB.data, range, per_mille);
 			rlut = Lut.getGammaLUT256f(rrange[0], rrange[1], RangerDouble.getGamma(rrange, gamma));
 			glut = Lut.getGammaLUT256f(grange[0], grange[1], RangerDouble.getGamma(grange, gamma));
 			blut = Lut.getGammaLUT256f(brange[0], brange[1], RangerDouble.getGamma(brange, gamma));
@@ -190,18 +190,18 @@ public class Renderer {
 		return scaled;
 	}
 
-	public static ImageBufferARGB renderRbFloat(FloatFrame frameR, FloatFrame frameB, int width, int height, double gamma, double[] range, boolean syncBands) {
+	public static ImageBufferARGB renderRbFloat(FloatFrame frameR, FloatFrame frameB, int width, int height, double gamma, double[] range, boolean syncBands, int per_mille) {
 		float[] rlut;
 		float[] blut;
 		if(syncBands) {
-			double[] syncRange = RangerFloat.getRangeSync(new float[][][] {frameR.data, frameB.data}, range);
+			double[] syncRange = RangerFloat.getRangeSync(new float[][][] {frameR.data, frameB.data}, range, per_mille);
 			double syncGamma = RangerDouble.getGamma(syncRange, gamma);
 			float[] syncLut = Lut.getGammaLUT256f(syncRange[0], syncRange[1], syncGamma);
 			rlut = syncLut;
 			blut = syncLut;				
 		} else {
-			double[] rrange = RangerFloat.getRange(frameR.data, range);
-			double[] brange = RangerFloat.getRange(frameB.data, range);
+			double[] rrange = RangerFloat.getRange(frameR.data, range, per_mille);
+			double[] brange = RangerFloat.getRange(frameB.data, range, per_mille);
 			rlut = Lut.getGammaLUT256f(rrange[0], rrange[1], RangerDouble.getGamma(rrange, gamma));
 			blut = Lut.getGammaLUT256f(brange[0], brange[1], RangerDouble.getGamma(brange, gamma));
 		}
@@ -213,8 +213,8 @@ public class Renderer {
 		return scaled;
 	}
 
-	public static ImageBufferARGB renderGreyFloat(FloatFrame frame, int width, int height, double gamma, double[] range) {
-		double[] irange = RangerFloat.getRange(frame.data, range);
+	public static ImageBufferARGB renderGreyFloat(FloatFrame frame, int width, int height, double gamma, double[] range, int per_mille) {
+		double[] irange = RangerFloat.getRange(frame.data, range, per_mille);
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frame.width, frame.height);
 		Timer.start("tonemapping3 float");
 		float[] lut = Lut.getGammaLUT256f(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));
@@ -224,8 +224,8 @@ public class Renderer {
 		return scaled;
 	}
 
-	public static ImageBufferARGB renderPaletteFloat(FloatFrame frame, int width, int height, double gamma, double[] range, int[] palette) {
-		double[] irange = RangerFloat.getRange(frame.data, range);
+	public static ImageBufferARGB renderPaletteFloat(FloatFrame frame, int width, int height, double gamma, double[] range, int[] palette, int per_mille) {
+		double[] irange = RangerFloat.getRange(frame.data, range, per_mille);
 		ImageBufferARGB imageBufferARGB = new ImageBufferARGB(frame.width, frame.height);
 		Timer.start("tonemapping3 float");
 		float[] lut = Lut.getGammaLUT256f(irange[0], irange[1], RangerDouble.getGamma(irange, gamma));

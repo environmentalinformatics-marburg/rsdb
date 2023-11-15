@@ -41,28 +41,32 @@ public class RequestProcessorProduct {
 				throw new RuntimeException("unknown format " + format);
 			}
 			break;
-		case VISUALISATION:
+		case VISUALISATION: {
+			//int per_mille = 5;
+			//int per_mille = 1;
+			int per_mille = 0;
 			if(doubleFrames.length >= 3) {
 				double gamma = Double.NaN;
 				double[] range = null;
 				boolean syncBands = false;
-				ImageBufferARGB image = Renderer.renderRgbDouble(doubleFrames[0], doubleFrames[1], doubleFrames[2], reqWidth, reqHeight, gamma, range, syncBands);						
+				ImageBufferARGB image = Renderer.renderRgbDouble(doubleFrames[0], doubleFrames[1], doubleFrames[2], reqWidth, reqHeight, gamma, range, syncBands, per_mille);						
 				RequestProcessorProductWriters.writeImage(image, format, processor, productText, resceiver);
 			} else if(doubleFrames.length >= 2) {
 				double gamma = Double.NaN;
 				double[] range = null;
 				boolean syncBands = false;
-				ImageBufferARGB image = Renderer.renderRbDouble(doubleFrames[0], doubleFrames[1], reqWidth, reqHeight, gamma, range, syncBands);	
+				ImageBufferARGB image = Renderer.renderRbDouble(doubleFrames[0], doubleFrames[1], reqWidth, reqHeight, gamma, range, syncBands, per_mille);	
 				RequestProcessorProductWriters.writeImage(image, format, processor, productText, resceiver);
 			} else if(doubleFrames.length >= 1) {
 				double gamma = Double.NaN;
 				double[] range = null;
-				ImageBufferARGB image = Renderer.renderGreyDouble(doubleFrames[0], reqWidth, reqHeight, gamma, range);
+				ImageBufferARGB image = Renderer.renderGreyDouble(doubleFrames[0], reqWidth, reqHeight, gamma, range, per_mille);
 				RequestProcessorProductWriters.writeImage(image, format, processor, productText, resceiver);
 			} else {
 				throw new RuntimeException("no bands");
 			}	
 			break;
+		}
 		default:
 			throw new RuntimeException("unknown output processing type");		
 		}		
