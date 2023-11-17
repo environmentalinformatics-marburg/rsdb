@@ -157,9 +157,9 @@ public class RasterdbMethod_wms_GetMap {
 				processor = new BandProcessor(rasterdb, range2d, timestamp, width, height);
 			}
 			
-			int per_mille = 5;
+			//int per_mille = 5;
 			//int per_mille = 1;
-			//int per_mille = 0;
+			int per_mille = 0;
 
 			ImageBufferARGB image = null;
 			if(bandText.equals("color")) {

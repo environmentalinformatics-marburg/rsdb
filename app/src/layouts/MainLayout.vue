@@ -10,19 +10,53 @@
       color="black"
     />
     <div
-      style="position: absolute; right: 300px; background-color: #eaeaea"
+      style="
+        position: absolute;
+        right: 300px;
+        pointer-events: auto;
+        background-color: rgba(255, 255, 255, 0.932);
+        border: 1px solid rgba(0, 0, 0, 0.24);
+        padding: 5px;
+      "
       v-if="interaction !== undefined"
     >
-      <span v-if="interaction.type === 'Pointcloud3dPointView'">
-        Click on a position on the map to 3D-view pointcloud points.</span
-      >
+      <div v-if="interaction.type === 'Pointcloud3dPointView'">
+        <div
+          style="
+            font-size: 0.75em;
+            text-align: center;
+            background-color: #dbdbdb;
+          "
+        >
+          <b>Pointcloud 3d-view selection</b> of
+          <i>{{ interaction.pointcloud }}</i>
+        </div>
+        <b>Click</b> on a position on the map to 3D-view pointcloud points.
+        <i>--- OR ---</i>
+        <br />
+        Hold <b>shift-key</b>, hold <b>left mouse button</b> and move mouse to
+        draw a box on the map, then
+        <q-btn
+          title="Open 3d-view of box selected points."
+          :disable="selectedExtent === undefined"
+          @click="onPointcloud3dPointViewBboxClick"
+          >click here</q-btn
+        >
+        to 3D-view.
+      </div>
       <span v-else>{{ interaction.type }}</span>
       <q-btn
         dense
         flat
         icon="close"
-        style="pointer-events: auto"
         @click="interaction = undefined"
+        style="
+          position: absolute;
+          top: 0px;
+          right: 0px;
+          background-color: #eaeaea;
+          pointer-events: auto;
+        "
       >
         <q-tooltip class="bg-white text-primary">Cancel</q-tooltip>
       </q-btn>
@@ -287,11 +321,14 @@ import ImageWMS from "ol/source/ImageWMS";
 import Projection from "ol/proj/Projection";
 import Attribution from "ol/control/Attribution";
 import ScaleLine from "ol/control/ScaleLine";
-import { createStringXY } from "ol/coordinate.js";
+import { createStringXY } from "ol/coordinate";
 import MousePosition from "ol/control/MousePosition";
+import { defaults as interactionDefaults } from "ol/interaction/defaults";
+import ExtentInteraction from "ol/interaction/Extent";
+import { shiftKeyOnly } from "ol/events/condition";
 import { transformExtent } from "ol/proj";
 import proj4 from "proj4";
-import { register } from "ol/proj/proj4.js";
+import { register } from "ol/proj/proj4";
 import draggable from "vuedraggable";
 
 import AddLayer from "../components/AddLayer.vue";
@@ -320,6 +357,7 @@ export default defineComponent({
       mapCursor: "auto",
       mapCursorStandard: "auto",
       interaction: undefined,
+      selectedExtent: undefined,
     };
   },
 
@@ -675,6 +713,38 @@ export default defineComponent({
       }
       layerEntry.layer.getSource().updateParams(params);
     },
+
+    onPointcloud3dPointViewCoordinateClick(coordinate) {
+      const radius = 10;
+      const extent = [
+        coordinate[0] - radius,
+        coordinate[1] - radius,
+        coordinate[0] + radius,
+        coordinate[1] + radius,
+      ];
+      this.openPointcloud3dPointView(
+        this.interaction.pointcloud,
+        extent,
+        this.interaction.layer.timeSlice.id
+      );
+    },
+
+    onPointcloud3dPointViewBboxClick() {
+      this.openPointcloud3dPointView(
+        this.interaction.pointcloud,
+        this.selectedExtent,
+        this.interaction.layer.timeSlice.id
+      );
+    },
+    openPointcloud3dPointView(pointcloud, extent, timeSlice_id) {
+      let url = this.$api.getUri();
+      url += "web/pointcloud_view/pointcloud_view.html#/?";
+      url += "&pointcloud=" + pointcloud;
+      url += "&bbox=" + extent.map((v) => v.toFixed(4)).join(",");
+      url += "&time_slice_id=" + timeSlice_id;
+      console.log(url);
+      window.open(url, "_blank", "noreferrer");
+    },
   },
 
   watch: {
@@ -889,10 +959,20 @@ export default defineComponent({
       coordinateFormat: createStringXY(4),
     });
 
+    const extentInteraction = new ExtentInteraction({
+      condition: shiftKeyOnly,
+    });
+
+    extentInteraction.on("extentchanged", (e) => {
+      console.log(e);
+      this.selectedExtent = e.extent ? e.extent : undefined;
+    });
+
     this.map = new Map({
       target: "map",
       view: this.view,
       controls: [new Attribution(), scaleControl, mousePositionControl],
+      interactions: interactionDefaults().extend([extentInteraction]),
     });
 
     let cntStart = 0;
@@ -907,18 +987,12 @@ export default defineComponent({
       //console.log("loadend");
     });
     this.map.on("singleclick", (e) => {
-      console.log("singleclick");
-      console.log(e);
-      console.log(e.coordinate);
       if (this.interaction !== undefined) {
-        if (this.interaction.type === "Pointcloud3dPointView") {
-          let url = this.$api.getUri();
-          url += "web/pointcloud_view/pointcloud_view.html#/?";
-          url += "&pointcloud=" + this.interaction.pointcloud;
-          url += "&x=" + e.coordinate[0];
-          url += "&y=" + e.coordinate[1];
-          url += "&time_slice_id=" + this.interaction.layer.timeSlice.id;
-          window.open(url, "_blank", "noreferrer");
+        if (
+          this.interaction.type === "Pointcloud3dPointView" &&
+          !e.originalEvent.shiftKey
+        ) {
+          this.onPointcloud3dPointViewCoordinateClick(e.coordinate);
         } else {
           console.log("unknown interaction");
         }

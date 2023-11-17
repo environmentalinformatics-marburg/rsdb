@@ -80,12 +80,20 @@ function init() {
 			load_points: function () {
 				var self = this;
 				this.loadingMessage = "Loading poincloud points...";
-				//var radius = 10;
-				var radius = 100;
-				var qx = parseFloat(this.urlParameters.x);
-				var qy = parseFloat(this.urlParameters.y);
-				let bbox = {xmin: (qx - radius), ymin: (qy - radius), xmax: (qx + radius), ymax: (qy + radius)};	
-
+				
+				let bbox = {};
+				const bboxText = this.urlParameters.bbox;
+				if(bboxText !== undefined) {
+					const a = bboxText.split(',');
+					bbox = {xmin: a[0], ymin: a[1], xmax: a[2], ymax: a[3]};	
+				} else {				
+					//var radius = 10;
+					var radius = 100;
+					var qx = parseFloat(this.urlParameters.x);
+					var qy = parseFloat(this.urlParameters.y);
+					bbox = {xmin: (qx - radius), ymin: (qy - radius), xmax: (qx + radius), ymax: (qy + radius)};	
+				}
+				
 				if(this.urlParameters.pointcloud === undefined) {
 					var ext = "" + bbox.xmin + "," + bbox.xmax + "," + bbox.ymin + "," + bbox.ymax;
 
@@ -163,18 +171,18 @@ function init() {
 							queryParameters.normalise = "extremes";
 						}
 					}
-					console.time("get points");
+					//console.time("get points");
 					var url = "../../pointclouds/" + this.urlParameters.pointcloud + "/points.js";
 					axios.get(url, { params: queryParameters, headers: { 'Accept': 'application/octet-stream' }, responseType: 'arraybuffer' })
 						.then(function (response) {
-							console.timeEnd("get points");
+							//console.timeEnd("get points");
 							self.loadingMessage = undefined;
 							var arrayBuffer = response.data;
 							var dataView = new DataView(arrayBuffer);
 							var currentPos = 0;
 							var points = dataView.getUint32(currentPos, true);
 							self.pointCount = points;
-							console.log('pointCount ' + self.pointCount);
+							//console.log('pointCount ' + self.pointCount);
 							currentPos += 4;
 							var pos_array = new Float32Array(arrayBuffer, currentPos, points * 3);
 							currentPos += points * 3 * 4;
@@ -329,7 +337,7 @@ function init() {
 				var zoff = -zmin - (zmax - zmin) / 2;
 				var half = positions.length / 2;
 				var yoff = - positions[(half - (half % 3)) + 1];
-				console.log("yoff " + yoff + "   middle " + -ymin - (ymax - ymin) / 2);
+				//console.log("yoff " + yoff + "   middle " + (-ymin - (ymax - ymin) / 2));
 				for (var i = 0; i < positions.length; i += 3) {
 					positions[i] += xoff;
 					positions[i + 1] += yoff;
@@ -420,8 +428,12 @@ function init() {
 				} else {
 					query.pointcloud = this.urlParameters.pointcloud;
 				}
-				query.x = this.urlParameters.x;
-				query.y = this.urlParameters.y;
+				if(this.urlParameters.bbox !== undefined) {
+					query.bbox = this.urlParameters.bbox;
+				} else {
+					query.x = this.urlParameters.x;
+					query.y = this.urlParameters.y;
+				}
 				if(this.urlParameters.time_slice_id !== undefined) {
 					query.time_slice_id = this.urlParameters.time_slice_id;
 				}				
@@ -435,28 +447,52 @@ function init() {
 				} else {
 					parameters.pointcloud = this.$route.query.pointcloud;
 				}
-				parameters.x = this.$route.query.x;
-				parameters.y = this.$route.query.y;
+				parameters.bbox = this.$route.query.bbox;
+				if(parameters.bbox === undefined) {
+					parameters.x = this.$route.query.x;
+					parameters.y = this.$route.query.y;
+				}
 				if(this.$route.query.time_slice_id !== undefined) {
 					parameters.time_slice_id = this.$route.query.time_slice_id;
 				}
-				if(this.urlParameters.db !== parameters.db || this.urlParameters.pointcloud !== parameters.pointcloud || this.urlParameters.x !== parameters.x || this.urlParameters.y !== parameters.y) {
+				if(
+					this.urlParameters.db !== parameters.db 
+					|| this.urlParameters.pointcloud !== parameters.pointcloud 
+					|| this.urlParameters.bbox !== parameters.bbox 
+					|| this.urlParameters.x !== parameters.x 
+					|| this.urlParameters.y !== parameters.y
+				) {
 					this.urlParameters = parameters;
 				}
 			},
 
 			moveStep: function (stepX, stepY) {
 				var stepSize = 20;
-				var x = parseFloat(this.urlParameters.x) + stepX * stepSize;
-				var y = parseFloat(this.urlParameters.y) + stepY * stepSize;
 				var parameters = {};
 				if(this.urlParameters.pointcloud === undefined) {
 					parameters.db = this.urlParameters.db;
 				} else {
 					parameters.pointcloud = this.urlParameters.pointcloud;
 				}
-				parameters.x = x;
-				parameters.y = y;
+				
+				if(this.urlParameters.bbox !== undefined) {
+					const a = this.urlParameters.bbox.split(',');
+					const xmin = parseFloat(a[0]) + stepX * stepSize;
+					const ymin = parseFloat(a[1]) + stepY * stepSize;
+					const xmax = parseFloat(a[2]) + stepX * stepSize;
+					const ymax = parseFloat(a[3]) + stepY * stepSize;
+					parameters.bbox = '' + xmin + ',' + ymin + ',' + xmax + ',' + ymax;	
+				} else {				
+					var x = parseFloat(this.urlParameters.x) + stepX * stepSize;
+					var y = parseFloat(this.urlParameters.y) + stepY * stepSize;
+					parameters.x = x;
+					parameters.y = y;	
+				}
+
+				if(this.urlParameters.time_slice_id !== undefined) {
+					parameters.time_slice_id = this.urlParameters.time_slice_id;
+				}				
+				
 				this.urlParameters = parameters;
 			},
 		}, //end methods

@@ -6,8 +6,6 @@ import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
-import org.tinylog.Logger;
-
 public class ErrorCollector extends DiagnosticErrorListener {
 	
 	
