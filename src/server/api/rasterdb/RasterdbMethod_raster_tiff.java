@@ -1,17 +1,14 @@
 package server.api.rasterdb;
 
 import java.io.IOException;
-import java.util.Enumeration;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.tinylog.Logger;
 
 import broker.Broker;
+import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.RasterDB;
 
 public class RasterdbMethod_raster_tiff extends RasterdbMethod {
@@ -25,12 +22,12 @@ public class RasterdbMethod_raster_tiff extends RasterdbMethod {
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		
 		String queryString = request.getQueryString();
-		Logger.info("queryString " + queryString + "     " + queryString.endsWith(".xml"));
+		/*Logger.info("queryString " + queryString + "     " + queryString.endsWith(".xml"));
 		Enumeration<String> it = request.getHeaderNames();
 		while(it.hasMoreElements()) {
 			String e = it.nextElement();
 			Logger.info("   " + e + "  " + request.getHeader(e));			
-		}
+		}*/
 		
 		if(request.getHeader("range") != null) {
 			Logger.info("filtered range request");

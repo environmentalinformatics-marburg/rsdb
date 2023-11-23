@@ -25,7 +25,7 @@ import util.frame.FloatFrame;
 import util.frame.ShortFrame;
 
 public class TimeBandProcessor implements TimeFrameProducer {
-	
+
 
 	public final RasterDB rasterdb;
 	public final Range2d range2d;
@@ -64,6 +64,21 @@ public class TimeBandProcessor implements TimeFrameProducer {
 
 	public TimeBandProcessor(RasterDB rasterdb, Range2d range2d, int reqWidth, int reqHeight) {
 		this(rasterdb, range2d, calcScale(range2d, reqWidth, reqHeight));
+	}
+
+	protected TimeBandProcessor(TimeBandProcessor tbp) {
+		this.rasterdb = tbp.rasterdb;
+		this.range2d = tbp.range2d;
+		this.scale = tbp.scale;
+		this.pyramid_rasterUnit = tbp.pyramid_rasterUnit;
+		this.pyramid_srcRange = tbp.pyramid_srcRange;
+		this.pyramid_dstRange = tbp.pyramid_dstRange;
+		this.pyramidLayerInternalDiv = tbp.pyramidLayerInternalDiv;
+		this.pyramid = tbp.pyramid;
+	}
+	
+	public BandProcessor toBandProcessor(int timestamp) {
+		return new BandProcessor(this, timestamp);
 	}
 
 	public static int calcScale(Range2d range2d, int reqWidth, int reqHeight) {
@@ -216,7 +231,7 @@ public class TimeBandProcessor implements TimeFrameProducer {
 			throw new RuntimeException("unknown scale " + scale);
 		}
 	}
-	
+
 	private void setScaleInternalPyramid(int scale) {
 		int maxDiv = rasterdb.getTilePixelLen();
 		int optimal_pyramid = 31 - Integer.numberOfLeadingZeros(scale);
@@ -257,7 +272,7 @@ public class TimeBandProcessor implements TimeFrameProducer {
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
 		return cellInt16.read(pyramid_rasterUnit, t, band, pyramid_srcRange, pyramidLayerInternalDiv);	
 	}
-	
+
 	private byte[][] readInt8(int timestamp, Band band) {
 		CellInt8 cellInt8 = new CellInt8(rasterdb.getTilePixelLen());
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
@@ -313,11 +328,11 @@ public class TimeBandProcessor implements TimeFrameProducer {
 			throw new RuntimeException("unknown tile type: "+tileType);
 		}
 	}
-	
+
 	public ByteFrame getByteFrame(TimeBand timeband) {
 		return getByteFrame(timeband.timestamp, timeband.band);
 	}
-	
+
 	public ByteFrame getByteFrame(int timestamp, Band band) {
 		int tileType = band.type;
 		switch(tileType) {
@@ -463,6 +478,10 @@ public class TimeBandProcessor implements TimeFrameProducer {
 
 	public int getScale() {
 		return scale;
+	}
+	
+	public TimeBand toTimeBand(int timestamp, Band band) {
+		return new TimeBand(timestamp, band);	
 	}
 
 	public List<TimeBand> toTimeBands(int timestamp, Band[] bands) {

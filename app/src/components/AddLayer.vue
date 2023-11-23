@@ -14,16 +14,24 @@
 
       <q-card-section>
         Layer types:
+
         <q-checkbox
-          v-model="layerFilter.postgis"
-          label="PostGIS"
+          v-model="layerFilter.rasterdb"
+          label="RasterDB"
           checked-icon="task_alt"
           unchecked-icon="highlight_off"
         />
 
         <q-checkbox
-          v-model="layerFilter.rasterdb"
-          label="RasterDB"
+          v-model="layerFilter.pointcloud"
+          label="Pointcloud"
+          checked-icon="task_alt"
+          unchecked-icon="highlight_off"
+        />
+
+        <q-checkbox
+          v-model="layerFilter.postgis"
+          label="PostGIS"
           checked-icon="task_alt"
           unchecked-icon="highlight_off"
         />
@@ -74,8 +82,34 @@
         </q-select>
       </q-card-section>
 
+      <q-card-section v-if="selectedLayerMeta">
+        Type of selected layer:
+        <b>{{ rsdbLayerTypeToTitle(selectedLayer.type) }}</b>
+        <div v-if="selectedLayer.type === 'pointcloud'">
+          <div v-if="selectedLayerVisLayer">
+            Visualisation RasterDB layer:
+            <b>{{ selectedLayerVisLayer.name }}</b>
+          </div>
+          <div v-else>
+            <span style="color: red"
+              >No associated visualization RasterDB layer for this Pointcloud
+              layer.</span
+            >
+            Pointcloud can not be viewed on map. You may first create a
+            visualization RasterDB layer for this Pointcloud layer.
+          </div>
+        </div>
+      </q-card-section>
+
       <q-card-actions align="right">
-        <q-btn flat label="Add" color="primary" v-close-popup @click="onOk" />
+        <q-btn
+          flat
+          label="Add"
+          color="primary"
+          v-close-popup
+          @click="onOk"
+          :disable="!selectedLayerVisLayer"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -97,10 +131,13 @@ export default defineComponent({
       dialog: false,
       selectedLayer: undefined,
       layerFilter: {
-        postgis: true,
         rasterdb: true,
+        pointcloud: true,
+        postgis: true,
       },
       filteredOptionsLayers: [],
+      selectedLayerMeta: undefined,
+      selectedLayerVisLayer: undefined,
     };
   },
 
@@ -115,8 +152,9 @@ export default defineComponent({
     optionsLayers() {
       return this.rsdbLayers.filter(
         (e) =>
-          (this.layerFilter.postgis && e.type === "postgis") ||
-          (this.layerFilter.rasterdb && e.type === "rasterdb")
+          (this.layerFilter.rasterdb && e.type === "rasterdb") ||
+          (this.layerFilter.pointcloud && e.type === "pointcloud") ||
+          (this.layerFilter.postgis && e.type === "postgis")
       );
     },
   },
@@ -125,17 +163,16 @@ export default defineComponent({
     ...mapActions(useLayersStore, { layersInit: "init" }),
 
     onOk() {
-      this.layers.push({
-        name: this.selectedLayer.name,
-        type: this.selectedLayer.type,
-      });
+      this.layers.push(this.selectedLayerVisLayer);
       this.$emit("close");
     },
     rsdbLayerTypeToTitle(type) {
-      if (type === "postgis") {
-        return "PostGIS";
-      } else if (type === "rasterdb") {
+      if (type === "rasterdb") {
         return "RasterDB";
+      } else if (type === "pointcloud") {
+        return "Pointcloud";
+      } else if (type === "postgis") {
+        return "PostGIS";
       } else {
         return type;
       }
@@ -167,6 +204,45 @@ export default defineComponent({
         }
       );
       //}, 300);
+    },
+  },
+
+  watch: {
+    async selectedLayer() {
+      this.selectedLayerMeta = undefined;
+      this.selectedLayerVisLayer = undefined;
+      if (this.selectedLayer) {
+        if (this.selectedLayer.type === "rasterdb") {
+          const layerURLPart = "rasterdb/" + this.selectedLayer.name;
+          const response = await this.$api.get(layerURLPart + "/meta.json");
+          this.selectedLayerMeta = response.data;
+          this.selectedLayerVisLayer = {
+            type: this.selectedLayer.type,
+            name: this.selectedLayer.name,
+          };
+        } else if (this.selectedLayer.type === "pointcloud") {
+          const layerURLPart = "pointclouds/" + this.selectedLayer.name;
+          const response = await this.$api.get(layerURLPart);
+          this.selectedLayerMeta = response.data.pointcloud;
+          if (this.selectedLayerMeta.associated.rasterdb) {
+            this.selectedLayerVisLayer = {
+              type: "rasterdb",
+              name: this.selectedLayerMeta.associated.rasterdb,
+            };
+          }
+        } else if (this.selectedLayer.type === "postgis") {
+          const layerURLPart = "postgis/layers/" + this.selectedLayer.name;
+          const response = await this.$api.get(layerURLPart);
+          this.selectedLayerMeta = response.data;
+          this.selectedLayerVisLayer = {
+            type: this.selectedLayer.type,
+            name: this.selectedLayer.name,
+          };
+        } else {
+          // unknown layer
+          this.selectedLayerMeta = undefined;
+        }
+      }
     },
   },
 

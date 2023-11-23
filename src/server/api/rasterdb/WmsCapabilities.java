@@ -1,7 +1,6 @@
 package server.api.rasterdb;
 
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -12,9 +11,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
+import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -27,6 +25,7 @@ import util.Range2d;
 import util.TimeUtil;
 import util.Web;
 import util.collections.ReadonlyNavigableSetView;
+import util.collections.vec.Vec;
 
 public class WmsCapabilities {
 	
@@ -201,7 +200,7 @@ public class WmsCapabilities {
 	}
 
 	public static List<WmsStyle> getWmsStyles(RasterDB rasterdb) {
-		ArrayList<WmsStyle> list = new ArrayList<WmsStyle>();
+		Vec<WmsStyle> list = new Vec<WmsStyle>();
 		if (rasterdb.bandMapReadonly.size() > 1) {
 			list.add(new WmsStyle("color", "color", "best fitting rgb visualisation", -1));
 		}

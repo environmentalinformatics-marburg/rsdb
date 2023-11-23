@@ -14,7 +14,8 @@ function init() {
 				useAnimation: false,
 				filterExtremes: false,
 				illuminated: true,
-				fog_default_density: 0.007378698,  //(1/1.25)^22
+				//fog_default_density: 0.007378698,  //(1/1.25)^22
+				fog_default_density: 0.002,
 				fogDensity: 0,
 				pointSize: 2.5,
 				needsRedraw: false, // only used if useAnimation == false
@@ -50,7 +51,7 @@ function init() {
 			window.addEventListener('resize', this.onWindowResize, false);
 			window.addEventListener('scroll', function () { window.scrollTo(0, 0); }, false); //disable window move for up/down arrows
 
-			this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 50, 3500);
+			this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 10, 10000);
 			this.camera.position.z = 200;
 			this.camera.projectionMatrix.scale(new THREE.Vector3(-1, 1, 1)); // mirror		
 			this.scene = new THREE.Scene();

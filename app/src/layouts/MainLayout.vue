@@ -31,9 +31,6 @@
           <b>Pointcloud 3d-view selection</b> of
           <i>{{ interaction.pointcloud }}</i>
         </div>
-        <b>Click</b> on a position on the map to 3D-view pointcloud points.
-        <i>--- OR ---</i>
-        <br />
         Hold <b>shift-key</b>, hold <b>left mouse button</b> and move mouse to
         draw a box on the map, then
         <q-btn
@@ -43,6 +40,27 @@
           >click here</q-btn
         >
         to 3D-view.
+      </div>
+      <div v-else-if="interaction.type === 'RasterdbExport'">
+        <div
+          style="
+            font-size: 0.75em;
+            text-align: center;
+            background-color: #dbdbdb;
+          "
+        >
+          <b>RasterDB export part selection</b> of
+          <i>{{ interaction.rasterdb }}</i>
+        </div>
+        Hold <b>shift-key</b>, hold <b>left mouse button</b> and move mouse to
+        draw a box on the map, then
+        <q-btn
+          title="Open RasterDB data export dialog."
+          :disable="selectedExtent === undefined"
+          @click="onRasterdbExportClick"
+          >click here</q-btn
+        >
+        to export raster.
       </div>
       <span v-else>{{ interaction.type }}</span>
       <q-btn
@@ -289,6 +307,10 @@
         title="Add a layer to the list of viewer layers."
       >
         <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer>
+        <RasterdbExport
+          ref="RasterdbExport"
+          :interaction="interaction"
+        ></RasterdbExport>
       </q-btn>
     </div>
     <div
@@ -334,11 +356,18 @@ import draggable from "vuedraggable";
 import AddLayer from "../components/AddLayer.vue";
 import FeatureInfo from "../components/FeatureInfo.vue";
 import RasterLayerSettings from "../components/RasterLayerSettings.vue";
+import RasterdbExport from "../components/RasterdbExport.vue";
 
 export default defineComponent({
   name: "MainLayout",
 
-  components: { draggable, AddLayer, FeatureInfo, RasterLayerSettings },
+  components: {
+    draggable,
+    AddLayer,
+    FeatureInfo,
+    RasterLayerSettings,
+    RasterdbExport,
+  },
 
   data() {
     return {
@@ -358,6 +387,7 @@ export default defineComponent({
       mapCursorStandard: "auto",
       interaction: undefined,
       selectedExtent: undefined,
+      mousePositionControl: undefined,
     };
   },
 
@@ -606,6 +636,9 @@ export default defineComponent({
             this.view = new View({
               projection: this.mainLayer.projection,
             });
+            this.view.on("change:resolution", (e) => {
+              this.onViewChange();
+            });
             this.map.setView(this.view);
             if (this.mainLayer.extent !== undefined) {
               this.view.fit(this.mainLayer.extent);
@@ -614,10 +647,35 @@ export default defineComponent({
         } else {
           this.map.setLayers([]);
         }
+        this.$nextTick(() => this.onViewChange());
         this.initializingLayers = false;
       } catch (e) {
         console.log(e);
         this.initializingLayers = false;
+      }
+    },
+
+    onViewChange() {
+      //console.log("onViewChange");
+      const c1 = this.map.getCoordinateFromPixel([640, 480]);
+      const c2 = this.map.getCoordinateFromPixel([641, 480]);
+      const c3 = this.map.getCoordinateFromPixel([640, 481]);
+      if (c1) {
+        const dx = Math.abs(c2[0] - c1[0]);
+        const dy = Math.abs(c3[1] - c1[1]);
+        const d = Math.min(dx, dy);
+        const p = -Math.log10(d);
+        let f = Math.ceil(p);
+        //console.log(d + "   " + p + "    " + f);
+        if (f < 0) {
+          f = 0;
+        }
+        if (f > 10) {
+          f = 10;
+        }
+        if (this.mousePositionControl) {
+          this.mousePositionControl.setCoordinateFormat(createStringXY(f));
+        }
       }
     },
 
@@ -629,6 +687,7 @@ export default defineComponent({
           layer.setVisible(layerEntry.visible);
         }
       }
+      this.$nextTick(() => this.onViewChange());
     },
 
     onZoomToLayer(layer) {
@@ -682,7 +741,7 @@ export default defineComponent({
     },
 
     refreshRasterdbLayerParameters(layerEntry) {
-      console.log("refreshRasterdbLayerParameters " + layerEntry.name);
+      //console.log("refreshRasterdbLayerParameters " + layerEntry.name);
       const paramLayers = layerEntry.style.name + "/" + layerEntry.timeSlice.id;
       let params = { LAYERS: paramLayers };
       if (layerEntry.fixedGamma) {
@@ -714,7 +773,14 @@ export default defineComponent({
       layerEntry.layer.getSource().updateParams(params);
     },
 
-    onPointcloud3dPointViewCoordinateClick(coordinate) {
+    onRasterdbExportClick() {
+      if (this.selectedExtent !== undefined) {
+        this.interaction.extent = this.selectedExtent;
+        this.$refs.RasterdbExport.open();
+      }
+    },
+
+    /*onPointcloud3dPointViewCoordinateClick(coordinate) {
       const radius = 10;
       const extent = [
         coordinate[0] - radius,
@@ -727,14 +793,16 @@ export default defineComponent({
         extent,
         this.interaction.layer.timeSlice.id
       );
-    },
+    },*/
 
     onPointcloud3dPointViewBboxClick() {
-      this.openPointcloud3dPointView(
-        this.interaction.pointcloud,
-        this.selectedExtent,
-        this.interaction.layer.timeSlice.id
-      );
+      if (this.selectedExtent !== undefined) {
+        this.openPointcloud3dPointView(
+          this.interaction.pointcloud,
+          this.selectedExtent,
+          this.interaction.layer.timeSlice.id
+        );
+      }
     },
     openPointcloud3dPointView(pointcloud, extent, timeSlice_id) {
       let url = this.$api.getUri();
@@ -764,10 +832,16 @@ export default defineComponent({
       console.log("watch interaction");
       console.log(this.interaction);
       if (this.interaction !== undefined) {
-        if (this.interaction.type === "Pointcloud3dPointView") {
+        if (this.interaction.type === "RasterdbExport") {
+          console.log("RasterdbExport");
+          this.mapCursorStandard = "crosshair";
+          this.mapCursor = this.mapCursorStandard;
+          this.onRasterdbExportClick();
+        } else if (this.interaction.type === "Pointcloud3dPointView") {
           console.log("Pointcloud3dPointView");
           this.mapCursorStandard = "crosshair";
           this.mapCursor = this.mapCursorStandard;
+          this.onPointcloud3dPointViewBboxClick();
         } else {
           this.mapCursorStandard = "cell";
           this.mapCursor = this.mapCursorStandard;
@@ -955,7 +1029,7 @@ export default defineComponent({
       minWidth: 140,
     });
 
-    const mousePositionControl = new MousePosition({
+    this.mousePositionControl = new MousePosition({
       coordinateFormat: createStringXY(4),
     });
 
@@ -964,14 +1038,13 @@ export default defineComponent({
     });
 
     extentInteraction.on("extentchanged", (e) => {
-      console.log(e);
       this.selectedExtent = e.extent ? e.extent : undefined;
     });
 
     this.map = new Map({
       target: "map",
       view: this.view,
-      controls: [new Attribution(), scaleControl, mousePositionControl],
+      controls: [new Attribution(), scaleControl, this.mousePositionControl],
       interactions: interactionDefaults().extend([extentInteraction]),
     });
 
@@ -992,7 +1065,7 @@ export default defineComponent({
           this.interaction.type === "Pointcloud3dPointView" &&
           !e.originalEvent.shiftKey
         ) {
-          this.onPointcloud3dPointViewCoordinateClick(e.coordinate);
+          //this.onPointcloud3dPointViewCoordinateClick(e.coordinate);
         } else {
           console.log("unknown interaction");
         }

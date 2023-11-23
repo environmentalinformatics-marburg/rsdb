@@ -9,10 +9,12 @@ import org.json.JSONWriter;
 import org.tinylog.Logger;
 
 import broker.Broker;
+import broker.Informal;
 import jakarta.servlet.http.HttpServletResponse;
 import postgis.PostgisLayerManager;
 import rasterdb.RasterDB;
 import server.api.APIHandler;
+import util.JsonUtil;
 import util.Web;
 
 
@@ -63,14 +65,7 @@ public class APIHandler_layers extends APIHandler {
 		json.object();
 		json.key("layers");
 		json.array();
-		postgisLayerManager.forEach(userIdentity, postgisLayerBase -> {
-			json.object();
-			json.key("name");
-			json.value(postgisLayerBase.name);
-			json.key("type");
-			json.value("postgis");
-			json.endObject();
-		});
+		
 		for (String name : broker.getRasterdbNames()) {	
 			RasterDB rasterdb = broker.getRasterdb(name);
 			if (rasterdb.isAllowed(userIdentity)) {
@@ -82,6 +77,27 @@ public class APIHandler_layers extends APIHandler {
 				json.endObject();
 			}
 		}
+		
+		for (String name : broker.getPointCloudNames()) {
+			if(broker.isAllowedPointCloud(name, userIdentity)) {
+				json.object();
+				json.key("name");
+				json.value(name);
+				json.key("type");
+				json.value("pointcloud");
+				json.endObject();
+			}
+		}
+		
+		postgisLayerManager.forEach(userIdentity, postgisLayerBase -> {
+			json.object();
+			json.key("name");
+			json.value(postgisLayerBase.name);
+			json.key("type");
+			json.value("postgis");
+			json.endObject();
+		});
+		
 		json.endArray();
 		json.endObject();
 	}

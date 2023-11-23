@@ -126,7 +126,7 @@ public final class Web {
 
 	public  static String getString(Request request, String name, String defaultValue) {
 		String text = request.getParameter(name);
-		return text==null?defaultValue:text;
+		return text==null ? defaultValue : text;
 	}
 	
 	public  static String getLastString(Request request, String name, String defaultValue) {

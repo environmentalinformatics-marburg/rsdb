@@ -28,6 +28,11 @@ public class BandProcessor extends TimeBandProcessor implements FrameProducer {
 		this.timestamp = timestamp;
 	}	
 	
+	public BandProcessor(TimeBandProcessor timeBandProcessor, int timestamp) {
+		super(timeBandProcessor);
+		this.timestamp = timestamp;
+	}
+
 	public ShortFrame getShortFrame(Band band) {
 		return getShortFrame(timestamp, band);
 	}

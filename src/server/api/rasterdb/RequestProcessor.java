@@ -1,22 +1,22 @@
 package server.api.rasterdb;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.NavigableSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.tinylog.Logger;
 
 import broker.TimeSlice;
+import jakarta.servlet.http.HttpServletResponse;
+import rasterdb.Band;
 import rasterdb.BandProcessing;
-import rasterdb.BandProcessor;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.TimeBand;
@@ -26,9 +26,9 @@ import util.Range2d;
 import util.ResponseReceiver;
 import util.TimeUtil;
 import util.Web;
+import util.collections.vec.Vec;
 
-public class RequestProcessor {
-	
+public class RequestProcessor {	
 
 	enum RdatDataType {INT16, FLOAT32, FLOAT64};
 
@@ -51,7 +51,27 @@ public class RequestProcessor {
 				return;
 			}
 
-			int timestamp = getTimestamp(request, rasterdb.rasterUnit(), rasterdb);
+
+			int[] timeSliceIds = null;
+			String timeSliceIdText = request.getParameter("time_slice_id");
+			if(timeSliceIdText != null) {
+				if(request.getParameter("time_slice") != null || request.getParameter("timestamp") != null) {
+					throw new RuntimeException("only one time parameter can be set: time_slice_id, time_slice, timestamp");
+				}
+				if(timeSliceIdText.equals("all")) {			
+					TreeSet<Integer> timestamps = new TreeSet<Integer>();
+					timestamps.addAll(rasterdb.rasterUnit().timeKeysReadonly());
+					timestamps.addAll(rasterdb.timeMapReadonly.keySet());					
+					timeSliceIds = timestamps.stream().mapToInt(i->i).toArray();
+				} else {
+					String[] timeSliceIdTexts = timeSliceIdText.split("[ ,]+");
+					timeSliceIds = Arrays.stream(timeSliceIdTexts).mapToInt(Integer::parseInt).toArray();
+				}
+			} else {
+				timeSliceIds = new int[] {getTimestamp(request, rasterdb.rasterUnit(), rasterdb)};
+			}
+
+			String bandOrder = Web.getString(request, "band_order", "time_band");
 
 			if(reqWidth > 0 || reqHeight > 0) {
 				if(scaleDiv != 1) {
@@ -65,10 +85,10 @@ public class RequestProcessor {
 				return;
 			}
 
-			BandProcessor processor = new BandProcessor(rasterdb, Web.getFlag(request, "clipped") ? range2d.clip(rasterLocalRange) : range2d, timestamp, scaleDiv);
+			TimeBandProcessor timeBandProcessor = new TimeBandProcessor(rasterdb, Web.getFlag(request, "clipped") ? range2d.clip(rasterLocalRange) : range2d, scaleDiv);
 
-			Logger.info("processor dstRange " + processor.getDstRange());
-			Logger.info("processor srcRange " + processor.getSrcRange());
+			Logger.info("processor dstRange " + timeBandProcessor.getDstRange());
+			Logger.info("processor srcRange " + timeBandProcessor.getSrcRange());
 
 			String productText = request.getParameter("product");
 			String bandText = request.getParameter("band");
@@ -79,32 +99,89 @@ public class RequestProcessor {
 			}
 
 			if(productText == null) {
-				Collection<TimeBand> processingBands;
-				if (bandText != null) {
-					try {
-						String[] bandTexts = bandText.split(" ");
-						processingBands = Arrays.stream(bandTexts).mapToInt(Integer::parseInt).mapToObj(i -> {
-							TimeBand timeband = processor.getTimeBand(i);
-							if (timeband == null) {
-								throw new RuntimeException("band not found: " + i);
-							}
-							return timeband;
-						}).collect(Collectors.toList());
-					} catch(Exception e) {
-						throw new RuntimeException("error in parameter band "+e);
-					}
-				} else if(outputProcessingType == OutputProcessingType.VISUALISATION) {
-					processingBands = processor.toTimeBands(BandProcessing.getBestColorBands(processor.rasterdb));
-				} else {
-					processingBands = processor.getTimeBands();
+				Vec<TimeBand> processingBands = new Vec<TimeBand>();
+				if(timeSliceIds.length == 0) {
+					throw new RuntimeException("no time slice parameter");
 				}
 
-				RequestProcessorBands.processBands(processor, processingBands, outputProcessingType, format, new ResponseReceiver(response));
+				if(bandOrder.equals("time_band")) {
+					for(int timestamp : timeSliceIds) {
+						if (bandText != null) {
+							try {
+								String[] bandTexts = bandText.split("[ ,]+");
+								if(bandTexts.length == 0) {
+									throw new RuntimeException("no band parameter");
+								}
+								Arrays.stream(bandTexts).mapToInt(Integer::parseInt).forEachOrdered(i -> {
+									TimeBand timeband = timeBandProcessor.getTimeBand(timestamp, i);
+									if (timeband == null) {
+										throw new RuntimeException("band not found: " + i);
+									}
+									processingBands.add(timeband);
+								});
+							} catch(Exception e) {
+								throw new RuntimeException("error in parameter band "+e);
+							}
+						} else if(outputProcessingType == OutputProcessingType.VISUALISATION) {
+							Band[] bands = BandProcessing.getBestColorBands(timeBandProcessor.rasterdb);
+							List<TimeBand> timeBands = timeBandProcessor.toTimeBands(timestamp, bands);
+							processingBands.addAll(timeBands);
+						} else {
+							List<TimeBand> timeBands = timeBandProcessor.getTimeBands(timestamp);
+							processingBands.addAll(timeBands);
+						}
+					}
+				} else if(bandOrder.equals("band_time")) {
+					if (bandText != null) {
+						try {
+							String[] bandTexts = bandText.split("[ ,]+");
+							if(bandTexts.length == 0) {
+								throw new RuntimeException("no band parameter");
+							}
+							for(String s : bandTexts) {
+								int i = Integer.parseInt(s);
+								for(int timestamp : timeSliceIds) {
+									TimeBand timeband = timeBandProcessor.getTimeBand(timestamp, i);
+									if (timeband == null) {
+										throw new RuntimeException("band not found: " + i);
+									}
+									processingBands.add(timeband);
+								}
+							}
+						} catch(Exception e) {
+							throw new RuntimeException("error in parameter band "+e);
+						}
+					} else if(outputProcessingType == OutputProcessingType.VISUALISATION) {
+						Band[] bands = BandProcessing.getBestColorBands(timeBandProcessor.rasterdb);
+						for(Band band : bands) {
+							for(int timestamp : timeSliceIds) {
+								TimeBand timeBand = timeBandProcessor.toTimeBand(timestamp, band);
+								processingBands.add(timeBand);
+							}
+						}						
+					} else {
+						Collection<Band> bands = timeBandProcessor.getBands();
+						for(Band band : bands) {
+							for(int timestamp : timeSliceIds) {
+								TimeBand timeBand = timeBandProcessor.toTimeBand(timestamp, band);
+								processingBands.add(timeBand);
+							}
+						}
+					}
+				} else {
+					throw new RuntimeException("unknown band_order parameter");
+				}
+
+				RequestProcessorBands.processBands(timeBandProcessor, processingBands, outputProcessingType, format, new ResponseReceiver(response));
 			} else { // product processing
 				if (bandText != null) {
 					throw new RuntimeException("parameter band can not be used if parameter product is specified");
 				}
-				RequestProcessorProduct.processProduct(rasterdb, processor, productText, outputProcessingType, format, new ResponseReceiver(response));								
+				if(timeSliceIds.length != 1) {
+					throw new RuntimeException("product processing with one time slice only");
+				}
+				int timestamp = timeSliceIds[0];
+				RequestProcessorProduct.processProduct(rasterdb, timeBandProcessor.toBandProcessor(timestamp), productText, outputProcessingType, format, new ResponseReceiver(response));								
 			}
 		} catch (Exception e) {
 			Logger.error(e);
@@ -119,10 +196,6 @@ public class RequestProcessor {
 	}
 
 	private static int getTimestamp(Request request, RasterUnitStorage rasterUnitStorage, RasterDB rasterdb) {		
-		int time_slice_id = Web.getInt(request, "time_slice_id", Integer.MIN_VALUE); // obsolete ?
-		if(time_slice_id > Integer.MIN_VALUE) {
-			return time_slice_id;
-		}	
 
 		String time_sliceText = request.getParameter("time_slice");
 		String timestampText = request.getParameter("timestamp");
@@ -179,15 +252,6 @@ public class RequestProcessor {
 		}
 	}
 
-	private static boolean allNum(String s) {
-		for(char c:s.toCharArray()) {
-			if(c < '0' || c > '9') {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	/**
 	 * 
 	 * @param rasterdb
@@ -205,7 +269,10 @@ public class RequestProcessor {
 			}
 			return rasterdb.getLocalRange(false);
 		}
-		String[] extTexts = (extText.split(" "));
+		String[] extTexts = extText.split("[ ,]+");
+		if(extTexts.length != 4) {
+			throw new RuntimeException("ext parameter syntax error");
+		}
 		Range2d range2d = ref.parseExtentToRange2d(extTexts);
 		return range2d;
 	}

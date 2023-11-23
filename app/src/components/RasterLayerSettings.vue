@@ -1,5 +1,19 @@
 <template>
   <div>
+    <q-btn
+      flat
+      round
+      icon="file_download"
+      title="Download (parts of) raster
+    layer data"
+      @click="
+        $emit('interaction', {
+          type: 'RasterdbExport',
+          rasterdb: layer.name,
+          meta: layer.meta,
+        })
+      "
+    />
     <q-select
       model-value="layer.timeSlice"
       @update:model-value="onUpdateTimeSlice"
