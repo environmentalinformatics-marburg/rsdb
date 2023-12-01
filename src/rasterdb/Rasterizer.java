@@ -16,8 +16,8 @@ import util.image.Renderer;
 public class Rasterizer {	
 	
 	public static ImageBufferARGB rasterizeRGB(TimeFrameProducer processor, RasterDB rasterdb, int timestamp, int width, int height, double gamma, double[] range, boolean syncBands, Interruptor interruptor, int per_mille) {
-		TimeBand[] bands = TimeBand.of(timestamp, BandProcessing.getBestColorBands(rasterdb));
-		return rasterizeRGB(processor, bands, width, height, gamma, range, syncBands, interruptor, per_mille);
+		TimeBand[] timeBands = TimeBand.of(timestamp, BandProcessing.getBestColorBands(rasterdb));
+		return rasterizeRGB(processor, timeBands, width, height, gamma, range, syncBands, interruptor, per_mille);
 	}
 
 	public static ImageBufferARGB rasterizeRGB(TimeFrameProducer processor, TimeBand[] bands, int width, int height, double gamma, double[] range, boolean syncBands, Interruptor interruptor, int per_mille) {

@@ -275,5 +275,4 @@ public class RequestProcessorBandsWriters {
 		resceiver.setContentLength(tiffWriter.exactSizeOfWriteAuto());
 		tiffWriter.writeAuto(new DataOutputStream(resceiver.getOutputStream()));		
 	}
-
 }

@@ -14,7 +14,6 @@ import util.Receiver;
 import util.image.ImageBufferARGB;
 
 public class RequestProcessorBands {
-	//
 
 	public static void processBands(TimeBandProcessor processor, Collection<TimeBand> processingBands, OutputProcessingType outputProcessingType, String format, Receiver receiver) throws IOException {
 		Range2d reqRange2d = processor.getDstRange();
@@ -77,8 +76,5 @@ public class RequestProcessorBands {
 		default:
 			throw new RuntimeException("unknown output processing type");
 		}
-
-
 	}
-
 }

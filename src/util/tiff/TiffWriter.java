@@ -226,7 +226,7 @@ public class TiffWriter {
 			ifd.add_TileByteCounts(tileByteCounts);
 		}
 
-		ifd.add_ImageDescription("created by Remote Sensing Database (RSDB)");
+		ifd.add_ImageDescription("Created by Remote Sensing Database (RSDB)");
 		ifd.add_Software("Remote Sensing Database (RSDB)");
 		ifd.add_DateTime_now();
 

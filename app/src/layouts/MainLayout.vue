@@ -62,6 +62,27 @@
         >
         to export raster.
       </div>
+      <div v-else-if="interaction.type === 'PointcloudExport'">
+        <div
+          style="
+            font-size: 0.75em;
+            text-align: center;
+            background-color: #dbdbdb;
+          "
+        >
+          <b>Pointcloud export part selection</b> of
+          <i>{{ interaction.pointcloud }}</i>
+        </div>
+        Hold <b>shift-key</b>, hold <b>left mouse button</b> and move mouse to
+        draw a box on the map, then
+        <q-btn
+          title="Open Pointcloud data export dialog."
+          :disable="selectedExtent === undefined"
+          @click="onPointcloudExportClick"
+          >click here</q-btn
+        >
+        to export pointcloud.
+      </div>
       <span v-else>{{ interaction.type }}</span>
       <q-btn
         dense
@@ -307,10 +328,8 @@
         title="Add a layer to the list of viewer layers."
       >
         <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer>
-        <RasterdbExport
-          ref="RasterdbExport"
-          :interaction="interaction"
-        ></RasterdbExport>
+        <RasterdbExport ref="RasterdbExport" :interaction="interaction" />
+        <PointcloudExport ref="PointcloudExport" :interaction="interaction" />
       </q-btn>
     </div>
     <div
@@ -357,6 +376,7 @@ import AddLayer from "../components/AddLayer.vue";
 import FeatureInfo from "../components/FeatureInfo.vue";
 import RasterLayerSettings from "../components/RasterLayerSettings.vue";
 import RasterdbExport from "../components/RasterdbExport.vue";
+import PointcloudExport from "../components/PointcloudExport.vue";
 
 export default defineComponent({
   name: "MainLayout",
@@ -367,6 +387,7 @@ export default defineComponent({
     FeatureInfo,
     RasterLayerSettings,
     RasterdbExport,
+    PointcloudExport,
   },
 
   data() {
@@ -501,6 +522,35 @@ export default defineComponent({
           let bandMap = {};
           layerEntry.meta.bands.forEach((band) => (bandMap[band.index] = band));
           layerEntry.bandMap = bandMap;
+
+          let associated = [];
+          if (layerEntry.meta.associated) {
+            if (layerEntry.meta.associated.pointcloud) {
+              try {
+                let entry = {
+                  type: "pointcloud",
+                  name: layerEntry.meta.associated.pointcloud,
+                  color: "classified",
+                };
+                const layerURLPart = "pointclouds/" + entry.name;
+                const response = await this.$api.get(layerURLPart);
+                entry.meta = response.data.pointcloud;
+                if (entry.meta.attributes) {
+                  if (
+                    entry.meta.attributes.includes("red") &&
+                    entry.meta.attributes.includes("green") &&
+                    entry.meta.attributes.includes("blue")
+                  ) {
+                    entry.color = "color";
+                  }
+                }
+                associated.push(entry);
+              } catch (e) {
+                console.log(e);
+              }
+            }
+          }
+          layerEntry.associated = associated;
         }
 
         if (layerEntry.extent === undefined) {
@@ -713,15 +763,38 @@ export default defineComponent({
     async getFeatureInfo(coordinate) {
       //console.log(coordinate);
 
+      let infos = [];
+
       for (const layerEntry of this.layers) {
-        if (layerEntry.type === "postgis") {
+        if (layerEntry.type === "rasterdb") {
           try {
-            console.log(layerEntry);
+            //console.log(layerEntry);
             const imageWMS = layerEntry.layer.getSource();
-            console.log(imageWMS);
+            //console.log(imageWMS);
             const resolution = this.view.getResolution();
             const projection = this.view.getProjection();
-            //const params = { INFO_FORMAT: "text/html" };
+            const params = { INFO_FORMAT: "text/plain" };
+            const url = imageWMS.getFeatureInfoUrl(
+              coordinate,
+              resolution,
+              projection,
+              params
+            );
+            //console.log(url);
+            const response = await this.$api.get(url, { responseType: "text" });
+            //console.log(response.data);
+            //this.$refs.FeatureInfo.show(response.data);
+            infos.push({ name: layerEntry.name, data: response.data });
+          } catch (e) {
+            console.log(e);
+          }
+        } else if (layerEntry.type === "postgis") {
+          try {
+            //console.log(layerEntry);
+            const imageWMS = layerEntry.layer.getSource();
+            //console.log(imageWMS);
+            const resolution = this.view.getResolution();
+            const projection = this.view.getProjection();
             const params = { INFO_FORMAT: "application/geo+json" };
             const url = imageWMS.getFeatureInfoUrl(
               coordinate,
@@ -729,14 +802,21 @@ export default defineComponent({
               projection,
               params
             );
-            console.log(url);
+            //console.log(url);
             const response = await this.$api.get(url);
             //console.log(response.data);
-            this.$refs.FeatureInfo.show(response.data);
+            //this.$refs.FeatureInfo.show(response.data);
+            infos.push({ name: layerEntry.name, data: response.data });
           } catch (e) {
             console.log(e);
           }
         }
+      }
+
+      if (infos.length > 0) {
+        this.$refs.FeatureInfo.show(infos);
+      } else {
+        // nothing
       }
     },
 
@@ -780,36 +860,30 @@ export default defineComponent({
       }
     },
 
-    /*onPointcloud3dPointViewCoordinateClick(coordinate) {
-      const radius = 10;
-      const extent = [
-        coordinate[0] - radius,
-        coordinate[1] - radius,
-        coordinate[0] + radius,
-        coordinate[1] + radius,
-      ];
-      this.openPointcloud3dPointView(
-        this.interaction.pointcloud,
-        extent,
-        this.interaction.layer.timeSlice.id
-      );
-    },*/
+    onPointcloudExportClick() {
+      if (this.selectedExtent !== undefined) {
+        this.interaction.extent = this.selectedExtent;
+        this.$refs.PointcloudExport.open();
+      }
+    },
 
     onPointcloud3dPointViewBboxClick() {
       if (this.selectedExtent !== undefined) {
         this.openPointcloud3dPointView(
           this.interaction.pointcloud,
           this.selectedExtent,
-          this.interaction.layer.timeSlice.id
+          this.interaction.layer.timeSlice.id,
+          this.interaction.color
         );
       }
     },
-    openPointcloud3dPointView(pointcloud, extent, timeSlice_id) {
+    openPointcloud3dPointView(pointcloud, extent, timeSlice_id, color) {
       let url = this.$api.getUri();
       url += "web/pointcloud_view/pointcloud_view.html#/?";
       url += "&pointcloud=" + pointcloud;
       url += "&bbox=" + extent.map((v) => v.toFixed(4)).join(",");
       url += "&time_slice_id=" + timeSlice_id;
+      url += "&color=" + color;
       console.log(url);
       window.open(url, "_blank", "noreferrer");
     },
@@ -837,6 +911,11 @@ export default defineComponent({
           this.mapCursorStandard = "crosshair";
           this.mapCursor = this.mapCursorStandard;
           this.onRasterdbExportClick();
+        } else if (this.interaction.type === "PointcloudExport") {
+          console.log("PointcloudExport");
+          this.mapCursorStandard = "crosshair";
+          this.mapCursor = this.mapCursorStandard;
+          this.onPointcloudExportClick();
         } else if (this.interaction.type === "Pointcloud3dPointView") {
           console.log("Pointcloud3dPointView");
           this.mapCursorStandard = "crosshair";
@@ -851,6 +930,9 @@ export default defineComponent({
         this.mapCursor = this.mapCursorStandard;
       }
       console.log("watched interaction");
+    },
+    $route(to, from) {
+      location.reload();
     },
   },
 

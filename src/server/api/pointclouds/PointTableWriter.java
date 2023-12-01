@@ -5,23 +5,21 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-
 import org.tinylog.Logger;
-import org.eclipse.jetty.server.Request;
 
 import pointcloud.AttributeSelector;
 import pointcloud.LasWriter;
-import pointcloud.PointTable;
-import pointcloud.RdatWriter;
 import pointcloud.LasWriter.LAS_HEADER;
 import pointcloud.LasWriter.POINT_DATA_RECORD;
+import pointdb.base.GeoPoint;
+import pointcloud.PointTable;
+import pointcloud.RdatWriter;
 import util.ByteArrayOut;
 import util.Receiver;
 import util.Web;
 
 public class PointTableWriter {
-	
-	
+
 	//derived from https://stackoverflow.com/a/10554128
 	private static final int POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
 	private static String format(double val, int precision) {
@@ -58,6 +56,65 @@ public class PointTableWriter {
 				writer.println();
 			}
 		});
+	}
+
+	private static class LimitReachedException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+	}
+
+	public static void writeXYZ(Stream<PointTable> pointTables, Receiver receiver, long limit) throws IOException {
+		receiver.setContentType(Web.MIME_BINARY);
+		PrintWriter writer = receiver.getWriter();
+		try {
+			long[] count = new long[] {0};		
+			pointTables.sequential().forEach(p -> {
+				int len = p.rows;
+				double[] xs = p.x == null ? new double[len] : p.x;
+				double[] ys = p.y == null ? new double[len] : p.y;
+				double[] zs = p.z == null ? new double[len] : p.z;
+				for (int i = 0; i < len; i++) {
+					writer.print(format(xs[i],2));
+					writer.print(' ');
+					writer.print(format(ys[i],2));
+					writer.print(' ');
+					writer.print(format(zs[i],2));
+					writer.println();
+					count[0]++;
+					if(limit <= count[0]) {
+						throw new LimitReachedException();
+					}
+				}
+			});
+		} catch(LimitReachedException e) {
+			// nothing
+		}
+	}
+
+	private static abstract class PointWriter {
+		public abstract void set(PointTable pointTable);
+		protected abstract String write(int i);
+	}
+
+	private static abstract class PointWriterDouble extends PointWriter {
+
+		double[] vs;
+
+		protected final void set(double[] vs, int len) {
+			this.vs = vs == null ? new double[len] : vs;
+		}
+
+		@Override
+		protected String write(int i) {
+			return format(vs[i],2);			
+		}
+	}
+
+	private static class PointWriter_x extends PointWriterDouble {
+
+		@Override
+		public void set(PointTable pointTable) {
+			set(pointTable.x, pointTable.rows);			
+		}		
 	}
 
 	static void writeLAS(PointTable[] pointTables, Receiver receiver) throws IOException {

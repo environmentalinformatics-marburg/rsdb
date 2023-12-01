@@ -2,8 +2,6 @@ package pointdb.base;
 
 import java.util.Arrays;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
 import pointcloud.Rect2d;
@@ -14,8 +12,7 @@ import util.Web;
  * @author woellauer
  *
  */
-public class Rect {
-	
+public class Rect {	
 	
 	public final long utmm_min_x;
 	public final long utmm_min_y;

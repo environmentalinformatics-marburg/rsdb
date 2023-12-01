@@ -41,12 +41,17 @@ public class RasterdbMethod_wms extends RasterdbMethod {
 		case "GetMap":
 			RasterdbMethod_wms_GetMap.handle_GetMap(rasterdb, target, request, response, userIdentity);
 			break;
+		case "GetFeatureInfo":				
+			RasterdbMethod_wms_GetFeatureInfo.handle_GetFeatureInfo(rasterdb, request, response, userIdentity);
+			break;			
 		case "GetCapabilities":
 			RasterdbMethod_wms_GetCapabilities.handle_GetCapabilities(rasterdb, target, request, response, userIdentity);
-			break;
+			break;		
 		default:
 			Logger.error("unknown request "+reqParam);
 			return;
-		}
-	}	
+		}		
+	}
+
+
 }

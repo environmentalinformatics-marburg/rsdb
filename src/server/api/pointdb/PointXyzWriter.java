@@ -133,13 +133,13 @@ public class PointXyzWriter {
 	
 	
 
-	public static void writePoints(Receiver receiver, Vec<GeoPoint> points, String[] columns) throws IOException {
+	public static void writePoints(Receiver receiver, Vec<GeoPoint> points, String[] columns, long limit) throws IOException {
 		receiver.setContentType(Web.MIME_BINARY);
 
 		PrintWriter writer = receiver.getWriter();
 
 		if(columns == null || (columns.length == 3 && columns[0].equals("x") && columns[1].equals("y") && columns[2].equals("z"))) {
-			for(GeoPoint p:points) {
+			for(GeoPoint p:points.readonlyWeakViewLimited((int) limit)) {
 				writer.print(p.x);
 				writer.print(' ');
 				writer.print(p.y);
@@ -147,7 +147,7 @@ public class PointXyzWriter {
 				writer.print(p.z);
 				writer.println();
 			}
-		} if(columns.length == 0) {
+		} else if(columns != null && columns.length == 0) {
 			// nothing
 		} else {
 			PointWriter[] pointWriters = new PointWriter[columns.length];
@@ -185,7 +185,7 @@ public class PointXyzWriter {
 				}
 			}
 
-			for(GeoPoint p:points) {
+			for(GeoPoint p:points.readonlyWeakViewLimited((int) limit)) {
 				pointWriters[0].write(p);
 				for (int i = 1; i < pointWriters.length; i++) {
 					writer.print(' ');

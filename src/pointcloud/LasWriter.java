@@ -6,12 +6,10 @@ import java.time.LocalDate;
 import java.util.Arrays;
 
 import util.BufferedDataOuputStreamLE;
-import util.LittleEndianDataOutputStream;
 import util.Receiver;
 import util.Web;
 
 public class LasWriter {
-	//
 
 	private final static int LASF_SIGNATUR = 1179861324;
 

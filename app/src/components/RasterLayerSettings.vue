@@ -231,7 +231,7 @@
       </q-item>
     </q-expansion-item>
 
-    <q-expansion-item
+    <!--<q-expansion-item
       popup
       caption="Associated pointcloud"
       dense
@@ -247,7 +247,41 @@
         "
         >3D-view</q-btn
       >
-    </q-expansion-item>
+    </q-expansion-item>-->
+    <template v-for="entry in layer.associated" :key="entry.name">
+      <q-expansion-item
+        popup
+        caption="Associated pointcloud"
+        dense
+        v-if="true || entry.type === 'pointcloud'"
+      >
+        {{ entry.name }}
+        <q-btn
+          flat
+          round
+          icon="file_download"
+          title="Download (parts of) pointcloud
+    layer data"
+          @click="
+            $emit('interaction', {
+              type: 'PointcloudExport',
+              pointcloud: entry.name,
+              meta: entry.meta,
+            })
+          "
+        />
+        <q-btn
+          @click="
+            $emit('interaction', {
+              type: 'Pointcloud3dPointView',
+              pointcloud: entry.name,
+              color: entry.color,
+            })
+          "
+          >3D-view</q-btn
+        >
+      </q-expansion-item>
+    </template>
   </div>
 </template>
 

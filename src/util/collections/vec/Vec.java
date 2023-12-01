@@ -335,6 +335,13 @@ public class Vec<T> implements List<T> {
 	public ReadonlySizedArray<T> readonlyWeakView() {
 		return new ReadonlySizedArray<T>(items, size);
 	}
+	
+	public ReadonlySizedArray<T> readonlyWeakViewLimited(int limit) {
+		if(limit < 0) {
+			throw new RuntimeException("limit below zero");
+		}
+		return new ReadonlySizedArray<T>(items, Math.min(size, limit));
+	}
 
 	public T first() {
 		if(size == 0) {

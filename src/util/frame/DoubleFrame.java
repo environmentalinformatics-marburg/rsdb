@@ -7,7 +7,6 @@ import java.util.TreeMap;
 import util.Range2d;
 
 public class DoubleFrame {
-	//
 
 	public final double[][] data;
 	public final int width;
@@ -380,5 +379,16 @@ public class DoubleFrame {
 		    System.arraycopy(data[i], 0, d[i], 0, width);
 		}
 		return f;
+	}
+	
+	public double getFirstValue() {
+		return data[0][0];
+	}
+
+	@Override
+	public String toString() {
+		return "DoubleFrame [width=" + width + ", height=" + height + ", local_min_x=" + local_min_x + ", local_min_y="
+				+ local_min_y + ", local_max_x=" + local_max_x + ", local_max_y=" + local_max_y + ", meta=" + meta
+				+ "]";
 	}
 }

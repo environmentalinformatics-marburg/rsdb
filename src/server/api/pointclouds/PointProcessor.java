@@ -20,18 +20,15 @@ import util.Receiver;
 import util.Web;
 
 public class PointProcessor {
-	
 
 	@FunctionalInterface
 	public static interface PointTableTransformFunc extends Function<PointTable, PointTable>{
 	}
 
-	public static void process(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String file_format, Receiver receiver, Request request, AttributeSelector selector, String[] columns) throws IOException {
+	public static void process(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String file_format, Receiver receiver, Request request, AttributeSelector selector, String[] columns, boolean useRawPoints, long limit) throws IOException {
 		String data_format = request.getParameter("format");
-		
+
 		Logger.info("process points  data format: " + data_format);
-			
-		boolean useRawPoints = false;
 
 		if(useRawPoints || "xzy_rgb".equals(data_format)) { // processings: just polygon filter,  workaround for xzy_rgb to include RGB in processing
 			Logger.info("useRawPoints");
@@ -51,7 +48,11 @@ public class PointProcessor {
 
 			switch(file_format) {
 			case "xyz": {
-				PointTableWriter.writeXYZ(pointTables, receiver);
+				if(limit == Long.MAX_VALUE) {
+					PointTableWriter.writeXYZ(pointTables, receiver);
+				} else {
+					PointTableWriter.writeXYZ(pointTables, receiver, limit);
+				}
 				break;
 			}
 			case "las": {
@@ -93,7 +94,7 @@ public class PointProcessor {
 			double xnorm = 0;
 			double ynorm = 0;
 			String proj4 = pointcloud.getProj4();
-			server.api.pointdb.PointProcessor.process(dp2, normalise, filter, sort, columns, file_format, xnorm, ynorm, proj4, receiver);
+			server.api.pointdb.PointProcessor.process(dp2, normalise, filter, sort, columns, file_format, xnorm, ynorm, proj4, receiver, limit);
 		}
 	}	
 }

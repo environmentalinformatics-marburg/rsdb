@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="same-origin" />
+
+<style>
+
+.value-table {
+    border: solid 1px #DDEEEE;
+    border-collapse: collapse;
+    border-spacing: 0;
+    font: normal 13px Arial, sans-serif;
+}
+
+.value-table thead th {
+  background-color: #00000026;
+  border: solid 1px #999;
+  color: #000;
+  padding: 3px;
+  text-align: left;
+  text-shadow: 1px 1px 1px #fff;
+}
+
+.value-table tbody td, .value-table tbody th {
+  background-color: #FBFBFB;
+  border: solid 1px #C1C1C1;
+  color: #333;
+  padding: 3px;
+  text-shadow: 1px 1px 1px #fff;
+}
+
+.value-table tbody tr:nth-child(even) td {
+  background-color: #0000000a;
+}
+
+.value-table tbody tr th {
+  text-align: left;
+  background-color: #00000012;
+}
+
+.value-table tbody tr:nth-child(even) th {
+  background-color: #00000021;
+}
+
+.value-table tbody td {
+  text-align: right;
+}
+
+</style>
+
+</head>
+
+<body style="text-align: center;">
+
+<table  class="value-table">
+
+<tbody>
+
+<tr>
+<th>RasterDB</th>
+<td>{{rasterdb}}</td>
+</tr>
+
+<tr>
+<th>Coordinates</th>
+<td>{{coordinates.x}}, {{coordinates.y}}</td>
+</tr>
+
+<tr>
+<th>Time slice</th>
+<td>{{time_slice.name}}</td>
+</tr>
+
+<tr>
+<th>Processing</th>
+<td>{{processing}}</td>
+</tr>
+
+</tbody>
+
+</table>
+
+<hr>
+<table class="value-table">
+<thead>
+<tr>
+<th>Band</th>
+<th>Title</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+{{#values}}
+  <tr>
+  <th>{{band.index}}</th>
+  <th>{{band.title}}</th>
+  <td>{{value}}</td>
+  </tr>
+{{/values}}
+</tbody>
+</table>
+
+
+
+</body>
+</html>

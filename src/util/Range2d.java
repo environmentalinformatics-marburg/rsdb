@@ -196,4 +196,10 @@ public class Range2d {
 		int aymax = ymin + ylen - 1;
 		return new Range2d(xmin, ymin, axmax, aymax);
 	}
+
+	public Range2d toCenterPixel() {
+		int x = (int) ((((long)xmin) + ((long)xmax)) / 2);
+		int y = (int) ((((long)ymin) + ((long)ymax)) / 2);
+		return new Range2d(x, y, x, y);
+	}
 }

@@ -21,9 +21,7 @@ import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.ogr.StyleTable;
 import org.gdal.osr.CoordinateTransformation;
-import org.json.JSONWriter;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -33,16 +31,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
 import postgis.PostgisLayer.PostgisColumn;
-import postgis.style.StyleJtsGeometryRasterizer;
 import postgis.style.StyleProvider;
 import util.GeoUtil;
 import util.IndentedXMLStreamWriter;
 import util.Interruptor;
-import util.Timer;
 import util.Web;
 import util.XmlUtil;
 import util.image.ImageBufferARGB;
-import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class PostgisHandler_wms {
@@ -184,7 +179,7 @@ public class PostgisHandler_wms {
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 
 		Element eGetFeatureInfo = XmlUtil.addElement(eRootRequest, "GetFeatureInfo");
-		XmlUtil.addElement(eGetFeatureInfo, "Format", "application/geo+json");
+		XmlUtil.addElement(eGetFeatureInfo, "Format", "application/json");
 		XmlUtil.addElement(eGetFeatureInfo, "Format", "text/xml");
 		Element eGetFeatureInfoDCPType = XmlUtil.addElement(eGetFeatureInfo, "DCPType");
 		Element eGetFeatureInfoDCPTypeHTTP = XmlUtil.addElement(eGetFeatureInfoDCPType, "HTTP");
@@ -349,8 +344,10 @@ public class PostgisHandler_wms {
 			handle_GetFeatureInfoJSON(postgisLayer, request, response, pixelRect2d);
 			break;
 		case "text/xml":
-		default: 
 			handle_GetFeatureInfoXML(postgisLayer, request, response, pixelRect2d);
+			break;
+		default: 
+
 		}
 	}
 
@@ -385,11 +382,7 @@ public class PostgisHandler_wms {
 		while(rs.next()) {
 			xmlWriter.writeStartElement("gml:featureMember");
 			xmlWriter.writeStartElement(postgisLayer.name);
-			xmlWriter.writeStartElement(postgisLayer.primaryGeometryColumn);
-			String gml = rs.getString(1);
-			xmlWriter.writeCharacters(gml);
-			xmlWriter.writeEndElement(); // postgisLayer.geoColumnName			
-
+			
 			for (int i = 0; i < postgisLayer.fields.size(); i++) {
 				PostgisColumn field = postgisLayer.fields.get(i);
 				String fieldValue = rs.getString(i + 2);
@@ -397,6 +390,12 @@ public class PostgisHandler_wms {
 				xmlWriter.writeCharacters(fieldValue);
 				xmlWriter.writeEndElement(); // fieldName
 			}
+			
+			xmlWriter.writeStartElement(postgisLayer.primaryGeometryColumn); // geometry after properties for better properties reading by qgis
+			String gml = rs.getString(1);
+			xmlWriter.writeCharacters(gml);
+			xmlWriter.writeEndElement(); // postgisLayer.geoColumnName
+			
 			xmlWriter.writeEndElement(); // FEATURE_NAME
 			xmlWriter.writeEndElement(); // gml:featureMember
 		}
@@ -407,7 +406,7 @@ public class PostgisHandler_wms {
 	}
 
 	private void handle_GetLegendGraphic(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
-		Logger.warn("GetLegendGraphic");
+		Logger.info("GetLegendGraphic");
 
 		ImageBufferARGB image = createLegend(postgisLayer, false, postgisLayer.getStyleProvider(), null);
 
@@ -451,7 +450,7 @@ public class PostgisHandler_wms {
 			postgisLayer.forEachInt(field, value -> {
 				int x = 30;
 				int y = vPos[0] - 20;				
-				Logger.info("field value: " + value);
+				//Logger.info("field value: " + value);
 				Style style = styleProvider.getStyleByValue(value);
 				style.drawPolygon(gc, new int[] {5, 40, 40, 5}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);
 				gc.setColor(Color.BLACK);

@@ -139,7 +139,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 				try {
 					Region tileRegion = Region.ofFilteredBbox(tileRect, rr.polygonPoints);
 					zipOutputStream.putNextEntry(new ZipEntry(tileFilename));
-					PointProcessor.process(pointdb, tileRegion, normalise, filter, sort, columns, tileFormat, -xmin, -ymin, receiver);
+					PointProcessor.process(pointdb, tileRegion, normalise, filter, sort, columns, tileFormat, -xmin, -ymin, receiver, Long.MAX_VALUE);
 					zipOutputStream.closeEntry();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
@@ -149,7 +149,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 			zipOutputStream.flush();
 		} else {
 			Receiver receiver = new ResponseReceiver(response);
-			PointProcessor.process(pointdb, requestRegion, normalise, filter, sort, columns, format, -xmin, -ymin, receiver);
+			PointProcessor.process(pointdb, requestRegion, normalise, filter, sort, columns, format, -xmin, -ymin, receiver, Long.MAX_VALUE);
 		}
 		Logger.info(Timer.stop("query points"));
 	}

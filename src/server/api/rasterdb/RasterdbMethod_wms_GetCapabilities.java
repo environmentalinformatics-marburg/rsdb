@@ -33,6 +33,7 @@ import util.GeoUtil;
 import util.Range2d;
 import util.TimeUtil;
 import util.Web;
+import util.XmlUtil;
 
 public class RasterdbMethod_wms_GetCapabilities {
 
@@ -132,10 +133,24 @@ public class RasterdbMethod_wms_GetCapabilities {
 		Element eGetMapDCPTypeHTTPGetOnlineResource = addElement(eGetMapDCPTypeHTTPGet, "OnlineResource");
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
+		
+		Element eGetFeatureInfo = XmlUtil.addElement(eRootRequest, "GetFeatureInfo");
+		//XmlUtil.addElement(eGetFeatureInfo, "Format", "application/geo+json");
+		//XmlUtil.addElement(eGetFeatureInfo, "Format", "text/xml");
+		//XmlUtil.addElement(eGetFeatureInfo, "Format", "application/json");
+		XmlUtil.addElement(eGetFeatureInfo, "Format", "text/plain");
+		XmlUtil.addElement(eGetFeatureInfo, "Format", "text/html");
+		Element eGetFeatureInfoDCPType = XmlUtil.addElement(eGetFeatureInfo, "DCPType");
+		Element eGetFeatureInfoDCPTypeHTTP = XmlUtil.addElement(eGetFeatureInfoDCPType, "HTTP");
+		Element eGetFeatureInfoDCPTypeHTTPGet = XmlUtil.addElement(eGetFeatureInfoDCPTypeHTTP, "Get");		
+		Element eGetFeatureInfoDCPTypeHTTPGetOnlineResource = XmlUtil.addElement(eGetFeatureInfoDCPTypeHTTPGet, "OnlineResource");
+		eGetFeatureInfoDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
+		eGetFeatureInfoDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);		
 	}
 
 	private static void addRootLayer(RasterDB rasterdb, CustomWMS customWMS, Element eCapability, String name, String title) {
 		Element eRootLayer = addElement(eCapability, "Layer");
+		eRootLayer.setAttribute("queryable", "1");
 
 		GeoReference ref = rasterdb.ref();
 
@@ -211,6 +226,7 @@ public class RasterdbMethod_wms_GetCapabilities {
 
 		for(Integer timestamp:timestamps) {
 			Element eTimeLayer = addElement(eRootLayer, "Layer");
+			eTimeLayer.setAttribute("queryable", "1");
 			addElement(eTimeLayer, "Name", name + "/" + timestamp);
 			TimeSlice timeSlice = rasterdb.timeMapReadonly.get(timestamp);
 			if(timeSlice == null) {

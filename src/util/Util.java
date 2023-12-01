@@ -346,13 +346,13 @@ public class Util {
 
 	public static void checkStrictID(String id) {
 		if(!id.chars().allMatch(c-> isValidIDChar((char) c))) {
-			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_");
+			throw new RuntimeException("ID with not allowed characters. Allowed characters: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_");
 		}
 	}
 	
 	public static void checkStrictDotID(String id) {
 		if(!id.chars().allMatch(c-> isValidDotIDChar((char) c))) {
-			throw new RuntimeException("ID with not allowed chars. Allowed chars: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_.");
+			throw new RuntimeException("ID with not allowed characters. Allowed characters: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_.");
 		}
 	}
 

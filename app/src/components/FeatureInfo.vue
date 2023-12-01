@@ -9,27 +9,40 @@
         </q-btn>
       </q-bar>
 
-      <q-card-section v-if="data !== undefined && data.features !== undefined">
-        <div v-for="(feature, i) in data.features" :key="i">
-          <table>
-            <tbody>
-              <template v-for="(value, key) in feature.properties" :key="key">
-                <tr v-if="value !== null">
-                  <td
-                    style="
-                      font-weight: bold;
-                      background-color: rgb(233, 233, 233);
-                    "
+      <template v-if="infos !== undefined">
+        <template v-for="(info, i) in infos" :key="i">
+          <q-card-section v-if="info.data.features !== undefined">
+            Layer: {{ info.name }}
+            <div v-for="(feature, i) in info.data.features" :key="i">
+              <table>
+                <tbody>
+                  <template
+                    v-for="(value, key) in feature.properties"
+                    :key="key"
                   >
-                    {{ key }}
-                  </td>
-                  <td>{{ value }}</td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
-      </q-card-section>
+                    <tr v-if="value !== null">
+                      <td
+                        style="
+                          font-weight: bold;
+                          background-color: rgb(233, 233, 233);
+                        "
+                      >
+                        {{ key }}
+                      </td>
+                      <td>{{ value }}</td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+              &nbsp;
+            </div>
+          </q-card-section>
+          <q-card-section v-else style="white-space: pre">
+            {{ info.data }}
+          </q-card-section>
+          <hr />
+        </template>
+      </template>
 
       <q-card-actions align="right">
         <q-btn flat label="Close" color="primary" v-close-popup @click="onOk" />
@@ -49,15 +62,15 @@ export default defineComponent({
   data() {
     return {
       dialog: false,
-      data: undefined,
+      infos: undefined,
     };
   },
 
   computed: {},
 
   methods: {
-    show(data) {
-      this.data = data;
+    show(infos) {
+      this.infos = infos;
       this.dialog = true;
     },
 

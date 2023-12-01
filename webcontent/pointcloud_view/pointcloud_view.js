@@ -437,6 +437,9 @@ function init() {
 				}
 				if(this.urlParameters.time_slice_id !== undefined) {
 					query.time_slice_id = this.urlParameters.time_slice_id;
+				}
+				if(this.viewColor) {
+					query.color = this.viewColor;
 				}				
 				this.$router.push({ path: '/', query: query });
 			},
@@ -464,6 +467,9 @@ function init() {
 					|| this.urlParameters.y !== parameters.y
 				) {
 					this.urlParameters = parameters;
+				}
+				if(this.$route.query.color) {
+					this.viewColor = this.$route.query.color;
 				}
 			},
 
@@ -511,6 +517,7 @@ function init() {
 				this.load_points();
 			},
 			viewColor: function () {
+				this.updateURL();
 				this.load_points();
 			},
 			viewZ: function () {

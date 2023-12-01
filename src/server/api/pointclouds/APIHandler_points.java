@@ -81,7 +81,7 @@ public class APIHandler_points {
 			requestRegion = Region.ofPolygon(vx, vy);
 			boundingRect = requestRegion.bbox;
 		} else if(extText != null) {
-			String[] ext = extText.split(" ");
+			String[] ext = extText.split("[ ,]+");
 			if(ext.length != 4) {
 				throw new RuntimeException("parameter error in 'ext': "+extText);
 			}
@@ -128,12 +128,16 @@ public class APIHandler_points {
 			transformFunc = Normalise::normalise_ground;
 		}*/
 		PointTableTransformFunc tf = transformFunc;
-
-
-		String columnsText = request.getParameter("columns");
+		
+				String columnsText = request.getParameter("columns");
 		String[] columns = columnsText == null ? null : columnsText.split("(\\s|,)+"); // split by spaces and/or comma
 		AttributeSelector selector = columns == null ? null : AttributeSelector.of(columns);
 		ChainedFilterFunc filterFunc = CellTable.parseFilter(request.getParameter("filter"));
+		
+		
+		long limit = Web.getLong(request, "limit", Long.MAX_VALUE);
+		
+		boolean useRawPoints = Web.getFlagBoolean(request, "raw_points");
 
 		if(file_format.equals("zip")) {
 			String tileFormat = "las";
@@ -153,7 +157,7 @@ public class APIHandler_points {
 					double tymin = tileRect.getUTMd_min_y();
 					double txmax = tileRect.getUTMd_max_x_inclusive();
 					double tymax = tileRect.getUTMd_max_y_inclusive();
-					PointProcessor.process(pointcloud, req_t, txmin, tymin, txmax, tymax, tf, filterFunc, tileRegion, tileFormat, receiver, request, selector, columns);
+					PointProcessor.process(pointcloud, req_t, txmin, tymin, txmax, tymax, tf, filterFunc, tileRegion, tileFormat, receiver, request, selector, columns, useRawPoints, Long.MAX_VALUE);
 					zipOutputStream.closeEntry();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
@@ -163,7 +167,7 @@ public class APIHandler_points {
 			zipOutputStream.flush();
 		} else {
 			ResponseReceiver receiver = new ResponseReceiver(response);		
-			PointProcessor.process(pointcloud, req_t, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, file_format, receiver, request, selector, columns);
+			PointProcessor.process(pointcloud, req_t, xmin, ymin, xmax, ymax, transformFunc, filterFunc, requestRegion, file_format, receiver, request, selector, columns, useRawPoints, limit);
 		}
 	}
 

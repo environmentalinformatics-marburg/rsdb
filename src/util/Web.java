@@ -221,10 +221,14 @@ public final class Web {
 		Logger.warn("value unknown return default: |"+text+"|");
 		return defaultValue;
 	}
+	
+	public static boolean getFlag(Request request, String name) {
+		return request.getParameter(name) != null;
+	}
 
 	public static boolean getFlagBoolean(Request request, String name) {
 		String text = request.getParameter(name);
-		if(text==null) {
+		if(text == null) {
 			return false;
 		}
 		if(text.isEmpty()) {
@@ -395,9 +399,5 @@ public final class Web {
 			throw new RuntimeException("empty request body");
 		}
 		return new JSONObject(new String(data, StandardCharsets.UTF_8));
-	}
-
-	public static boolean getFlag(Request request, String name) {
-		return request.getParameter(name) != null;
 	}
 }

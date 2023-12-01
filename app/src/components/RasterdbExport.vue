@@ -155,10 +155,20 @@
         {{ ylenLoc }} height)
       </q-card-section>
 
-      <q-card-section v-if="pixelMax < pixelLoc" style="color: red">
+      <q-card-section
+        v-if="filePackaging.name === 'tiff' && pixelMax < pixelLoc"
+        style="color: red"
+      >
         Count of selected pixels per band is higher than maximum allowed pixel
         count of
-        {{ pixelMax }}. Try selecting a smaller area.
+        {{ pixelMax }}. <br /><br />Possible solutions:
+        <ul>
+          <li>
+            Switch to file packaging method "<b>Cloud Optimized GeoTIFF file</b
+            >", which does not have a size limit.
+          </li>
+          <li>Try selecting a smaller area.</li>
+        </ul>
       </q-card-section>
 
       <q-card-actions align="right">
@@ -168,11 +178,29 @@
           color="primary"
           v-close-popup
           @click="onOk"
-          :href="rasterUrl"
+          :href="downloadUrl"
           target="_blank"
-          :disable="pixelMax < pixelLoc"
+          :disable="filePackaging.name === 'tiff' && pixelMax < pixelLoc"
         />
       </q-card-actions>
+      <hr />
+      <q-card-section v-if="filePackaging.name === 'tiff'">
+        <div class="text-h6">GeoTIFF file format information</div>
+
+        Plain GeoTIFF file. This export method has a limit of maximum possible
+        pixel count.
+      </q-card-section>
+
+      <q-card-section v-if="filePackaging.name === 'tiled_tiff'">
+        <div class="text-h6">
+          Cloud Optimized GeoTIFF file format information
+        </div>
+
+        GeoTIFF file with internally tiled data. This export method has no limit
+        of maximum possible pixel count. Because of the tiled structure the
+        resulting file may have a bit larger image extent than selected on the
+        map.
+      </q-card-section>
     </q-card>
   </q-dialog>
 </template>
@@ -204,7 +232,10 @@ export default defineComponent({
       ],
       oneTime: undefined,
       filePackaging: undefined,
-      filePackagings: [{ name: "plain", label: "Raster file" }],
+      filePackagings: [
+        { name: "tiff", label: "GeoTIFF file" },
+        { name: "tiled_tiff", label: "Cloud Optimized GeoTIFF file" },
+      ],
       selectedBands: undefined,
       multiTime: [],
       pixelMax: 8192 * 8192,
@@ -290,7 +321,7 @@ export default defineComponent({
     pixelLoc() {
       return this.xlenLoc * this.ylenLoc;
     },
-    rasterUrl() {
+    downloadUrl() {
       let s =
         this.$api.getUri() + "rasterdb/" + this.meta.name + "/raster.tiff";
       s += "?ext=" + this.extent.join(",");
@@ -331,6 +362,14 @@ export default defineComponent({
         this.selectedBands.length !== 0
       ) {
         s += "&band=" + this.selectedBands.map((band) => band.index).join(",");
+      }
+
+      if (this.filePackaging.name === "tiff") {
+        s += "&format=" + "tiff:banded";
+      } else if (this.filePackaging.name === "tiled_tiff") {
+        s += "&format=" + "tiff:banded:tiled";
+      } else {
+        return "";
       }
 
       return s;

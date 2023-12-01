@@ -3,6 +3,7 @@ package pointcloud;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import pointdb.base.Point2d;
 import util.JsonUtil;
 
 public class Rect2d {
@@ -154,5 +155,15 @@ public class Rect2d {
 		double xmax = JsonUtil.getDouble(jsonRect, "xmax");
 		double ymax = JsonUtil.getDouble(jsonRect, "ymax");
 		return new Rect2d(xmin, ymin, xmax, ymax);
+	}
+
+	public Point2d toCenterPoint() {
+		double x = (xmin + xmax) / 2d;
+		double y = (ymin + ymax) / 2d;
+		return new Point2d(x, y);		
+	}
+
+	public Point2d toMinPoint() {
+		return new Point2d(xmin, ymin);
 	}
 }

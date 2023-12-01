@@ -20,14 +20,14 @@ import util.rdat.RdatPointDataFrame;
 public class PointProcessor {
 	
 	
-	public static void process(PointDB pointdb, Region region, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, Receiver receiver) throws IOException {
+	public static void process(PointDB pointdb, Region region, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, Receiver receiver, long limit) throws IOException {
 		Logger.info("query region " + region);
 		DataProvider2 dp2 = new DataProvider2(pointdb, region);
 		String proj4 = pointdb.config.getProj4();
-		process(dp2, normalise, filter, sort, columns, format, xnorm, ynorm, proj4, receiver);
+		process(dp2, normalise, filter, sort, columns, format, xnorm, ynorm, proj4, receiver, limit);
 	}
 	
-	public static void process(DataProvider2 dp2, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, String proj4, Receiver receiver) throws IOException {
+	public static void process(DataProvider2 dp2, Normalise normalise, GeoPointFilter filter, boolean sort, String[] columns, String format, double xnorm, double ynorm, String proj4, Receiver receiver, long limit) throws IOException {
 		Logger.info("PointProcessor process");
 		Vec<GeoPoint> points = null;
 
@@ -67,7 +67,7 @@ public class PointProcessor {
 			JsWriter.writePoints(receiver, points, columns);
 			break;
 		case "xyz":
-			PointXyzWriter.writePoints(receiver, points, columns);
+			PointXyzWriter.writePoints(receiver, points, columns, limit);
 			break;
 		case "las":
 			LasWriter.writePoints(receiver, points, columns, LAS_HEADER.V_1_2, POINT_DATA_RECORD.FORMAT_0);
