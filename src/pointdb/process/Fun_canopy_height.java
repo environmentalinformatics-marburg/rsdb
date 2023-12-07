@@ -3,7 +3,7 @@ package pointdb.process;
 import pointdb.base.GeoPoint;
 
 @Deprecated
-@Description("canopy height")
+@Description("Canopy height")
 class Fun_canopy_height extends ProcessingFun {
 	@Override
 	public double process(DataProvider2 provider) {

@@ -23,7 +23,7 @@ import util.rdat.RdatDataFrame;
 public class ProcessIndices {
 	
 
-	public static void process(int t, Vec<Pair<Region, String>> areas, Vec<String> functions, String format, Response response, PointDB db, PointCloud pointcloud, boolean omit_empty_areas) throws IOException {
+	public static void process(int t, String req_t_name, Vec<Pair<Region, String>> areas, Vec<String> functions, String format, Response response, PointDB db, PointCloud pointcloud, boolean omit_empty_areas) throws IOException {
 		switch(format) {
 		case "json": {
 			response.setContentType(Web.MIME_JSON);
@@ -44,7 +44,11 @@ public class ProcessIndices {
 					title += " - " + pointcloud.informal().title;
 				}
 				json.value(title);
-			} 
+			}
+			json.key("time_slice_id");
+			json.value(t);
+			json.key("time_slice_name");
+			json.value(req_t_name);
 			json.key("header");
 			json.array();
 			for(String f:functions) {

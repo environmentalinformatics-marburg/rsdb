@@ -5,7 +5,7 @@ import util.collections.vec.Vec;
 
 public class Fun_surface_intensity {
 
-	@Description("lowest intensity of first return point of LiDAR laser pulses")
+	@Description("Lowest intensity of first return point of LiDAR laser pulses")
 	static class Fun_surface_intensity_min extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -22,7 +22,7 @@ public class Fun_surface_intensity {
 		}		
 	}
 
-	@Description("highest intensity of first return point of LiDAR laser pulses")
+	@Description("Highest intensity of first return point of LiDAR laser pulses")
 	static class Fun_surface_intensity_max extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -39,7 +39,7 @@ public class Fun_surface_intensity {
 		}		
 	}
 
-	@Description("mean intensity of first return point of LiDAR laser pulses")
+	@Description("Mean intensity of first return point of LiDAR laser pulses")
 	static class Fun_surface_intensity_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -56,7 +56,7 @@ public class Fun_surface_intensity {
 		}		
 	}
 
-	@Description("standard deviation of intensity of first return point of LiDAR laser pulses")
+	@Description("Standard deviation of intensity of first return point of LiDAR laser pulses")
 	static class Fun_surface_intensity_sd extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {

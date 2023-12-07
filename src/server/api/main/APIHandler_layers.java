@@ -9,12 +9,10 @@ import org.json.JSONWriter;
 import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.Informal;
 import jakarta.servlet.http.HttpServletResponse;
 import postgis.PostgisLayerManager;
 import rasterdb.RasterDB;
 import server.api.APIHandler;
-import util.JsonUtil;
 import util.Web;
 
 

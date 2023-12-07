@@ -4,7 +4,7 @@ package pointdb.process;
 public class Fun_dtm_slope {
 	//
 	
-	@Description("lowest slope of ground a.s.l. (based on DTM raster pixels)")
+	@Description("Lowest slope of ground a.s.l. (based on DTM raster pixels)")
 	static class Fun_dtm_slope_min extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -12,7 +12,7 @@ public class Fun_dtm_slope {
 		}
 	}
 	
-	@Description("lowest slope of ground a.s.l. (based on DTMraster pixels)")
+	@Description("Lowest slope of ground a.s.l. (based on DTMraster pixels)")
 	static class Fun_dtm_slope_max extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -20,7 +20,7 @@ public class Fun_dtm_slope {
 		}
 	}
 	
-	@Description("mean slope of ground a.s.l. (based on DTM raster pixels)")
+	@Description("Mean slope of ground a.s.l. (based on DTM raster pixels)")
 	static class Fun_dtm_slope_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -28,7 +28,7 @@ public class Fun_dtm_slope {
 		}
 	}
 	
-	@Description("standard deviation of slope of ground a.s.l. (based on DTM raster pixels)")
+	@Description("Standard deviation of slope of ground a.s.l. (based on DTM raster pixels)")
 	static class Fun_dtm_slope_sd extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -36,7 +36,7 @@ public class Fun_dtm_slope {
 		}
 	}
 	
-	@Description("slope of ground a.s.l. (based on DTM raster pixels bilinear regression)")
+	@Description("Slope of ground a.s.l. (based on DTM raster pixels bilinear regression)")
 	@Exculde("base class")
 	static class Fun_dtm_slope_reg extends ProcessingFun {
 		@Override

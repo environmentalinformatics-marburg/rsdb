@@ -18,11 +18,69 @@
         </table>
       </q-card-section>
 
+      <q-card-section v-if="meta !== undefined">
+        <q-select
+          v-model="timeSlice"
+          :options="meta.time_slices"
+          label="Time slice"
+          outlined
+          stack-label
+          dense
+          option-label="name"
+          :display-value="timeSlice.name"
+          v-if="
+            meta.time_slices.length > 0 &&
+            (meta.time_slices.length !== 1 ||
+              meta.time_slices[0].name !== '---')
+          "
+          :readonly="meta.time_slices.length == 1"
+          :dropdown-icon="
+            meta.time_slices.length == 1 ? 'none' : 'arrow_drop_down'
+          "
+        />
+      </q-card-section>
+
       <q-card-section>
         <q-select
           v-model="filePackaging"
           :options="filePackagings"
           label="File packaging"
+          outlined
+          stack-label
+          dense
+        />
+      </q-card-section>
+
+      <q-card-section v-if="filePackaging.name === 'csv'">
+        <q-select
+          v-model="selectedAttributes"
+          :options="meta.attributes"
+          multiple
+          clearable
+          label="Selected columns"
+          outlined
+          stack-label
+          dense
+          ><template v-slot:selected
+            ><span
+              v-if="
+                selectedAttributes === undefined ||
+                selectedAttributes === null ||
+                selectedAttributes.length === 0
+              "
+              >(all columns)</span
+            ><span v-else>{{
+              selectedAttributes.map((name) => name).join(", ")
+            }}</span></template
+          ></q-select
+        >
+      </q-card-section>
+
+      <q-card-section v-if="filePackaging.name === 'csv'">
+        <q-select
+          v-model="columnSeparator"
+          :options="columnSeparators"
+          label="Column separator"
           outlined
           stack-label
           dense
@@ -35,7 +93,7 @@
           label="View file content"
           color="primary"
           @click="onView"
-          v-if="filePackaging.name === 'xyz'"
+          v-if="filePackaging.name === 'xyz' || filePackaging.name === 'csv'"
         />
         <q-btn
           flat
@@ -68,6 +126,14 @@
         columns without column names header row. This export method has no limit
         of maximum possible file size.
       </q-card-section>
+
+      <q-card-section v-if="filePackaging.name === 'csv'">
+        <div class="text-h6">CSV file format information</div>
+
+        CSV files are human readable tabular text files with comma (or other
+        character) separated columns with header, as first line, of column
+        names. This export method has no limit of maximum possible file size.
+      </q-card-section>
     </q-card>
   </q-dialog>
 </template>
@@ -87,8 +153,18 @@ export default defineComponent({
       filePackagings: [
         { name: "las", label: "LAS file" },
         { name: "xyz", label: "XYZ file" },
+        { name: "csv", label: "CSV file" },
       ],
       viewData: undefined,
+      selectedAttributes: undefined,
+      columnSeparator: undefined,
+      columnSeparators: [
+        { name: ",", label: "',' comma" },
+        { name: ";", label: "';' semicolon" },
+        { name: " ", label: "' ' space" },
+        { name: "tab", label: "'   ' tabulator" },
+      ],
+      timeSlice: undefined,
     };
   },
 
@@ -119,10 +195,26 @@ export default defineComponent({
         s += "/points.las";
       } else if (this.filePackaging.name === "xyz") {
         s += "/points.xyz";
+      } else if (this.filePackaging.name === "csv") {
+        s += "/points.csv";
       } else {
         s += "/unknown";
       }
       s += "?ext=" + this.extent.join(",");
+      if (this.timeSlice !== undefined) {
+        s += "&time_slice_id=" + this.timeSlice.id;
+      }
+      if (
+        this.filePackaging.name === "csv" &&
+        this.selectedAttributes !== undefined &&
+        this.selectedAttributes !== null &&
+        this.selectedAttributes.length !== 0
+      ) {
+        s += "&columns=" + this.selectedAttributes.join(",");
+      }
+      if (this.filePackaging.name === "csv") {
+        s += "&separator=" + this.columnSeparator.name;
+      }
       s += "&raw_points";
 
       return s;
@@ -152,13 +244,20 @@ export default defineComponent({
 
   watch: {
     meta: {
-      handler() {},
+      handler() {
+        this.selectedAttributes = undefined;
+        this.timeSlice =
+          this.meta === undefined || this.meta.time_slices.length === 0
+            ? undefined
+            : this.meta.time_slices[0];
+      },
       immediate: true,
     },
   },
 
   mounted() {
     this.filePackaging = this.filePackagings[0];
+    this.columnSeparator = this.columnSeparators[0];
   },
 });
 </script>

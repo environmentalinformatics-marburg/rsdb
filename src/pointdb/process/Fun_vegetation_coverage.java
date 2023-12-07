@@ -55,7 +55,7 @@ class Fun_vegetation_coverage {
 		return total_count == 0 ? Double.NaN : ((double) vegetation_count) / ((double) total_count);
 	}
 
-	@Description("vegetation coverage in 1 meter height (based on CHM raster pixels)")
+	@Description("Vegetation coverage in 1 meter height (based on CHM raster pixels)")
 	public static class Fun_vegetation_coverage_01m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -63,7 +63,7 @@ class Fun_vegetation_coverage {
 		}
 	}
 
-	@Description("vegetation coverage in 2 meter height (based on CHM raster pixels)")
+	@Description("Vegetation coverage in 2 meter height (based on CHM raster pixels)")
 	public static class Fun_vegetation_coverage_02m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -71,7 +71,7 @@ class Fun_vegetation_coverage {
 		}
 	}
 
-	@Description("vegetation coverage in 2 meter height (point based, all returns)")
+	@Description("Vegetation coverage in 2 meter height (point based, all returns)")
 	public static class Fun_vegetation_coverage_02m_points extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -79,7 +79,7 @@ class Fun_vegetation_coverage {
 		}
 	}
 	
-	@Description("vegetation coverage in 2 meter height (laser pulse based, all first return points)")
+	@Description("Vegetation coverage in 2 meter height (laser pulse based, all first return points)")
 	public static class Fun_vegetation_coverage_02m_pulses extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -87,7 +87,7 @@ class Fun_vegetation_coverage {
 		}
 	}
 
-	@Description("vegetation coverage in 5 meter height (based on CHM raster pixels)")
+	@Description("Vegetation coverage in 5 meter height (based on CHM raster pixels)")
 	public static class Fun_vegetation_coverage_05m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -95,7 +95,7 @@ class Fun_vegetation_coverage {
 		}
 	}
 
-	@Description("vegetation coverage in 10 meter height (based on CHM raster pixels)")
+	@Description("Vegetation coverage in 10 meter height (based on CHM raster pixels)")
 	public static class Fun_vegetation_coverage_10m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {

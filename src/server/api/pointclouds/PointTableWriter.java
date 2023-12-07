@@ -3,6 +3,7 @@ package server.api.pointclouds;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.tinylog.Logger;
@@ -11,7 +12,6 @@ import pointcloud.AttributeSelector;
 import pointcloud.LasWriter;
 import pointcloud.LasWriter.LAS_HEADER;
 import pointcloud.LasWriter.POINT_DATA_RECORD;
-import pointdb.base.GeoPoint;
 import pointcloud.PointTable;
 import pointcloud.RdatWriter;
 import util.ByteArrayOut;
@@ -21,7 +21,7 @@ import util.Web;
 public class PointTableWriter {
 
 	//derived from https://stackoverflow.com/a/10554128
-	private static final int POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
+	private static final int POW10[] = {1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
 	private static String format(double val, int precision) {
 		StringBuilder sb = new StringBuilder();
 		if (val < 0) {
@@ -30,12 +30,15 @@ public class PointTableWriter {
 		}
 		int exp = POW10[precision];
 		long lval = (long)(val * exp + 0.5);
-		sb.append(lval / exp).append('.');
-		long fval = lval % exp;
-		for (int p = precision - 1; p > 0 && fval < POW10[p]; p--) {
-			sb.append('0');
+		sb.append(lval / exp);
+		if(precision > 0) {
+			sb.append('.');
+			long fval = lval % exp;
+			for (int p = precision - 1; p > 0 && fval < POW10[p]; p--) {
+				sb.append('0');
+			}
+			sb.append(fval);
 		}
-		sb.append(fval);
 		return sb.toString();
 	}
 
@@ -91,30 +94,225 @@ public class PointTableWriter {
 	}
 
 	private static abstract class PointWriter {
+
+		public final String name;
+
+		public PointWriter(String name) {
+			this.name = name;
+		}
+
 		public abstract void set(PointTable pointTable);
-		protected abstract String write(int i);
+		public abstract String write(int i);
 	}
 
-	private static abstract class PointWriterDouble extends PointWriter {
+	private static class PointWriterFloat64 extends PointWriter {
 
-		double[] vs;
+		private double[] vs;
+		private final int precision;
+		private final Function<PointTable, double[]> mapper;		
 
-		protected final void set(double[] vs, int len) {
-			this.vs = vs == null ? new double[len] : vs;
+		public PointWriterFloat64(String name, int precision, Function<PointTable, double[]> mapper) {
+			super(name);
+			this.precision = precision;
+			this.mapper = mapper;
 		}
-
-		@Override
-		protected String write(int i) {
-			return format(vs[i],2);			
-		}
-	}
-
-	private static class PointWriter_x extends PointWriterDouble {
 
 		@Override
 		public void set(PointTable pointTable) {
-			set(pointTable.x, pointTable.rows);			
-		}		
+			double[] vs = mapper.apply(pointTable);
+			this.vs = vs == null ? new double[pointTable.rows] : vs;
+		}
+
+		@Override
+		public String write(int i) {
+			return format(vs[i], precision);			
+		}
+	}
+
+	private static class PointWriterUint16 extends PointWriter {
+
+		private char[] vs;
+		private final Function<PointTable, char[]> mapper;		
+
+		public PointWriterUint16(String name, Function<PointTable, char[]> mapper) {
+			super(name);
+			this.mapper = mapper;
+		}
+
+		@Override
+		public void set(PointTable pointTable) {
+			char[] vs = mapper.apply(pointTable);
+			this.vs = vs == null ? new char[pointTable.rows] : vs;
+		}
+
+		@Override
+		public String write(int i) {
+			return Integer.toString(vs[i]);	 
+		}
+	}
+
+	private static class PointWriterUint8 extends PointWriter {
+
+		private byte[] vs;
+		private final Function<PointTable, byte[]> mapper;		
+
+		public PointWriterUint8(String name, Function<PointTable, byte[]> mapper) {
+			super(name);
+			this.mapper = mapper;
+		}
+
+		@Override
+		public void set(PointTable pointTable) {
+			byte[] vs = mapper.apply(pointTable);
+			this.vs = vs == null ? new byte[pointTable.rows] : vs;
+		}
+
+		@Override
+		public String write(int i) {
+			return Integer.toString(Byte.toUnsignedInt(vs[i]));		
+		}
+	}
+
+	private static class PointWriterInt8 extends PointWriter {
+
+		private byte[] vs;
+		private final Function<PointTable, byte[]> mapper;		
+
+		public PointWriterInt8(String name, Function<PointTable, byte[]> mapper) {
+			super(name);
+			this.mapper = mapper;
+		}
+
+		@Override
+		public void set(PointTable pointTable) {
+			byte[] vs = mapper.apply(pointTable);
+			this.vs = vs == null ? new byte[pointTable.rows] : vs;
+		}
+
+		@Override
+		public String write(int i) {
+			return Integer.toString(vs[i]);		
+		}
+	}
+
+	private static class PointWriterUint1 extends PointWriter {
+
+		private java.util.BitSet vs;
+		private final Function<PointTable, java.util.BitSet> mapper;		
+
+		public PointWriterUint1(String name, Function<PointTable, java.util.BitSet> mapper) {
+			super(name);
+			this.mapper = mapper;
+		}
+
+		@Override
+		public void set(PointTable pointTable) {
+			java.util.BitSet vs = mapper.apply(pointTable);
+			this.vs = vs == null ? new java.util.BitSet() : vs;
+		}
+
+		@Override
+		public String write(int i) {
+			return vs.get(i) ? "1" : "0";	
+		}
+	}
+
+	private static class PointWriterUint64 extends PointWriter {
+
+		private long[] vs;
+		private final Function<PointTable, long[]> mapper;		
+
+		public PointWriterUint64(String name, Function<PointTable, long[]> mapper) {
+			super(name);
+			this.mapper = mapper;
+		}
+
+		@Override
+		public void set(PointTable pointTable) {
+			long[] vs = mapper.apply(pointTable);
+			this.vs = vs == null ? new long[pointTable.rows] : vs;
+		}
+
+		@Override
+		public String write(int i) {
+			return Long.toUnsignedString(vs[i]);	
+		}
+	}
+
+	private static PointWriter createColumn(String name, int precision) {
+		switch(name) {
+		case "x":
+			return new PointWriterFloat64("x", precision, PointTable::get_x);
+		case "y":
+			return new PointWriterFloat64("y", precision, PointTable::get_y);
+		case "z":
+			return new PointWriterFloat64("z", precision, PointTable::get_z);
+		case "intensity":
+			return new PointWriterUint16("intensity", PointTable::get_intensity);
+		case "returnNumber":
+			return new PointWriterUint8("returnNumber", PointTable::get_returnNumber);
+		case "returns":
+			return new PointWriterUint8("returns", PointTable::get_returns);
+		case "scanDirectionFlag":
+			return new PointWriterUint1("scanDirectionFlag", PointTable::get_scanDirectionFlag);
+		case "edgeOfFlightLine":
+			return new PointWriterUint1("edgeOfFlightLine", PointTable::get_edgeOfFlightLine);
+		case "classification":
+			return new PointWriterUint8("classification", PointTable::get_classification);
+		case "scanAngleRank":
+			return new PointWriterInt8("scanAngleRank", PointTable::get_scanAngleRank);
+		case "gpsTime":
+			return new PointWriterUint64("gpsTime", PointTable::get_gpsTime);
+		case "red":
+			return new PointWriterUint16("red", PointTable::get_red);
+		case "green":
+			return new PointWriterUint16("green", PointTable::get_green);
+		case "blue":
+			return new PointWriterUint16("blue", PointTable::get_blue);
+		default:
+			throw new RuntimeException("unknown column name: " + name);
+		}
+	}
+
+	public static void writeCSV(Stream<PointTable> pointTables, Receiver receiver, String[] columnNames, String separator,  int precision, long limit) throws IOException {
+		receiver.setContentType(Web.MIME_BINARY);
+		PrintWriter writer = receiver.getWriter();
+		try {
+			long[] count = new long[] {0};
+
+			PointWriter[] columns = new PointWriter[columnNames.length];
+			for (int i = 0; i < columnNames.length; i++) {
+				columns[i] = createColumn(columnNames[i], precision);
+			}
+
+			writer.print(columns[0].name);
+			for (int c = 1; c < columns.length; c++) {
+				writer.print(separator);
+				writer.print(columns[c].name);
+			}
+			writer.println();
+
+			pointTables.sequential().forEach(pointTable -> {				
+				int len = pointTable.rows;
+				for(PointWriter column : columns) {
+					column.set(pointTable);
+				}
+				for (int i = 0; i < len; i++) {					
+					writer.print(columns[0].write(i));
+					for (int c = 1; c < columns.length; c++) {
+						writer.print(separator);
+						writer.print(columns[c].write(i));
+					}
+					writer.println();
+					count[0]++;
+					if(limit <= count[0]) {
+						throw new LimitReachedException();
+					}
+				}
+			});
+		} catch(LimitReachedException e) {
+			// nothing
+		}
 	}
 
 	static void writeLAS(PointTable[] pointTables, Receiver receiver) throws IOException {

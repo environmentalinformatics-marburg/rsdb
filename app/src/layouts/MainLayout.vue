@@ -39,7 +39,28 @@
           @click="onPointcloud3dPointViewBboxClick"
           >click here</q-btn
         >
-        to 3D-view.
+        to 3D-view points.
+      </div>
+      <div v-else-if="interaction.type === 'Pointcloud3dSurfaceView'">
+        <div
+          style="
+            font-size: 0.75em;
+            text-align: center;
+            background-color: #dbdbdb;
+          "
+        >
+          <b>Pointcloud 3d-view selection</b> of
+          <i>{{ interaction.pointcloud }}</i>
+        </div>
+        Hold <b>shift-key</b>, hold <b>left mouse button</b> and move mouse to
+        draw a box on the map, then
+        <q-btn
+          title="Open 3d-view of box selected points as surface."
+          :disable="selectedExtent === undefined"
+          @click="onPointcloud3dSurfaceViewBboxClick"
+          >click here</q-btn
+        >
+        to 3D-view surface.
       </div>
       <div v-else-if="interaction.type === 'RasterdbExport'">
         <div
@@ -82,6 +103,27 @@
           >click here</q-btn
         >
         to export pointcloud.
+      </div>
+      <div v-else-if="interaction.type === 'PointcloudIndices'">
+        <div
+          style="
+            font-size: 0.75em;
+            text-align: center;
+            background-color: #dbdbdb;
+          "
+        >
+          <b>Pointcloud indices processing selection</b> of
+          <i>{{ interaction.pointcloud }}</i>
+        </div>
+        Hold <b>shift-key</b>, hold <b>left mouse button</b> and move mouse to
+        draw a box on the map, then
+        <q-btn
+          title="Open Pointcloud indices processing dialog."
+          :disable="selectedExtent === undefined"
+          @click="onPointcloudIndicesClick"
+          >click here</q-btn
+        >
+        to indices process pointcloud.
       </div>
       <span v-else>{{ interaction.type }}</span>
       <q-btn
@@ -330,6 +372,7 @@
         <AddLayer ref="AddLayer" @close="refreshLayers()"></AddLayer>
         <RasterdbExport ref="RasterdbExport" :interaction="interaction" />
         <PointcloudExport ref="PointcloudExport" :interaction="interaction" />
+        <PointcloudIndices ref="PointcloudIndices" :interaction="interaction" />
       </q-btn>
     </div>
     <div
@@ -350,6 +393,7 @@
 
 <script>
 import { defineComponent, ref } from "vue";
+import { Notify } from "quasar";
 import { useRouter, useRoute } from "vue-router";
 import { mapWritableState } from "pinia";
 import { mapActions } from "pinia";
@@ -377,6 +421,7 @@ import FeatureInfo from "../components/FeatureInfo.vue";
 import RasterLayerSettings from "../components/RasterLayerSettings.vue";
 import RasterdbExport from "../components/RasterdbExport.vue";
 import PointcloudExport from "../components/PointcloudExport.vue";
+import PointcloudIndices from "../components/PointcloudIndices.vue";
 
 export default defineComponent({
   name: "MainLayout",
@@ -388,6 +433,7 @@ export default defineComponent({
     RasterLayerSettings,
     RasterdbExport,
     PointcloudExport,
+    PointcloudIndices,
   },
 
   data() {
@@ -575,7 +621,10 @@ export default defineComponent({
           layerEntry.style = layerEntry.meta.wms.styles[0];
         }
 
-        if (layerEntry.timeSlice === undefined) {
+        if (
+          layerEntry.timeSlice === undefined &&
+          layerEntry.meta.time_slices.length > 0
+        ) {
           layerEntry.timeSlice = layerEntry.meta.time_slices[0];
         }
 
@@ -617,8 +666,21 @@ export default defineComponent({
           //const srs = layerEntry.meta.ref.code;
           const srs = "SRS:" + layerEntry.name;
 
-          proj4.defs(srs, layerEntry.meta.ref.proj4);
-          register(proj4);
+          if (layerEntry.meta.ref.proj4) {
+            proj4.defs(srs, layerEntry.meta.ref.proj4);
+            register(proj4);
+          } else {
+            try {
+              const code = layerEntry.meta.ref.code;
+              console.log(code);
+              const params = { crs: code };
+              const response = await this.$api.get("api/epsg", { params });
+              proj4.defs(srs, response.data.proj4);
+              register(proj4);
+            } catch (e) {
+              console.log(e);
+            }
+          }
 
           layerEntry.projection = new Projection({
             code: srs,
@@ -627,6 +689,10 @@ export default defineComponent({
         }
       } catch (e) {
         console.log(e);
+        this.$q.notify({
+          type: "negative",
+          message: "RasterDB load meta data error",
+        });
       }
     },
 
@@ -822,7 +888,10 @@ export default defineComponent({
 
     refreshRasterdbLayerParameters(layerEntry) {
       //console.log("refreshRasterdbLayerParameters " + layerEntry.name);
-      const paramLayers = layerEntry.style.name + "/" + layerEntry.timeSlice.id;
+      const paramLayers =
+        layerEntry.timeSlice === undefined
+          ? layerEntry.style.name
+          : layerEntry.style.name + "/" + layerEntry.timeSlice.id;
       let params = { LAYERS: paramLayers };
       if (layerEntry.fixedGamma) {
         let markerLabels = [
@@ -867,6 +936,13 @@ export default defineComponent({
       }
     },
 
+    onPointcloudIndicesClick() {
+      if (this.selectedExtent !== undefined) {
+        this.interaction.extent = this.selectedExtent;
+        this.$refs.PointcloudIndices.open();
+      }
+    },
+
     onPointcloud3dPointViewBboxClick() {
       if (this.selectedExtent !== undefined) {
         this.openPointcloud3dPointView(
@@ -880,12 +956,26 @@ export default defineComponent({
     openPointcloud3dPointView(pointcloud, extent, timeSlice_id, color) {
       let url = this.$api.getUri();
       url += "web/pointcloud_view/pointcloud_view.html#/?";
-      url += "&pointcloud=" + pointcloud;
+      url += "pointcloud=" + pointcloud;
       url += "&bbox=" + extent.map((v) => v.toFixed(4)).join(",");
       url += "&time_slice_id=" + timeSlice_id;
       url += "&color=" + color;
       console.log(url);
       window.open(url, "_blank", "noreferrer");
+    },
+
+    onPointcloud3dSurfaceViewBboxClick() {
+      if (this.selectedExtent !== undefined) {
+        const x = (this.selectedExtent[0] + this.selectedExtent[2]) / 2;
+        const y = (this.selectedExtent[1] + this.selectedExtent[3]) / 2;
+        let url = this.$api.getUri();
+        url += "web/height_map_view/height_map_view.html?";
+        url += "pointcloud=" + this.interaction.pointcloud;
+        url += "&x=" + x;
+        url += "&y=" + y;
+        console.log(url);
+        window.open(url, "_blank", "noreferrer");
+      }
     },
   },
 
@@ -916,11 +1006,21 @@ export default defineComponent({
           this.mapCursorStandard = "crosshair";
           this.mapCursor = this.mapCursorStandard;
           this.onPointcloudExportClick();
+        } else if (this.interaction.type === "PointcloudIndices") {
+          console.log("PointcloudIndices");
+          this.mapCursorStandard = "crosshair";
+          this.mapCursor = this.mapCursorStandard;
+          this.onPointcloudIndicesClick();
         } else if (this.interaction.type === "Pointcloud3dPointView") {
           console.log("Pointcloud3dPointView");
           this.mapCursorStandard = "crosshair";
           this.mapCursor = this.mapCursorStandard;
           this.onPointcloud3dPointViewBboxClick();
+        } else if (this.interaction.type === "Pointcloud3dSurfaceView") {
+          console.log("Pointcloud3dSurfaceView");
+          this.mapCursorStandard = "crosshair";
+          this.mapCursor = this.mapCursorStandard;
+          this.onPointcloud3dSurfaceViewBboxClick();
         } else {
           this.mapCursorStandard = "cell";
           this.mapCursor = this.mapCursorStandard;

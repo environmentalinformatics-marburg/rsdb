@@ -271,6 +271,23 @@
           "
         />
         <q-btn
+          flat
+          round
+          icon="calculate"
+          title="Process parts of pointcloud
+    layer data"
+          @click="
+            $emit('interaction', {
+              type: 'PointcloudIndices',
+              pointcloud: entry.name,
+              meta: entry.meta,
+            })
+          "
+        />
+        <q-btn
+          flat
+          round
+          icon="view_in_ar"
           @click="
             $emit('interaction', {
               type: 'Pointcloud3dPointView',
@@ -278,8 +295,21 @@
               color: entry.color,
             })
           "
-          >3D-view</q-btn
-        >
+          title="Open 3d-view of box selected points."
+        />
+        <q-btn
+          flat
+          round
+          icon="public"
+          @click="
+            $emit('interaction', {
+              type: 'Pointcloud3dSurfaceView',
+              pointcloud: entry.name,
+              color: entry.color,
+            })
+          "
+          title="Open 3d-view of box selected points."
+        />
       </q-expansion-item>
     </template>
   </div>

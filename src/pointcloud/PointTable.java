@@ -279,4 +279,58 @@ public class PointTable {
 	public static FilterByPolygonFunc getFilterByPolygonFunc(double[] vx, double[] vy) {
 		return new FilterByPolygonFunc(vx, vy);
 	}
+	
+	public double[] get_x() {
+		return x;
+	}
+	public double[] get_y() {
+		return y;
+	}
+	public double[] get_z() {
+		return z;
+	}
+	
+	public char[] get_intensity() {
+		return intensity;
+	}
+	
+	public byte[] get_returnNumber() {
+		return returnNumber;
+	}
+	
+	public byte[] get_returns() {
+		return returns;
+	}
+	
+	public java.util.BitSet get_scanDirectionFlag() {
+		return scanDirectionFlag;
+	}
+	
+	public java.util.BitSet get_edgeOfFlightLine() {
+		return edgeOfFlightLine;
+	}
+	
+	public byte[] get_classification() {
+		return classification;
+	}
+	
+	public byte[] get_scanAngleRank() {
+		return scanAngleRank;
+	}
+	
+	public long[] get_gpsTime() { // Uint64
+		return gpsTime;
+	}
+	
+	public char[] get_red() {
+		return red;
+	}
+	
+	public char[] get_green() {
+		return green;
+	}
+	
+	public char[] get_blue() {
+		return blue;
+	}
 }

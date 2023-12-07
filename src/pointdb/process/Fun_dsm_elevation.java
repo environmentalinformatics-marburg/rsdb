@@ -3,7 +3,7 @@ package pointdb.process;
 @Tag("dsm")
 public class Fun_dsm_elevation {
 	
-	@Description("minimal surface a.s.l. (based on DSM raster pixels)")
+	@Description("Minimal surface a.s.l. (based on DSM raster pixels)")
 	static class Fun_dsm_elevation_min extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -11,7 +11,7 @@ public class Fun_dsm_elevation {
 		}
 	}
 	
-	@Description("highest surface a.s.l. (based on DSM raster pixels)")
+	@Description("Highest surface a.s.l. (based on DSM raster pixels)")
 	static class Fun_dsm_elevation_max extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -19,7 +19,7 @@ public class Fun_dsm_elevation {
 		}
 	}
 	
-	@Description("mean surface a.s.l. (based on DSM raster pixels)")
+	@Description("Mean surface a.s.l. (based on DSM raster pixels)")
 	static class Fun_dsm_elevation_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -27,7 +27,7 @@ public class Fun_dsm_elevation {
 		}
 	}
 	
-	@Description("standard deviation of surface a.s.l. (based on DSM raster pixels)")
+	@Description("Standard deviation of surface a.s.l. (based on DSM raster pixels)")
 	static class Fun_dsm_elevation_sd extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {

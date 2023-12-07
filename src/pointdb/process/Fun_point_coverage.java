@@ -5,7 +5,7 @@ import pointdb.base.Rect;
 import util.collections.vec.Vec;
 
 @Tag("point")
-@Description("ratio of area that is covered by LiDAR points (based on bounding box with aligned 1x1 meter grid, if no point is in one grid cell, cell is not covered)")
+@Description("Ratio of area that is covered by LiDAR points (based on bounding box with aligned 1x1 meter grid, if no point is in one grid cell, cell is not covered)")
 class Fun_point_coverage extends ProcessingFun {
 	
 	@Override

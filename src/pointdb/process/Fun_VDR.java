@@ -1,7 +1,7 @@
 package pointdb.process;
 
 @Tag("forest_structure")
-@Description("[normalized] vertical distribution ratio, (ch - median) / ch,  based on BE_H_MAX (ch) and BE_H_MEDIAN (median)")
+@Description("Vertical distribution ratio [normalized], (ch - median) / ch,  based on BE_H_MAX (ch) and BE_H_MEDIAN (median)")
 public class Fun_VDR extends ProcessingFun {
 	@Override
 	public double process(DataProvider2 provider) {		

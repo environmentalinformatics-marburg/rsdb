@@ -6,7 +6,7 @@ import util.collections.vec.Vec;
 @Tag("pulse")
 public class Fun_pulse {
 	
-	@Description("number of LiDAR laser pulses")
+	@Description("Number of LiDAR laser pulses")
 	public static class Fun_pulse_count extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -14,7 +14,7 @@ public class Fun_pulse {
 		}		
 	}
 	
-	@Description("density of LiDAR laser pulses (pulses per m² in bounding box)")
+	@Description("Density of LiDAR laser pulses (pulses per m² in bounding box)")
 	static class Fun_pulse_density extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -22,7 +22,7 @@ public class Fun_pulse {
 		}
 	}
 	
-	@Description("post spacing of LiDAR laser pulses (distance between pulses in m in bounding box)")
+	@Description("Post spacing of LiDAR laser pulses (distance between pulses in m in bounding box)")
 	static class Fun_pulse_spacing extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -30,7 +30,7 @@ public class Fun_pulse {
 		}
 	}
 	
-	@Description("area that is represented by one LiDAR laser pulse (m² per pulse in bounding box) (not to be confused with laser beam extent)")
+	@Description("Area that is represented by one LiDAR laser pulse (m² per pulse in bounding box) (not to be confused with laser beam extent)")
 	static class Fun_pulse_area extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -38,7 +38,7 @@ public class Fun_pulse {
 		}
 	}
 	
-	@Description("lowest number of return points per LiDAR laser pulse")
+	@Description("Lowest number of return points per LiDAR laser pulse")
 	static class Fun_pulse_returns_min extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
@@ -55,7 +55,7 @@ public class Fun_pulse {
 		}		
 	}
 	
-	@Description("highest number of return points per LiDAR laser pulse")
+	@Description("Highest number of return points per LiDAR laser pulse")
 	static class Fun_pulse_returns_max extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
@@ -72,7 +72,7 @@ public class Fun_pulse {
 		}		
 	}
 	
-	@Description("mean of return points per LiDAR laser pulse")
+	@Description("Mean of return points per LiDAR laser pulse")
 	static class Fun_pulse_returns_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
@@ -88,7 +88,7 @@ public class Fun_pulse {
 		}		
 	}
 	
-	@Description("standard deviation of return points per LiDAR laser pulse")
+	@Description("Standard deviation of return points per LiDAR laser pulse")
 	static class Fun_pulse_returns_sd extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {			

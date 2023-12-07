@@ -6,7 +6,7 @@ import util.collections.vec.Vec;
 @Tag("scan_angle")
 public class Fun_scan_angle {
 	
-	@Description("highest angle of LiDAR laser pulses to horizon (lowest angle to perpendicular line in degrees)")
+	@Description("Highest angle of LiDAR laser pulses to horizon (lowest angle to perpendicular line in degrees)")
 	static class Fun_scan_angle_min extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
@@ -21,7 +21,7 @@ public class Fun_scan_angle {
 		}		
 	}
 	
-	@Description("most shallow angle of LiDAR laser pulses to horizon (highest angle to perpendicular line in degrees)")
+	@Description("Most shallow angle of LiDAR laser pulses to horizon (highest angle to perpendicular line in degrees)")
 	static class Fun_scan_angle_max extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
@@ -36,7 +36,7 @@ public class Fun_scan_angle {
 		}		
 	}
 	
-	@Description("mean angle of LiDAR laser pulses (angle to perpendicular line in degrees)")
+	@Description("Mean angle of LiDAR laser pulses (angle to perpendicular line in degrees)")
 	static class Fun_scan_angle_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
@@ -50,7 +50,7 @@ public class Fun_scan_angle {
 		}		
 	}
 	
-	@Description("standard deviation of angles of LiDAR laser pulses (angle to perpendicular line in degrees)")
+	@Description("Standard deviation of angles of LiDAR laser pulses (angle to perpendicular line in degrees)")
 	static class Fun_scan_angle_sd extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		

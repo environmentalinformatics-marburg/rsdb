@@ -24,7 +24,7 @@ import util.Util;
 
 public class Importer extends CancelableRemoteProxy {	
 
-	private static final CRSFactory CRS_FACTORY = new CRSFactory();
+	public static final CRSFactory CRS_FACTORY = new CRSFactory();
 
 	private final PointCloud pointcloud;
 	

@@ -6,7 +6,7 @@ import util.collections.vec.Vec;
 @Tag("point")
 public class Fun_point_elevation {
 	
-	@Description("lowest point a.s.l.")
+	@Description("Lowest point a.s.l.")
 	static class Fun_point_elevation_min extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -20,7 +20,7 @@ public class Fun_point_elevation {
 		}
 	}
 	
-	@Description("highest point a.s.l.")
+	@Description("Highest point a.s.l.")
 	static class Fun_point_elevation_max extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -34,7 +34,7 @@ public class Fun_point_elevation {
 		}
 	}
 	
-	@Description("mean of points a.s.l.")
+	@Description("Mean of points a.s.l.")
 	static class Fun_point_elevation_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
@@ -48,7 +48,7 @@ public class Fun_point_elevation {
 		}
 	}
 	
-	@Description("standard deviation of points a.s.l.")
+	@Description("Standard deviation of points a.s.l.")
 	static class Fun_point_elevation_sd extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		

@@ -1,7 +1,7 @@
 package pointdb.process;
 
 @Tag("abstract")
-@Description("(polygon) area of subset (m²) (independent of contained data)")
+@Description("Area of subset (m²) (polygon independent of contained data)")
 class Fun_area extends ProcessingFun {
 	@Override
 	public double process(DataProvider2 provider) {

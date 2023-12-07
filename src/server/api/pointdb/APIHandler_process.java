@@ -156,7 +156,7 @@ public class APIHandler_process extends PointdbAPIHandler {
 
 		//Logger.info("areas " + areas);
 
-		ProcessIndices.process(0, areas, functions, format, response, db, null, true);
+		ProcessIndices.process(0, "default", areas, functions, format, response, db, null, true);
 
 
 

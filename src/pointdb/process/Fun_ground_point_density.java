@@ -3,7 +3,7 @@ package pointdb.process;
 import pointdb.base.GeoPoint;
 
 @Tag("point")
-@Description("density of LiDAR ground points (ground points per m² in bounding box, without non ground points like vegetation)")
+@Description("Density of LiDAR ground points (ground points per m² in bounding box, without non ground points like vegetation)")
 class Fun_ground_point_density extends ProcessingFun {
 	@Override
 	public double process(DataProvider2 provider) {		

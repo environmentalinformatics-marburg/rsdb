@@ -24,6 +24,12 @@ public class PointProcessor {
 	@FunctionalInterface
 	public static interface PointTableTransformFunc extends Function<PointTable, PointTable>{
 	}
+	
+	private static int getPrecision(PointCloud pointcloud) {
+		double cellscale = pointcloud.getCellscale();
+		double prec = Math.ceil(Math.log10(cellscale));
+		return 0 <= prec && 6 <= prec ? (prec <= 0 ? 0 : (int) prec) : 2;
+	}
 
 	public static void process(PointCloud pointcloud, int t, double xmin, double ymin, double xmax, double ymax, PointTableTransformFunc transformFunc, ChainedFilterFunc filterFunc, Region region, String file_format, Receiver receiver, Request request, AttributeSelector selector, String[] columns, boolean useRawPoints, long limit) throws IOException {
 		String data_format = request.getParameter("format");
@@ -53,6 +59,20 @@ public class PointProcessor {
 				} else {
 					PointTableWriter.writeXYZ(pointTables, receiver, limit);
 				}
+				break;
+			}
+			case "csv": {
+				String[] columnNames = columns;
+				if(columnNames == null) {
+					AttributeSelector attributeSelector = pointcloud.getSelector();
+					columnNames = attributeSelector.toArray();
+				}
+				String separator = Web.getString(request, "separator", ",");
+				if("tab".equals(separator)) {
+					separator = "\t";
+				}
+				int precision = getPrecision(pointcloud);
+				PointTableWriter.writeCSV(pointTables, receiver, columnNames, separator, precision, limit);
 				break;
 			}
 			case "las": {

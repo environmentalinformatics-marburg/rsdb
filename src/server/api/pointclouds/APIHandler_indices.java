@@ -36,7 +36,7 @@ public class APIHandler_indices {
 		if(jsonAreas == null) {
 			JSONObject sub = json.optJSONObject("areas");
 			if(sub == null) {
-				throw new RuntimeException("invalid content in 'functions'");
+				throw new RuntimeException("invalid content or missing in 'areas'");
 			}
 			jsonAreas = new JSONArray(java.util.Collections.singleton(sub));
 		}
@@ -119,7 +119,8 @@ public class APIHandler_indices {
 			timeSlice = pointcloud.timeMapReadonly.lastEntry().getValue();
 		}
 		int req_t = timeSlice == null ? 0 : timeSlice.id;
+		String req_t_name = timeSlice == null ? "default" : timeSlice.name;
 
-		ProcessIndices.process(req_t, areas, functions, format, response, null, pointcloud, omit_empty_areas);
+		ProcessIndices.process(req_t, req_t_name, areas, functions, format, response, null, pointcloud, omit_empty_areas);
 	}
 }

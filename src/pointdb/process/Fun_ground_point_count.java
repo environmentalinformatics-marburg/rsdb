@@ -3,7 +3,7 @@ package pointdb.process;
 import pointdb.base.GeoPoint;
 
 @Tag("point")
-@Description("count of LiDAR ground points (without non ground points like vegetation)")
+@Description("Count of LiDAR ground points (without non ground points like vegetation)")
 class Fun_ground_point_count extends ProcessingFun {
 	@Override
 	public double process(DataProvider2 provider) {		
