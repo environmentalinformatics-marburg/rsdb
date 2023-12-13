@@ -87,6 +87,14 @@ public class APIHandler_poi_group {
 			
 		}
 		json.endArray();
+		if(poiGroup.hasMessages()) {
+			json.key("messages");
+			json.array();
+			for(String m : poiGroup.messages) {			
+				json.value(m);					
+			}
+			json.endArray();
+		}
 		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
 			json.key("acl");
 			poiGroup.acl.writeJSON(json);

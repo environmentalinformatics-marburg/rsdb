@@ -8,6 +8,7 @@ import rasterdb.Rasterizer;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
 import server.api.rasterdb.RequestProcessor.OutputProcessingType;
+import server.api.rasterdb.RequestProcessor.TiffDataType;
 import util.Interruptor;
 import util.Range2d;
 import util.Receiver;
@@ -15,7 +16,17 @@ import util.image.ImageBufferARGB;
 
 public class RequestProcessorBands {
 
-	public static void processBands(TimeBandProcessor processor, Collection<TimeBand> processingBands, OutputProcessingType outputProcessingType, String format, Receiver receiver) throws IOException {
+	/**
+	 * 
+	 * @param processor
+	 * @param processingBands
+	 * @param outputProcessingType
+	 * @param format
+	 * @param receiver
+	 * @param reqTiffdataType nullable
+	 * @throws IOException
+	 */
+	public static void processBands(TimeBandProcessor processor, Collection<TimeBand> processingBands, OutputProcessingType outputProcessingType, String format, Receiver receiver, TiffDataType reqTiffdataType) throws IOException {
 		Range2d reqRange2d = processor.getDstRange();
 		int reqWidth = reqRange2d.getWidth();
 		int reqHeight = reqRange2d.getHeight();
@@ -28,10 +39,10 @@ public class RequestProcessorBands {
 				break;
 			case "tiff":
 			case "tiff:banded":
-				RequestProcessorBandsWriters.writeTiff(processor, processingBands, receiver);
+				RequestProcessorBandsWriters.writeTiff(processor, processingBands, receiver, reqTiffdataType);
 				break;
 			case "tiff:banded:tiled":
-				RequestProcessorBandsWriters.writeTiffTiled(processor, processingBands, receiver);
+				RequestProcessorBandsWriters.writeTiffTiled(processor, processingBands, receiver, reqTiffdataType);
 				break;					
 			default:
 				throw new RuntimeException("unknown format " + format);

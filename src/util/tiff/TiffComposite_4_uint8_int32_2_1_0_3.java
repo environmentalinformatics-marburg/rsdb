@@ -8,7 +8,7 @@ import util.collections.ReadonlyList;
 public abstract class TiffComposite_4_uint8_int32_2_1_0_3 extends TiffComposite_4_uint8 {
 
 	public TiffComposite_4_uint8_int32_2_1_0_3(int width, int height, ReadonlyList<String> bandDescriptions) {
-		super(width, height, bandDescriptions);//short[] bitsPerSample
+		super(width, height, bandDescriptions);
 	}
 
 	protected abstract int[] getData();
@@ -33,6 +33,5 @@ public abstract class TiffComposite_4_uint8_int32_2_1_0_3 extends TiffComposite_
 			pos += 4;
 		}
 		out.write(target);
-	}	
-
+	}
 }

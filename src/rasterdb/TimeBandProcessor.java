@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-
+import org.gdal.gdalconst.gdalconst;
 import org.tinylog.Logger;
 
 import rasterdb.cell.CellInt16;
@@ -20,8 +20,10 @@ import rasterunit.RasterUnitStorage;
 import util.Range2d;
 import util.frame.BooleanFrame;
 import util.frame.ByteFrame;
+import util.frame.CharFrame;
 import util.frame.DoubleFrame;
 import util.frame.FloatFrame;
+import util.frame.IntFrame;
 import util.frame.ShortFrame;
 
 public class TimeBandProcessor implements TimeFrameProducer {
@@ -300,6 +302,38 @@ public class TimeBandProcessor implements TimeFrameProducer {
 	private float[][] readFloat(TimeBand timeband) {
 		return readFloat(timeband.timestamp, timeband.band);	
 	}
+	
+	public IntFrame getIntFrame(TimeBand timeband) {
+		return getIntFrame(timeband.timestamp, timeband.band);
+	}
+	
+	public IntFrame getIntFrame(int timestamp, Band band) {
+		int tileType = band.type;
+		switch(tileType) {
+		case TilePixel.TYPE_SHORT: {
+			short na_src = 0;
+			int na_target = 0;	
+			return IntFrame.ofShorts(ShortFrame.of(readShort(timestamp, band), range2d), na_src, na_target);
+		}
+		case TilePixel.TYPE_FLOAT: {
+			Logger.warn("downcast float to short");
+			short na_target = 0;
+			return IntFrame.ofFloats(FloatFrame.of(readFloat(timestamp, band), range2d), na_target);
+		}
+		case CellType.INT16: {
+			short na_src = 0;
+			int na_target = 0;	
+			return IntFrame.ofShorts(ShortFrame.of(readInt16(timestamp, band), range2d), na_src, na_target);
+		}
+		case CellType.INT8: {
+			byte na_src = 0;
+			int na_target = 0;	
+			return IntFrame.ofBytes(ByteFrame.of(readInt8(timestamp, band), range2d), na_src, na_target);
+		}
+		default:
+			throw new RuntimeException("unknown tile type: "+tileType);
+		}
+	}
 
 	public ShortFrame getShortFrame(TimeBand timeband) {
 		return getShortFrame(timeband.timestamp, timeband.band);
@@ -323,6 +357,41 @@ public class TimeBandProcessor implements TimeFrameProducer {
 			byte na_src = 0;
 			short na_target = 0;	
 			return ShortFrame.ofBytes(ByteFrame.of(readInt8(timestamp, band), range2d), na_src, na_target);
+		}
+		default:
+			throw new RuntimeException("unknown tile type: "+tileType);
+		}
+	}
+	
+	public CharFrame getCharFrame(TimeBand timeband) {
+		return getCharFrame(timeband.timestamp, timeband.band);
+	}
+	
+	public CharFrame getCharFrame(int timestamp, Band band) {
+		int tileType = band.type;
+		switch(tileType) {
+		case TilePixel.TYPE_SHORT: {
+			Logger.warn("cast short to char");
+			short na_src = 0;
+			char na_dst = 0;	
+			return CharFrame.ofShorts(ShortFrame.of(readShort(timestamp, band), range2d), na_src, na_dst);
+		}
+		case TilePixel.TYPE_FLOAT: {
+			Logger.warn("downcast float to char");
+			char na_target = 0;
+			return CharFrame.ofFloats(FloatFrame.of(readFloat(timestamp, band), range2d), na_target);
+		}
+		case CellType.INT16: {
+			Logger.warn("cast int16 to char");
+			short na_src = 0;
+			char na_dst = 0;	
+			return CharFrame.ofShorts(ShortFrame.of(readInt16(timestamp, band), range2d), na_src, na_dst);
+		}
+		case CellType.INT8: {
+			Logger.warn("cast int8 to char");
+			byte na_src = 0;
+			char na_dst = 0;	
+			return CharFrame.ofBytes(ByteFrame.of(readInt8(timestamp, band), range2d), na_src, na_dst);
 		}
 		default:
 			throw new RuntimeException("unknown tile type: "+tileType);

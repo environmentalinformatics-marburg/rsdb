@@ -1,5 +1,9 @@
 package pointdb.base;
 
+import java.util.LinkedHashSet;
+
+import org.tinylog.Logger;
+
 public class Point2d {
 	public final double x;
 	public final double y;
@@ -43,5 +47,23 @@ public class Point2d {
 	
 	public static double determinant(double ax, double ay, double bx, double by) {
 		return ax*by - bx*ay;
+	}
+	
+	public boolean isFinite() {
+		return Double.isFinite(x) && Double.isFinite(y);
+	}
+	
+	public static Point2d[] toUnique(Point2d[] points) {
+		LinkedHashSet<Point2d> set = new LinkedHashSet<Point2d>();
+		for(Point2d p : points) {
+			set.add(p);
+		}
+		if(set.size() == points.length) {
+			return points;
+		} else {
+			Point2d[] result = new Point2d[set.size()];
+			result = set.toArray(result);
+			return result;
+		}
 	}
 }

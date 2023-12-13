@@ -4,18 +4,18 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Iterator;
 
-public abstract class TiffTiledBandFloat32 extends TiffTiledBand {	
+public abstract class TiffTiledBandFloat64 extends TiffTiledBand {	
 	
 
-	public TiffTiledBandFloat32(int width, int height, int tileWidth, int tileHeight, String description) {
+	public TiffTiledBandFloat64(int width, int height, int tileWidth, int tileHeight, String description) {
 		super(width, height, tileWidth, tileHeight, description);
 	}
 
-	protected abstract Iterator<float[][]> getTiles();
+	protected abstract Iterator<double[][]> getTiles();
 
 	@Override
 	public short getBitsPerSample() {
-		return 32;
+		return 64;
 	}
 
 	@Override
@@ -25,10 +25,10 @@ public abstract class TiffTiledBandFloat32 extends TiffTiledBand {
 
 	@Override
 	public void writeData(DataOutput out) throws IOException {
-		Iterator<float[][]> it = getTiles();
+		Iterator<double[][]> it = getTiles();
 		while(it.hasNext()) {
-			float[][] data = it.next();
-			TiffBandFloat32.writeData(out, data, tileWidth, tileHeight);
+			double[][] data = it.next();
+			TiffBandFloat64.writeData(out, data, tileWidth, tileHeight);
 		}
 	}
 }

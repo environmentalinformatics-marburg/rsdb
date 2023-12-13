@@ -42,6 +42,7 @@
           outlined
           stack-label
           dense
+          options-dense
         />
       </q-card-section>
 
@@ -53,6 +54,7 @@
           outlined
           stack-label
           dense
+          options-dense
         />
       </q-card-section>
 
@@ -67,6 +69,7 @@
           stack-label
           outlined
           dense
+          options-dense
           v-if="
             oneTimes.length > 0 &&
             (oneTimes.length !== 1 || oneTimes[0].name !== '---')
@@ -142,12 +145,53 @@
                 selectedBands === null ||
                 selectedBands.length === 0
               "
+              style="color: grey"
               >(all bands)</span
             ><span v-else>{{
               selectedBands.map((band) => band.index).join(", ")
             }}</span></template
           ></q-select
         >
+      </q-card-section>
+
+      <q-card-section
+        v-if="
+          filePackaging.name === 'tiff' || filePackaging.name === 'tiled_tiff'
+        "
+      >
+        <q-select
+          v-model="dataType"
+          :options="dataTypes"
+          label="Data type of pixel values, leave empty for best fitting data type"
+          outlined
+          stack-label
+          dense
+          options-dense
+          clearable
+          ><template v-slot:selected
+            ><span
+              v-if="dataType === undefined || dataType === null"
+              style="color: grey"
+              >(best fitting data type)</span
+            ><span v-else>
+              {{ dataType.label }}
+            </span>
+          </template>
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section>
+                <q-item-label>
+                  <span class="dataType-space">{{ scope.opt.space }}</span>
+                  <span class="dataType-label">{{ scope.opt.label }}</span>
+                  <span class="dataType-description">{{
+                    scope.opt.description
+                  }}</span
+                  ><span class="dataType-range">{{ scope.opt.range }}</span>
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
       </q-card-section>
 
       <q-card-section>
@@ -239,6 +283,51 @@ export default defineComponent({
       selectedBands: undefined,
       multiTime: [],
       pixelMax: 8192 * 8192,
+      dataType: undefined,
+      dataTypes: [
+        {
+          name: "uint8",
+          space: "1 byte per pixel",
+          label: "uint8",
+          description: "unsigned 8 bit integer",
+          range: "[0 .. 255]",
+        },
+        {
+          name: "int16",
+          space: "2 bytes per pixel",
+          label: "int16",
+          description: "signed 16 bit integer",
+          range: "[−32768 .. +32767]",
+        },
+        {
+          name: "uint16",
+          space: "2 bytes per pixel",
+          label: "uint16",
+          description: "unsigned 16 bit integer",
+          range: "[0 .. 65535]",
+        },
+        {
+          name: "int32",
+          space: "4 bytes per pixel",
+          label: "int32",
+          description: "signed 32 bit integer",
+          range: "[-2147483648 .. +2147483647]",
+        },
+        {
+          name: "float32",
+          space: "4 bytes per pixel ",
+          label: "float32",
+          description: "32 bit floating point number",
+          range: "(precision of about 7 decimal digits)",
+        },
+        {
+          name: "float64",
+          space: "8 bytes per pixel",
+          label: "float64",
+          description: "64 bit floating point number",
+          range: "(precision of about 16 decimal digits)",
+        },
+      ],
     };
   },
 
@@ -372,6 +461,14 @@ export default defineComponent({
         return "";
       }
 
+      if (
+        (this.filePackaging.name === "tiff" ||
+          this.filePackaging.name === "tiled_tiff") &&
+        this.dataType
+      ) {
+        s += "&data_type=" + this.dataType.name;
+      }
+
       return s;
     },
   },
@@ -426,5 +523,28 @@ export default defineComponent({
 
 .band {
   font-size: 0.75em;
+  font-weight: lighter;
+}
+
+.dataType-space {
+  font-size: 0.75em;
+}
+
+.dataType-label {
+  padding-left: 20px;
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.dataType-description {
+  padding-left: 20px;
+  font-size: 1em;
+  font-style: italic;
+}
+
+.dataType-range {
+  padding-left: 20px;
+  font-size: 0.75em;
+  color: grey;
 }
 </style>

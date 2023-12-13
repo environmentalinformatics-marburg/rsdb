@@ -15,7 +15,6 @@ import util.Util;
 import util.collections.vec.Vec;
 
 public class Roi {
-	
 
 	public final String name;
 	public final Point2d[] points;
@@ -25,9 +24,19 @@ public class Roi {
 		PolygonUtil.validatePolygon(points);		
 		this.name = name;
 		this.points = points;
-		this.center = PolygonUtil.centroid_of_polygon(points);
+		Point2d center = PolygonUtil.centroid_of_polygon(points);
+		if(!center.isFinite()) {
+			Point2d[] ps = Point2d.toUnique(points);
+			if(ps.length != points.length) {
+				center = PolygonUtil.centroid_of_polygon(ps);
+			}
+		}
+		if(!center.isFinite()) {
+			center = PolygonUtil.meanOfPolygonPoints(points);
+		}
+		this.center = center;
 	}
-	
+
 	public static Roi[] readRoiGeoJSON(Path filename) throws IOException {
 		//Logger.info("read "+filename);
 		String jsonText = new String(Files.readAllBytes(filename), StandardCharsets.UTF_8);
@@ -88,6 +97,11 @@ public class Roi {
 		builder.append("ROI");
 		builder.append(" ");
 		builder.append(name);
+		builder.append("  center (");
+		builder.append(center.x);
+		builder.append(", ");
+		builder.append(center.x);
+		builder.append(") ");
 		builder.append(" [");
 		for(Point2d point:points) {
 			builder.append(" ");

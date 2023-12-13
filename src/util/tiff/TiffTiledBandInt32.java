@@ -4,14 +4,13 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Iterator;
 
-public abstract class TiffTiledBandFloat32 extends TiffTiledBand {	
-	
+public abstract class TiffTiledBandInt32 extends TiffTiledBand {	
 
-	public TiffTiledBandFloat32(int width, int height, int tileWidth, int tileHeight, String description) {
+	public TiffTiledBandInt32(int width, int height, int tileWidth, int tileHeight, String description) {
 		super(width, height, tileWidth, tileHeight, description);
 	}
 
-	protected abstract Iterator<float[][]> getTiles();
+	protected abstract Iterator<int[][]> getTiles();
 
 	@Override
 	public short getBitsPerSample() {
@@ -20,15 +19,15 @@ public abstract class TiffTiledBandFloat32 extends TiffTiledBand {
 
 	@Override
 	public short getSampleFormat() {
-		return 3; // floating point data
+		return 2; // two’s complement signed integer data
 	}
 
 	@Override
 	public void writeData(DataOutput out) throws IOException {
-		Iterator<float[][]> it = getTiles();
+		Iterator<int[][]> it = getTiles();
 		while(it.hasNext()) {
-			float[][] data = it.next();
-			TiffBandFloat32.writeData(out, data, tileWidth, tileHeight);
+			int[][] data = it.next();
+			TiffBandInt32.writeData(out, data, tileWidth, tileHeight);
 		}
 	}
 }

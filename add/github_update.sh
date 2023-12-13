@@ -2,10 +2,12 @@
 
 update_folders=(
 	lib
+	mustache
 	webcontent
 )
 
 update_files=(
+	github_update.sh
 	rsdb.jar
 )
 

@@ -3,15 +3,14 @@ package rasterdb.tile;
 import java.util.Iterator;
 
 import rasterunit.Tile;
-import util.frame.FloatFrame;
+import util.frame.DoubleFrame;
 
-public class TileShortToFloatIterator implements Iterator<float[][]> {
-	
+public class TileShortToDoubleIterator implements Iterator<double[][]> {
 	private final Iterator<Tile> it;
-	private final float[][] empty;
+	private final double[][] empty;
 	private final short na;
 
-	public TileShortToFloatIterator(Iterator<Tile> it, float[][] empty, short na) {
+	public TileShortToDoubleIterator(Iterator<Tile> it, double[][] empty, short na) {
 		this.it = it;
 		this.empty = empty;
 		this.na = na;
@@ -23,14 +22,14 @@ public class TileShortToFloatIterator implements Iterator<float[][]> {
 	}
 
 	@Override
-	public float[][] next() {
+	public double[][] next() {
 		Tile tile = it.next();
 		if(tile == null) {
 			return empty;
 		} else {
 			short[][] src = TileShort.decode(tile.data);
-			float[][] dst = new float[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
-			FloatFrame.shortToFloat(src, dst, TilePixel.PIXELS_PER_ROW, TilePixel.PIXELS_PER_ROW, na);
+			double[][] dst = new double[TilePixel.PIXELS_PER_ROW][TilePixel.PIXELS_PER_ROW];
+			DoubleFrame.shortToDouble(src, dst, TilePixel.PIXELS_PER_ROW, TilePixel.PIXELS_PER_ROW, na);
 			return dst;
 		}
 	}

@@ -3,12 +3,16 @@ package util.tiff;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public abstract class TiffBandUint8 extends TiffBand {
+/**
+ * Not usable, because GDAL interprets tiff int8 as uint 8.
+ *
+ */
+public abstract class TiffBandInt8 extends TiffBand {
 
-	public TiffBandUint8(int width, int height, String description) {
+	public TiffBandInt8(int width, int height, String description) {
 		super(width, height, description);
 	}
-	
+
 	protected abstract byte[][] getData();
 
 	@Override
@@ -18,9 +22,9 @@ public abstract class TiffBandUint8 extends TiffBand {
 
 	@Override
 	public short getSampleFormat() {
-		return 1; // unsigned integer data
+		return 2; // two’s complement signed integer data
 	}
-	
+
 	@Override
 	public void writeData(DataOutput out) throws IOException {
 		writeData(out, getData(), width, height);

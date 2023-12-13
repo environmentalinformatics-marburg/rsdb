@@ -384,6 +384,27 @@ public class DoubleFrame {
 	public double getFirstValue() {
 		return data[0][0];
 	}
+	
+	public static void shortToDouble(short[][] src, double[][] dst, int width, int height, short na) {
+		for (int y = 0; y < height; y++) {
+			short[] s = src[y];
+			double[] t = dst[y];
+			for (int x = 0; x < width; x++) {
+				short v = s[x];				
+				t[x] = v == na ? Double.NaN : v;
+			}
+		}
+	}
+	
+	public static void floatToDouble(float[][] src, double[][] dst, int width, int height) {
+		for (int y = 0; y < height; y++) {
+			float[] s = src[y];
+			double[] t = dst[y];
+			for (int x = 0; x < width; x++) {		
+				t[x] = s[x];
+			}
+		}
+	}
 
 	@Override
 	public String toString() {

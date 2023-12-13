@@ -151,10 +151,32 @@ public abstract class TiffBand {
 		};
 	}
 	
+	/**
+	 * Not usable, because GDAL interprets tiff int8 as uint 8.
+	 *
+	 */
+	public static TiffBandInt8 ofInt8(int width, int height, Supplier<byte[][]> supplier, String description) {
+		return new TiffBandInt8(width, height, description) {			
+			@Override
+			protected byte[][] getData() {
+				return supplier.get();
+			}
+		};
+	}
+	
 	public static TiffBandInt16 ofInt16(int width, int height, Supplier<short[][]> supplier, String description) {
 		return new TiffBandInt16(width, height, description) {			
 			@Override
 			protected short[][] getData() {
+				return supplier.get();
+			}
+		};
+	}
+	
+	public static TiffBandUint16 ofUint16(int width, int height, Supplier<char[][]> supplier, String description) {
+		return new TiffBandUint16(width, height, description) {			
+			@Override
+			protected char[][] getData() {
 				return supplier.get();
 			}
 		};

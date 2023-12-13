@@ -4,17 +4,21 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Iterator;
 
-public abstract class TiffTiledBandInt16 extends TiffTiledBand {	
+/**
+ * Not usable, because GDAL interprets tiff int8 as uint 8.
+ *
+ */
+public abstract class TiffTiledBandInt8 extends TiffTiledBand {	
 
-	public TiffTiledBandInt16(int width, int height, int tileWidth, int tileHeight, String description) {
+	public TiffTiledBandInt8(int width, int height, int tileWidth, int tileHeight, String description) {
 		super(width, height, tileWidth, tileHeight, description);
 	}
 
-	protected abstract Iterator<short[][]> getTiles();
+	protected abstract Iterator<byte[][]> getTiles();
 
 	@Override
 	public short getBitsPerSample() {
-		return 16;
+		return 8;
 	}
 
 	@Override
@@ -24,10 +28,10 @@ public abstract class TiffTiledBandInt16 extends TiffTiledBand {
 
 	@Override
 	public void writeData(DataOutput out) throws IOException {
-		Iterator<short[][]> it = getTiles();
+		Iterator<byte[][]> it = getTiles();
 		while(it.hasNext()) {
-			short[][] data = it.next();
-			TiffBandInt16.writeData(out, data, tileWidth, tileHeight);
+			byte[][] data = it.next();
+			TiffBandInt8.writeData(out, data, tileWidth, tileHeight);
 		}
 	}
 }

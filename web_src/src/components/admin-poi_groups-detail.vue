@@ -48,6 +48,16 @@
             </table>
             </div>
 
+            <template v-if="meta.messages !== undefined">
+                <v-divider class="meta-divider" />  
+                <h3 class="subheading mb-0"> 
+                    POI creation messages ({{ meta.messages.length }})
+                </h3>                        
+                <div class="meta-content">
+                <div v-for="(m, i) in meta.messages" :key="i">{{ m }}</div>
+                </div>
+            </template>
+
             <v-divider class="meta-divider" />   
             <v-card-title>
                 {{meta.pois.length}} POIs

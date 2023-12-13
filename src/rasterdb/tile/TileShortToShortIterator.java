@@ -2,13 +2,9 @@ package rasterdb.tile;
 
 import java.util.Iterator;
 
-
-import org.tinylog.Logger;
-
 import rasterunit.Tile;
 
-public class TileShortToShortIterator implements Iterator<short[][]> {
-	
+public class TileShortToShortIterator implements Iterator<short[][]> {	
 	
 	private final Iterator<Tile> it;
 	private final short[][] empty;

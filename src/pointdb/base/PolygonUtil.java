@@ -21,7 +21,7 @@ public class PolygonUtil {
 		if(polygon==null) {
 			throw new RuntimeException("null polygon");
 		}
-		if(polygon.length<4) {
+		if(polygon.length < 4) {
 			throw new RuntimeException("polygon needs at leat four points (first and last same point)");
 		}
 		if(!polygon[0].equals(polygon[polygon.length-1])) {
@@ -35,6 +35,11 @@ public class PolygonUtil {
 		}
 		if(polygon[1].equals(polygon[2])) {
 			throw new RuntimeException("same second and third point");
+		}
+		for (int i = 0; i < polygon.length; i++) {
+			if(!polygon[i].isFinite()) {
+				throw new RuntimeException("poylgon point not finite: " + i + "   " + polygon[i].toString());
+			}
 		}
 	}
 

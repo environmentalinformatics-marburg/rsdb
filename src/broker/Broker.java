@@ -39,6 +39,7 @@ import rasterdb.RasterdbConfig;
 import server.api.vectordbs.VectordbDetails;
 import util.Timer;
 import util.Util;
+import util.collections.vec.Vec;
 import vectordb.VectorDB;
 import vectordb.VectordbConfig;
 import voxeldb.VoxelDB;
@@ -134,10 +135,11 @@ public class Broker implements AutoCloseable {
 		.forEachOrdered(entry -> {
 			try {
 				VectorDB vectordb = this.getVectorDB(entry.name);
-				Poi[] pois = vectordb.getPOIs().toArray(Poi[]::new);
+				Vec<String> messages = new Vec<String>();
+				Poi[] pois = vectordb.getPOIs(messages).toArray(Poi[]::new);
 				ACL acl_read = AclUtil.union(vectordb.getACL_owner(), vectordb.getACL_mod(), vectordb.getACL());
 				VectordbDetails details = vectordb.getDetails();
-				PoiGroup poiGroup = new PoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, pois);
+				PoiGroup poiGroup = new PoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, messages, pois);
 				map.put(poiGroup.name, poiGroup);
 			} catch(Exception e) {
 				Logger.warn(e.getMessage());
@@ -153,7 +155,7 @@ public class Broker implements AutoCloseable {
 		for(Entry<String, ExternalGroupConfig> entry:configMap.entrySet()) {
 			try {
 				ExternalGroupConfig conf = entry.getValue();
-				map.put(conf.name, new RoiGroup(conf.name, conf.informal, conf.acl, Roi.readRoiGeoJSON(Paths.get(conf.filename))));
+				map.put(conf.name, new RoiGroup(conf.name, conf.informal, conf.acl, null, Roi.readRoiGeoJSON(Paths.get(conf.filename))));
 			} catch(Exception e) {
 				Logger.error(e);
 			}
@@ -164,10 +166,11 @@ public class Broker implements AutoCloseable {
 		.forEachOrdered(entry -> {
 			try {
 				VectorDB vectordb = this.getVectorDB(entry.name);
-				Roi[] rois = vectordb.getROIs().toArray(Roi[]::new);
+				Vec<String> messages = new Vec<String>();
+				Roi[] rois = vectordb.getROIs(messages).toArray(Roi[]::new);
 				ACL acl_read = AclUtil.union(vectordb.getACL_owner(), vectordb.getACL_mod(), vectordb.getACL());
 				VectordbDetails details = vectordb.getDetails();
-				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, rois);
+				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, messages, rois);
 				map.put(roiGroup.name, roiGroup);
 			} catch(Exception e) {
 				Logger.warn(e.getMessage());

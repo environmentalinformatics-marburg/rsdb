@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -32,7 +30,43 @@ public class RequestProcessor {
 
 	enum RdatDataType {INT16, FLOAT32, FLOAT64};
 
-	enum TiffDataType {INT16, FLOAT32, FLOAT64};
+	enum TiffDataType {
+		UINT8,
+		INT16,
+		UINT16,
+		INT32,
+		FLOAT32, 
+		FLOAT64; 
+
+		/**
+		 * 
+		 * @param dataTypeText nullable
+		 * @return nullable
+		 */
+		public static TiffDataType parse(String dataTypeText) {
+			if(dataTypeText == null || dataTypeText.isBlank()) {
+				return null;
+			}
+			String dtt = dataTypeText.toLowerCase();
+			switch(dtt) {
+			case "uint8":
+				return UINT8;
+			case "int16":
+				return INT16;
+			case "uint16":
+				return UINT16;
+			case "int32":
+				return INT32;
+			case "float32":
+				return FLOAT32;
+			case "float64":
+				return FLOAT64;
+			default:
+				throw new RuntimeException("unknown data type");
+			}
+
+		}
+	};
 
 	enum OutputProcessingType {IDENTITY, VISUALISATION};
 
@@ -42,6 +76,9 @@ public class RequestProcessor {
 			//Logger.info("buffer size " + response.getBufferSize());
 			//response.setBufferSize(1024*1024);
 			format = Web.getString(request, "format", format);
+
+			String dataTypeText = Web.getString(request, "data_type", null);
+			TiffDataType reqTiffdataType = TiffDataType.parse(dataTypeText);
 
 			int scaleDiv = Web.getInt(request, "div", 1);
 			int reqWidth = Web.getInt(request, "width", -1);
@@ -172,7 +209,7 @@ public class RequestProcessor {
 					throw new RuntimeException("unknown band_order parameter");
 				}
 
-				RequestProcessorBands.processBands(timeBandProcessor, processingBands, outputProcessingType, format, new ResponseReceiver(response));
+				RequestProcessorBands.processBands(timeBandProcessor, processingBands, outputProcessingType, format, new ResponseReceiver(response), reqTiffdataType);
 			} else { // product processing
 				if (bandText != null) {
 					throw new RuntimeException("parameter band can not be used if parameter product is specified");

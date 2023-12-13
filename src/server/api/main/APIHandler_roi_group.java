@@ -53,7 +53,7 @@ public class APIHandler_roi_group extends APIHandler {
 				json.value(p.y);
 				json.endArray();
 			}
-			json.endArray();			
+			json.endArray();
 			json.endObject();			
 		}
 		json.endArray();		

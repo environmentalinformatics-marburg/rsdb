@@ -41,6 +41,7 @@ import rasterdb.RasterDB;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
 import server.api.rasterdb.RequestProcessor.OutputProcessingType;
+import server.api.rasterdb.RequestProcessor.TiffDataType;
 import util.CharArrayWriterUnsync;
 import util.IndentedXMLStreamWriter;
 import util.JsonUtil;
@@ -68,6 +69,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 		public int compression = 0;
 		public int div = 1;
 		public String arrangement = "multiband";
+		public TiffDataType reqTiffdataType = null;
 
 		public Spec(RasterDB rasterdb) {
 			this.rasterdb = rasterdb;
@@ -444,7 +446,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 				String filename = dataPath + name + "__" + timeSliceIdToText(spec.rasterdb, timestamp) + ".tiff";				
 				zipOutputStream.putNextEntry(new ZipEntry(filename));
 				List<TimeBand> timebands = TimeBand.of(timestamp, spec.bands);
-				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
+				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream), spec.reqTiffdataType);			
 				zipOutputStream.closeEntry();			
 				VrtEntry vrtEntry = new VrtEntry();
 				vrtEntry.filename = filename;
@@ -459,7 +461,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 				String filename = dataPath + name + "__band_" + band.index + ".tiff";
 				zipOutputStream.putNextEntry(new ZipEntry(filename));
 				List<TimeBand> timebands = spec.time_slice_ids.stream().map(timestamp -> new TimeBand(timestamp, band)).collect(Collectors.toList());
-				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
+				RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream), spec.reqTiffdataType);			
 				zipOutputStream.closeEntry();
 				VrtEntry vrtEntry = new VrtEntry();
 				vrtEntry.filename = filename;
@@ -476,7 +478,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 					String filename = dataPath + tfile + "__band_" + band.index + ".tiff";
 					zipOutputStream.putNextEntry(new ZipEntry(filename));
 					Set<TimeBand> timebands = java.util.Collections.singleton(new TimeBand(timestamp, band));
-					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
+					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream), spec.reqTiffdataType);			
 					zipOutputStream.closeEntry();
 					VrtEntry vrtEntry = new VrtEntry();
 					vrtEntry.filename = filename;
@@ -494,7 +496,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 					String filename = dataPath + bfile + "__" + timeSliceIdToText(spec.rasterdb, timestamp) + ".tiff";
 					zipOutputStream.putNextEntry(new ZipEntry(filename));
 					Set<TimeBand> timebands = java.util.Collections.singleton(new TimeBand(timestamp, band));
-					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream));			
+					RequestProcessorBands.processBands(processor, timebands, outputProcessingType, format, new StreamReceiver(zipOutputStream), spec.reqTiffdataType);			
 					zipOutputStream.closeEntry();
 					VrtEntry vrtEntry = new VrtEntry();
 					vrtEntry.filename = filename;

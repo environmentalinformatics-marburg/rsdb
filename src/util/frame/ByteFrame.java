@@ -134,30 +134,30 @@ public class ByteFrame {
 		return target;
 	}
 	
-	public static void floatToByte(float[][] src, byte[][] dst, int width, int height, byte na_target) {
+	public static void floatToByte(float[][] src, byte[][] dst, int width, int height, byte na_dst) {
 		for (int y = 0; y < height; y++) {
 			float[] s = src[y];
 			byte[] t = dst[y];
 			for (int x = 0; x < width; x++) {
 				float v = s[x];				
-				t[x] = Float.isFinite(v) ? (byte) v : na_target;
+				t[x] = Float.isFinite(v) ? (byte) v : na_dst;
 			}
 		}
 	}
 	
-	public static ByteFrame ofShorts(ShortFrame source, short na_src, byte na_target) {
+	public static ByteFrame ofShorts(ShortFrame source, short na_src, byte na_dst) {
 		ByteFrame target = ofExtent(source);
-		shortToByte(source.data, target.data, source.width, source.height, na_src, na_target);
+		shortToByte(source.data, target.data, source.width, source.height, na_src, na_dst);
 		return target;
 	}
 	
-	public static void shortToByte(short[][] src, byte[][] dst, int width, int height, short na_src, byte na_target) {
+	public static void shortToByte(short[][] src, byte[][] dst, int width, int height, short na_src, byte na_dst) {
 		for (int y = 0; y < height; y++) {
 			short[] s = src[y];
 			byte[] t = dst[y];
 			for (int x = 0; x < width; x++) {
 				short v = s[x];				
-				t[x] = v == na_src ? na_target: (byte) v;
+				t[x] = v == na_src ? na_dst: (byte) v;
 			}
 		}
 	}

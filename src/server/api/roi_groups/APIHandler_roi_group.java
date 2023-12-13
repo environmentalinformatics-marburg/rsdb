@@ -98,12 +98,20 @@ public class APIHandler_roi_group {
 			json.endObject();			
 		}
 		json.endArray();
+		if(roiGroup.hasMessages()) {
+			json.key("messages");
+			json.array();
+			for(String m : roiGroup.messages) {			
+				json.value(m);					
+			}
+			json.endArray();
+		}
 		//if(EmptyACL.ADMIN.isAllowed(userIdentity)) {
-			json.key("acl");
-			roiGroup.acl.writeJSON(json);
+		json.key("acl");
+		roiGroup.acl.writeJSON(json);
 		//}
 		json.endObject(); // roi_group
 		json.endObject(); // JSON
 	}
-	
+
 }

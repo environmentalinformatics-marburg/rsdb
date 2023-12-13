@@ -44,6 +44,7 @@ import broker.group.Poi;
 import broker.group.Roi;
 import pointcloud.Rect2d;
 import pointdb.base.Point2d;
+import pointdb.base.PolygonUtil;
 import server.api.vectordbs.VectordbDetails;
 import util.GeoUtil;
 import util.Util;
@@ -53,7 +54,7 @@ import util.yaml.YamlMap;
 import vectordb.style.Style;
 
 public class VectorDB {
-	
+
 	private static final String TYPE = "vectordb";
 
 	private final VectordbConfig config;
@@ -625,11 +626,11 @@ public class VectorDB {
 	public ACL getACL_mod() {
 		return acl_mod;
 	}
-	
+
 	public ACL getACL_owner() {
 		return acl_owner;
 	}
-	
+
 	public boolean isAllowed(UserIdentity userIdentity) {
 		return AclUtil.isAllowed(acl_owner, acl_mod, acl, userIdentity);
 	}
@@ -637,7 +638,7 @@ public class VectorDB {
 	public void check(UserIdentity userIdentity) {
 		AclUtil.check(acl_owner, acl_mod, acl, userIdentity, "vectordb " + this.getName() + " read");
 	}
-	
+
 	public void check(UserIdentity userIdentity, String location) {
 		AclUtil.check(acl_owner, acl_mod, acl, userIdentity,  "vectordb " + this.getName() + " read " + " at " + location);
 	}
@@ -645,7 +646,7 @@ public class VectorDB {
 	public boolean isAllowedMod(UserIdentity userIdentity) {
 		return AclUtil.isAllowed(acl_owner, acl_mod, userIdentity);
 	}
-	
+
 	public void checkMod(UserIdentity userIdentity) {
 		AclUtil.check(acl_owner, acl_mod, userIdentity, "vectordb " + this.getName() + " modifiy");
 	}
@@ -653,7 +654,7 @@ public class VectorDB {
 	public void checkMod(UserIdentity userIdentity, String location) {
 		AclUtil.check(acl_owner, acl_mod, userIdentity, "vectordb " + this.getName() + " modify " + " at " + location);
 	}
-	
+
 	public boolean isAllowedOwner(UserIdentity userIdentity) {
 		return AclUtil.isAllowed(acl_owner, userIdentity);
 	}
@@ -675,12 +676,12 @@ public class VectorDB {
 		this.acl_mod = acl_mod;
 		writeMeta();	
 	}
-	
+
 	public void setACL_owner(ACL acl_owner) {
 		this.acl_owner = acl_owner;
 		writeMeta();		
 	}
-	
+
 	public String getDatatag() {
 		return datatag;
 	}
@@ -851,95 +852,195 @@ public class VectorDB {
 		return text.replaceAll("[^a-zA-Z0-9_]", "_");
 	}
 
-	public Vec<Poi> getPOIs() {
+	public Vec<Poi> getPOIs(Vec<String> messages) {
 		String nameAttr = getNameAttribute();
 		DataSource datasource = getDataSource();
 		try {
 			Vec<Poi> pois = new Vec<Poi>();
 			HashSet<String> poiNames = new HashSet<String>();
 			int layerCount = datasource.GetLayerCount();
-			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
+			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
 				int geomType = layer.GetGeomType();
-				if(geomType == 1 || geomType == -2147483647) { // 1  POINT   0x80000001 Point25D
+				switch(geomType) {
+				case 1: // Point
+				case 2001: // PointM
+				case 3001: // PointZM
+				case 0x80000001: // Point25D
+				case 4: // MultiPoint
+				case 2004: // MultiPointM
+				case 3004: // MultiPointZM
+				case 0x80000004: // MultiPoint25D
+				case 7: // GeometryCollection
+				case 2007: // GeometryCollectionM
+				case 3007: // GeometryCollectionZM
+				case 0x80000007: { // GeometryCollection25D
 					int fieldIndex = layer.FindFieldIndex(nameAttr, 1);
 					if(fieldIndex >= 0) {
 						layer.ResetReading();
 						Feature feature = layer.GetNextFeature();
 						while(feature != null) {
-							if(feature.IsFieldSet(fieldIndex)) {
-								String orgName = feature.GetFieldAsString(fieldIndex);
-								if(orgName.isEmpty()) {
-									orgName = "POI";
-								}
-								orgName = createValidID(orgName);
-								String name = orgName;
-								int nameIndex = 1;
-								while(poiNames.contains(name)) {
-									name = orgName + "_" + (++nameIndex);
-								}
-								poiNames.add(name);
-								Geometry geometry = feature.GetGeometryRef();
-								if(geometry != null) {
-									double x = geometry.GetX();
-									double y = geometry.GetY();
-									pois.add(new Poi(name, x, y));
-								} else {
-									Logger.warn("missing geometry in " + getName());
-								}
-							}
+							collectPOI(feature, fieldIndex, poiNames, pois, messages);
 							feature = layer.GetNextFeature();
 						}
+					} else {
+						messages.add("Skip POIs: name attribute not found: " + nameAttr + "  in " + getName());
 					}
+					break;
+				}
+				default: {
+					messages.add("Skip POIs: unknown geometry type for ROIs: " + geomType + "  in " + getName());	
+				}					
 				}
 			}
+			Logger.info("get POIs of " + getName() + "   count: " + pois.size());
 			return pois;
+		} catch(Exception e) {
+			Logger.warn(e);
+			throw e;
 		} finally {
 			closeDataSource(datasource);
 		}
 	}
 
-	public Vec<Roi> getROIs() {
+	public Vec<Roi> getROIs(Vec<String> messages) {
 		String nameAttr = getNameAttribute();
 		DataSource datasource = getDataSource();
 		try {
 			Vec<Roi> rois = new Vec<Roi>();
 			HashSet<String> roiNames = new HashSet<String>();
 			int layerCount = datasource.GetLayerCount();
-			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
+			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
 				int geomType = layer.GetGeomType();
-				//Logger.info("getROIs geomType " + geomType);
-				if(geomType == 6 || geomType == -2147483642) { // 6  MultiPolygon 0x80000006  MultiPolygon25D
-					Logger.warn("just first polygon will be included in multipolygon in " + getName());
+				switch(geomType) {
+				case 3: // Polygon
+				case 2003: // PolygonM
+				case 3003: // PolygonZM
+				case 0x80000003: // Polygon25D
+				case 6: // MultiPolygon
+				case 2006: // MultiPolygonM
+				case 3006: // MultiPolygonZM
+				case 0x80000006: // MultiPolygon25D
+				case 7: // GeometryCollection
+				case 2007: // GeometryCollectionM
+				case 3007: // GeometryCollectionZM
+				case 0x80000007: { // GeometryCollection25D					
 					int fieldIndex = layer.FindFieldIndex(nameAttr, 1);
 					if(fieldIndex >= 0) {
 						layer.ResetReading();
 						Feature feature = layer.GetNextFeature();
 						while(feature != null) {
-							collectROI(feature, fieldIndex, roiNames, rois);
+							collectROI(feature, fieldIndex, roiNames, rois, messages);
 							feature = layer.GetNextFeature();
 						}
+					} else {
+						messages.add("Skip ROIs: name attribute not found: " + nameAttr + "  in " + getName());
 					}
-				} else if(geomType == 3 || geomType == -2147483645) { // 3  POLYGON      0x80000003  Polygon25D
-					int fieldIndex = layer.FindFieldIndex(nameAttr, 1);
-					if(fieldIndex >= 0) {
-						layer.ResetReading();
-						Feature feature = layer.GetNextFeature();
-						while(feature != null) {
-							collectROI(feature, fieldIndex, roiNames, rois);
-							feature = layer.GetNextFeature();
-						}
-					}
+					break;
+				}
+				default: {
+					messages.add("Skip ROIs: unknown geometry type for ROIs: " + geomType + "  in " + getName());	
+				}					
 				}
 			}
+			Logger.info("get ROIs of " + getName() + "   count: " + rois.size());
 			return rois;
+		} catch(Exception e) {
+			Logger.warn(e);
+			throw e;
 		} finally {
 			closeDataSource(datasource);
 		}
 	}
 
-	private void collectROI(Feature feature, int fieldIndex, HashSet<String> roiNames, Vec<Roi> rois) {
+	private void collectPOI(Feature feature, int fieldIndex, HashSet<String> poiNames, Vec<Poi> pois, Vec<String> messages) {
+		if(feature.IsFieldSet(fieldIndex)) {
+			String orgName = feature.GetFieldAsString(fieldIndex);
+			if(orgName.isEmpty()) {
+				orgName = "ROI";
+			}
+			orgName = createValidID(orgName);
+			String name = orgName;
+			int nameIndex = 1;
+			while(poiNames.contains(name)) {
+				name = orgName + "_" + (++nameIndex);
+			}
+			poiNames.add(name);
+			Geometry geometry = feature.GetGeometryRef();
+			if(geometry != null) {
+				collectPOI_geometry(geometry, name, pois, messages);				
+			} else {
+				messages.add("Skip ROI: missing geometry in " + getName() + " : " + name);
+			}
+		}		
+	}
+
+	private void collectPOI_geometry(Geometry geometry, String name, Vec<Poi> pois, Vec<String> messages) {
+		int geometryType = geometry.GetGeometryType();
+		int geoCount = geometry.GetGeometryCount();
+		//Logger.info("geometry: " + geometryType +" with " + geoCount + " in " + getName() + " : " + name);
+		switch(geometryType) {
+		case 1: // Point
+		case 2001: // PointM
+		case 3001: // PointZM
+		case 0x80000001: { // Point25D
+			if(geoCount == 0) {
+				double x = geometry.GetX();
+				double y = geometry.GetY();
+				pois.add(new Poi(name, x, y));
+			} else {
+				messages.add("Skip POI: sub geometries in Point  in " + getName() + " : " + name);
+			}					
+			break;
+		}
+		case 4: // MultiPoint
+		case 2004: // MultiPointM
+		case 3004: // MultiPointZM
+		case 0x80000004: { // MultiPoint25D
+			if(geoCount > 0) {
+				if(geoCount == 1) {
+					Geometry subGeometry = geometry.GetGeometryRef(0);
+					if(subGeometry != null) {
+						collectPOI_geometry(subGeometry, name, pois, messages);
+					} else {
+						messages.add("Skip POI: missing sub geometry of MultiPoint  in " + getName() + " : " + name);
+					}
+				} else {
+					messages.add("Skip POI: more than one sub geometry of MultiPoint: " + geoCount +  " in " + getName() + " : " + name);
+				}
+			} else {
+				messages.add("Skip POI: no sub geometry of MultiPoint  in " + getName() + " : " + name);
+			}					
+			break;
+		}
+		case 7: // GeometryCollection
+		case 2007: // GeometryCollectionM
+		case 3007: // GeometryCollectionZM
+		case 0x80000007: { // GeometryCollection25D
+			if(geoCount > 0) {
+				if(geoCount == 1) {
+					Geometry subGeometry = geometry.GetGeometryRef(0);
+					if(subGeometry != null) {
+						collectPOI_geometry(subGeometry, name, pois, messages);
+					} else {
+						messages.add("Skip POI: missing sub geometry of GeometryCollection  in " + getName() + " : " + name);
+					}
+				} else {
+					messages.add("Skip POI: more than one sub geometry of GeometryCollection: " + geoCount +  " in " + getName() + " : " + name);
+				}
+			} else {
+				messages.add("Skip POI: no sub geometry of GeometryCollection  in " + getName() + " : " + name);
+			}					
+			break;
+		}
+		default: {
+			messages.add("Skip ROI: unknown geometry type " + geometryType + "  in " + getName() + " : " + name);
+		}
+		}
+	}
+
+	private void collectROI(Feature feature, int fieldIndex, HashSet<String> roiNames, Vec<Roi> rois, Vec<String> messages) {
 		if(feature.IsFieldSet(fieldIndex)) {
 			String orgName = feature.GetFieldAsString(fieldIndex);
 			if(orgName.isEmpty()) {
@@ -954,60 +1055,125 @@ public class VectorDB {
 			roiNames.add(name);
 			Geometry geometry = feature.GetGeometryRef();
 			if(geometry != null) {
-				int geoCount = geometry.GetGeometryCount();
-				if(geoCount != 1) {
-					if(geoCount > 1) {
-						Logger.warn("just first sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
-					} else {
-						Logger.warn("missing sub geometry in polygon: " + geoCount+" in " + getName() + " : " + name);
-						return;
-					}
-				}
-				Geometry subGeo = geometry.GetGeometryRef(0);
-				if(subGeo != null) {
-					int subType = subGeo.GetGeometryType();
-					//Logger.info("subgeomerty: " + subType + " in " + getName() + " : " + name);
-					if(subType == 3 || subType == -2147483645) { // 3  POLYGON   0x80000003  Polygon25D fix subType polygon
-						int subsubCount = subGeo.GetGeometryCount();
-						if(subsubCount > 1) {
-							Logger.warn("just first sub sub geometry will be included in polygon: " + geoCount+" in " + getName() + " : " + name);
-						}
-						Geometry subsubGeo = subGeo.GetGeometryRef(0);
-						if(subsubGeo != null) { 
-							int subsubType = subsubGeo.GetGeometryType();
-							//Logger.warn("fix subtype polygon -> subgeomerty: " + subType + " in " + getName() + " : " + name + "  " + subsubCount);
-							subGeo = subsubGeo;
-							subType = subsubType;
-						} else {
-							Logger.warn("missing sub sub geometry");
-						}
-					}
-					switch (subType) {
-					case 2: // 2  LINESTRING
-					case -2147483646: { // 0x80000002  LineString25D
-						Object[] polygonPoints = subGeo.GetPoints();
-						int pointsLen = polygonPoints.length;
-						Point2d[] points = new Point2d[pointsLen];									
-						int len = points.length;
-						for (int i = 0; i < pointsLen; i++) {
-							double[] p = (double[]) polygonPoints[i];
-							points[i] = new Point2d(p[0], p[1]);
-						}									
-						rois.add(new Roi(name, points));									
-						break;
-					}
-					default: 
-						Logger.warn("unknown POLYGON sub geometry " + subType + "  "+ Long.toHexString(Integer.toUnsignedLong(subType)) + "  " + subGeo.GetGeometryName());
-					}
-				} else {
-					Logger.warn("missing sub geometry");
-				}
+				collectROI_geometry(geometry, name, rois, messages);
 			} else {
-				Logger.warn("missing geometry");
+				messages.add("Skip ROI: missing geometry in " + getName() + " : " + name);
 			}
 		}		
 	}
 
+	private void collectROI_geometry(Geometry geometry, String name, Vec<Roi> rois, Vec<String> messages) {
+		int geometryType = geometry.GetGeometryType();
+		int geoCount = geometry.GetGeometryCount();
+		//Logger.info("geometry: " + geometryType +" with " + geoCount + " in " + getName() + " : " + name);
+		switch(geometryType) {
+		case 3: // Polygon
+		case 2003: // PolygonM
+		case 3003: // PolygonZM
+		case 0x80000003: { // Polygon25D
+			collectROI_polygon(geometry, name, rois, messages);		
+			break;
+		}
+		case 6: // MultiPolygon
+		case 2006: // MultiPolygonM
+		case 3006: // MultiPolygonZM
+		case 0x80000006: { // MultiPolygon25D
+			if(geoCount > 0) {
+				if(geoCount == 1) {
+					Geometry subGeometry = geometry.GetGeometryRef(0);
+					if(subGeometry != null) {
+						int subGeometryType = subGeometry.GetGeometryType();
+						switch(subGeometryType) {
+						case 3: // Polygon
+						case 2003: // PolygonM
+						case 3003: // PolygonZM
+						case 0x80000003: { // Polygon25D
+							collectROI_polygon(subGeometry, name, rois, messages);						
+							break;
+						}
+						default: {
+							messages.add("Skip ROI: unknown sub geometry type of MultiPolygon " + subGeometryType + "  in " + getName() + " : " + name);
+						}
+						}
+					} else {
+						messages.add("Skip ROI: missing sub geometry of MultiPolygon  in " + getName() + " : " + name);
+					}
+				} else {
+					messages.add("Skip ROI: more than one sub geometry of MultiPolygon: " + geoCount +  " in " + getName() + " : " + name);
+				}
+			} else {
+				messages.add("Skip ROI: no sub geometry of MultiPolygon  in " + getName() + " : " + name);
+			}					
+			break;
+		}
+		case 7: // GeometryCollection
+		case 2007: // GeometryCollectionM
+		case 3007: // GeometryCollectionZM
+		case 0x80000007: { // GeometryCollection25D
+			if(geoCount > 0) {
+				if(geoCount == 1) {
+					Geometry subGeometry = geometry.GetGeometryRef(0);
+					if(subGeometry != null) {
+						collectROI_geometry(subGeometry, name, rois, messages);
+					} else {
+						messages.add("Skip ROI: missing sub geometry of GeometryCollection  in " + getName() + " : " + name);
+					}
+				} else {
+					messages.add("Skip ROI: more than one sub geometry of GeometryCollection: " + geoCount +  " in " + getName() + " : " + name);
+				}
+			} else {
+				messages.add("Skip ROI: no sub geometry of GeometryCollection  in " + getName() + " : " + name);
+			}					
+			break;
+		}
+		default: {
+			messages.add("Skip ROI: unknown geometry type " + geometryType + "  in " + getName() + " : " + name);
+		}
+		}	
+	}
+
+	private void collectROI_polygon(Geometry geometry, String name, Vec<Roi> rois, Vec<String> messages) {
+		int geometryCount = geometry.GetGeometryCount();
+		if(geometryCount > 0) {
+			if(geometryCount == 1) {
+				Geometry subGeometry = geometry.GetGeometryRef(0);
+				if(subGeometry != null) {
+					int subGeometryType = subGeometry.GetGeometryType();								
+					switch(subGeometryType) {
+					case 2: // LineString
+					case 2002: // LineStringM
+					case 3002: // LineStringZM
+					case 0x80000002: { // LineString25D
+						Object[] polygonPoints = subGeometry.GetPoints();
+						int pointsLen = polygonPoints.length;
+						//Logger.info("LINESTRING points: " + pointsLen);
+						Point2d[] points = new Point2d[pointsLen];
+						for(int i = 0; i < pointsLen; i++) {
+							double[] p = (double[]) polygonPoints[i];
+							points[i] = new Point2d(p[0], p[1]);
+						}
+						try {
+							Roi roi = new Roi(name, points);
+							rois.add(roi);
+						} catch(Exception e) {		
+							messages.add("Skip ROI: not valid polygon points:  " + e.getMessage() + "  in" + getName() + " : " + name);	
+						}
+						break;
+					}
+					default: {
+						messages.add("Skip ROI: unknown sub geometry type of Polygon " + subGeometryType + "  in " + getName() + " : " + name);
+					}
+					}
+				} else {
+					messages.add("Skip ROI: missing sub geometry in Polygon  in " + getName() + " : " + name);	
+				}
+			} else {
+				messages.add("Skip ROI: multiple sub geometries in Polygon, count: " + geometryCount + "  in " + getName() + " : " + name);
+			}
+		} else {
+			messages.add("Skip ROI: no sub geometry in Polygon  in " + getName() + " : " + name);
+		}
+	}
 
 	public boolean getStructuredAccessPOI() {
 		return structured_access_poi;
