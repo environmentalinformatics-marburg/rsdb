@@ -11,30 +11,26 @@ import org.tinylog.Logger;
 
 import pointdb.base.Point2d;
 import pointdb.base.PolygonUtil;
+import pointdb.base.PolygonUtil.PolygonWithHoles;
 import util.Util;
 import util.collections.vec.Vec;
 
 public class Roi {
 
 	public final String name;
-	public final Point2d[] points;
+	//public final Point2d[] points;
+	public final PolygonWithHoles[] polygons;
 	public final Point2d center;
+	
+	public Roi(String name, Point2d[] points) {
+		this(name, new PolygonWithHoles[] {PolygonWithHoles.ofPolygon(points)});
+	}
 
-	public Roi(String name, Point2d... points) {
-		PolygonUtil.validatePolygon(points);		
+	public Roi(String name, PolygonWithHoles[] polygons) {
+		PolygonUtil.PolygonsWithHoles.validatePolygonsWithHoles(polygons);	
 		this.name = name;
-		this.points = points;
-		Point2d center = PolygonUtil.centroid_of_polygon(points);
-		if(!center.isFinite()) {
-			Point2d[] ps = Point2d.toUnique(points);
-			if(ps.length != points.length) {
-				center = PolygonUtil.centroid_of_polygon(ps);
-			}
-		}
-		if(!center.isFinite()) {
-			center = PolygonUtil.meanOfPolygonPoints(points);
-		}
-		this.center = center;
+		this.polygons = polygons;
+		this.center = PolygonUtil.PolygonsWithHoles.centroidOfPolygonsWithHolesPoints(polygons);
 	}
 
 	public static Roi[] readRoiGeoJSON(Path filename) throws IOException {
@@ -70,7 +66,6 @@ public class Roi {
 					JSONArray p = coordinates.getJSONArray(j);
 					if(p.length()!=2) {
 						throw new RuntimeException("one point needs to consist of exactly two coordinates: "+p.length()+"  "+feature+"  in "+filename);
-
 					}
 					double x = p.getDouble(0);
 					double y = p.getDouble(1);
@@ -102,7 +97,7 @@ public class Roi {
 		builder.append(", ");
 		builder.append(center.x);
 		builder.append(") ");
-		builder.append(" [");
+		/*builder.append(" [");
 		for(Point2d point:points) {
 			builder.append(" ");
 			builder.append(point.x);
@@ -110,8 +105,7 @@ public class Roi {
 			builder.append(point.y);
 			builder.append(" ");
 		}
-		builder.append("]");
+		builder.append("]");*/
 		return builder.toString();
 	}
-
 }

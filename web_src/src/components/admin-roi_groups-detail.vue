@@ -71,8 +71,10 @@
             <v-data-table :headers="headers" :items="meta.rois" hide-actions :search="search" :custom-filter="filterFunc">
                 <template slot="items" slot-scope="props">
                     <td>{{props.item.name}}</td>
-                    <td>{{props.item.center[0]}}, {{props.item.center[1]}}</td>
-                    <td>{{props.item.polygon.length - 1}}</td>
+                    <td>{{props.item.characteristic}}</td>
+                    <td style="text-align: right;">{{props.item.point_count}}</td>
+                    <td style="text-align: right;">{{props.item.center[0].toFixed(4)}}, {{props.item.center[1].toFixed(4)}}</td>
+                    <td style="text-align: right;">{{props.item.area === undefined ? '-' : props.item.area.toFixed(4)}}</td>
                 </template>
             </v-data-table>
         </div>
@@ -102,9 +104,11 @@ export default {
             busyMessage: undefined,
 
             headers: [
-                {text: "name", value: "name"},
-                {text: "center position", value: "center"},
-                {text: "point count", value: "polygon"},        
+                {text: "Name", value: "name"},
+                {text: "Characteristic", value: "characteristic"},
+                {text: "Point count", value: "point_count", align: "right"},        
+                {text: "Center", value: "center", align: "right"},
+                {text: "Area", value: "area", align: "right"},
             ],
             search: undefined,            
         }

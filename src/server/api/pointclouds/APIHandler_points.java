@@ -78,7 +78,7 @@ public class APIHandler_points {
 				if(vy[i]<ymin) ymin = vy[i];
 				if(vy[i]>ymax) ymax = vy[i];
 			}
-			requestRegion = Region.ofPolygon(vx, vy);
+			requestRegion = Region.ofPlainPolygon(vx, vy);
 			boundingRect = requestRegion.bbox;
 		} else if(extText != null) {
 			String[] ext = extText.split("[ ,]+");
@@ -151,7 +151,7 @@ public class APIHandler_points {
 				Logger.info(tileRect);
 				String tileFilename = "tile_" + xtile + "_" + ytile + ".las";
 				try {
-					Region tileRegion = Region.ofFilteredBbox(tileRect, rr.polygonPoints);
+					Region tileRegion = Region.ofFilteredBbox(tileRect, rr.polygons);
 					zipOutputStream.putNextEntry(new ZipEntry(tileFilename));
 					double txmin = tileRect.getUTMd_min_x();
 					double tymin = tileRect.getUTMd_min_y();

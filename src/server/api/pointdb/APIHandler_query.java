@@ -66,7 +66,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 		if(request.getParameter("polygon") != null) {
 			String pText = request.getParameter("polygon");
 			Point2d[] polygon = parsePolygon(pText);
-			requestRegion = Region.ofPolygon(polygon);
+			requestRegion = Region.ofPlainPolygon(polygon);
 			boundingRect = requestRegion.bbox;
 		} else if(request.getParameter("ext") != null) {
 			double[] requestExtent = Web.getDoubles(request, "ext");
@@ -137,7 +137,7 @@ public class APIHandler_query extends PointdbAPIHandler {
 				Logger.info(tileRect);
 				String tileFilename = "tile_" + xtile + "_" + ytile + ".las";
 				try {
-					Region tileRegion = Region.ofFilteredBbox(tileRect, rr.polygonPoints);
+					Region tileRegion = Region.ofFilteredBbox(tileRect, rr.polygons);
 					zipOutputStream.putNextEntry(new ZipEntry(tileFilename));
 					PointProcessor.process(pointdb, tileRegion, normalise, filter, sort, columns, tileFormat, -xmin, -ymin, receiver, Long.MAX_VALUE);
 					zipOutputStream.closeEntry();

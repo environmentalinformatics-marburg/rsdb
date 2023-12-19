@@ -2,9 +2,10 @@ package pointdb.base;
 
 import java.util.LinkedHashSet;
 
-import org.tinylog.Logger;
-
 public class Point2d {
+	
+	public static final Point2d NaN = new Point2d(Double.NaN, Double.NaN);
+	
 	public final double x;
 	public final double y;
 
@@ -42,11 +43,11 @@ public class Point2d {
 	}
 	
 	public static double determinant(Point2d a, Point2d b) {
-		return a.x*b.y - b.x*a.y;
+		return a.x * b.y - b.x * a.y;
 	}
 	
 	public static double determinant(double ax, double ay, double bx, double by) {
-		return ax*by - bx*ay;
+		return ax * by - bx * ay;
 	}
 	
 	public boolean isFinite() {

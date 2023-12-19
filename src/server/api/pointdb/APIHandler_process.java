@@ -84,7 +84,7 @@ public class APIHandler_process extends PointdbAPIHandler {
 								Point2d p = Point2d.of(coord.getDouble(0), coord.getDouble(1));
 								points[polygon_index] = p;
 							}
-							Region region = Region.ofPolygon(points);
+							Region region = Region.ofPlainPolygon(points);
 							areas.add(new Pair<Region, String>(region, name));
 						} else if(e.has("bbox")) {
 							JSONArray bbox = e.getJSONArray("bbox");

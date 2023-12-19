@@ -133,7 +133,7 @@ public class Compiler {
 					Logger.warn("no group specified");
 				} else {
 					Roi roi = broker.getRoiByPath(g, url.name);
-					Region region = Region.ofPolygon(roi.points);
+					Region region = Region.ofPolygonsWithHoles(roi.polygons);
 					Logger.info(region);
 					regions.add(new Pair<Region, String>(region, url.name));
 				}

@@ -1,34 +1,38 @@
 package pointdb.subsetdsl;
 
-import java.util.Arrays;
-
 import pointdb.base.Point2d;
 import pointdb.base.PolygonUtil;
+import pointdb.base.PolygonUtil.PolygonWithHoles;
 import pointdb.base.Rect;
 
 public class Region {	
 	public final Rect bbox;
-	public final Point2d[] polygonPoints; //nullable if no polygon
+	//public final Point2d[] polygonPoints; //nullable if no polygon
+	public final PolygonWithHoles[] polygons;  //nullable if no polygon
 	
 	/**
 	 * 
 	 * @param bbox Bounding box
 	 * @param polygonPoints normally polygon is inside of bbox. In special cases bbox may be smaller than polygon to filter points in bbox with polygon borders.
 	 */
-	private Region(Rect bbox, Point2d[] polygonPoints) {
+	private Region(Rect bbox, PolygonWithHoles[] polygons) {
 		this.bbox = bbox;
-		this.polygonPoints = polygonPoints;
+		this.polygons = polygons;
 	}
 	
 	public static Region ofRect(Rect rect) {
 		return new Region(rect, null);
 	}
 	
-	public static Region ofPolygon(Point2d[] polygonPoints) {
-		return new Region(Rect.of_polygon(polygonPoints), polygonPoints);
+	public static Region ofPlainPolygon(Point2d[] polygon) {
+		return new Region(Rect.of_polygon(polygon), new PolygonWithHoles[] {PolygonWithHoles.ofPolygon(polygon)});
 	}
 	
-	public static Region ofPolygon(double[] vx, double[] vy) {
+	public static Region ofPolygonsWithHoles(PolygonWithHoles[] polygons) {
+		return new Region(PolygonUtil.PolygonsWithHoles.toRectBBOX(polygons), polygons);
+	}
+	
+	public static Region ofPlainPolygon(double[] vx, double[] vy) {
 		int len = vx.length;
 		if(vy.length != len) {
 			throw new RuntimeException();
@@ -37,27 +41,27 @@ public class Region {
 		for (int i = 0; i < len; i++) {
 			polygonPoints[i] = new Point2d(vx[i], vy[i]);
 		}
-		return ofPolygon(polygonPoints);
+		return ofPlainPolygon(polygonPoints);
 	}
 	
-	public static Region ofFilteredBbox(Rect bbox, Point2d[] polygonPoints) {
-		return new Region(bbox, polygonPoints);
+	public static Region ofFilteredBbox(Rect bbox, PolygonWithHoles[] polygons) {
+		return new Region(bbox, polygons);
 	}
 	
 	public boolean isBbox() {
-		return polygonPoints == null;
+		return polygons == null;
 	}
 	
 	public double getArea() {
-		return polygonPoints == null ? bbox.getArea() : PolygonUtil.area_of_polygon(polygonPoints);
+		return polygons == null ? bbox.getArea() : PolygonUtil.PolygonsWithHoles.area(polygons);
 	}
 
 	@Override
 	public String toString() {
-		return "Region [bbox=" + bbox + ", polygonPoints=" + Arrays.toString(polygonPoints) + "]";
+		return "Region [bbox=" + bbox + ", polygons=" + polygons.length + "]";
 	}
 	
 	public Region toBboxRegion() {
-		return polygonPoints==null ? this : Region.ofRect(bbox);
+		return polygons == null ? this : Region.ofRect(bbox);
 	}
 }

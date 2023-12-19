@@ -7,6 +7,8 @@ import java.util.stream.Stream;
 import org.eclipse.jetty.server.Request;
 import org.tinylog.Logger;
 
+import com.googlecode.javaewah.datastructure.BitSet;
+
 import pointcloud.AttributeSelector;
 import pointcloud.CellTable.ChainedFilterFunc;
 import pointcloud.PointCloud;
@@ -48,7 +50,7 @@ public class PointProcessor {
 			}
 
 			if(!region.isBbox()) {
-				FilterByPolygonFunc filterByPolygonFunc = PointTable.getFilterByPolygonFunc(region.polygonPoints);
+				Function<PointTable, BitSet> filterByPolygonFunc = PointTable.getFilterByPolygonsWithHolesFunc(region.polygons);
 				pointTables = pointTables.map(pointTable -> PointTable.applyMask(pointTable, filterByPolygonFunc.apply(pointTable)));
 			}
 

@@ -1,11 +1,13 @@
 package server.api.roi_groups;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 
 import org.tinylog.Logger;
+import org.apache.commons.math3.analysis.function.Multiply;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -15,6 +17,8 @@ import broker.Broker;
 import broker.group.Roi;
 import broker.group.RoiGroup;
 import pointdb.base.Point2d;
+import pointdb.base.PolygonUtil;
+import pointdb.base.PolygonUtil.PolygonWithHoles;
 import util.Web;
 
 public class APIHandler_roi_group {
@@ -86,15 +90,55 @@ public class APIHandler_roi_group {
 			json.value(r.center.x);
 			json.value(r.center.y);
 			json.endArray();
+			json.key("point_count");
+			json.value(PolygonUtil.PolygonsWithHoles.pointCount(r.polygons));
 			json.key("polygon");
 			json.array();
-			for(Point2d p:r.points) {
-				json.array();
-				json.value(p.x);
-				json.value(p.y);
-				json.endArray();
+			if(PolygonUtil.PolygonsWithHoles.isPlainPolygon(r.polygons)) {
+				Point2d[] points = r.polygons[0].polygon;
+				for(Point2d p : points) {
+					json.array();
+					json.value(p.x);
+					json.value(p.y);
+					json.endArray();
+				}
+			}			
+			json.endArray();
+			{
+				int polyCnt = r.polygons.length;
+				int holeCnt = 0;
+				for(PolygonWithHoles poly : r.polygons) {
+					if(poly.hasHoles()) {
+						holeCnt += poly.holes.length;
+					}
+				}
+				String c = "";
+				if(polyCnt == 1) {
+					if(holeCnt == 0) {
+						c = "polygon";
+					} else if(holeCnt == 1) {
+						c = "polygon with hole";
+					} else {
+						c = "polygon with " + holeCnt + " holes";
+					}
+				} else {
+					if(holeCnt == 0) {
+						c = polyCnt + " polygons";
+					} else if(holeCnt == 1) {
+						c = polyCnt + " polygons with hole";
+					} else {
+						c = polyCnt + " polygons with " + holeCnt + " holes";
+					}
+				}
+				json.key("characteristic");
+				json.value(c);
+
+				double area = PolygonUtil.PolygonsWithHoles.area(r.polygons);
+				if(Double.isFinite(area)) {
+					json.key("area");
+					json.value(area);
+				}
 			}
-			json.endArray();			
 			json.endObject();			
 		}
 		json.endArray();

@@ -12,6 +12,8 @@ import broker.Broker;
 import broker.group.Roi;
 import broker.group.RoiGroup;
 import pointdb.base.Point2d;
+import pointdb.base.PolygonUtil;
+import pointdb.base.PolygonUtil.PolygonsWithHoles;
 import server.api.APIHandler;
 import util.Web;
 
@@ -45,14 +47,19 @@ public class APIHandler_roi_group extends APIHandler {
 			json.value(r.center.x);
 			json.value(r.center.y);
 			json.endArray();
+			json.key("point_count");
+			json.value(PolygonUtil.PolygonsWithHoles.pointCount(r.polygons));
 			json.key("polygon");
 			json.array();
-			for(Point2d p:r.points) {
-				json.array();
-				json.value(p.x);
-				json.value(p.y);
-				json.endArray();
-			}
+			if(PolygonUtil.PolygonsWithHoles.isPlainPolygon(r.polygons)) {
+				Point2d[] points = r.polygons[0].polygon;
+				for(Point2d p : points) {
+					json.array();
+					json.value(p.x);
+					json.value(p.y);
+					json.endArray();
+				}
+			}			
 			json.endArray();
 			json.endObject();			
 		}
