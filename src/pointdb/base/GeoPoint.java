@@ -139,9 +139,9 @@ public class GeoPoint {
 	 * @return
 	 */
 	public double distanceXY(GeoPoint p) {
-		double dx = this.x-p.x;
-		double dy = this.y-p.y;
-		return Math.sqrt(dx*dx+dy*dy);
+		double dx = this.x - p.x;
+		double dy = this.y - p.y;
+		return Math.sqrt(dx*dx + dy*dy);
 	}
 	
 	/**
@@ -150,7 +150,7 @@ public class GeoPoint {
 	 * @return negative: downhill, zero: no slope, positive: uphill
 	 */
 	public double slope(GeoPoint p) {
-		return (p.z-this.z)/distanceXY(p);
+		return (p.z - this.z) / distanceXY(p);
 	}
 	
 	/**

@@ -96,6 +96,7 @@ public class Functions {
 		funMap.put(fun.name, fun);
 	}
 
+	@SuppressWarnings("unchecked")
 	private static void addContained(Class<?> overClass) {
 		for(Class<?> clazz:overClass.getDeclaredClasses()) {
 			if(ProcessingFun.class.isAssignableFrom(clazz)) {
@@ -122,7 +123,7 @@ public class Functions {
 			if((!clazz.isMemberClass()) || Modifier.isStatic(clazz.getModifiers())) {
 			if(hasEmptyConstructor(clazz)) {
 				try {
-					add(clazz.newInstance());
+					add(clazz.getDeclaredConstructor().newInstance());
 				} catch (Exception e) {
 					Logger.error(e);
 				}

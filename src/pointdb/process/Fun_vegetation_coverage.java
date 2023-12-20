@@ -55,7 +55,7 @@ class Fun_vegetation_coverage {
 		return total_count == 0 ? Double.NaN : ((double) vegetation_count) / ((double) total_count);
 	}
 
-	@Description("Vegetation coverage in 1 meter height (based on CHM raster pixels)")
+	@Description("Vegetation coverage in 1 meter height (based on CHM raster pixels) [bbox based]")
 	public static class Fun_vegetation_coverage_01m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -63,7 +63,7 @@ class Fun_vegetation_coverage {
 		}
 	}
 
-	@Description("Vegetation coverage in 2 meter height (based on CHM raster pixels)")
+	@Description("Vegetation coverage in 2 meter height (based on CHM raster pixels) [bbox based]")
 	public static class Fun_vegetation_coverage_02m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -87,7 +87,7 @@ class Fun_vegetation_coverage {
 		}
 	}
 
-	@Description("Vegetation coverage in 5 meter height (based on CHM raster pixels)")
+	@Description("Vegetation coverage in 5 meter height (based on CHM raster pixels) [bbox based]")
 	public static class Fun_vegetation_coverage_05m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -95,7 +95,7 @@ class Fun_vegetation_coverage {
 		}
 	}
 
-	@Description("Vegetation coverage in 10 meter height (based on CHM raster pixels)")
+	@Description("Vegetation coverage in 10 meter height (based on CHM raster pixels) [bbox based]")
 	public static class Fun_vegetation_coverage_10m_CHM extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {

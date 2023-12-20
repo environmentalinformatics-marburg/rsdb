@@ -4,7 +4,7 @@ package pointdb.process;
 public class Fun_dtm_aspect {
 	//
 	
-	@Description("Circular mean of aspect of ground a.s.l. without weighting slopes (based on DTM raster pixels) small scale direction")
+	@Description("Circular mean of aspect of ground a.s.l. without weighting slopes (based on DTM raster pixels) small scale direction [bbox based]")
 	static class Fun_dtm_aspect_unweighted_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -12,7 +12,7 @@ public class Fun_dtm_aspect {
 		}
 	}
 	
-	@Description("Circular mean aspect of ground a.s.l. with weighting slopes (based on DTM raster pixels) large scale direction")
+	@Description("Circular mean aspect of ground a.s.l. with weighting slopes (based on DTM raster pixels) large scale direction [bbox based]")
 	static class Fun_dtm_aspect_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -20,7 +20,7 @@ public class Fun_dtm_aspect {
 		}
 	}
 	
-	@Description("Aspect of ground a.s.l. (based on DTM raster pixels bilinear regression)")
+	@Description("Aspect of ground a.s.l. (based on DTM raster pixels bilinear regression) [bbox based]")
 	@Exculde("base class")
 	static class Fun_dtm_aspect_reg extends ProcessingFun {
 		@Override

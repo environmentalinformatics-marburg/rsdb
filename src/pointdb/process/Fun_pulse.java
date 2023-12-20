@@ -14,7 +14,7 @@ public class Fun_pulse {
 		}		
 	}
 	
-	@Description("Density of LiDAR laser pulses (pulses per m² in bounding box)")
+	@Description("Density of LiDAR laser pulses (pulses per m² in bounding box) [bbox based]")
 	static class Fun_pulse_density extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -22,7 +22,7 @@ public class Fun_pulse {
 		}
 	}
 	
-	@Description("Post spacing of LiDAR laser pulses (distance between pulses in m in bounding box)")
+	@Description("Post spacing of LiDAR laser pulses (distance between pulses in m in bounding box) [bbox based]")
 	static class Fun_pulse_spacing extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -30,7 +30,7 @@ public class Fun_pulse {
 		}
 	}
 	
-	@Description("Area that is represented by one LiDAR laser pulse (m² per pulse in bounding box) (not to be confused with laser beam extent)")
+	@Description("Area that is represented by one LiDAR laser pulse (m² per pulse in bounding box) (not to be confused with laser beam extent) [bbox based]")
 	static class Fun_pulse_area extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {

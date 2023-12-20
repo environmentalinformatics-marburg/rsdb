@@ -3,7 +3,7 @@ package pointdb.process;
 @Tag("chm")
 public class Fun_chm_height {
 	
-	@Description("Lowest surface above ground (based on CHM raster pixels)")
+	@Description("Lowest surface above ground (based on CHM raster pixels) [bbox based]")
 	static class Fun_chm_height_min extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -11,7 +11,7 @@ public class Fun_chm_height {
 		}
 	}
 	
-	@Description("Highest surface above ground (based on CHM raster pixels)")
+	@Description("Highest surface above ground (based on CHM raster pixels) [bbox based]")
 	static class Fun_chm_height_max extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -19,7 +19,7 @@ public class Fun_chm_height {
 		}
 	}
 	
-	@Description("Mean of surface above ground (based on CHM raster pixels)")
+	@Description("Mean of surface above ground (based on CHM raster pixels) [bbox based]")
 	static class Fun_chm_height_mean extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -27,7 +27,7 @@ public class Fun_chm_height {
 		}
 	}
 	
-	@Description("Standard deviation of surface above ground (based on CHM raster pixels)")
+	@Description("Standard deviation of surface above ground (based on CHM raster pixels) [bbox based]")
 	static class Fun_chm_height_sd extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {

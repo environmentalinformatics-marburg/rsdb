@@ -3,12 +3,12 @@ package pointdb.process;
 @Tag("forest_structure")
 public class Fun_forest_structure {
 	
-	@Description("Mean top-of-canopy height (redirects to chm_height_mean) (based on CHM raster pixels)")
+	@Description("Mean top-of-canopy height (redirects to chm_height_mean) (based on CHM raster pixels) [bbox based]")
 	public static class Fun_TCH extends Fun_chm_height.Fun_chm_height_mean {
 		public static final Fun_TCH  DEFAULT = new Fun_TCH ();
 	}
 	
-	@Description("Aboveground biomass carbon (6.85 * TCH ^ 0.952) (based on CHM raster pixels) (Stephan Getzin et al.)")
+	@Description("Aboveground biomass carbon (6.85 * TCH ^ 0.952) (based on CHM raster pixels) (Stephan Getzin et al.) [bbox based]")
 	public static class Fun_AGB_carbon extends ProcessingFun {
 		public static final Fun_AGB_carbon  DEFAULT = new Fun_AGB_carbon();
 		@Override
@@ -19,7 +19,7 @@ public class Fun_forest_structure {
 		}
 	}
 	
-	@Description("Aboveground biomass (6.85 * TCH ^ 0.952) / 0.48 (based on AGB_carbon) (Stephan Getzin, et al.)")
+	@Description("Aboveground biomass (6.85 * TCH ^ 0.952) / 0.48 (based on AGB_carbon) (Stephan Getzin, et al.) [bbox based]")
 	public static class Fun_AGB extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {			

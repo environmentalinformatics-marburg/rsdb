@@ -3,7 +3,7 @@ package pointdb.process;
 import pointdb.base.GeoPoint;
 
 @Tag("point")
-@Description("Density of LiDAR vegetation points (vegetation points per m² in bounding box, without non vegetation points like ground)")
+@Description("Density of LiDAR vegetation points (vegetation points per m² in bounding box, without non vegetation points like ground) [bbox based]")
 class Fun_vegetation_point_density extends ProcessingFun {
 	@Override
 	public double process(DataProvider2 provider) {		

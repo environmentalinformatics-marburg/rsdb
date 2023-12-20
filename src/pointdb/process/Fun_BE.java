@@ -495,15 +495,15 @@ public class Fun_BE {
 		}
 	}
 
-	@Description("Mean Elevation (mean of ground a.s.l., based on DTM raster pixels)")
+	@Description("Mean Elevation (mean of ground a.s.l., based on DTM raster pixels) [bbox based]")
 	public static class Fun_BE_ELEV_MEAN extends Fun_dtm_elevation.Fun_dtm_elevation_mean {
 	}
 
-	@Description("Mean Slope (slope of ground a.s.l., based on DTM raster pixels bilinear regression)")
+	@Description("Mean Slope (slope of ground a.s.l., based on DTM raster pixels bilinear regression) [bbox based]")
 	static class Fun_BE_ELEV_SLOPE extends Fun_dtm_slope.Fun_dtm_slope_reg {
 	}
 
-	@Description("Mean Aspect (aspect of ground a.s.l., based on DTM raster pixels bilinear regression)")
+	@Description("Mean Aspect (aspect of ground a.s.l., based on DTM raster pixels bilinear regression) [bbox based]")
 	static class Fun_BE_ELEV_ASPECT extends Fun_dtm_aspect.Fun_dtm_aspect_reg {
 	}
 
