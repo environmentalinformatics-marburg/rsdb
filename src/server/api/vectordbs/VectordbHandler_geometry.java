@@ -3,7 +3,7 @@ package server.api.vectordbs;
 import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletResponse;
-
+import pointcloud.Rect2d;
 
 import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
@@ -23,6 +23,19 @@ public class VectordbHandler_geometry extends VectordbHandler {
 
 	@Override
 	public void handleGET(VectorDB vectordb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {		
+		handle_GetFeatureInfoJSON(vectordb, null, request, response);	
+	}
+
+
+	/**
+	 * 
+	 * @param vectordb
+	 * @param request
+	 * @param response
+	 * @param ext nullable
+	 * @throws IOException
+	 */
+	public static void handle_GetFeatureInfoJSON(VectorDB vectordb, Rect2d ext, Request request, Response response) throws IOException {
 		try {
 			boolean just_name_attribute = Web.getFlagBoolean(request, "just_name_attribute");
 			int epsg = Web.getInt(request, "epsg", -1);
@@ -30,7 +43,7 @@ public class VectordbHandler_geometry extends VectordbHandler {
 				throw new RuntimeException("epsg paremeter expects a numeric epsg code. example: '3857'");
 			}
 			//String geometry = vectordb.getGeoJSONAsCollection(epsg);
-			String geometry = vectordb.getGeoJSON(epsg, just_name_attribute);
+			String geometry = vectordb.getGeoJSON(epsg, just_name_attribute, ext);
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentType("application/geo+json");
 			response.setCharacterEncoding("UTF-8");

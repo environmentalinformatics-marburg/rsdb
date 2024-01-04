@@ -17,8 +17,9 @@ export const useLayersStore = defineStore("layers", {
       try {
         const response = await this.component.$api.get("api/layers");
         this.rsdb_layers = response.data.layers;
+        const collator = new Intl.Collator();
         this.rsdb_layers.sort((a, b) => {
-          return (a.name > b.name) - (a.name < b.name);
+          return collator.compare(a.name, b.name);
         });
         this.lading = false;
       } catch (e) {

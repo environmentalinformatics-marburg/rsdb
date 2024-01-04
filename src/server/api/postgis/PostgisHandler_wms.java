@@ -344,10 +344,9 @@ public class PostgisHandler_wms {
 			handle_GetFeatureInfoJSON(postgisLayer, request, response, pixelRect2d);
 			break;
 		case "text/xml":
+		default: 
 			handle_GetFeatureInfoXML(postgisLayer, request, response, pixelRect2d);
 			break;
-		default: 
-
 		}
 	}
 

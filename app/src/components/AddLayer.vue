@@ -30,6 +30,13 @@
         />
 
         <q-checkbox
+          v-model="layerFilter.vectordb"
+          label="VectorDB"
+          checked-icon="task_alt"
+          unchecked-icon="highlight_off"
+        />
+
+        <q-checkbox
           v-model="layerFilter.postgis"
           label="PostGIS"
           checked-icon="task_alt"
@@ -133,6 +140,7 @@ export default defineComponent({
       layerFilter: {
         rasterdb: true,
         pointcloud: true,
+        vectordb: true,
         postgis: true,
       },
       filteredOptionsLayers: [],
@@ -154,6 +162,7 @@ export default defineComponent({
         (e) =>
           (this.layerFilter.rasterdb && e.type === "rasterdb") ||
           (this.layerFilter.pointcloud && e.type === "pointcloud") ||
+          (this.layerFilter.vectordb && e.type === "vectordb") ||
           (this.layerFilter.postgis && e.type === "postgis")
       );
     },
@@ -171,6 +180,8 @@ export default defineComponent({
         return "RasterDB";
       } else if (type === "pointcloud") {
         return "Pointcloud";
+      } else if (type === "vectordb") {
+        return "VectorDB";
       } else if (type === "postgis") {
         return "PostGIS";
       } else {
@@ -209,39 +220,56 @@ export default defineComponent({
 
   watch: {
     async selectedLayer() {
-      this.selectedLayerMeta = undefined;
-      this.selectedLayerVisLayer = undefined;
-      if (this.selectedLayer) {
-        if (this.selectedLayer.type === "rasterdb") {
-          const layerURLPart = "rasterdb/" + this.selectedLayer.name;
-          const response = await this.$api.get(layerURLPart + "/meta.json");
-          this.selectedLayerMeta = response.data;
-          this.selectedLayerVisLayer = {
-            type: this.selectedLayer.type,
-            name: this.selectedLayer.name,
-          };
-        } else if (this.selectedLayer.type === "pointcloud") {
-          const layerURLPart = "pointclouds/" + this.selectedLayer.name;
-          const response = await this.$api.get(layerURLPart);
-          this.selectedLayerMeta = response.data.pointcloud;
-          if (this.selectedLayerMeta.associated.rasterdb) {
+      try {
+        this.selectedLayerMeta = undefined;
+        this.selectedLayerVisLayer = undefined;
+        if (this.selectedLayer) {
+          if (this.selectedLayer.type === "rasterdb") {
+            const layerURLPart = "rasterdb/" + this.selectedLayer.name;
+            const response = await this.$api.get(layerURLPart + "/meta.json");
+            this.selectedLayerMeta = response.data;
             this.selectedLayerVisLayer = {
-              type: "rasterdb",
-              name: this.selectedLayerMeta.associated.rasterdb,
+              type: this.selectedLayer.type,
+              name: this.selectedLayer.name,
             };
+          } else if (this.selectedLayer.type === "pointcloud") {
+            const layerURLPart = "pointclouds/" + this.selectedLayer.name;
+            const response = await this.$api.get(layerURLPart);
+            this.selectedLayerMeta = response.data.pointcloud;
+            if (this.selectedLayerMeta.associated.rasterdb) {
+              this.selectedLayerVisLayer = {
+                type: "rasterdb",
+                name: this.selectedLayerMeta.associated.rasterdb,
+              };
+            }
+          } else if (this.selectedLayer.type === "vectordb") {
+            const layerURLPart = "vectordbs/" + this.selectedLayer.name;
+            const metaURL = layerURLPart + "?extent";
+            const response = await this.$api.get(metaURL);
+            this.selectedLayerMeta = response.data.vectordb;
+            this.selectedLayerVisLayer = {
+              type: this.selectedLayer.type,
+              name: this.selectedLayer.name,
+            };
+          } else if (this.selectedLayer.type === "postgis") {
+            const layerURLPart = "postgis/layers/" + this.selectedLayer.name;
+            const response = await this.$api.get(layerURLPart);
+            this.selectedLayerMeta = response.data;
+            this.selectedLayerVisLayer = {
+              type: this.selectedLayer.type,
+              name: this.selectedLayer.name,
+            };
+          } else {
+            // unknown layer
+            this.selectedLayerMeta = undefined;
           }
-        } else if (this.selectedLayer.type === "postgis") {
-          const layerURLPart = "postgis/layers/" + this.selectedLayer.name;
-          const response = await this.$api.get(layerURLPart);
-          this.selectedLayerMeta = response.data;
-          this.selectedLayerVisLayer = {
-            type: this.selectedLayer.type,
-            name: this.selectedLayer.name,
-          };
-        } else {
-          // unknown layer
-          this.selectedLayerMeta = undefined;
         }
+      } catch (e) {
+        console.log(e.message ? e.message : e);
+        this.$q.notify({
+          type: "negative",
+          message: "Layer load meta data error: " + (e.message ? e.message : e),
+        });
       }
     },
   },

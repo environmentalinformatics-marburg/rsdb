@@ -41,6 +41,7 @@ import broker.acl.EmptyACL;
 import broker.group.Poi;
 import broker.group.Roi;
 import pointcloud.Rect2d;
+import pointcloud.Rect3d;
 import pointdb.base.Point2d;
 import pointdb.base.PolygonUtil;
 import pointdb.base.PolygonUtil.PolygonWithHoles;
@@ -194,7 +195,7 @@ public class VectorDB {
 		ogr.RegisterAll();
 	}
 
-	public void writeTableJSON(JSONWriter json) {
+	public synchronized void writeTableJSON(JSONWriter json) { // layer iterator and layer filter possibly not parallel
 		VectordbDetails details = getDetails();
 		ReadonlyList<String> attributes = details.attributes;
 		DataSource datasource = getDataSource();
@@ -207,7 +208,8 @@ public class VectorDB {
 			int layerCount = datasource.GetLayerCount();
 			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
-				layer.ResetReading();
+				layer.SetSpatialFilter(null); // clear filter
+				layer.ResetReading(); // reset iterator
 				Feature feature = layer.GetNextFeature();
 				while(feature != null) {
 					json.array();
@@ -227,14 +229,15 @@ public class VectorDB {
 	}
 
 
-	public Vec<String> getGML() {
+	public synchronized Vec<String> getGML() { // layer iterator and layer filter possibly not parallel
 		Vec<String> gmls = new Vec<>();
 		DataSource datasource = getDataSource();
 		try {
 			int layerCount = datasource.GetLayerCount();
 			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
-				layer.ResetReading();
+				layer.SetSpatialFilter(null); // clear filter
+				layer.ResetReading();  // reset iterator
 				Feature feature = layer.GetNextFeature();
 				while(feature != null) {
 					Geometry geometry = feature.GetGeometryRef();
@@ -257,7 +260,14 @@ public class VectorDB {
 		return gmls;
 	}
 
-	public String getGeoJSON(int epsg, boolean justNameAttribute) {
+	/**
+	 * 
+	 * @param epsg
+	 * @param justNameAttribute
+	 * @param ext nullable
+	 * @return
+	 */
+	public synchronized String getGeoJSON(int epsg, boolean justNameAttribute, Rect2d ext) { // layer iterator and layer filter possibly not parallel
 		String nameAttribute = null;
 		ReadonlyList<String> attributes = null;
 		if(justNameAttribute) {
@@ -298,46 +308,56 @@ public class VectorDB {
 			int layerCount = datasource.GetLayerCount();
 			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
-				SpatialReference layerRef = layer.GetSpatialRef();
-				CoordinateTransformation ct = null;
-				if(refDst != null && layerRef != null) {
-					ct = CoordinateTransformation.CreateCoordinateTransformation(layerRef, refDst);	
-					//Logger.info("refDst " + refDst);
-					//Logger.info("layerRef " + layerRef);
-				}
-				layer.ResetReading();
-				Feature feature = layer.GetNextFeature();
-				while(feature != null) {
-					Geometry geometry = feature.GetGeometryRef();
-					if(geometry != null) {
-						if(ct != null) {
-							geometry.Transform(ct);
-						}
-						String json = geometry.ExportToJson();
-						if(isFirst) {
-							isFirst = false;
-						} else {
-							sb.append(",");						
-						}
-						sb.append("{\"type\":\"Feature\",\"geometry\":");
-						sb.append(json);
-						String id = "" + cnt++;
-
-						sb.append(",\"id\":\"" + id +"\"");
-						if(justNameAttribute) {
-							addPropertiesJustNameAttribute(sb, feature, id, nameAttribute);
-						} else {
-							addPropertiesAllAttributes(sb, feature, attributes);
-						}
-
-						sb.append("}");
-					} else {
-						String attr1 = feature.GetFieldAsString(0);
-						Logger.warn("missing geometry in feature : " + feature.GetFID() + "  " + attr1);
+				try {
+					SpatialReference layerRef = layer.GetSpatialRef();
+					CoordinateTransformation ct = null;
+					if(refDst != null && layerRef != null) {
+						ct = CoordinateTransformation.CreateCoordinateTransformation(layerRef, refDst);	
+						//Logger.info("refDst " + refDst);
+						//Logger.info("layerRef " + layerRef);
 					}
-					feature = layer.GetNextFeature();
+					if(ext == null) {
+						layer.SetSpatialFilter(null); // clear filter
+					} else {
+						layer.SetSpatialFilterRect(ext.xmin, ext.ymin, ext.xmax, ext.ymax);
+					}
+					layer.ResetReading();  // reset iterator
+					Feature feature = layer.GetNextFeature();
+					while(feature != null) {
+						Geometry geometry = feature.GetGeometryRef();
+						if(geometry != null) {
+							if(ct != null) {
+								geometry.Transform(ct);
+							}
+							String json = geometry.ExportToJson();
+							if(isFirst) {
+								isFirst = false;
+							} else {
+								sb.append(",");						
+							}
+							sb.append("{\"type\":\"Feature\",\"geometry\":");
+							sb.append(json);
+							String id = "" + cnt++;
+
+							sb.append(",\"id\":\"" + id +"\"");
+							if(justNameAttribute) {
+								addPropertiesJustNameAttribute(sb, feature, id, nameAttribute);
+							} else {
+								addPropertiesAllAttributes(sb, feature, attributes);
+							}
+
+							sb.append("}");
+						} else {
+							String attr1 = feature.GetFieldAsString(0);
+							Logger.warn("missing geometry in feature : " + feature.GetFID() + "  " + attr1);
+						}
+						feature = layer.GetNextFeature();
+					}
+				} finally {
+					layer.SetSpatialFilter(null); // clear filter
+					layer.ResetReading(); // reset iterator
 				}
-			}
+			} 
 			sb.append("]");
 			sb.append("}");
 			return sb.toString();
@@ -383,7 +403,7 @@ public class VectorDB {
 	 * @param epsg  if epsg < 0 then no transformation
 	 * @return
 	 */
-	public String getGeoJSONAsCollection(int epsg) {
+	public synchronized String getGeoJSONAsCollection(int epsg) { // layer iterator and layer filter possibly not parallel
 		DataSource datasource = getDataSource();
 		try {
 			/*Logger.info("datasource.GetLayerCount() " + datasource.GetLayerCount());
@@ -406,7 +426,8 @@ public class VectorDB {
 				if(layerRef != null && refSrc == null) {
 					refSrc = layerRef;
 				}
-				layer.ResetReading();
+				layer.SetSpatialFilter(null); // clear filter
+				layer.ResetReading();  // reset iterator
 				Feature feature = layer.GetNextFeature();
 				while(feature != null) {
 					Geometry geometry = feature.GetGeometryRef();
@@ -481,40 +502,43 @@ public class VectorDB {
 	public double[][] getPoints() {		
 		DataSource datasource = getDataSource();
 		try {
-			return getPoints(datasource);
+			return getPoints(datasource, this);
 		} finally {
 			closeDataSource(datasource);
 		}
 	}
 
-	public static double[][] getPoints(DataSource datasource) {
-		int layerCount = datasource.GetLayerCount();
-		Vec<Object[]> ps = new Vec<Object[]>();
-		for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
-			Layer layer = datasource.GetLayerByIndex(layerIndex);
-			layer.ResetReading();
-			Feature feature = layer.GetNextFeature();
-			while(feature != null) {
-				Geometry geometry = feature.GetGeometryRef();
-				if(geometry != null) {
-					deconGeo(geometry, ps);
-				} else {
-					Logger.warn("missing geometry");
+	public static double[][] getPoints(DataSource datasource, Object sync) { // layer iterator and layer filter possibly not parallel
+		synchronized (sync) {		
+			int layerCount = datasource.GetLayerCount();
+			Vec<Object[]> ps = new Vec<Object[]>();
+			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
+				Layer layer = datasource.GetLayerByIndex(layerIndex);
+				layer.SetSpatialFilter(null); // clear filter
+				layer.ResetReading();  // reset iterator
+				Feature feature = layer.GetNextFeature();
+				while(feature != null) {
+					Geometry geometry = feature.GetGeometryRef();
+					if(geometry != null) {
+						deconGeo(geometry, ps);
+					} else {
+						Logger.warn("missing geometry");
+					}
+					feature = layer.GetNextFeature();
 				}
-				feature = layer.GetNextFeature();
 			}
+			int len = (int) ps.stream().mapToInt(points -> points.length).sum();
+			double[][] points = new double[len][];
+			int pos = 0;
+			for(Object o:ps) {
+				Object[] p = (Object[]) o;
+				//Logger.info("len " + p.length);
+				System.arraycopy(p, 0, points, pos, p.length);
+				pos += p.length;
+			}
+			Logger.info("datasource.GetLayerCount() " + layerCount + "   points " + points.length);
+			return points;	
 		}
-		int len = (int) ps.stream().mapToInt(points -> points.length).sum();
-		double[][] points = new double[len][];
-		int pos = 0;
-		for(Object o:ps) {
-			Object[] p = (Object[]) o;
-			//Logger.info("len " + p.length);
-			System.arraycopy(p, 0, points, pos, p.length);
-			pos += p.length;
-		}
-		Logger.info("datasource.GetLayerCount() " + layerCount + "   points " + points.length);
-		return points;	
 	}
 
 	public static Rect2d getExtent(double[][] points) {
@@ -545,14 +569,14 @@ public class VectorDB {
 		Rect2d extent = null;
 		DataSource datasource = getDataSource();
 		try {		
-			extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
+			extent = VectorDB.getExtent(getPoints(datasource, this));
 		} finally {
 			VectorDB.closeDataSource(datasource);
 		}
 		return extent;
 	}
 
-	public SpatialReference getSpatialReference() {
+	public synchronized SpatialReference getSpatialReference() { // layer iterator and layer filter possibly not parallel
 		String fullFileName = config.dataPath.resolve(dataFilename).toString();
 		//Logger.info(fullFileName);
 		DataSource datasource = ogr.Open(fullFileName);
@@ -729,24 +753,24 @@ public class VectorDB {
 	}
 
 	@FunctionalInterface
-	public interface Layer0DefinitionsConsumer {
-		void consume(int fieldIndex, String fieldName);
+	public interface LayerFieldDefinitionConsumer {
+		void consume(int layerIndex, int fieldIndex, String fieldName);
 	}
 
-	public void forEachLayer0Definition(Layer0DefinitionsConsumer consumer) {
+	public void forEachFieldDefinition(LayerFieldDefinitionConsumer consumer) {
 		DataSource datasource = null;
 		try {
-			datasource = getDataSource();
-			if(datasource.GetLayerCount() == 0) {
-				return;
-			}
-			Layer layer = datasource.GetLayerByIndex(0);
-			FeatureDefn featureDfn = layer.GetLayerDefn();
-			int fieldCount = featureDfn.GetFieldCount();
-			for (int fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++) {
-				FieldDefn fieldDfn = featureDfn.GetFieldDefn(fieldIndex);
-				String fieldName = fieldDfn.GetName();
-				consumer.consume(fieldIndex, fieldName);
+			datasource = getDataSource();			
+			int layerCount = datasource.GetLayerCount();
+			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
+				Layer layer = datasource.GetLayerByIndex(layerIndex);
+				FeatureDefn featureDfn = layer.GetLayerDefn();
+				int fieldCount = featureDfn.GetFieldCount();
+				for (int fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++) {
+					FieldDefn fieldDfn = featureDfn.GetFieldDefn(fieldIndex);
+					String fieldName = fieldDfn.GetName();
+					consumer.consume(layerIndex, fieldIndex, fieldName);
+				}
 			}
 		} catch(Exception e) {
 			Logger.warn(e);
@@ -756,35 +780,53 @@ public class VectorDB {
 	}
 
 	@FunctionalInterface
-	public interface Layer0FeaturesConsumer {
+	public interface VectorFeatureConsumer {
 		void consume(VectorFeature vectorFeature) throws Exception;
 	}
 
-	public void forEachLayer0Feature(Layer0FeaturesConsumer consumer) {
+	public synchronized void forEachFeature(VectorFeatureConsumer consumer) { // layer iterator and layer filter possibly not parallel
+		forEachFeature(null, consumer);
+	}
+
+	/**
+	 * 
+	 * @param ext nullable
+	 * @param consumer
+	 */
+	public synchronized void forEachFeature(Rect2d ext, VectorFeatureConsumer consumer) { // layer iterator and layer filter possibly not parallel
 		DataSource datasource = null;
 		VectorFeature vectorFeature = new VectorFeature(null);
 		try {
 			datasource = getDataSource();
-			if(datasource.GetLayerCount() == 0) {
-				return;
-			}
-			Layer layer = datasource.GetLayerByIndex(0);
-			layer.ResetReading();
-			Feature feature = layer.GetNextFeature();
-			while(feature != null) {
-				vectorFeature.feature = feature;
-				consumer.consume(vectorFeature);
-				feature = layer.GetNextFeature();
-			}
+			int layerCount = datasource.GetLayerCount();
+			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
+				Layer layer = datasource.GetLayerByIndex(layerIndex);
+				try {
+					if(ext == null) {
+						layer.SetSpatialFilter(null); // clear filter
+					} else {
+						layer.SetSpatialFilterRect(ext.xmin, ext.ymin, ext.xmax, ext.ymax);
+					}
+					layer.ResetReading(); // reset iterator
+					Feature feature = layer.GetNextFeature();
+					while(feature != null) {
+						vectorFeature.feature = feature;
+						consumer.consume(vectorFeature);
+						feature = layer.GetNextFeature();
+					}
+				} finally {
+					layer.SetSpatialFilter(null); // clear filter
+					layer.ResetReading(); // reset iterator
+				}
+			}			
 		} catch(Exception e) {
 			Logger.warn(e);
 		} finally {
 			vectorFeature = null;
 			closeDataSource(datasource);
+			datasource = null;
 		}
 	}
-
-
 
 	public static final class VectorFeature {
 		private volatile Feature feature;
@@ -852,7 +894,7 @@ public class VectorDB {
 		return text.replaceAll("[^a-zA-Z0-9_]", "_");
 	}
 
-	public Vec<Poi> getPOIs(Vec<String> messages) {
+	public synchronized Vec<Poi> getPOIs(Vec<String> messages) { // layer iterator and layer filter possibly not parallel
 		String nameAttr = getNameAttribute();
 		DataSource datasource = getDataSource();
 		try {
@@ -879,7 +921,8 @@ public class VectorDB {
 					if(fieldIndex < 0) {
 						messages.add("Unnamed POIs: name attribute not found: " + nameAttr + "  in " + getName());
 					}
-					layer.ResetReading();
+					layer.SetSpatialFilter(null); // clear filter
+					layer.ResetReading();  // reset iterator
 					Feature feature = layer.GetNextFeature();
 					while(feature != null) {
 						collectPOI(feature, fieldIndex, poiNames, pois, messages);
@@ -902,7 +945,7 @@ public class VectorDB {
 		}
 	}
 
-	public Vec<Roi> getROIs(Vec<String> messages) {
+	public synchronized Vec<Roi> getROIs(Vec<String> messages) { // layer iterator and layer filter possibly not parallel
 		String nameAttr = getNameAttribute();
 		DataSource datasource = getDataSource();
 		try {
@@ -929,7 +972,8 @@ public class VectorDB {
 					if(fieldIndex < 0) {
 						messages.add("Unnamed ROIs: name attribute not found: " + nameAttr + "  in " + getName());
 					}
-					layer.ResetReading();
+					layer.SetSpatialFilter(null); // clear filter
+					layer.ResetReading();  // reset iterator
 					Feature feature = layer.GetNextFeature();
 					while(feature != null) {
 						collectROI(feature, fieldIndex, roiNames, rois, messages);
@@ -1058,15 +1102,15 @@ public class VectorDB {
 		Geometry geometry = feature.GetGeometryRef();
 		if(geometry != null) {
 			try {
-			Vec<PolygonWithHoles> polygons = new Vec<PolygonWithHoles>();
-			collectROI_geometry(geometry, name, polygons, messages);
-			if(!polygons.isEmpty()) {
-				//Logger.info(polygons);
-				PolygonWithHoles[] pwhs = polygons.toArray(PolygonWithHoles[]::new);
-				//Logger.info(Arrays.toString(pwhs));
-				Roi roi = new Roi(name, pwhs);
-				rois.add(roi);
-			}
+				Vec<PolygonWithHoles> polygons = new Vec<PolygonWithHoles>();
+				collectROI_geometry(geometry, name, polygons, messages);
+				if(!polygons.isEmpty()) {
+					//Logger.info(polygons);
+					PolygonWithHoles[] pwhs = polygons.toArray(PolygonWithHoles[]::new);
+					//Logger.info(Arrays.toString(pwhs));
+					Roi roi = new Roi(name, pwhs);
+					rois.add(roi);
+				}
 			} catch(Exception e) {
 				messages.add("Skip ROI: error in geometry: " + e.getMessage() + "   in " + getName() + " : " + name);
 			}
@@ -1193,7 +1237,7 @@ public class VectorDB {
 				messages.add("Skip ROI: not valid polygon points:  " + e.getMessage() + "  in" + getName() + " : " + name);
 				return;
 			}
-			
+
 			/*if(geometryCount == 1) {
 				Geometry subGeometry = geometry.GetGeometryRef(0);
 				if(subGeometry != null) {

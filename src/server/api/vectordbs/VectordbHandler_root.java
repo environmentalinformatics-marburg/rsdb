@@ -19,6 +19,7 @@ import broker.InformalProperties;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
 import jakarta.servlet.http.HttpServletResponse;
+import pointcloud.Rect2d;
 import util.JsonUtil;
 import util.Util;
 import util.Web;
@@ -82,6 +83,14 @@ public class VectordbHandler_root extends VectordbHandler {
 			json.value(details.attributes);
 			json.endObject();
 
+			if(Web.getFlagBoolean(request, "extent")) {
+				Rect2d extent = vectordb.getExtent();
+				if(extent != null) {
+					json.key("extent");
+					extent.toJSON(json);
+				}
+			}
+
 			json.key("name_attribute");
 			json.value(vectordb.getNameAttribute());
 
@@ -92,22 +101,6 @@ public class VectordbHandler_root extends VectordbHandler {
 			json.key("roi");
 			json.value(vectordb.getStructuredAccessROI());
 			json.endObject();
-
-			/*Vec<Poi> pois = vectordb.getPOIs();
-			json.key("pois");
-			json.array();
-			for(Poi p:pois) {
-				json.object();
-				json.key("name");
-				json.value(p.name);
-				json.key("x");
-				json.value(p.x);
-				json.key("y");
-				json.value(p.y);
-				json.endObject();
-
-			}
-			json.endArray();*/
 
 			if(vectordb.getStyle() != null) {
 				json.key("style");

@@ -536,6 +536,72 @@ export default defineComponent({
       }
     },
 
+    async completeVectordbLayer(layerEntry) {
+      try {
+        if (layerEntry.vectordbLayerURLPart === undefined) {
+          layerEntry.vectordbLayerURLPart = "vectordbs/" + layerEntry.name;
+        }
+
+        if (layerEntry.meta === undefined) {
+          const metaURL = layerEntry.vectordbLayerURLPart + "?extent";
+          const response = await this.$api.get(metaURL);
+          layerEntry.meta = response.data.vectordb;
+        }
+
+        if (
+          layerEntry.extent === undefined &&
+          layerEntry.meta.extent !== undefined
+        ) {
+          layerEntry.extent = [
+            layerEntry.meta.extent.xmin,
+            layerEntry.meta.extent.ymin,
+            layerEntry.meta.extent.xmax,
+            layerEntry.meta.extent.ymax,
+          ];
+        }
+
+        if (layerEntry.wmsURL === undefined) {
+          layerEntry.wmsURL =
+            this.$api.getUri() + layerEntry.vectordbLayerURLPart + "/wms";
+        }
+
+        if (layerEntry.layer === undefined) {
+          layerEntry.layer = new ImageLayer({
+            extent: layerEntry.extent,
+            source: new ImageWMS({
+              url: layerEntry.wmsURL,
+              ratio: 1,
+              interpolate: false,
+              imageLoadFunction: (image, src) => {
+                const srcUrl =
+                  src +
+                  "&session=" +
+                  this.session +
+                  "&cnt=" +
+                  this.sessionCnt++;
+                image.getImage().src = srcUrl;
+              },
+              params: {},
+            }),
+          });
+        }
+
+        if (layerEntry.projection === undefined) {
+          const srs = "EPSG" + layerEntry.meta.details.epsg;
+
+          proj4.defs(srs, layerEntry.meta.details.proj4);
+          register(proj4);
+
+          layerEntry.projection = new Projection({
+            code: srs,
+            units: "m",
+          });
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    },
+
     async completeRasterdbLayer(layerEntry) {
       try {
         if (layerEntry.rasterdbLayerURLPart === undefined) {
@@ -726,6 +792,8 @@ export default defineComponent({
               this.completeBackgroundLayer(layerEntry);
             } else if (layerEntry.type === "postgis") {
               await this.completePostgisLayer(layerEntry);
+            } else if (layerEntry.type === "vectordb") {
+              await this.completeVectordbLayer(layerEntry);
             } else if (layerEntry.type === "rasterdb") {
               await this.completeRasterdbLayer(layerEntry);
             } else {
@@ -848,6 +916,28 @@ export default defineComponent({
             );
             //console.log(url);
             const response = await this.$api.get(url, { responseType: "text" });
+            //console.log(response.data);
+            //this.$refs.FeatureInfo.show(response.data);
+            infos.push({ name: layerEntry.name, data: response.data });
+          } catch (e) {
+            console.log(e);
+          }
+        } else if (layerEntry.type === "vectordb") {
+          try {
+            //console.log(layerEntry);
+            const imageWMS = layerEntry.layer.getSource();
+            //console.log(imageWMS);
+            const resolution = this.view.getResolution();
+            const projection = this.view.getProjection();
+            const params = { INFO_FORMAT: "application/geo+json" };
+            const url = imageWMS.getFeatureInfoUrl(
+              coordinate,
+              resolution,
+              projection,
+              params
+            );
+            //console.log(url);
+            const response = await this.$api.get(url);
             //console.log(response.data);
             //this.$refs.FeatureInfo.show(response.data);
             infos.push({ name: layerEntry.name, data: response.data });
@@ -1189,6 +1279,9 @@ export default defineComponent({
     //console.log(query);
     if (query.rasterdb !== undefined) {
       this.layers.push({ name: query.rasterdb, type: "rasterdb" });
+    }
+    if (query.vectordb !== undefined) {
+      this.layers.push({ name: query.vectordb, type: "vectordb" });
     }
     if (query.postgis !== undefined) {
       this.layers.push({ name: query.postgis, type: "postgis" });

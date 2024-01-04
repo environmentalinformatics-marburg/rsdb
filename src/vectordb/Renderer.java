@@ -16,20 +16,21 @@ import org.gdal.ogr.Layer;
 import org.gdal.osr.CoordinateTransformation;
 
 import pointdb.base.Point2d;
+import server.api.vectordbs.VectordbHandler_raster_png;
 import util.collections.vec.Vec;
 import util.image.ImageBufferARGB;
 import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class Renderer {
-	
+
 
 	public static Color COLOR_POLYGON = new Color(0, 255, 0, 100);
 	public static Color COLOR_POLYGON_OUTLINE = new Color(128, 128, 128, 100);
 	static Color COLOR_LINE = new Color(0, 0, 255, 100);
 	public static Color COLOR_POINT = new Color(255, 0, 0, 255);
 	//private static Color COLOR_POINT_TOP = new Color(0, 0, 0, 100);
-	
+
 	public static final BasicStyle STYLE_DEFAULT = new BasicStyle();
 
 	public static String colorToString(Color c) {
@@ -38,7 +39,7 @@ public class Renderer {
 		//Logger.info(Integer.toHexString(c.getRed()).toUpperCase() + " " + Integer.toHexString(c.getGreen()).toUpperCase() + " " + Integer.toHexString(c.getBlue()).toUpperCase() + " " + Integer.toHexString(c.getAlpha()).toUpperCase() + " -> " + hex);
 		return hex;
 	}
-	
+
 	private static final Color COLOR_ERROR = new Color(255, 255, 0, 255);
 
 	public static Color stringToColor(String hex) {
@@ -57,15 +58,15 @@ public class Renderer {
 			}
 		} 
 		return COLOR_ERROR;
-		
+
 	}	
 
-	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
-		Rect2d extent = VectorDB.getExtent(VectorDB.getPoints(datasource));		
-		return renderProportionalMaxSize(datasource, extent, maxWidth, maxHeight, ct, style);
+	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, Object sync, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
+		Rect2d extent = VectorDB.getExtent(VectorDB.getPoints(datasource, sync));		
+		return renderProportionalMaxSize(datasource, sync, extent, maxWidth, maxHeight, ct, style);
 	}
 
-	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Rect2d rect, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
+	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Object sync, Rect2d rect, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
 		double xlen = rect.width();
 		double ylen = rect.height();
 
@@ -79,10 +80,10 @@ public class Renderer {
 
 		Logger.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
 
-		return render(datasource, rect, width, height, ct, style);
+		return render(datasource, sync, rect, width, height, ct, style);
 	}
 
-	public static ImageBufferARGB render(DataSource datasource, Rect2d rect, int width, int height, CoordinateTransformation ct, Style style) {
+	public static ImageBufferARGB render(DataSource datasource, Object sync, Rect2d rect, int width, int height, CoordinateTransformation ct, Style style) {
 		if(style == null) {
 			style = STYLE_DEFAULT;
 		}
@@ -115,7 +116,7 @@ public class Renderer {
 		Vec<Point2d> points = new Vec<Point2d>();
 		Vec<Object[]> lines = new Vec<Object[]>();
 		Vec<Object[]> polygons = new Vec<Object[]>();
-		collectDataSource(datasource, points, lines, polygons, ct);
+		collectDataSource(datasource, sync, points, lines, polygons, ct);
 		style.drawPolygons(gc, drawer, polygons);
 		style.drawLines(gc, drawer, lines);				
 		style.drawPoints(gc, drawer, points);
@@ -171,7 +172,7 @@ public class Renderer {
 			gc.drawLine(x1-1, y1, x1+1, y1);
 			gc.drawLine(x1-1, y1+1, x1+1, y1+1);
 		}
-		
+
 		public void drawPointCross(double x, double y) {
 			int x1 = (int) ((x + xoff) * xscale);
 			int y1 = (int) ((yoff - y) * yscale);
@@ -207,7 +208,7 @@ public class Renderer {
 			gc.setColor(Color.GREEN);
 			gc.fillPolygon(xs, ys, len);
 		}
-		
+
 		@FunctionalInterface
 		public
 		interface PolygonDrawer {
@@ -228,7 +229,7 @@ public class Renderer {
 		}
 	}
 
-	public static void traversePointsCross(DataSource datasource, Drawer drawer) {
+	/*public static void traversePointsCross(DataSource datasource, Drawer drawer) {
 		int layerCount = datasource.GetLayerCount();
 		for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 			Layer layer = datasource.GetLayerByIndex(layerIndex);
@@ -283,7 +284,7 @@ public class Renderer {
 				feature = layer.GetNextFeature();
 			}
 		}
-	}
+	}*/
 
 	public static void drawGeometryPointsCross(Geometry geometry, Drawer drawer) {
 		int type = geometry.GetGeometryType();
@@ -446,29 +447,32 @@ public class Renderer {
         100 No Geometry
 	 */
 
-	public static void collectDataSource(DataSource datasource, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
+	private static void collectDataSource(DataSource datasource, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
 		int layerCount = datasource.GetLayerCount();
 		for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 			Layer layer = datasource.GetLayerByIndex(layerIndex);
-			collectLayer(layer, points, lines, polygons, ct);
+			collectLayer(layer, sync, points, lines, polygons, ct);
 		}
 	}
 
-	public static void collectLayer(Layer layer, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
-		layer.ResetReading();
-		Feature feature = layer.GetNextFeature();
-		while(feature != null) {
-			Geometry geometry = feature.GetGeometryRef();
-			if(geometry != null) {
-				collectGeometry(geometry, points, lines, polygons, ct);
-			} else {
-				Logger.warn("missing geometry");
+	private static void collectLayer(Layer layer, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) { // layer iterator and layer filter possibly not parallel
+		synchronized (sync) {
+			layer.SetSpatialFilter(null); // clear filter
+			layer.ResetReading(); // reset iterator
+			Feature feature = layer.GetNextFeature();
+			while(feature != null) {
+				Geometry geometry = feature.GetGeometryRef();
+				if(geometry != null) {
+					collectGeometry(geometry, points, lines, polygons, ct);
+				} else {
+					Logger.warn("missing geometry");
+				}
+				feature = layer.GetNextFeature();
 			}
-			feature = layer.GetNextFeature();
-		}		
+		}
 	}
 
-	public static void collectGeometry(Geometry geometry, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
+	private static void collectGeometry(Geometry geometry, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
 		int type = geometry.GetGeometryType();
 		switch (type) {
 		case 1:  // 1  POINT
@@ -576,7 +580,7 @@ public class Renderer {
 								ct.TransformPoints(polygonPoints);
 							}
 							polygons.add(polygonPoints);
-							
+
 							break;
 						}
 						default: 

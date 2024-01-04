@@ -49,7 +49,7 @@ public class VectordbHandler_raster_png extends VectordbHandler {
 			int maxWidth = reqWidth < 1 ? (reqHeight < 1 ? 100 : reqHeight * 10) : reqWidth;			
 			int maxHeight = reqHeight < 1 ? (reqWidth < 1 ? 100 : reqWidth * 10) : reqHeight;			
 			
-			ImageBufferARGB image = Renderer.renderProportionalFullMaxSize(datasource, maxWidth, maxHeight, null, vectordb.getStyle());
+			ImageBufferARGB image = Renderer.renderProportionalFullMaxSize(datasource, this, maxWidth, maxHeight, null, vectordb.getStyle());
 
 			/*double[] extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
 			Logger.info(Arrays.toString(extent));			

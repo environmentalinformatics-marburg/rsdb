@@ -29,6 +29,7 @@ import broker.Broker;
 import pointcloud.Rect2d;
 import util.GeoUtil;
 import util.Web;
+import util.XmlUtil;
 import util.image.ImageBufferARGB;
 import vectordb.Renderer;
 import vectordb.VectorDB;
@@ -65,6 +66,9 @@ public class VectordbHandler_wms extends VectordbHandler {
 			break;
 		case "GetCapabilities":
 			handle_GetCapabilities(vectordb, request, response, userIdentity);
+			break;
+		case "GetFeatureInfo":				
+			handle_GetFeatureInfo(vectordb, request, response, userIdentity);
 			break;
 		default:
 			Logger.error("unknown request " + reqParam);
@@ -108,7 +112,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 		ImageBufferARGB image = null;
 		DataSource datasource = vectordb.getDataSource();
 		try {		
-			image = Renderer.render(datasource, rect, width, height, ct, vectordb.getStyle());
+			image = Renderer.render(datasource, vectordb, rect, width, height, ct, vectordb.getStyle());
 		} finally {
 			VectorDB.closeDataSource(datasource);
 		}
@@ -119,20 +123,21 @@ public class VectordbHandler_wms extends VectordbHandler {
 	}
 
 	public void handle_GetCapabilities(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
+		String requestUrl = request.getRequestURL().toString();
 		response.setContentType(Web.MIME_XML);		
 		PrintWriter out = response.getWriter();		
 		try {
-			xml_root(vectordb, out);
+			xml_root_GetCapabilities(vectordb, out, requestUrl);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private void xml_root(VectorDB vectordb, PrintWriter out) throws ParserConfigurationException, TransformerException {
+	private void xml_root_GetCapabilities(VectorDB vectordb, PrintWriter out, String requestUrl) throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		Document doc = docBuilder.newDocument();
-		doc.appendChild(getCapabilities(vectordb, doc));
+		doc.appendChild(getCapabilities(vectordb, doc, requestUrl));
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -142,46 +147,65 @@ public class VectordbHandler_wms extends VectordbHandler {
 		transformer.transform(source, result);
 	}
 
-	String NS_URL = "http://www.opengis.net/wms";
-	String NS_XLINK = "http://www.w3.org/1999/xlink";
-
-	public static Element addElement(Element root, String name) {
-		Element element = root.getOwnerDocument().createElement(name);
-		root.appendChild(element);
-		return element;
-	}
-
-	public static Element addElement(Element root, String name, String textContent) {
-		Element e = addElement(root, name);
-		e.setTextContent(textContent);
-		return e;
-	}
-
-	private Node getCapabilities(VectorDB vectordb, Document doc) {
-		Element rootElement = doc.createElementNS(NS_URL, "WMS_Capabilities");
+	private Node getCapabilities(VectorDB vectordb, Document doc, String requestUrl) {
+		Element rootElement = doc.createElementNS("http://www.opengis.net/wms", "WMS_Capabilities");
 		rootElement.setAttribute("version", "1.3.0");
-		rootElement.setAttribute("xmlns:xlink", NS_XLINK);
+		rootElement.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-		Element eService = addElement(rootElement, "Service");
-		addElement(eService, "Name", "OWS:WMS");
-		addElement(eService, "Title", "Remote Sensing Database"); // not shown by qgis
-		addElement(eService, "Abstract", "WMS service"); // not shown by qgis
+		Element eService = XmlUtil.addElement(rootElement, "Service");
+		XmlUtil.addElement(eService, "Name", "OWS:WMS");
+		XmlUtil.addElement(eService, "Title", "Remote Sensing Database"); // not shown by qgis
+		XmlUtil.addElement(eService, "Abstract", "WMS service"); // not shown by qgis
 
-		Element eCapability = addElement(rootElement, "Capability");
+		Element eCapability = XmlUtil.addElement(rootElement, "Capability");
 
+		addRequest(eCapability, requestUrl);
 		addRootLayer(vectordb, eCapability, vectordb.getName(), vectordb.getName());
 
 		return rootElement;
 	}
+	
+	private static void addRequest(Element eCapability, String requestUrl) {
+		Element eRootRequest = XmlUtil.addElement(eCapability, "Request");
+
+		Element eGetCapabilities = XmlUtil.addElement(eRootRequest, "GetCapabilities");
+		XmlUtil.addElement(eGetCapabilities, "Format", "text/xml");
+		Element eGetCapabilitiesDCPType = XmlUtil.addElement(eGetCapabilities, "DCPType");
+		Element eGetCapabilitiesDCPTypeHTTP = XmlUtil.addElement(eGetCapabilitiesDCPType, "HTTP");
+		Element eGetCapabilitiesDCPTypeHTTPGet = XmlUtil.addElement(eGetCapabilitiesDCPTypeHTTP, "Get");		
+		Element eGetCapabilitiesDCPTypeHTTPGetOnlineResource = XmlUtil.addElement(eGetCapabilitiesDCPTypeHTTPGet, "OnlineResource");
+		eGetCapabilitiesDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
+		eGetCapabilitiesDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
+
+		Element eGetMap = XmlUtil.addElement(eRootRequest, "GetMap");
+		XmlUtil.addElement(eGetMap, "Format", "image/png");
+		Element eGetMapDCPType = XmlUtil.addElement(eGetMap, "DCPType");
+		Element eGetMapDCPTypeHTTP = XmlUtil.addElement(eGetMapDCPType, "HTTP");
+		Element eGetMapDCPTypeHTTPGet = XmlUtil.addElement(eGetMapDCPTypeHTTP, "Get");		
+		Element eGetMapDCPTypeHTTPGetOnlineResource = XmlUtil.addElement(eGetMapDCPTypeHTTPGet, "OnlineResource");
+		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
+		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
+
+		Element eGetFeatureInfo = XmlUtil.addElement(eRootRequest, "GetFeatureInfo");
+		XmlUtil.addElement(eGetFeatureInfo, "Format", "application/json");
+		XmlUtil.addElement(eGetFeatureInfo, "Format", "text/xml");
+		Element eGetFeatureInfoDCPType = XmlUtil.addElement(eGetFeatureInfo, "DCPType");
+		Element eGetFeatureInfoDCPTypeHTTP = XmlUtil.addElement(eGetFeatureInfoDCPType, "HTTP");
+		Element eGetFeatureInfoDCPTypeHTTPGet = XmlUtil.addElement(eGetFeatureInfoDCPTypeHTTP, "Get");		
+		Element eGetFeatureInfoDCPTypeHTTPGetOnlineResource = XmlUtil.addElement(eGetFeatureInfoDCPTypeHTTPGet, "OnlineResource");
+		eGetFeatureInfoDCPTypeHTTPGetOnlineResource.setAttribute("xlink:type", "simple");
+		eGetFeatureInfoDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
+	}
 
 	private void addRootLayer(VectorDB vectordb, Element eCapability, String name, String title) {
-		Element eRootLayer = addElement(eCapability, "Layer");
+		Element eRootLayer = XmlUtil.addElement(eCapability, "Layer");
+		eRootLayer.setAttribute("queryable", "1");
 		String code = vectordb.getDetails().epsg;
 		String crs = "EPSG:" + code;
-		addElement(eRootLayer, "Name", name);
-		addElement(eRootLayer, "Title", title);
-		addElement(eRootLayer, "CRS", crs);
-		Element eBoundingBox = addElement(eRootLayer, "BoundingBox");
+		XmlUtil.addElement(eRootLayer, "Name", name);
+		XmlUtil.addElement(eRootLayer, "Title", title);
+		XmlUtil.addElement(eRootLayer, "CRS", crs);
+		Element eBoundingBox = XmlUtil.addElement(eRootLayer, "BoundingBox");
 		eBoundingBox.setAttribute("CRS", crs);
 
 		Rect2d extent = vectordb.getExtent();
@@ -190,5 +214,39 @@ public class VectordbHandler_wms extends VectordbHandler {
 		eBoundingBox.setAttribute("miny", "" + extent.ymin);
 		eBoundingBox.setAttribute("maxx", "" + extent.xmax);
 		eBoundingBox.setAttribute("maxy", "" + extent.ymax);
+	}
+
+	public void handle_GetFeatureInfo(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
+		String bboxParam = request.getParameter("BBOX");
+		Rect2d rect2d = null;
+		if(bboxParam != null) {
+			String[] bbox = bboxParam.split(",");
+			rect2d = Rect2d.parseBbox(bbox);
+		}		
+		int reqWidth = Web.getInt(request, "WIDTH");
+		int reqHeight = Web.getInt(request, "HEIGHT");		
+		int reqX = Web.getInt(request, "I");
+		int reqY = Web.getInt(request, "J");
+
+		double xres = rect2d.width() / reqWidth;
+		double yres = rect2d.height() / reqHeight;
+
+		Rect2d pixelRect2d = new Rect2d(rect2d.xmin + xres * reqX, rect2d.ymax - yres * (reqY + 1), rect2d.xmin + xres * (reqX + 1), rect2d.ymax - yres * reqY);
+
+		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
+		Logger.info(rect2d);
+		Logger.info(pixelRect2d);
+
+		String infoFormat = request.getParameter("INFO_FORMAT");
+		switch(infoFormat) {
+		case "application/json":
+		case "application/geo+json":
+			VectordbHandler_geometry.handle_GetFeatureInfoJSON(vectordb, pixelRect2d, request, response);
+			break;
+		case "text/xml":
+		default:
+			VectordbHandler_wfs.handle_GetFeature(vectordb, pixelRect2d, request, response);
+			break;
+		}
 	}
 }

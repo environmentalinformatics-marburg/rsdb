@@ -27,7 +27,7 @@ import util.JsonUtil;
 @task_pointcloud("import")
 @Description("Import all *.las and *.laz files at a folder (and subfolders) on the server into a new PointCloud layer.")
 @Param(name="pointcloud", type="layer_id", desc="ID of new PointCloud layer (target).", example="pointcloud1")
-@Param(name="source", format="path", desc="Folder located on server with *.las / *.laz files to import including subfolders.", example="las/folder1")
+@Param(name="source", format="path", desc="Folder located on server with *.las / *.laz files to import including subfolders. OR one .las / .laz file located on the server.", example="las/folder1")
 @Param(name="epsg", desc="EPSG projection code. If epsg is left empty and proj4 parameter is set a automatic EPSG search will be tried, multiple EPSG codes may refer to one proj4.", format="number", example="25832", required=false)
 @Param(name="proj4", desc="PROJ4 projection. If proj4 is left empty and epsg parameter is set a automatic proj4 generation will be tried.", format="text", example="+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
 @Param(name="time_slice", type="string", desc="Name of time slice. (default: untitled)", example="January", required=false)

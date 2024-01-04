@@ -62,26 +62,56 @@ public class PostgisHandler_wfs {
 	}
 
 	private void handle_GetCapabilities(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
+		String requestUrl = request.getRequestURL().toString() + "?rsdb";
 		response.setContentType(Web.MIME_XML);	
 		PrintWriter out = response.getWriter();	
 		try {
-			XmlUtil.writeXML(out, doc -> xmlGetCapabilities(postgisLayer, doc));
+			XmlUtil.writeXML(out, doc -> xmlGetCapabilities(postgisLayer, doc, requestUrl));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}		
 	}
 
-	private Node xmlGetCapabilities(PostgisLayer postgisLayer, Document doc) {
+	private Node xmlGetCapabilities(PostgisLayer postgisLayer, Document doc, String requestUrl) {
 		Element rootElement = doc.createElementNS("http://www.opengis.net/wfs", "WFS_Capabilities");
 		rootElement.setAttribute("version", "1.1.0");		
+		addOperationsMetadata(rootElement, requestUrl);
+		addFeatureTypeList(rootElement, postgisLayer);		
+		return rootElement;
+	}
+	
+	private static void addFeatureTypeList(Element rootElement, PostgisLayer postgisLayer) {
 		Element eFeatureTypeList = XmlUtil.addElement(rootElement, "FeatureTypeList");
 		Element eFeatureType = XmlUtil.addElement(eFeatureTypeList, "FeatureType");
 		XmlUtil.addElement(eFeatureType, "Name", postgisLayer.name);
 		XmlUtil.addElement(eFeatureType, "Title", postgisLayer.name);
-
 		int epsg = postgisLayer.getEPSG();
 		XmlUtil.addElement(eFeatureType, "DefaultSRS", "EPSG:" + epsg);
-		return rootElement;
+	}
+	
+	private static void addOperationsMetadata(Element rootElement, String requestUrl) {
+		Element eOperationsMetadata = XmlUtil.addElement(rootElement, "OperationsMetadata");
+		
+		Element eOperationGetCapabilities = XmlUtil.addElement(eOperationsMetadata, "Operation");
+		eOperationGetCapabilities.setAttribute("name", "GetCapabilities");
+		Element eOperationGetCapabilitiesDCP = XmlUtil.addElement(eOperationGetCapabilities, "DCP");
+		Element eOperationGetCapabilitiesHTTP = XmlUtil.addElement(eOperationGetCapabilitiesDCP, "HTTP");
+		Element eOperationGetCapabilitiesGet = XmlUtil.addElement(eOperationGetCapabilitiesHTTP, "Get");
+		eOperationGetCapabilitiesGet.setAttribute("xlink:href", requestUrl);
+		
+		Element eOperationDescribeFeatureType = XmlUtil.addElement(eOperationsMetadata, "Operation");
+		eOperationDescribeFeatureType.setAttribute("name", "DescribeFeatureType");
+		Element eOperationDescribeFeatureTypeDCP = XmlUtil.addElement(eOperationDescribeFeatureType, "DCP");
+		Element eOperationDescribeFeatureTypeHTTP = XmlUtil.addElement(eOperationDescribeFeatureTypeDCP, "HTTP");
+		Element eOperationDescribeFeatureTypeGet = XmlUtil.addElement(eOperationDescribeFeatureTypeHTTP, "Get");
+		eOperationDescribeFeatureTypeGet.setAttribute("xlink:href", requestUrl);
+		
+		Element eOperationGetFeature = XmlUtil.addElement(eOperationsMetadata, "Operation");
+		eOperationGetFeature.setAttribute("name", "GetFeature");
+		Element eOperationGetFeatureDCP = XmlUtil.addElement(eOperationGetFeature, "DCP");
+		Element eOperationGetFeatureHTTP = XmlUtil.addElement(eOperationGetFeatureDCP, "HTTP");
+		Element eOperationGetFeatureGet = XmlUtil.addElement(eOperationGetFeatureHTTP, "Get");
+		eOperationGetFeatureGet.setAttribute("xlink:href", requestUrl);
 	}
 
 	private void handle_DescribeFeatureType(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
@@ -150,6 +180,7 @@ public class PostgisHandler_wfs {
 		XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
 		xmlWriter.writeStartDocument();
 		xmlWriter.writeStartElement("wfs:FeatureCollection");
+		xmlWriter.writeDefaultNamespace("https://environmentalinformatics-marburg.github.io/rsdb");
 		xmlWriter.writeNamespace("wfs", "http://www.opengis.net/wfs");
 		xmlWriter.writeNamespace("gml", "http://www.opengis.net/gml");	
 		
