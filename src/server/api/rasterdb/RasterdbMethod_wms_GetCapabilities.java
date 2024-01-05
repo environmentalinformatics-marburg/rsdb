@@ -135,9 +135,7 @@ public class RasterdbMethod_wms_GetCapabilities {
 		eGetMapDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 		
 		Element eGetFeatureInfo = XmlUtil.addElement(eRootRequest, "GetFeatureInfo");
-		//XmlUtil.addElement(eGetFeatureInfo, "Format", "application/geo+json");
-		//XmlUtil.addElement(eGetFeatureInfo, "Format", "text/xml");
-		//XmlUtil.addElement(eGetFeatureInfo, "Format", "application/json");
+	    XmlUtil.addElement(eGetFeatureInfo, "Format", "text/xml");
 		XmlUtil.addElement(eGetFeatureInfo, "Format", "text/plain");
 		XmlUtil.addElement(eGetFeatureInfo, "Format", "text/html");
 		Element eGetFeatureInfoDCPType = XmlUtil.addElement(eGetFeatureInfo, "DCPType");

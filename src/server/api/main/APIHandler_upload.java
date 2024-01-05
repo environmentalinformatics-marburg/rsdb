@@ -11,7 +11,7 @@ import broker.Broker;
 import server.api.APIHandler;
 
 public class APIHandler_upload extends APIHandler {
-	//
+
 	private static final Path TEMP_PATH = Paths.get("temp/raster");
 
 	ChunkedUploader chunkedUploader = new ChunkedUploader(TEMP_PATH);
@@ -22,6 +22,6 @@ public class APIHandler_upload extends APIHandler {
 
 	@Override
 	protected void handle(String target, Request request, Response response) throws IOException {
-		chunkedUploader.handle(request, response, null);		
+		chunkedUploader.handle("raster", request, response, null);		
 	}	
 }

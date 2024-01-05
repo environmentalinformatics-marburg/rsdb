@@ -597,7 +597,7 @@ public class APIHandler_inspect extends APIHandler {
 			rasterdb = broker.getRasterdb(id);
 		}
 
-		ChunkedUpload chunkedUpload = chunkedUploader.map.get(fileID);
+		ChunkedUpload chunkedUpload = chunkedUploader.uploadMap.get(fileID);
 		Path path;
 		if(chunkedUpload == null) {
 			//throw new RuntimeException("file not found");

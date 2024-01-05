@@ -8,8 +8,8 @@
                 <v-card-title>
                     <div class="headline">Upload / Remove Files</div>
                 </v-card-title>
-                <v-card-text>
-                    <uploader :options="options" class="uploader-example" @file-success="fileFinished" ref="uploader">
+                <v-card-text v-if="!refreshing">
+                    <uploader :options="options" @file-success="fileFinished" ref="uploader">
                     <uploader-unsupport></uploader-unsupport>
                     <uploader-drop>
                         <p><b>Upload</b> (possibly multiple files at once) - Drop files here or</p>
@@ -76,6 +76,7 @@ export default {
             dialog: false,
             setError: false,
             setErrorMessage: undefined,
+            refreshing: false,
             remote_task_id: undefined,
             need_refresh_catalog_entry: false,
 
@@ -91,7 +92,21 @@ export default {
     methods: {
         
         refresh() {
-            this.options.target = this.$store.getters.apiUrl('vectordbs/' + this.meta.name + "/files");
+            this.refreshing = true; // workaround for not refreshing uploader
+            //console.log("admin-vectordb-dialog-files refresh");
+            this.$nextTick(() => { // workaround for not refreshing uploader
+                const options_target = this.$store.getters.apiUrl('vectordbs/' + this.meta.name + "/files");
+                //this.options.target = options_target; // not updated in uploader
+                this.options = { // copy set
+                    // https://github.com/simple-uploader/Uploader/tree/develop/samples/Node.js
+                    target: options_target,
+                    testChunks: false,
+                    chunkSize: 10*1024*1024,
+                    simultaneousUploads: 1,
+                };
+                //console.log("admin-vectordb-dialog-files refresh done");
+                this.refreshing = false; // workaround for not refreshing uploader
+            });
         },
 
         errorToText(error) {
@@ -176,6 +191,7 @@ export default {
     },
     watch: {
         meta() {
+            //console.log("admin-vectordb-dialog-files watch meta");
             this.refresh();
         },
         dialog() {

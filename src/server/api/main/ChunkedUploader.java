@@ -30,7 +30,7 @@ public class ChunkedUploader {
 	private static final int FILE_SIZE_THRESHOLD = 100*1024*1024;
 	private static final MultipartConfigElement MULTI_PART_CONFIG = new MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, FILE_SIZE_THRESHOLD);
 	
-	public ConcurrentHashMap<String, ChunkedUpload> map = new ConcurrentHashMap<String, ChunkedUpload>();
+	public ConcurrentHashMap<String, ChunkedUpload> uploadMap = new ConcurrentHashMap<String, ChunkedUpload>();
 	private Path root;
 	
 	public ChunkedUploader(Path root) {
@@ -39,6 +39,7 @@ public class ChunkedUploader {
 	
 	public static class ChunkedUpload {	
 		
+		public final String uploadID;
 		public final String filename;
 		public final Path path;
 		public final int chunkSize;
@@ -47,7 +48,8 @@ public class ChunkedUploader {
 		public final BitSet received;
 		public final RandomAccessFile raf;
 
-		public ChunkedUpload(Path root, String filename, int chunkSize, int totalChunks, long totalSize) throws IOException {
+		public ChunkedUpload(String uploadID, Path root, String filename, int chunkSize, int totalChunks, long totalSize) throws IOException {
+			this.uploadID = uploadID;
 			this.filename = filename;
 			this.path = root.resolve(filename);
 			this.chunkSize = chunkSize;
@@ -105,9 +107,15 @@ public class ChunkedUploader {
 		public synchronized boolean isFinished() {
 			return received.cardinality() == totalChunks;
 		}
+
+		@Override
+		public String toString() {
+			return "ChunkedUpload [uploadID=" + uploadID + ", filename=" + filename + ", path=" + path + ", chunkSize="
+					+ chunkSize + ", totalChunks=" + totalChunks + ", totalSize=" + totalSize + "]";
+		}
 	}
 	
-	public void handle(Request request, Response response, Consumer<ChunkedUpload> fileConsumer) throws IOException {
+	public void handle(String rootID, Request request, Response response, Consumer<ChunkedUpload> fileConsumer) throws IOException {
 		Logger.info(System.getProperty("java.io.tmpdir"));
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_TEXT);
@@ -173,24 +181,35 @@ public class ChunkedUploader {
 					Logger.info("unknown partName " + partName);
 				}
 			}
+			
+			if(filename == null) {
+				throw new RuntimeException("missuing chunk filename");	
+			}
+			
+			String uploadID = rootID + "/" + filename;
 
 			if(currentChunkSize != chunkData.length) {
-				map.remove(filename);
+				uploadMap.remove(uploadID);
 				throw new RuntimeException("chunk read error");	
 			}
 
-			ChunkedUpload chunkedUpload = map.get(filename);
-			if(chunkedUpload == null) {
-				chunkedUpload = new ChunkedUpload(root, filename, chunkSize, totalChunks, totalSize);
-				ChunkedUpload old = map.putIfAbsent(filename, chunkedUpload);
+			ChunkedUpload chunkedUpload = uploadMap.get(uploadID);
+			boolean existingChunk = chunkedUpload != null;
+			Logger.info("get " + uploadID + " -> " + chunkedUpload);
+			if(!existingChunk) {
+				chunkedUpload = new ChunkedUpload(uploadID, root, filename, chunkSize, totalChunks, totalSize);
+				ChunkedUpload old = uploadMap.putIfAbsent(uploadID, chunkedUpload);
 				if(old != null) {
 					chunkedUpload = old;
+					existingChunk = true;
 				}
-			} else {
-				if(!filename.equals(chunkedUpload.filename) || chunkSize != chunkedUpload.chunkSize || totalChunks != chunkedUpload.totalChunks || totalSize != chunkedUpload.totalSize) {
-					Logger.warn("same filename with different upload params, create new upload: " + filename);
-					chunkedUpload = new ChunkedUpload(root, filename, chunkSize, totalChunks, totalSize);
-					map.put(filename, chunkedUpload);
+			} 
+			
+			if(existingChunk){
+				if(!uploadID.equals(chunkedUpload.uploadID) || !filename.equals(chunkedUpload.filename) || chunkSize != chunkedUpload.chunkSize || totalChunks != chunkedUpload.totalChunks || totalSize != chunkedUpload.totalSize) {
+					Logger.warn("same uploadID with different upload params, create new upload: " + uploadID);
+					chunkedUpload = new ChunkedUpload(uploadID, root, filename, chunkSize, totalChunks, totalSize);
+					uploadMap.put(uploadID, chunkedUpload);
 				}
 			}
 			chunkedUpload.add(chunkNumber, chunkData);
@@ -200,6 +219,7 @@ public class ChunkedUploader {
 				if(fileConsumer != null) {
 					fileConsumer.accept(chunkedUpload);
 				}
+				uploadMap.remove(uploadID);
 			}
 
 		} catch (Exception e) {

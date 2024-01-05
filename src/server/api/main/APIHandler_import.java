@@ -44,7 +44,7 @@ public class APIHandler_import extends APIHandler {
 		JSONObject specification = json.getJSONObject("specification");
 		Logger.info(specification);
 		String filename = specification.getString("filename");
-		ChunkedUpload chunkedUpload = chunkedUploader.map.get(filename);
+		ChunkedUpload chunkedUpload = chunkedUploader.uploadMap.get(filename);
 		Path path;
 		if(chunkedUpload == null) {
 			//throw new RuntimeException("file not found");

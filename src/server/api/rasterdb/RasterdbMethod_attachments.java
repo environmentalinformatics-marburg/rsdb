@@ -97,7 +97,7 @@ public class RasterdbMethod_attachments extends RasterdbMethod {
 		Consumer<ChunkedUpload> fileConsumer = chunkedUpload -> {
 			synchronized (ChunkedUploader.GLOBAL_LOCK) {
 				try {
-					chunkedUploader.map.remove(chunkedUpload.filename);
+					chunkedUploader.uploadMap.remove(chunkedUpload.filename);
 					chunkedUpload.raf.close();
 					Path srcPath = chunkedUpload.path;					
 					Path root = rasterdb.config.getAttachmentFolderPath();
@@ -121,6 +121,6 @@ public class RasterdbMethod_attachments extends RasterdbMethod {
 			}		
 		};
 
-		chunkedUploader.handle(request, response, fileConsumer);		
+		chunkedUploader.handle("rasterdb/" + rasterdb.config.getName(), request, response, fileConsumer);		
 	}
 }

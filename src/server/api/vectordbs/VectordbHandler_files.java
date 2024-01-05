@@ -22,8 +22,7 @@ import util.Util;
 import util.Web;
 import vectordb.VectorDB;
 
-public class VectordbHandler_files extends VectordbHandler {
-	
+public class VectordbHandler_files extends VectordbHandler {	
 
 	private static final Path TEMP_PATH = Paths.get("temp/vector");
 
@@ -40,12 +39,13 @@ public class VectordbHandler_files extends VectordbHandler {
 		Consumer<ChunkedUpload> fileConsumer = chunkedUpload -> {
 			synchronized (ChunkedUploader.GLOBAL_LOCK) {
 				try {
-					chunkedUploader.map.remove(chunkedUpload.filename);
+					chunkedUploader.uploadMap.remove(chunkedUpload.filename);
 					chunkedUpload.raf.close();
 					Path srcPath = chunkedUpload.path;
 					Path dstPath = vectordb.getDataPath().resolve(chunkedUpload.filename);
 					Util.checkSafePath(srcPath);
 					Util.checkSafePath(dstPath);
+					Logger.info(chunkedUpload);
 					Logger.info("move " + srcPath +" -> " + dstPath);
 					Files.move(srcPath, dstPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 					vectordb.refreshDatatag();
@@ -63,7 +63,7 @@ public class VectordbHandler_files extends VectordbHandler {
 			}		
 		};
 
-		chunkedUploader.handle(request, response, fileConsumer);	
+		chunkedUploader.handle("vectordb/" + vectordb.getName(), request, response, fileConsumer);	
 	}
 	
 	@Override

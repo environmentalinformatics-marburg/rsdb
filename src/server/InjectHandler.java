@@ -27,6 +27,7 @@ public class InjectHandler extends AbstractHandler {
 			response.setHeader("X-Content-Type-Options", "nosniff");
 			if("127.0.0.1".equals(baseRequest.getRemoteAddr())  || "[0:0:0:0:0:0:0:1]".equals(baseRequest.getRemoteAddr())) {
 				response.setHeader("Access-Control-Allow-Origin", "*");
+				response.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, DELETE");
 				response.setHeader("Access-Control-Allow-Headers", "content-type");
 				if(baseRequest.getMethod().equals("OPTIONS")) {
 					baseRequest.setHandled(true);
