@@ -26,7 +26,7 @@ public class PolygonUtil {
 			throw new RuntimeException("null polygon");
 		}
 		if(polygon.length < 4) {
-			throw new RuntimeException("polygon needs at leat four points (first and last same point)  of " + polygon.length + " points");
+			throw new RuntimeException("polygon needs at least four points (first and last same point)  of " + polygon.length + " points");
 		}
 		/*if(!polygon[0].equals(polygon[polygon.length-1])) {
 			throw new RuntimeException("fist and last point need to be same of " + polygon.length + " points");
@@ -348,7 +348,7 @@ public class PolygonUtil {
 
 		public PolygonWithHoles(Point2d[] polygon, Point2d[] ...holes) {
 			this.polygon = polygon;
-			this.holes = holes;
+			this.holes = holes; // nullable
 		}
 
 		public boolean hasHoles() {

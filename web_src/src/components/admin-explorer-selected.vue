@@ -12,7 +12,7 @@
         <v-data-table :headers="tableHeaders" :items="entries" class="meta-content" :pagination.sync="pagination" :custom-sort="sortFunc" hide-actions>
             <template slot="items" slot-scope="props">
                 <td><v-icon style="user-select: none;" :title="props.item.type">{{getIcon(props.item)}}</v-icon><a v-if="getMapLink(props.item) !== undefined" :href="getMapLink(props.item)" title="view on map" target="_blank"><v-icon style="user-select: none; color:blue;">zoom_in</v-icon></a></td>
-                <td><a v-if="getLink(props.item) !== undefined" :href="getLink(props.item)" title="view details" target="_blank">{{props.item.name}}</a></td>
+                <td><a v-if="getLink(props.item) !== undefined" :href="getLink(props.item)" title="view details" target="_blank">{{props.item.name}}</a><span v-else>{{props.item.name}}</span></td>
                 <td>{{props.item.title !== undefined ? props.item.title : ''}}</td>
                 <td>{{props.item.description}}</td>
             </template>
@@ -51,6 +51,7 @@ export default {
               case 'PointDB': return 'blur_on';
               case 'pointcloud': return 'grain';
               case 'vectordb': return 'category';
+              case 'postgis': return 'category';
               default: return 'device_unknown';
           }
       },
@@ -60,6 +61,7 @@ export default {
               case 'PointDB': return '#/layers/pointdbs/' + entry.name;
               case 'pointcloud': return '#/layers/pointclouds/' + entry.name;
               case 'vectordb': return '#/layers/vectordbs/' + entry.name;
+              case 'postgis': return '#/layers/postgis/' + entry.name;
               default: return undefined;
           }
       },
@@ -69,6 +71,7 @@ export default {
               case 'PointDB': return entry.associated !== undefined && entry.associated.rasterdb !== undefined ? '#/viewer/' + entry.associated.rasterdb : undefined;
               case 'pointcloud': return entry.associated !== undefined && entry.associated.rasterdb !== undefined ? '#/viewer/' + entry.associated.rasterdb : undefined;
               case 'vectordb': return '#/vectorviewer/' + entry.name;
+              case 'postgis': return this.$store.getters.apiUrl('web/app/#/?postgis=' + entry.name);
               default: return undefined;
           }
       },

@@ -13,6 +13,7 @@ import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.InformalProperties;
+import broker.StructuredAccess;
 import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
@@ -191,11 +192,16 @@ public class APIHandler_postgis_layer {
 			postgisLayer.getStyleProvider().writeJson(json);
 		}
 
+		json.key("structured_access");		
+		postgisLayer.getStructuredAccess().writeJSON(json);
+
 		json.endObject();
 	}
 
 	private void handlePOST(PostgisLayer postgisLayer, Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
 		boolean updateCatalog = false;
+		boolean refreshPoiGroups = false;
+		boolean refreshRoiGroups = false;
 		try {
 			JSONObject meta = new JSONObject(Web.requestContentToString(request));
 			Iterator<String> it = meta.keys();
@@ -286,7 +292,16 @@ public class APIHandler_postgis_layer {
 					informal.properties = properties;
 					postgisLayer.setInformal(informal.build());
 					break;
-				}					
+				}
+				case "structured_access": {
+					JSONObject st = meta.getJSONObject("structured_access");
+					StructuredAccess structuredAccess = StructuredAccess.parseJSON(st);
+					postgisLayer.setStructuredAccess(structuredAccess);
+					updateCatalog = true;
+					refreshPoiGroups = true;
+					refreshRoiGroups = true;
+					break;
+				}				
 				default: throw new RuntimeException("unknown key: "+key);
 				}
 			}
@@ -304,7 +319,13 @@ public class APIHandler_postgis_layer {
 			response.getWriter().append(e.toString());
 		} finally {
 			if(updateCatalog) {
-				//broker.catalog.update(postgisLayer);
+				broker.catalog.update(postgisLayer, false);
+			}
+			if(refreshPoiGroups) {
+				broker.refreshPoiGroupMap();
+			}
+			if(refreshRoiGroups) {
+				broker.refreshRoiGroupMap();
 			}
 		}
 	}

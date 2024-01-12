@@ -1,11 +1,18 @@
 package broker;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import util.yaml.YamlMap;
+
 public class StructuredAccess {	
+	
+	public static final StructuredAccess DEFAULT = new StructuredAccess(false, false);
+	
 	public final boolean poi;
 	public final boolean roi;
 
@@ -27,6 +34,19 @@ public class StructuredAccess {
 		json.key("roi");
 		json.value(roi);
 		json.endObject();
+	}
+	
+	public static StructuredAccess ofYaml(YamlMap yamlMap) {
+		boolean structured_access_poi = yamlMap.optBoolean("poi", false);
+		boolean structured_access_roi = yamlMap.optBoolean("roi", false);
+		return new StructuredAccess(structured_access_poi, structured_access_roi);
+	}
+	
+	public Map<String, Object> toYaml() {
+		LinkedHashMap<String, Object> yamlMap = new LinkedHashMap<String, Object>();
+		yamlMap.put("poi", poi);
+		yamlMap.put("roi", roi);		
+		return yamlMap;		
 	}
 	
 	@Override

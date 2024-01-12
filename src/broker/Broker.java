@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 
 import broker.acl.ACL;
@@ -33,10 +34,14 @@ import pointcloud.PointCloudConfig;
 import pointdb.PdbException;
 import pointdb.PointDB;
 import pointdb.base.PointdbConfig;
+import postgis.PostgisLayer;
 import postgis.PostgisLayerManager;
+import postgis.PostgisPOIcreator;
+import postgis.PostgisROIcreator;
 import rasterdb.RasterDB;
 import rasterdb.RasterdbConfig;
 import server.api.vectordbs.VectordbDetails;
+import util.GeoUtil;
 import util.Timer;
 import util.Util;
 import util.collections.vec.Vec;
@@ -145,6 +150,30 @@ public class Broker implements AutoCloseable {
 				Logger.warn(e.getMessage());
 			}
 		});
+		
+		catalog.getSorted(CatalogKey.TYPE_POSTGIS, null)
+		.filter(entry -> entry.structuredAccess != null && entry.structuredAccess.poi)
+		.forEachOrdered(entry -> {
+			try {
+				PostgisLayer postgis = this.postgisLayerManager().getPostgisLayer(entry.name);
+				Vec<String> messages = new Vec<String>();
+				Poi[] pois = PostgisPOIcreator.create(postgis, messages).toArray(Poi[]::new);
+				ACL acl_read = AclUtil.union(postgis.getACL_owner(), postgis.getACL_mod(), postgis.getACL());
+				int epsg = postgis.getEPSG();
+				String proj4 = "";
+				SpatialReference sr = GeoUtil.getSpatialReference(postgis.getEPSG());
+				if(sr != null) {
+					proj4 = sr.ExportToProj4();
+					if(proj4 == null) {
+						proj4 = "";
+					}
+				}
+				PoiGroup poiGroup = new PoiGroup(postgis.name, postgis.informal(), acl_read, "EPSG:" + epsg, proj4, messages, pois);
+				map.put(poiGroup.name, poiGroup);
+			} catch(Exception e) {
+				Logger.warn(e.getMessage());
+			}
+		});
 
 		poiGroupMap = map;
 	}
@@ -171,6 +200,30 @@ public class Broker implements AutoCloseable {
 				ACL acl_read = AclUtil.union(vectordb.getACL_owner(), vectordb.getACL_mod(), vectordb.getACL());
 				VectordbDetails details = vectordb.getDetails();
 				RoiGroup roiGroup = new RoiGroup(vectordb.getName(), vectordb.informal(), acl_read, details.epsg, details.proj4, messages, rois);
+				map.put(roiGroup.name, roiGroup);
+			} catch(Exception e) {
+				Logger.warn(e.getMessage());
+			}
+		});
+		
+		catalog.getSorted(CatalogKey.TYPE_POSTGIS, null)
+		.filter(entry -> entry.structuredAccess != null && entry.structuredAccess.poi)
+		.forEachOrdered(entry -> {
+			try {
+				PostgisLayer postgis = this.postgisLayerManager().getPostgisLayer(entry.name);
+				Vec<String> messages = new Vec<String>();
+				Roi[] rois = PostgisROIcreator.create(postgis, messages).toArray(Roi[]::new);
+				ACL acl_read = AclUtil.union(postgis.getACL_owner(), postgis.getACL_mod(), postgis.getACL());
+				int epsg = postgis.getEPSG();
+				String proj4 = "";
+				SpatialReference sr = GeoUtil.getSpatialReference(postgis.getEPSG());
+				if(sr != null) {
+					proj4 = sr.ExportToProj4();
+					if(proj4 == null) {
+						proj4 = "";
+					}
+				}
+				RoiGroup roiGroup = new RoiGroup(postgis.name, postgis.informal(), acl_read, "EPSG:" + epsg, proj4, messages, rois);
 				map.put(roiGroup.name, roiGroup);
 			} catch(Exception e) {
 				Logger.warn(e.getMessage());

@@ -63,7 +63,6 @@
                         </td>
                     </tr>
                 </table>
-                <admin-vectordb-dialog-data-table :meta="meta" @changed="refresh" />
             </div>
 
             <v-divider class="meta-divider"></v-divider>  
@@ -121,6 +120,15 @@
                 </table>
             </div>
 
+            <div v-if="modify">
+            <v-divider class="meta-divider"></v-divider>
+            <h3 class="subheading mb-0"> 
+                Administration
+            </h3>
+            <div class="meta-content">                
+                <admin-postgis-structured-access :meta="meta" @changed="refresh(); $store.dispatch('poi_groups/refresh'); $store.dispatch('roi_groups/refresh');" v-if="modify" />
+            </div>
+        </div>
 
             <v-divider class="meta-divider"></v-divider>
             <h3 class="subheading mb-0" v-if="meta.style !== undefined"> 
@@ -197,19 +205,24 @@ function copyTextToClipboard(text) {
 }
 
 import { mapState, mapGetters } from 'vuex'
+import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
+
 import axios from 'axios'
+
 import dialogSetInfo from './dialog-set-info.vue'
 import boxInfo from './box-info.vue'
 import adminPostgisDialogSetAcl from './admin-postgis-dialog-set-acl.vue'
-import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
+import adminPostgisStructuredAccess from './admin-postgis-structured-access'
+
 
 export default {
     name: 'admin-postgis-detail',
     components: {
+        PulseLoader, 
         'dialog-set-info': dialogSetInfo,
         'box-info': boxInfo,
-        'admin-postgis-dialog-set-acl': adminPostgisDialogSetAcl,        
-        PulseLoader,        
+        'admin-postgis-dialog-set-acl': adminPostgisDialogSetAcl,
+        'admin-postgis-structured-access': adminPostgisStructuredAccess,              
     },
     props: ['postgis'],
     data() {

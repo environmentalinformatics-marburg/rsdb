@@ -26,6 +26,7 @@ import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import broker.Informal;
+import broker.StructuredAccess;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
 import broker.acl.EmptyACL;
@@ -66,6 +67,8 @@ public class PostgisLayer extends PostgisLayerBase {
 	private final File metaFileTemp;
 
 	private StyleProvider styleProvider = StyleProviderFactory.DEFAULT_STYLE_PROVIDER;
+	
+	private StructuredAccess structuredAccess = StructuredAccess.DEFAULT;
 
 	public static class PostgisColumn {
 
@@ -257,7 +260,8 @@ public class PostgisLayer extends PostgisLayerBase {
 			class_fields = yamlMap.optList("class_attributes").asReadonlyStrings(); // legacy
 		}
 		YamlMap styleMap = yamlMap.optMap("style");
-		styleProvider = StyleProviderFactory.ofYaml(styleMap);
+		styleProvider = StyleProviderFactory.ofYaml(styleMap);		
+		structuredAccess = StructuredAccess.ofYaml(yamlMap.optMap("structured_access"));		
 	}
 
 	private synchronized void metaToYaml(LinkedHashMap<String, Object> map) {
@@ -269,7 +273,8 @@ public class PostgisLayer extends PostgisLayerBase {
 		map.put("class_attributes", class_fields);
 		if(styleProvider != StyleProviderFactory.DEFAULT_STYLE_PROVIDER) {
 			map.put("style", styleProvider.toYaml());
-		}
+		}		
+		map.put("structured_access", structuredAccess.toYaml());
 	}
 
 	public ACL getACL() {
@@ -906,5 +911,14 @@ public class PostgisLayer extends PostgisLayerBase {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public StructuredAccess getStructuredAccess() {
+		return structuredAccess;
+	}
+
+	public void setStructuredAccess(StructuredAccess structuredAccess) {
+		this.structuredAccess = structuredAccess;
+		writeMeta();
 	}
 }

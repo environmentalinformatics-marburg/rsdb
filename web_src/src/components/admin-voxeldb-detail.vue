@@ -239,10 +239,9 @@
 
             <v-divider class="meta-divider"></v-divider>
             <h3 class="subheading mb-0"> 
-                Actions
+                Administration
             </h3>            
             <div class="meta-content" v-if="modify">
-                <b>Manage: </b>
                 <a href="#/tools/task"> at 'tools'-tab - 'task creation' (e.g. <b>layer renaming</b>)</a>
                 <br><br>
                 <admin-voxeldb-dialog-delete :meta="meta" @changed="refresh" />

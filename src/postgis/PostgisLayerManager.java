@@ -5,6 +5,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.NavigableSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
@@ -96,6 +97,10 @@ public class PostgisLayerManager {
 		} catch (Exception e) {
 			Logger.error(e);
 		}
+	}
+	
+	public NavigableSet<String> getNames() {
+		return postgisLayerConfigMap.keySet();
 	}
 	
 	public void forEach(UserIdentity userIdentity, Consumer<PostgisLayerBase> consumer) {

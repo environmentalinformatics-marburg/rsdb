@@ -44,6 +44,10 @@ public class PostgisLayerConfig extends PostgisLayerBase {
 
 	@Override
 	public boolean isAllowed(UserIdentity userIdentity) {
+		if(userIdentity == null) {
+			return true;
+		}
+		
 		if(this.map == null) {
 			File file = metaPath.toFile();
 			try {

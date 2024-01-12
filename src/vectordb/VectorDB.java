@@ -1079,7 +1079,7 @@ public class VectorDB {
 			break;
 		}
 		default: {
-			messages.add("Skip ROI: unknown geometry type " + geometryType + "  in " + getName() + " : " + name);
+			messages.add("Skip POI: unknown geometry type " + geometryType + "  in " + getName() + " : " + name);
 		}
 		}
 	}

@@ -254,7 +254,7 @@
 
             <v-divider class="meta-divider"></v-divider> 
             <h3 class="subheading mb-0"> 
-                Applications
+                Accessibility
             </h3>
             <div class="meta-content">
                 <admin-rasterdb-dialog-wms :meta="meta" @changed="refresh" />
@@ -264,10 +264,9 @@
 
             <v-divider class="meta-divider"></v-divider>
             <h3 class="subheading mb-0"> 
-                Actions
+                Administration
             </h3>            
             <div class="meta-content" v-if="modify">                
-                <b>Manage:</b>
                 <admin-rasterdb-bands :meta="meta" @changed="refresh" />
                 <admin-rasterdb-dialog-remove-timestamps :meta="meta" @changed="refresh" />
                 <admin-rasterdb-dialog-custom_wms :meta="meta" @changed="refresh" />

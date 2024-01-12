@@ -110,7 +110,7 @@
 
         <v-divider class="meta-divider"></v-divider> 
         <h3 class="subheading mb-0"> 
-            Applications
+            Accessibility
         </h3>
         <div class="meta-content">
             <admin-vectordb-dialog-wfs :meta="meta" @changed="refresh" />
@@ -120,10 +120,9 @@
         <div v-if="modify">
             <v-divider class="meta-divider"></v-divider>        
             <h3 class="subheading mb-0"> 
-                Actions
+                Administration
             </h3>
             <div class="meta-content">
-                <b>Manage:</b>
                 <admin-vectordb-dialog-files :meta="meta" @changed="refresh" v-if="modify" />                
                 <admin-vectordb-attributes :meta="meta" @changed="refresh" v-if="modify" />                
                 <admin-vectordb-structured-access :meta="meta" @changed="refresh(); $store.dispatch('poi_groups/refresh'); $store.dispatch('roi_groups/refresh');" v-if="modify" />

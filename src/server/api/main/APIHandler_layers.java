@@ -97,6 +97,15 @@ public class APIHandler_layers extends APIHandler {
 			json.value("vectordb");
 			json.endObject();
 		});
+		
+		/*broker.catalog.getSorted(userIdentity).forEach(entry -> {
+			json.object();
+			json.key("name");
+			json.value(entry.name);
+			json.key("type");
+			json.value(entry.type.toLowerCase());
+			json.endObject();
+		});*/
 
 		postgisLayerManager.forEach(userIdentity, postgisLayerBase -> {
 			json.object();

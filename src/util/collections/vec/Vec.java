@@ -228,6 +228,12 @@ public class Vec<T> implements List<T> {
 		System.arraycopy(items, 0, newItems, 0, len);
 		items = newItems;
 	}
+	
+	public void addAll(T[] c) {
+		for (T e : c) {
+			add(e);
+		}
+	}
 
 
 	@Override

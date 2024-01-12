@@ -156,5 +156,11 @@ public class Task_import extends CancelableRemoteProxyTask {
 		setMessage("finished. imported files " + importer.file_counter + ",   erroneous files " + importer.file_error_counter);
 		pointcloud.getGriddb().storage().flush();
 		setMessage("finished import");
+		boolean update_catalog = true;
+		if(update_catalog) {
+			setMessage("update catalog");
+			broker.catalog.updateCatalog();
+		}
+		setMessage("finished");
 	}
 }

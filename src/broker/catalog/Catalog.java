@@ -29,8 +29,13 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 import org.locationtech.jts.algorithm.ConvexHull;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
 import broker.Associated;
@@ -44,17 +49,20 @@ import pointcloud.P2d;
 import pointcloud.PointCloud;
 import pointdb.PointDB;
 import pointdb.base.PdbConst;
+import postgis.InterfaceDecomposeMultiJtsGeometryConsumer;
+import postgis.PostgisLayer;
 import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.tile.TilePixel;
 import rasterunit.TileKey;
 import util.Range2d;
 import util.Timer;
+import util.collections.vec.Vec;
 import vectordb.VectorDB;
 import voxeldb.VoxelDB;
 
 public class Catalog {
-	
+
 
 	private static final Path CATALOG_FILENAME = Paths.get("catalog/catalog.json");
 	private static final String CATALOG_TEMP_PREFIX = "catalog/catalog_temp";
@@ -352,6 +360,67 @@ public class Catalog {
 		}
 	}
 
+	private static class PointCollector implements InterfaceDecomposeMultiJtsGeometryConsumer {
+
+		public Vec<Coordinate> vec = new Vec<Coordinate>();
+
+		@Override
+		public void acceptPolygon(Polygon polygon) {
+			addSequence(polygon.getExteriorRing().getCoordinateSequence());
+
+		}
+
+		@Override
+		public void acceptLineString(LineString lineString) {
+			addSequence(lineString.getCoordinateSequence());
+
+		}
+
+		@Override
+		public void acceptLinearRing(LinearRing linearRing) {
+			addSequence(linearRing.getCoordinateSequence());			
+		}
+
+		@Override
+		public void acceptPoint(Point point) {
+			vec.add(point.getCoordinate());			
+		}
+
+		private void addSequence(CoordinateSequence coordinateSequence) {
+			int n = coordinateSequence.size();
+			for (int i = 0; i < n; i++) {
+				vec.add(coordinateSequence.getCoordinate(i));				
+			}
+		}
+	}
+
+	private CatalogEntry generateCatalogEntryPostgis(PostgisLayer postgis, boolean generateHull) {		
+		if(postgis == null) {
+			return null;
+		}
+		Logger.info("generateCatalogEntryPostgis " + postgis.name);
+		ACL acl_ownermod = AclUtil.union(postgis.getACL_owner(), postgis.getACL_mod());
+		try {
+			double[][] points = null;
+			if(generateHull) {
+				Logger.info("generateCatalogEntryPostgis generateHull " + postgis.name);
+				String wkt = postgis.getWKT_SRS();				
+				SpatialReference src = new SpatialReference("");
+				src.ImportFromWkt(wkt);				
+				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);				
+				PointCollector pointCollector = new PointCollector();				
+				postgis.forEachJtsGeometry(null, false, null, pointCollector);
+				points = generateConvexHullPoints(pointCollector.vec.toArray(Coordinate[]::new));
+				ct.TransformPoints(points);
+			}
+			return generateCatalogEntry(postgis.name, CatalogKey.TYPE_POSTGIS, points, null, postgis.getACL(), acl_ownermod, postgis.informal(), postgis.getStructuredAccess());
+		} catch(Exception e) {
+			e.printStackTrace();
+			Logger.warn(e);
+			return generateCatalogEntry(postgis.name, CatalogKey.TYPE_POSTGIS, null, null, postgis.getACL(), acl_ownermod, postgis.informal(), postgis.getStructuredAccess());
+		}
+	}
+
 
 	public CatalogEntry generateCatalogEntry(String name, String type, double[][] points, Associated associated, ACL acl, ACL acl_mod, Informal informal, StructuredAccess structuredAccess) {
 
@@ -472,7 +541,7 @@ public class Catalog {
 			switch(catalogEntry.type) {
 			case CatalogKey.TYPE_RASTERDB: {
 				if(!broker.getRasterdbNames().contains(catalogEntry.name)) {
-					Logger.warn("remove missing RasterDB: "+catalogEntry);
+					Logger.warn("remove missing RasterDB: " + catalogEntry);
 					it.remove();
 					changed = true;
 				}
@@ -480,7 +549,7 @@ public class Catalog {
 			}
 			case CatalogKey.TYPE_POINTDB: {
 				if(!broker.brokerConfig.pointdbMap().containsKey(catalogEntry.name)) {
-					Logger.warn("remove missing PointDB: "+catalogEntry);
+					Logger.warn("remove missing PointDB: " + catalogEntry);
 					it.remove();
 					changed = true;
 				}
@@ -488,7 +557,7 @@ public class Catalog {
 			}
 			case CatalogKey.TYPE_POINTCLOUD: {
 				if(!broker.getPointCloudNames().contains(catalogEntry.name)) {
-					Logger.warn("remove missing pointcloud: "+catalogEntry);
+					Logger.warn("remove missing pointcloud: " + catalogEntry);
 					it.remove();
 					changed = true;
 				}
@@ -496,14 +565,22 @@ public class Catalog {
 			}
 			case CatalogKey.TYPE_VECTORDB: {
 				if(!broker.getVectordbNames().contains(catalogEntry.name)) {
-					Logger.warn("remove missing VectorDB: "+catalogEntry);
+					Logger.warn("remove missing VectorDB: " + catalogEntry);
+					it.remove();
+					changed = true;
+				}
+				break;
+			}
+			case CatalogKey.TYPE_POSTGIS: {
+				if(!broker.postgisLayerManager().getNames().contains(catalogEntry.name)) {
+					Logger.warn("remove missing PostGIS: " + catalogEntry);
 					it.remove();
 					changed = true;
 				}
 				break;
 			}
 			default: {
-				Logger.warn("remove unknown type: "+catalogEntry);
+				Logger.warn("remove unknown type: " + catalogEntry);
 				it.remove();
 				changed = true;
 			}
@@ -560,6 +637,21 @@ public class Catalog {
 				try {
 					VectorDB vectordb = broker.getVectorDB(name);
 					CatalogEntry catalogEntry = generateCatalogEntryVectordb(vectordb, true);
+					if(catalogEntry != null) {
+						map.put(catalogEntry.toKey(), catalogEntry);
+						changed = true;
+					}
+				} catch(Exception e) {
+					Logger.error(e);
+				}
+			}
+		}
+
+		for(String name : broker.postgisLayerManager().getNames()) {
+			if(!map.containsKey(new CatalogKey(name, CatalogKey.TYPE_POSTGIS))) {
+				try {
+					PostgisLayer postgis = broker.postgisLayerManager().getPostgisLayer(name);
+					CatalogEntry catalogEntry = generateCatalogEntryPostgis(postgis, true);
 					if(catalogEntry != null) {
 						map.put(catalogEntry.toKey(), catalogEntry);
 						changed = true;
@@ -629,7 +721,7 @@ public class Catalog {
 			Logger.warn(e);
 		}
 	}
-	
+
 	public void collectRoles(Set<String> roles) {
 		for(CatalogEntry e:map.values()) {
 			e.acl.collectRoles(roles);
@@ -662,7 +754,7 @@ public class Catalog {
 						}
 						insertTag = insertTag.substring(0, sepIndex);
 					}
-					
+
 				}
 			}
 		}
@@ -732,6 +824,23 @@ public class Catalog {
 			update(genCatalogEntry);
 		}
 	}
+	
+	public void update(PostgisLayer postgisLayer, boolean updateHull) {
+		Logger.info("update catalog entry postgis " + postgisLayer.name);
+		CatalogKey catalogKey = new CatalogKey(postgisLayer.name, CatalogKey.TYPE_POSTGIS);
+		CatalogEntry oldCatalogEntry = map.get(catalogKey);
+		CatalogEntry genCatalogEntry;
+		if(oldCatalogEntry == null || updateHull) {
+			genCatalogEntry = generateCatalogEntryPostgis(postgisLayer, true);
+		} else {
+			genCatalogEntry = generateCatalogEntryPostgis(postgisLayer, false);
+			genCatalogEntry = CatalogEntry.of(genCatalogEntry, oldCatalogEntry.points);
+		}
+		if(!genCatalogEntry.equals(oldCatalogEntry)) {
+			Logger.info("update");
+			update(genCatalogEntry);
+		}
+	}
 
 	public synchronized void update(CatalogEntry catalogEntry) {
 		Map<CatalogKey, CatalogEntry> map = new LinkedHashMap<>(this.map);
@@ -748,6 +857,10 @@ public class Catalog {
 		}		
 	};
 
+	public Stream<CatalogEntry> getSorted(UserIdentity userIdentity) {
+		return map.values().stream().sorted(CATALOG_ENTRY_COMPARATOR);
+	}
+
 	public Stream<CatalogEntry> getSorted(String type, UserIdentity userIdentity) {
 		return map.keySet().stream()
 				.filter(key -> key.type.equals(type))
@@ -758,6 +871,6 @@ public class Catalog {
 
 	public void update(VoxelDB voxeldb, boolean updateCatalogPoints) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

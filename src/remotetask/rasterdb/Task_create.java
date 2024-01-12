@@ -143,6 +143,12 @@ public class Task_create extends RemoteTask {
 		String proj4 = task.optString("proj4");
 		if(proj4 != null) {
 			rasterdb.setProj4(proj4);
-		}		
+		}
+		
+		boolean update_catalog = true;
+		if(update_catalog) {
+			setMessage("update catalog");
+			broker.catalog.updateCatalog();
+		}
 	}
 }

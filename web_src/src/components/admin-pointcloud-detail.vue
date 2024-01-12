@@ -233,7 +233,7 @@
 
                         <v-divider class="meta-divider"></v-divider>
             <h3 class="subheading mb-0"> 
-                Actions
+                Administration
             </h3>            
             <div class="meta-content" v-if="modify">
                 <b>Manage: </b>
