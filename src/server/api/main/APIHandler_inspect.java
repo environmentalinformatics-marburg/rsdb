@@ -34,7 +34,7 @@ import util.Web;
 import util.raster.GdalReader;
 
 public class APIHandler_inspect extends APIHandler {
-	
+
 
 	private final ChunkedUploader chunkedUploader;
 
@@ -264,13 +264,21 @@ public class APIHandler_inspect extends APIHandler {
 		if(layerBandIndices != null && layerBandIndices.length < cnt) {
 			cnt = layerBandIndices.length;
 		}
-		
+
 		if(timesliceNames != null) {
 			if(layerBandIndices == null) {
 				throw new RuntimeException("IF timesliceNames != null ==> layerBandIndices != null");				
 			}
 			if(timesliceNames.length != layerBandIndices.length) {
-				throw new RuntimeException("timesliceNames need to be of same length as layerBandIndices");
+				if(timesliceNames.length == 1 && layerBandIndices.length > 0) {
+					String[] tn = new String[layerBandIndices.length];
+					for (int i = 0; i < layerBandIndices.length; i++) {
+						tn[i] = timesliceNames[0];
+					}
+					timesliceNames = tn;
+				} else {
+					throw new RuntimeException("timesliceNames need to be one entry (for all bands) or of same length as layerBandIndices");
+				}
 			}
 		}
 
@@ -370,7 +378,7 @@ public class APIHandler_inspect extends APIHandler {
 				json.key("value_offset");
 				json.value(bandValueOffset);
 			}
-			
+
 			boolean hasValueDerivation = hasBandValueScale || hasBandValueOffset;
 
 			json.key("rastedb_band_data_type");
@@ -436,11 +444,11 @@ public class APIHandler_inspect extends APIHandler {
 			Double[] noDataValueHolder = new Double[1];
 			gdalRasterBand.GetNoDataValue(noDataValueHolder);
 			json.value(noDataValueHolder[0] != null ? noDataValueHolder[0].toString() : "");
-			
+
 
 			json.key("timestamp");
 			json.value("");
-			
+
 			if(timesliceNames != null) {
 				String timesliceName = timesliceNames[i];
 				json.key("time_slice");

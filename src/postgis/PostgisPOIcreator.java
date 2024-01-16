@@ -1,6 +1,6 @@
 package postgis;
 
-import java.util.HashSet;
+import java.util.TreeSet;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -18,13 +18,13 @@ import postgis.PostgisLayer.ObjectJtsGeometryConsumer;
 import util.collections.vec.Vec;
 
 public class PostgisPOIcreator {
-	
+
 	public static class POIjtsGeometryConsumer implements InterfaceJtsGeometryConsumer, ObjectJtsGeometryConsumer {
-		
+
 		public Vec<Poi> pois = new Vec<Poi>();
-		HashSet<String> poiNames = new HashSet<String>();
-		Vec<String> messages;
-		
+		private UniqueNameGenerator uniqueNameGenerator = new UniqueNameGenerator();
+		private Vec<String> messages;
+
 		protected String currentPoiName = null; // nullable
 
 		public POIjtsGeometryConsumer(Vec<String> messages) {
@@ -77,16 +77,9 @@ public class PostgisPOIcreator {
 				messages.add("Skip POI: no point: Multiple geometries");
 			}			
 		}
-		
+
 		private String createUniqueName() {
-			String orgName = currentPoiName == null || currentPoiName.isBlank() ? "poi" : currentPoiName;
-			String name = orgName;
-			int nameIndex = 1;
-			while(poiNames.contains(name)) {
-				name = orgName + "_" + (++nameIndex);
-			}
-			poiNames.add(name);
-			return name;
+			return uniqueNameGenerator.createUniqueName(currentPoiName, "poi");
 		}
 
 		@Override
@@ -95,11 +88,24 @@ public class PostgisPOIcreator {
 			accept(geometry);
 		}
 	}
-	
+
 	public static Vec<Poi> create(PostgisLayer postgisLayer, Vec<String> messages) {
 		POIjtsGeometryConsumer poijtsGeometryConsumer = new POIjtsGeometryConsumer(messages);
-		postgisLayer.forEachJtsGeometry(null, false, null, poijtsGeometryConsumer);
+		TreeSet<String> geoTypes = new TreeSet<String>(postgisLayer.getGeometryTypes());
+		if(geoTypes.contains("Point") || geoTypes.contains("MultiPoint") || geoTypes.contains("GeometryCollection")) {
+			try {
+				String nameField = postgisLayer.getNameField();
+				if(nameField.isBlank()) {
+					postgisLayer.forEachJtsGeometry(null, false, null, poijtsGeometryConsumer);
+				} else {
+					postgisLayer.forEachObjectJtsGeometry(null, false, nameField, poijtsGeometryConsumer);
+				}		
+			} catch(Exception e) {
+				messages.add("Skip POIs: " + e.getMessage());
+			}
+		} else {
+			messages.add("Skip POIs: no point geometries: " + geoTypes);			
+		}
 		return poijtsGeometryConsumer.pois;
 	}
-
 }

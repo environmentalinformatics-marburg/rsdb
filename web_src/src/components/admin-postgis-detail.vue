@@ -40,14 +40,14 @@
             </h3>
             <div class="meta-content">
                 <table style="border-spacing: 4px;">
-                    <tr><td><b>EPSG:</b></td><td>{{meta.epsg}}</td></tr>   
-                    <tr><td><b>Extent:</b></td><td v-if="meta.extent !== undefined">{{meta.extent.xmin.toPrecision(8)}}<b>,</b> {{meta.extent.ymin.toPrecision(8)}} <b>-</b> {{meta.extent.xmax.toPrecision(8)}}<b>,</b> {{meta.extent.ymax.toPrecision(8)}}</td></tr>             
-                    <tr  v-if="meta.item_count !== undefined"><td><b>Features:</b></td><td>{{meta.item_count}}</td></tr>  
-                    <tr v-if="meta.geometry_types !== undefined">
-                        <td><b>Geometry type:</b></td>
-                        <td style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.geometry_types" :key="name"><span>{{name}}</span></span></td>
-                    </tr>
-                    <tr><td><b>Geometry field:</b></td><td><span class="geo_field">{{meta.geometry_field}}</span></td></tr>   
+                    <tr>
+                        <td><b>Fields:</b></td>
+                        <td  style="padding-right: 400px;">
+                            <span v-if="meta.fields.length > 0" style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.fields" :key="name"><span :class="isClass_field(name) ? 'class_field' : isName_field(name) ? 'name_field' : 'field'">{{name}}</span></span></span>
+                            <span v-else>(none)</span>
+                        </td>
+                    </tr>                    
+                    <tr><td><b>Name field:</b></td><td><span class="name_field">{{meta.name_field}}</span></td></tr>  
                     <tr>
                         <td><b>Class fields:</b></td>
                         <td>
@@ -55,13 +55,14 @@
                             <span v-else>(none)</span>
                         </td>
                     </tr>                    
-                    <tr>
-                        <td><b>Fields:</b></td>
-                        <td  style="padding-right: 400px;">
-                            <span v-if="meta.fields.length > 0" style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.fields" :key="name"><span :class="isclass_field(name) ? 'class_field' : 'field'">{{name}}</span></span></span>
-                            <span v-else>(none)</span>
-                        </td>
+                    <tr><td><b>Geometry field:</b></td><td><span class="geo_field">{{meta.geometry_field}}</span></td></tr>
+                    <tr v-if="meta.geometry_types !== undefined">
+                        <td><b>Geometry type:</b></td>
+                        <td style="display: flex; flex-wrap: wrap; gap: 10px;"><span v-for="name in meta.geometry_types" :key="name"><span>{{name}}</span></span></td>
                     </tr>
+                    <tr  v-if="meta.item_count !== undefined"><td><b>Features:</b></td><td>{{meta.item_count}}</td></tr>  
+                    <tr><td><b>EPSG:</b></td><td>{{meta.epsg}}</td></tr>
+                    <tr><td><b>Extent:</b></td><td v-if="meta.extent !== undefined">{{meta.extent.xmin.toPrecision(8)}}<b>,</b> {{meta.extent.ymin.toPrecision(8)}} <b>-</b> {{meta.extent.xmax.toPrecision(8)}}<b>,</b> {{meta.extent.ymax.toPrecision(8)}}</td></tr>             
                 </table>
             </div>
 
@@ -257,11 +258,18 @@ export default {
             }
         },
 
-        isclass_field(fld) {
+        isClass_field(fld) {
             if(this.meta === undefined || this.meta.class_fields === undefined) {
                 return false;
             }
             return this.meta.class_fields.includes(fld);
+        },
+
+        isName_field(fld) {
+            if(this.meta === undefined || this.meta.name_field === undefined || this.meta.name_field === '') {
+                return false;
+            }
+            return this.meta.name_field === fld;
         },
 
         onUrlCopy(url) {
@@ -381,6 +389,18 @@ export default {
     border-style: solid;
     border-width: 2px;
     color: #0004ff;
+    border-radius: 5px;
+}
+
+.name_field {
+    background-color: rgb(212, 212, 212);
+    padding: 1px;
+    margin-left: 2px;
+    margin-right: 3px;
+    border-color: rgba(0, 0, 0, 0.637);
+    border-style: solid;
+    border-width: 2px;
+    color: #496e02;
     border-radius: 5px;
 }
 

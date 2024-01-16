@@ -56,6 +56,7 @@ public class PostgisLayer extends PostgisLayerBase {
 	private String geometrySQL;
 	private final String selectorFields;
 
+	private String nameField = ""; // not null
 	private ReadonlyArray<String> class_fields;
 
 	private ACL acl = EmptyACL.ADMIN;
@@ -67,7 +68,7 @@ public class PostgisLayer extends PostgisLayerBase {
 	private final File metaFileTemp;
 
 	private StyleProvider styleProvider = StyleProviderFactory.DEFAULT_STYLE_PROVIDER;
-	
+
 	private StructuredAccess structuredAccess = StructuredAccess.DEFAULT;
 
 	public static class PostgisColumn {
@@ -255,7 +256,8 @@ public class PostgisLayer extends PostgisLayerBase {
 		acl_mod = ACL.ofRoles(yamlMap.optList("acl_mod").asStrings());
 		acl_owner = ACL.ofRoles(yamlMap.optList("acl_owner").asStrings());		
 		informal = Informal.ofYaml(yamlMap);
-		class_fields = yamlMap.optList("class_fields").asReadonlyStrings();
+		nameField = yamlMap.optString("name_field", "");
+		class_fields = yamlMap.optList("class_fields").asReadonlyStrings();		
 		if(class_fields.isEmpty()) {
 			class_fields = yamlMap.optList("class_attributes").asReadonlyStrings(); // legacy
 		}
@@ -270,7 +272,8 @@ public class PostgisLayer extends PostgisLayerBase {
 		map.put("acl_mod", acl_mod.toYaml());
 		map.put("acl_owner", acl_owner.toYaml());
 		informal.writeYaml(map);
-		map.put("class_attributes", class_fields);
+		map.put("name_field", nameField);
+		map.put("class_fields", class_fields);
 		if(styleProvider != StyleProviderFactory.DEFAULT_STYLE_PROVIDER) {
 			map.put("style", styleProvider.toYaml());
 		}		
@@ -444,13 +447,13 @@ public class PostgisLayer extends PostgisLayerBase {
 	public ReadonlyArray<String> getGeometryTypes() {
 		ReadonlyArray<String> e = geometryTypes;
 		if(e == null) {
-			e = calcGeometryTypes();
+			e = calcUsedGeometryTypes();
 			geometryTypes = e;
 		}
 		return e;
 	}
-
-	private synchronized ReadonlyArray<String> calcGeometryTypes() {
+	
+	private synchronized ReadonlyArray<String> calcUsedGeometryTypes() {
 		if(geometryTypes != null) {
 			return geometryTypes;
 		}
@@ -920,5 +923,9 @@ public class PostgisLayer extends PostgisLayerBase {
 	public void setStructuredAccess(StructuredAccess structuredAccess) {
 		this.structuredAccess = structuredAccess;
 		writeMeta();
+	}
+
+	public String getNameField() {
+		return nameField;
 	}
 }

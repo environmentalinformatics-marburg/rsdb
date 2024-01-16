@@ -176,7 +176,10 @@ public class APIHandler_postgis_layer {
 
 		json.key("geometry_field");
 		json.value(postgisLayer.primaryGeometryColumn);
-
+		
+		json.key("name_field");
+		json.value(postgisLayer.getNameField());
+		
 		json.key("fields");
 		json.array();
 		postgisLayer.fields.forEach(pc -> json.value(pc.name));
@@ -340,7 +343,7 @@ public class APIHandler_postgis_layer {
 		}		
 		boolean crop = Web.getBoolean(request, "crop", true);
 
-		//String geojson = getGeoJSON(postgisLayer, rect2d);
+		//String geojson = getGeoJSON(postgisLayer, rect2d, crop);
 		String geojson = getGeoJSONWithProperties(postgisLayer, rect2d, crop);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_GEO_JSON);
@@ -353,7 +356,7 @@ public class APIHandler_postgis_layer {
 	 * @param rect2d  nullable
 	 * @return
 	 */
-	private static String getGeoJSON(PostgisLayer postgisLayer, Rect2d rect2d) {
+	private static String getGeoJSON(PostgisLayer postgisLayer, Rect2d rect2d, boolean crop) {
 
 		int epsg = postgisLayer.getEPSG();
 
@@ -367,7 +370,7 @@ public class APIHandler_postgis_layer {
 		sb.append(",\"features\":");
 		sb.append("[");
 
-		postgisLayer.forEachGeoJSON(rect2d, true, new Consumer<String>() {			
+		postgisLayer.forEachGeoJSON(rect2d, crop, new Consumer<String>() {			
 			boolean isFirst = true;
 			StringBuilder sb1 = sb;			
 			@Override

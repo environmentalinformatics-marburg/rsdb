@@ -1,6 +1,6 @@
 package postgis;
 
-import java.util.HashSet;
+import java.util.TreeSet;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -24,8 +24,8 @@ public class PostgisROIcreator {
 	public static class ROIjtsGeometryConsumer implements InterfaceJtsGeometryConsumer, ObjectJtsGeometryConsumer {
 
 		public Vec<Roi> rois = new Vec<Roi>();
-		HashSet<String> roiNames = new HashSet<String>();
-		Vec<String> messages;
+		private UniqueNameGenerator uniqueNameGenerator = new UniqueNameGenerator();
+		private Vec<String> messages;
 
 		protected String currentRoiName = null; // nullable
 
@@ -143,14 +143,7 @@ public class PostgisROIcreator {
 		}
 
 		private String createUniqueName() {
-			String orgName = currentRoiName == null || currentRoiName.isBlank() ? "roi" : currentRoiName;
-			String name = orgName;
-			int nameIndex = 1;
-			while(roiNames.contains(name)) {
-				name = orgName + "_" + (++nameIndex);
-			}
-			roiNames.add(name);
-			return name;
+			return uniqueNameGenerator.createUniqueName(currentRoiName, "roi");
 		}
 
 		@Override
@@ -171,7 +164,21 @@ public class PostgisROIcreator {
 
 	public static Vec<Roi> create(PostgisLayer postgisLayer, Vec<String> messages) {
 		ROIjtsGeometryConsumer roijtsGeometryConsumer = new ROIjtsGeometryConsumer(messages);
-		postgisLayer.forEachJtsGeometry(null, false, null, roijtsGeometryConsumer);
+		TreeSet<String> geoTypes = new TreeSet<String>(postgisLayer.getGeometryTypes());
+		if(geoTypes.contains("Polygon") || geoTypes.contains("MultiPolygon") || geoTypes.contains("GeometryCollection")) {
+			try {
+				String nameField = postgisLayer.getNameField();
+				if(nameField.isBlank()) {
+					postgisLayer.forEachJtsGeometry(null, false, null, roijtsGeometryConsumer);
+				} else {
+					postgisLayer.forEachObjectJtsGeometry(null, false, nameField, roijtsGeometryConsumer);
+				}		
+			} catch(Exception e) {
+				messages.add("Skip ROIs: " + e.getMessage());
+			}
+		} else {
+			messages.add("Skip ROIs: no areal geometries: " + geoTypes);			
+		}		
 		return roijtsGeometryConsumer.rois;
 	}
 
