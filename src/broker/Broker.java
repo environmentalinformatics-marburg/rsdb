@@ -634,7 +634,7 @@ public class Broker implements AutoCloseable {
 			}
 		}
 		refreshRasterdbConfigs();
-		catalog.updateCatalog();
+		catalog.refreshCatalog();
 	}
 
 	public synchronized void deletePointCloud(String name) {
@@ -662,7 +662,7 @@ public class Broker implements AutoCloseable {
 			Logger.warn(e);
 		}
 		refreshPointcloudConfigs();
-		catalog.updateCatalog();
+		catalog.refreshCatalog();
 	}
 
 	public synchronized void deleteVoxeldb(String name) {
@@ -690,7 +690,7 @@ public class Broker implements AutoCloseable {
 			Logger.warn(e);
 		}
 		refreshVoxeldbConfigs();
-		catalog.updateCatalog();
+		catalog.refreshCatalog();
 	}
 
 
@@ -925,7 +925,7 @@ public class Broker implements AutoCloseable {
 		VectorDB vectordb = getVectorDB(name);
 		vectordb.writeMeta();
 		refreshVectordbConfigs();
-		catalog.updateCatalog();
+		catalog.refreshCatalog();
 		return vectordb;
 	}
 
@@ -956,7 +956,7 @@ public class Broker implements AutoCloseable {
 		}
 		refreshVectordbConfigs();
 		Logger.info("update catalog");
-		catalog.updateCatalog();
+		catalog.refreshCatalog();
 		return !Files.exists(vectordbPath);
 	}
 

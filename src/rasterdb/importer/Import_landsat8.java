@@ -10,6 +10,7 @@ import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.tile.TilePixel;
+import remotetask.MessageSink;
 import util.Timer;
 import util.Util;
 
@@ -193,8 +194,7 @@ public class Import_landsat8 {
 		}
 
 		Logger.info(Timer.stop("import_landsat8"+root));
-		rasterdb_30m.rebuildPyramid(true);
-		rasterdb_15m.rebuildPyramid(true);
+		rasterdb_30m.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 	}
 
 }

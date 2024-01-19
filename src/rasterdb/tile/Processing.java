@@ -12,6 +12,7 @@ import rasterdb.cell.CellInt16;
 import rasterdb.cell.CellType;
 import rasterunit.BandKey;
 import rasterunit.RasterUnitStorage;
+import remotetask.MessageSink;
 import util.Range2d;
 
 public class Processing {
@@ -85,10 +86,12 @@ public class Processing {
 	}
 
 
-	public static long rebuildPyramid(RasterDB rasterdb, RasterUnitStorage srcStorage, RasterUnitStorage dstStorage, int div) throws IOException {
+	public static long rebuildPyramid(RasterDB rasterdb, RasterUnitStorage srcStorage, RasterUnitStorage dstStorage, int div, MessageSink messageProxy) throws IOException {
+		messageProxy.setMessage("internal pyramid rebuild");
 		Commiter commiter = new Commiter(dstStorage);
-		rebuildPyramid(rasterdb, srcStorage, 0, dstStorage, 1, div, commiter);
+		rebuildPyramid(rasterdb, srcStorage, 0, dstStorage, 1, div, commiter, messageProxy);
 		commiter.checkFinishCommit();
+		messageProxy.setMessage("internal pyramid done");
 		return commiter.getTotalWriteCount();
 	}
 
@@ -116,7 +119,7 @@ public class Processing {
 	public static final int TIMESTAMP_MAX = 0x0fffffff;
 
 
-	public static void rebuildPyramid(RasterDB rasterdb, RasterUnitStorage srcStorage, int srcPyramid, RasterUnitStorage dstStorage, int dstPyramid, int div, Commiter commiter) throws IOException {
+	public static void rebuildPyramid(RasterDB rasterdb, RasterUnitStorage srcStorage, int srcPyramid, RasterUnitStorage dstStorage, int dstPyramid, int div, Commiter commiter, MessageSink messageProxy) throws IOException {
 
 		int tmin = getTFromPyramidTimestamp(srcPyramid, TIMESTAMP_MIN);
 		int tmax = getTFromPyramidTimestamp(srcPyramid, TIMESTAMP_MAX);
@@ -126,7 +129,7 @@ public class Processing {
 		for(BandKey srcBandKey : srcBandKeys) {
 			Range2d range = srcStorage.getTileRange2d(srcBandKey);
 			if(range != null && ( range.getWidth() > 2 || range.getHeight() > 2)) {
-				Logger.info("pyramid " + srcPyramid + " size " + range);
+				messageProxy.setMessage("pyramid " + srcPyramid + " size " + range);
 				needProcessing = true;
 				break;
 			}
@@ -134,10 +137,10 @@ public class Processing {
 
 		if(needProcessing) {
 			if(dstPyramid > PYRAMID_MAX) {
-				Logger.info("process pyramid limit reached" + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid) + " processing stopped.");
+				messageProxy.setMessage("process pyramid limit reached" + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid) + " processing stopped.");
 				return;
 			}
-			Logger.info("process pyramid " + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid));
+			messageProxy.setMessage("process pyramid " + dstPyramid + " -> down scale " + Math.pow(2, dstPyramid));
 			for(BandKey srcBandKey : srcBandKeys) {
 				Band band = rasterdb.bandMapReadonly.get(srcBandKey.b);
 				int srcTimestamp = getTimestampFromT(srcBandKey.t); 
@@ -146,7 +149,7 @@ public class Processing {
 				writeStorageBandDiv(rasterdb, band, div, srcStorage, srcBandKey, dstStorage, dstBandKey , commiter);
 			}
 
-			rebuildPyramid(rasterdb, dstStorage, dstPyramid, dstStorage, dstPyramid + 1, div, commiter);
+			rebuildPyramid(rasterdb, dstStorage, dstPyramid, dstStorage, dstPyramid + 1, div, commiter, messageProxy);
 		}
 	}
 }

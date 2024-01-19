@@ -82,7 +82,7 @@ public class Rebuild extends CancelableRemoteProxy {
 				throw new RuntimeException("canceled");
 			}
 
-			dst.rebuildPyramid(true);
+			dst.rebuildPyramid(true, this.getMessageSink());
 		}
 	}
 

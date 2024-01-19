@@ -13,6 +13,7 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import rasterdb.RasterDB;
+import remotetask.MessageSink;
 import util.Web;
 
 public class RasterdbMethod_rebuild_pyramid extends RasterdbMethod {
@@ -26,7 +27,7 @@ public class RasterdbMethod_rebuild_pyramid extends RasterdbMethod {
 	public void handle(RasterDB rasterdb, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		request.setHandled(true);
 		try {
-			rasterdb.rebuildPyramid(true);
+			rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setContentType(Web.MIME_JSON);
 			JSONWriter json = new JSONWriter(response.getWriter());

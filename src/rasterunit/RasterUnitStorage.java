@@ -46,7 +46,15 @@ public interface RasterUnitStorage extends AutoCloseable {
 	
 	void writeTile(Tile tile) throws IOException;
 	
+	/**
+	 * Write data to disk, but possibly not all (meta) data.
+	 */
 	void commit();
+	
+	/**
+	 * Write data to disk, including all (meta) data.
+	 * @throws IOException
+	 */
 	void flush() throws IOException;
 	void close() throws IOException;
 	int getTileCount();

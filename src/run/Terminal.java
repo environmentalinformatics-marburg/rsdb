@@ -44,6 +44,7 @@ import rasterdb.importer.Import_soda;
 import rasterdb.importer.Import_soda_OLD;
 import rasterdb.importer.RasterDBimporter;
 import remotetask.Context;
+import remotetask.MessageSink;
 import remotetask.RemoteTask;
 import remotetask.RemoteTaskExecutor;
 import remotetask.RemoteTaskInfo;
@@ -533,7 +534,7 @@ public class Terminal {
 				} catch (Exception e) {
 					Logger.error(e);
 				}
-				rasterdb.rebuildPyramid(true);
+				rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 			} catch(Exception e){
 				e.printStackTrace();
 				Logger.error(e);
@@ -562,7 +563,7 @@ public class Terminal {
 				} catch (Exception e) {
 					Logger.error(e);
 				}
-				rasterdb.rebuildPyramid(true);
+				rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 			} catch(Exception e){
 				Logger.error(e);
 			}
@@ -576,7 +577,7 @@ public class Terminal {
 		if(args.length == 0) {
 			try(Broker broker = new Broker()) {
 				RasterDB rasterdb = broker.createOrGetRasterdb(rasterdbName);
-				rasterdb.rebuildPyramid(true);
+				rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 			} catch(Exception e){
 				Logger.error(e);
 			}
@@ -729,7 +730,7 @@ public class Terminal {
 				rasterizer.run(rasterizer.bandIntensity);
 				rasterizer.run(rasterizer.bandElevation);
 				rasterdb.flush();
-				rasterdb.rebuildPyramid(true);
+				rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 			} catch (Exception e) {
 				e.printStackTrace();
 				Logger.error(e);
@@ -835,7 +836,7 @@ public class Terminal {
 				pointcloud.Rasterizer rasterizer = new pointcloud.Rasterizer(pointdb, rasterdb, pointcloud.Rasterizer.DEFAULT_POINT_SCALE, null, fillRadius);
 				rasterizer.process();
 				rasterdb.flush();
-				rasterdb.rebuildPyramid(true);
+				rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 			} catch (Exception e) {
 				e.printStackTrace();
 				Logger.error(e);
@@ -900,7 +901,7 @@ public class Terminal {
 				ProcessingFun processingFun = new Fun_BE.Fun_BE_ELEV_MEAN();
 				rasterizer.process(processingFun);
 				rasterdb.flush();
-				rasterdb.rebuildPyramid(true);
+				rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 			} catch (Exception e) {
 				e.printStackTrace();
 				Logger.error(e);

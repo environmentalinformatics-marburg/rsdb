@@ -617,10 +617,6 @@ public class TileStorage implements RasterUnitStorage {
 				//Logger.info("writeindex2 lower " + lower[i-1]);
 				//Logger.info("writeindex2 combA " + ((long)lower[i-1] | ((long)upper[i-1]<<32)));
 				//Logger.info("writeindex2 combB " + (((long)(upper[i-1]) << 32) + (lower[i-1] & 0xFFFFFFFFL)));
-
-
-
-
 				prev = curr;
 			}
 			int[] compressed_upper = Encoding.encInt32_pfor_internal(upper);

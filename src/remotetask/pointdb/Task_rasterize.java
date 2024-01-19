@@ -65,7 +65,7 @@ public class Task_rasterize extends RemoteTask {
 		Rasterizer rasterizer = new Rasterizer(pointdb, rasterdb);
 		rasterizer.run(rasterizer.bandIntensity);
 		rasterizer.run(rasterizer.bandElevation);
-		rasterdb.rebuildPyramid(true);
+		rasterdb.rebuildPyramid(true, this);
 		rasterdb.flush();
 	}
 }

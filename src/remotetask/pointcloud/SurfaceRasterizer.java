@@ -16,12 +16,12 @@ import rasterdb.RasterDB;
 import rasterdb.node.ProcessorNode_gap_filling;
 import rasterdb.tile.ProcessingFloat;
 import rasterunit.RasterUnitStorage;
-import remotetask.MessageProxy;
+import remotetask.MessageSink;
 import util.TaskPipeline.PipelineTask;
 
 public class SurfaceRasterizer extends PipelineTask {
 
-	private final MessageProxy messageProxy;
+	private final MessageSink messageProxy;
 	private final PointCloud pointcloud; 
 	private final RasterDB rasterdb; 
 	private final TimeSlice timeSlice; 
@@ -36,7 +36,7 @@ public class SurfaceRasterizer extends PipelineTask {
 
 	private float[][] raster_result = null;
 
-	public SurfaceRasterizer(MessageProxy messageProxy, PointCloud pointcloud, RasterDB rasterdb, TimeSlice timeSlice, Band band, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, boolean commit, int fill, String rasterType) {
+	public SurfaceRasterizer(MessageSink messageProxy, PointCloud pointcloud, RasterDB rasterdb, TimeSlice timeSlice, Band band, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, boolean commit, int fill, String rasterType) {
 		this.messageProxy = messageProxy;
 		this.pointcloud = pointcloud;
 		this.rasterdb = rasterdb;

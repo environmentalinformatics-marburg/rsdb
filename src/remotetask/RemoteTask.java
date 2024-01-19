@@ -10,9 +10,11 @@ import org.tinylog.Logger;
 import remotetask.pointcloud.task_pointcloud;
 import remotetask.pointdb.task_pointdb;
 import remotetask.rasterdb.task_rasterdb;
+import remotetask.rsdb.task_rsdb;
 import remotetask.vectordb.task_vectordb;
+import remotetask.voxeldb.task_voxeldb;
 
-public abstract class RemoteTask implements Runnable, MessageProxy {	
+public abstract class RemoteTask implements Runnable, MessageSink {	
 	
 	private final int MAX_LOG_MESSAGE_LINES = 1000;
 	private ConcurrentLinkedQueue<String> logMessages = new ConcurrentLinkedQueue<String>();
@@ -96,39 +98,41 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 		return  tend;
 	}
 	
-	public final void setMessage(String message) {
-		lastMessageTime = System.currentTimeMillis();
-		this.message = message;
-		log(message);
-	}
-	
-	protected boolean isMessageTime() {
-		return lastMessageTime + messageDuration <= System.currentTimeMillis();
-	}
-	
-	public final String getMessage() {
-		return message;
-	}
-
 	public Status getStatus() {
 		return status;
 	}
 	
-	public String getName() {		
-		Class<? extends RemoteTask> clazz = this.getClass();
+	/**
+	 * 
+	 * @param clazz
+	 * @return nullable
+	 */
+	public static String getTaskName(Class<? extends RemoteTask> clazz) {
+		if(clazz.isAnnotationPresent(task_rsdb.class)) {
+			return "rsdb/" + clazz.getAnnotation(task_rsdb.class).value();
+		}
 		if(clazz.isAnnotationPresent(task_rasterdb.class)) {
 			return "rasterdb/" + clazz.getAnnotation(task_rasterdb.class).value();
 		}
-		if(clazz.isAnnotationPresent(task_pointdb.class)) {
-			return "pointdb/" + clazz.getAnnotation(task_pointdb.class).value();
-		}		
 		if(clazz.isAnnotationPresent(task_pointcloud.class)) {
 			return "pointcloud/" + clazz.getAnnotation(task_pointcloud.class).value();
 		}
+		if(clazz.isAnnotationPresent(task_voxeldb.class)) {
+			return "voxeldb/" + clazz.getAnnotation(task_voxeldb.class).value();
+		}
 		if(clazz.isAnnotationPresent(task_vectordb.class)) {
 			return "vectordb/" + clazz.getAnnotation(task_vectordb.class).value();
-		}		
-		return clazz.getSimpleName();
+		}
+		if(clazz.isAnnotationPresent(task_pointdb.class)) {
+			return "pointdb/" + clazz.getAnnotation(task_pointdb.class).value();
+		}
+		return null;
+	}
+	
+	public String getName() {		
+		Class<? extends RemoteTask> clazz = this.getClass();
+		String tname = getTaskName(clazz);				
+		return tname == null ? clazz.getSimpleName() : tname;
 	}
 	
 	public boolean isCancelable() {
@@ -143,6 +147,20 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 		return false;
 	}
 	
+	public final void setMessage(String message) {
+		lastMessageTime = System.currentTimeMillis();
+		this.message = message;
+		log(message);
+	}
+	
+	protected boolean isMessageTime() {
+		return lastMessageTime + messageDuration <= System.currentTimeMillis();
+	}
+	
+	public final String getMessage() {
+		return message;
+	}
+	
 	public void log(String message) {
 		if(logMessages.size() > MAX_LOG_MESSAGE_LINES) {
 			logMessages.poll();
@@ -153,14 +171,5 @@ public abstract class RemoteTask implements Runnable, MessageProxy {
 
 	public ConcurrentLinkedQueue<String> getLog() {
 		return logMessages;
-	}
-	
-	public MessageReceiver getMessageReceiver() {
-		return new MessageReceiver() {			
-			@Override
-			public void setMessage(String message) {
-				RemoteTask.this.setMessage(message);				
-			}
-		};
 	}
 }

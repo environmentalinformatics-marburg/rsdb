@@ -1,40 +1,47 @@
 package remotetask.rsdb;
 
 import broker.Broker;
-import remotetask.CancelableRemoteTask;
 import remotetask.Context;
 import remotetask.Description;
+import remotetask.RemoteTask;
 
 @task_rsdb("refresh")
-@Description("Refresh RSDB layers list on the server. After this you need to refresh (or reload) the Web interface to be up to date.")
-public class Task_refresh extends CancelableRemoteTask {
-	private int throw_error_rounds = -1;
+@Description("Refresh RSDB layers list an catalog on the server for (manually) added or removed layers. After this you need to refresh (or reload) the web interface to be up to date.")
+public class Task_refresh extends RemoteTask {
 
 	public Task_refresh(Context ctx) {
-		super(ctx);
-		this.throw_error_rounds = ctx.task.optInt("throw_error_rounds", -1);		
+		super(ctx);	
 	}
 
 	@Override
 	protected void process() throws Exception {
 		setMessage("start refresh");
 		Broker broker = ctx.broker;
-		broker.refreshPoiGroupMap();
-		broker.refreshPointcloudConfigs();
+		
+		setMessage("refresh RasterDB layers");
 		broker.refreshRasterdbConfigs();
-		broker.refreshRoiGroupMap();
-		broker.refreshVectordbConfigs();
+		
+		setMessage("refresh Pointcloud layers");
+		broker.refreshPointcloudConfigs();
+		
+		setMessage("refresh VoxelDB layers");
 		broker.refreshVoxeldbConfigs();
+		
+		setMessage("refresh VectorDB layers");
+		broker.refreshVectordbConfigs();
+		
+		setMessage("refresh PostGIS layers");
+		broker.postgisLayerManager().refresh();
+		
+		setMessage("refresh PoiGroup layers");
+		broker.refreshPoiGroupMap();
+		
+		setMessage("refresh RoiGroup layers");
+		broker.refreshRoiGroupMap();
+		
+		setMessage("refresh Catalog entries");
+		broker.catalog.refreshCatalog();
+		
 		setMessage("finish refresh");
-	}
-	
-	private void checkForRoundError(long cnt) {
-		if(cnt == throw_error_rounds) {
-			throwRoundError();
-		}
-	}
-	
-	public void throwRoundError() {
-		throw new RuntimeException("error round reached");
 	}
 }

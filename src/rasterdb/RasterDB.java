@@ -39,6 +39,7 @@ import rasterunit.RasterUnit;
 import rasterunit.RasterUnitStorage;
 import rasterunit.TileStorage;
 import rasterunit.TileStorageConfig;
+import remotetask.MessageSink;
 import util.Range2d;
 import util.Util;
 import util.yaml.YamlMap;
@@ -165,26 +166,35 @@ public class RasterDB implements AutoCloseable {
 		return pyramidType != null && pyramidType.equals(PYRAMID_TYPE_COMPACT_DIV2);
 	}
 
-	public void rebuildPyramid(boolean flush) throws IOException {
+	/**
+	 * 
+	 * @param flush
+	 * @param messageProxy nullable
+	 * @throws IOException
+	 */
+	public void rebuildPyramid(boolean flush, MessageSink messageProxy) throws IOException {
 		getLocalRange(true);
 
 		if(isInternalPyramid()) {
+			messageProxy.setMessage("internal pyramid div 2");
+			messageProxy.setMessage("clear pyramid");
 			RasterUnitStorage dstStorage = rasterPyr1Unit();
 			dstStorage.removeAllTiles();
-			Processing.rebuildPyramid(this, rasterUnit(), dstStorage, 2);
+			Processing.rebuildPyramid(this, rasterUnit(), dstStorage, 2, messageProxy);
 		} else {
-			Logger.info("build map 1:4");
+			messageProxy.setMessage("files pyramid div 4");
+			messageProxy.setMessage("build map 1:4");
 			long c1 = Processing.writeStorageDiv(this, rasterUnit(), rasterPyr1Unit(), 4);
-			Logger.info("tiles written " + c1);
-			Logger.info("build map 1:16");
+			messageProxy.setMessage("tiles written " + c1);
+			messageProxy.setMessage("build map 1:16");
 			long c2 = Processing.writeStorageDiv(this, rasterPyr1Unit(), rasterPyr2Unit(), 4);
-			Logger.info("tiles written " + c2);
-			Logger.info("build map 1:64");
+			messageProxy.setMessage("tiles written " + c2);
+			messageProxy.setMessage("build map 1:64");
 			long c3 = Processing.writeStorageDiv(this, rasterPyr2Unit(), rasterPyr3Unit(), 4);
-			Logger.info("tiles written " + c3);
-			Logger.info("build map 1:256");
+			messageProxy.setMessage("tiles written " + c3);
+			messageProxy.setMessage("build map 1:256");
 			long c4 = Processing.writeStorageDiv(this, rasterPyr3Unit(), rasterPyr4Unit(), 4);
-			Logger.info("tiles written " + c4);
+			messageProxy.setMessage("tiles written " + c4);
 		}		
 
 		if(flush) {		

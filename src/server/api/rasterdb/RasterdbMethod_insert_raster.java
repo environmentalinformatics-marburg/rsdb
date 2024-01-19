@@ -4,27 +4,24 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
-import jakarta.servlet.ServletInputStream;
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.TimeSlice;
-import broker.TimeSlice.TimeSliceBuilder;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TileFloat;
 import rasterdb.tile.TilePixel;
-import rasterdb.tile.TileShort;
 import rasterunit.RasterUnitStorage;
+import remotetask.MessageSink;
 import util.Serialisation;
 import util.TimeUtil;
 import util.Web;
@@ -234,7 +231,7 @@ public class RasterdbMethod_insert_raster extends RasterdbMethod {
 			}			
 
 			if(update_pyramid) {
-				rasterdb.rebuildPyramid(true);
+				rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 			}
 			if(flush && !update_pyramid) {
 				rasterdb.flush();

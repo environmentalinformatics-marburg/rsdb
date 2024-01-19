@@ -159,7 +159,7 @@ public class Task_import extends CancelableRemoteProxyTask {
 		boolean update_catalog = true;
 		if(update_catalog) {
 			setMessage("update catalog");
-			broker.catalog.updateCatalog();
+			broker.catalog.refreshCatalog();
 		}
 		setMessage("finished");
 	}

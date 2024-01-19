@@ -24,8 +24,7 @@ import util.frame.FloatFrame;
 import util.frame.ShortFrame;
 import util.raster.GdalReader;
 
-public class ImportProcessor extends RemoteProxy {
-	
+public class ImportProcessor extends RemoteProxy {	
 
 	private Broker broker;
 	private RasterDB rasterdb;
@@ -107,16 +106,18 @@ public class ImportProcessor extends RemoteProxy {
 		/*setMessage("calculate extent");
 		Range2d localRange = rasterdb.getLocalRange(true);
 		Logger.info("new local range " + localRange);*/
-
+		
+		setMessage("flush");
+		rasterdb.flush();
 
 		if(update_pyramid) {
 			setMessage("rebuild pyramid");
-			rasterdb.rebuildPyramid(true);
+			rasterdb.rebuildPyramid(true, this.getMessageSink());
 		}
 
 		if(update_catalog) {
 			setMessage("update catalog");
-			broker.catalog.updateCatalog();
+			broker.catalog.refreshCatalog();
 		}
 		setMessage("import done");
 	}

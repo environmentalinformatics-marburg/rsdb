@@ -119,7 +119,7 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		if(isCanceled()) {
 			throw new RuntimeException("canceled");
 		}
-		rasterdb.rebuildPyramid(true);
+		rasterdb.rebuildPyramid(true, this);
 	}
 
 	private static long MAX_RASTER_BYTES = 268_435_456;

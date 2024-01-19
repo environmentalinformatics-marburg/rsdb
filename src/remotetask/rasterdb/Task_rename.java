@@ -9,13 +9,13 @@ import rasterdb.RasterDB;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteProxyTask;
+import remotetask.RemoteTask;
 
 @task_rasterdb("rename")
 @Description("Renames an existing RasterDB layer to a not yet existing RasterDB layer ID")
 @Param(name="rasterdb", type="rasterdb", desc="ID of RasterDB layer to rename.", example="raster1")
 @Param(name="new_name", type="layer_id", desc="ID of new RasterDB layer.", example="rasterA")
-public class Task_rename extends RemoteProxyTask {
+public class Task_rename extends RemoteTask {
 
 	private final Broker broker;
 	private final JSONObject task;

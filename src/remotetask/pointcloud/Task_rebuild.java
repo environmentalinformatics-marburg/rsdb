@@ -46,6 +46,6 @@ public class Task_rebuild extends CancelableRemoteProxyTask {
 		setRemoteProxyAndRunAndClose(rebuild);
 		setMessage("done");
 		broker.refreshPointcloudConfigs();
-		broker.catalog.updateCatalog();
+		broker.catalog.refreshCatalog();
 	}
 }

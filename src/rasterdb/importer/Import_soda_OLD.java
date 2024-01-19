@@ -15,6 +15,7 @@ import org.tinylog.Logger;
 import broker.Broker;
 import broker.Informal.Builder;
 import rasterdb.RasterDB;
+import remotetask.MessageSink;
 import util.TimeUtil;
 import util.Timer;
 import util.Util;
@@ -81,7 +82,7 @@ public class Import_soda_OLD {
 		RasterDB rasterdb = broker.createOrGetRasterdb(layerName, false);
 		RasterDBimporter rasterdbimporter = new RasterDBimporter(rasterdb);
 		rasterdbimporter.importFile_GDAL(path, null, true, timestamp);
-		rasterdb.rebuildPyramid(true);
+		rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 		Builder informal = rasterdb.informal().toBuilder();
 		informal.setTags(namePrefix);
 		rasterdb.setInformal(informal.build());

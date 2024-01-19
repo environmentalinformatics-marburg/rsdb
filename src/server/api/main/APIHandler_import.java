@@ -4,18 +4,15 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.acl.EmptyACL;
+import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.RasterDB;
 import remotetask.Context;
 import remotetask.RemoteProxyTask;

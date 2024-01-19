@@ -8,14 +8,14 @@ import broker.Broker;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteProxyTask;
+import remotetask.RemoteTask;
 import vectordb.VectorDB;
 
 @task_vectordb("rename")
 @Description("Renames an existing VectorDB layer to a not yet existing VectorDB layer ID")
 @Param(name="vectordb", type="layer_id", desc="ID of VectorDB layer to rename.", example="vectordb1")
 @Param(name="new_name", type="layer_id", desc="ID of new VectorDB layer.", example="vectordbA")
-public class Task_rename extends RemoteProxyTask {
+public class Task_rename extends RemoteTask {
 
 	private final Broker broker;
 	private final JSONObject task;

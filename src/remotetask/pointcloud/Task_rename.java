@@ -9,14 +9,13 @@ import pointcloud.PointCloud;
 import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
-import remotetask.RemoteProxyTask;
+import remotetask.RemoteTask;
 
 @task_pointcloud("rename")
 @Description("Renames an existing Pointcloud layer to a not yet existing Pointcloud layer ID")
 @Param(name="pointcloud", type="pointcloud", desc="ID of Pointcloud layer to rename.", example="pointcloud1")
 @Param(name="new_name", type="layer_id", desc="ID of new Pointcloud layer.", example="pointcloudA")
-public class Task_rename extends RemoteProxyTask {
-	//
+public class Task_rename extends RemoteTask {
 
 	private final Broker broker;
 	private final JSONObject task;

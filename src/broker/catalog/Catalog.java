@@ -79,7 +79,7 @@ public class Catalog {
 		this.broker = broker;
 		if(CATALOG_FILENAME.toFile().exists()) {
 			loadFromFile();
-			updateCatalog();
+			refreshCatalog();
 		} else {
 			rebuildCatalog();
 		}
@@ -531,7 +531,7 @@ public class Catalog {
 	/**
 	 * Check if layers have been added or removed.
 	 */
-	public synchronized void updateCatalog() {
+	public synchronized void refreshCatalog() {
 		Map<CatalogKey, CatalogEntry> map = new LinkedHashMap<>(this.map);
 		//Logger.info("map "+map.keySet());
 		boolean changed = false;

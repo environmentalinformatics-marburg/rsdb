@@ -7,6 +7,7 @@ import org.tinylog.Logger;
 
 import broker.Broker;
 import rasterdb.RasterDB;
+import remotetask.MessageSink;
 import util.Timer;
 import util.Util;
 
@@ -27,7 +28,7 @@ public class Import_modis {
 		Timer.start("import_modis "+root);		
 		importDirectoryInternal(root, root.getFileName().toString());
 		Logger.info(Timer.stop("import_modis "+root));
-		rasterdb.rebuildPyramid(true);
+		rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 	}
 	
 	private void importDirectoryInternal(Path root, String dataName) throws Exception {

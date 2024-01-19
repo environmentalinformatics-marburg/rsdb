@@ -299,7 +299,7 @@ public class Task_rasterize extends CancelableRemoteTask {
 			voxeldb.close();
 			throw new RuntimeException("canceled");
 		}
-		rasterdb.rebuildPyramid(true);
+		rasterdb.rebuildPyramid(true, this);
 		rasterdb.close();
 		voxeldb.close();
 	}

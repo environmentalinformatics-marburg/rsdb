@@ -45,6 +45,6 @@ public class Task_subset extends CancelableRemoteProxyTask {
 		setRemoteProxyAndRunAndClose(subset);
 		setMessage("done");
 		broker.refreshPointcloudConfigs();
-		broker.catalog.updateCatalog();		
+		broker.catalog.refreshCatalog();		
 	}
 }

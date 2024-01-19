@@ -146,7 +146,7 @@ public class Task_surface_raster extends CancelableRemoteTask {
 
 		throwCanceled();
 		setMessage("rebuild pyramid");
-		rasterdb.rebuildPyramid(true);	
+		rasterdb.rebuildPyramid(true, this);	
 		setMessage("Done.");
 	}	
 }

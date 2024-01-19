@@ -13,6 +13,7 @@ import broker.Broker;
 import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.tile.TilePixel;
+import remotetask.MessageSink;
 import util.TimeUtil;
 import util.Timer;
 import util.Util;
@@ -75,7 +76,7 @@ public class Import_rapideye {
 		
 		importDirectoryInternal(root, root.getFileName().toString());
 		Logger.info(Timer.stop("import_rapideye "+root));
-		rasterdb.rebuildPyramid(true);
+		rasterdb.rebuildPyramid(true, MessageSink.MESSAGE_SINK_LOG);
 	}
 	
 	private void importDirectoryInternal(Path root, String dataName) throws Exception {

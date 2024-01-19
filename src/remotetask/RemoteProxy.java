@@ -1,22 +1,23 @@
 package remotetask;
 
-
-import org.tinylog.Logger;
-
 public abstract class RemoteProxy implements AutoCloseable {	
 	
-	private MessageProxy messageProxy = MessageProxy.MESSAGE_PROXY_NULL;
+	private MessageSink messageSink = MessageSink.MESSAGE_SINK_LOG;
 	
-	public final void setMessageProxy(MessageProxy messageProxy) {
-		this.messageProxy = messageProxy;
+	public final void setMessageSink(MessageSink messageSink) {
+		this.messageSink = messageSink == null ? MessageSink.MESSAGE_SINK_LOG : messageSink;
+	}
+	
+	public final MessageSink getMessageSink() {
+		return messageSink;
 	}
 	
 	protected final void setMessage(String message) {
-		messageProxy.setMessage(message);
+		messageSink.setMessage(message);
 	}
 	
 	protected final void log(String message) {
-		messageProxy.log(message);
+		messageSink.log(message);
 	}
 	
 	public String getName() {		
@@ -33,7 +34,7 @@ public abstract class RemoteProxy implements AutoCloseable {
 	}
 	
 	public void cancel() {
-		Logger.info("cancel not supported");
+		setMessage("cancel not supported");
 	}
 	
 	public boolean isCanceled() {

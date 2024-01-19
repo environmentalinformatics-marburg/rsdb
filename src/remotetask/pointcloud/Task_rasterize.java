@@ -96,7 +96,7 @@ public class Task_rasterize extends CancelableRemoteProxyTask {
 			throw new RuntimeException("canceled");
 		}
 		setMessage("rebuild pyramid");
-		rasterdb.rebuildPyramid(true);		
+		rasterdb.rebuildPyramid(true, this);		
 		if(associate) {
 			pointcloud.setAssociatedRasterDB(rasterdb_name);
 		}

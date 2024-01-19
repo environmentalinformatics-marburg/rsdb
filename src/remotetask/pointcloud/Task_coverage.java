@@ -81,7 +81,7 @@ public class Task_coverage extends RemoteTask {
 		rasterdb.setACL(pointcloud.getACL());
 		rasterdb.setACL_mod(pointcloud.getACL_mod());
 		startCoverage(rasterdb);
-		rasterdb.rebuildPyramid(true);
+		rasterdb.rebuildPyramid(true, this);
 		if(associate) {
 			pointcloud.setAssociatedRasterDB(rasterdb_name);
 		}

@@ -1,10 +1,8 @@
 package remotetask;
 
-
 import org.tinylog.Logger;
 
-public class CancelableRemoteProxyTask extends RemoteProxyTask {
-	
+public class CancelableRemoteProxyTask extends RemoteProxyTask {	
 
 	public CancelableRemoteProxyTask(Context ctx) {
 		super(ctx);

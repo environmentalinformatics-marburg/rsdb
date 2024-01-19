@@ -148,7 +148,7 @@ public class Task_create extends RemoteTask {
 		boolean update_catalog = true;
 		if(update_catalog) {
 			setMessage("update catalog");
-			broker.catalog.updateCatalog();
+			broker.catalog.refreshCatalog();
 		}
 	}
 }
