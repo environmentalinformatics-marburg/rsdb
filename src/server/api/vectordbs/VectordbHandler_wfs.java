@@ -205,7 +205,7 @@ public class VectordbHandler_wfs extends VectordbHandler {
 	 */
 	private static void xmlGetFeatureStream(VectorDB vectordb, Rect2d ext, Writer out) throws XMLStreamException {
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
-		factory.setProperty("escapeCharacters", false);
+		factory.setProperty("escapeCharacters", false); // needed for direct GML geometry output
 		XMLStreamWriter xmlWriterInner = factory.createXMLStreamWriter(out);
 		XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
 		xmlWriter.writeStartDocument();
@@ -221,8 +221,9 @@ public class VectordbHandler_wfs extends VectordbHandler {
 			vectorFeature.forEachField(vectorFeatureField -> {
 				String fieldName = vectorFeatureField.getName();
 				String fieldValue = vectorFeatureField.getAsString();
+				String escapedFieldValue = XmlUtil.encodeXML(fieldValue);
 				xmlWriter.writeStartElement(fieldName);
-				xmlWriter.writeCharacters(fieldValue);
+				xmlWriter.writeCharacters(escapedFieldValue);
 				xmlWriter.writeEndElement(); // fieldName
 			});
 			

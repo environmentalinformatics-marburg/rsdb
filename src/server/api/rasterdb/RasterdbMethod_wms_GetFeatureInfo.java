@@ -32,6 +32,7 @@ import util.Range2d;
 import util.TemplateUtil;
 import util.TimeUtil;
 import util.Web;
+import util.XmlUtil;
 import util.collections.vec.Vec;
 import util.frame.DoubleFrame;
 import vectordb.VectorDB;
@@ -176,7 +177,7 @@ public class RasterdbMethod_wms_GetFeatureInfo {
 
 	private static void xmlGetFeatureStream(RasterDB rasterdb, HashMap<String, Object> ctx, Writer out) throws XMLStreamException {
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
-		factory.setProperty("escapeCharacters", false);
+		//factory.setProperty("escapeCharacters", false); // not needed?  no direct GML geometry output?
 		XMLStreamWriter xmlWriterInner = factory.createXMLStreamWriter(out);
 		XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
 		xmlWriter.writeStartDocument();
@@ -188,6 +189,7 @@ public class RasterdbMethod_wms_GetFeatureInfo {
 		xmlWriter.writeStartElement("gml:featureMember");
 		xmlWriter.writeStartElement("pixel");
 		
+		//String escapedFieldValue = XmlUtil.encodeXML(ctx.get("values").toString());
 		xmlWriter.writeStartElement("value");
 		xmlWriter.writeCharacters(ctx.get("values").toString());
 		xmlWriter.writeEndElement(); // fieldName

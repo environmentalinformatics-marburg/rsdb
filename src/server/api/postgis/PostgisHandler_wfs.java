@@ -21,10 +21,12 @@ import org.w3c.dom.Node;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
 import postgis.PostgisLayer.PostgisColumn;
+import util.GeoUtil;
 import util.IndentedXMLStreamWriter;
 import util.Timer;
 import util.Web;
 import util.XmlUtil;
+import util.collections.array.ReadonlyArray;
 
 public class PostgisHandler_wfs {
 
@@ -73,44 +75,61 @@ public class PostgisHandler_wfs {
 	}
 
 	private Node xmlGetCapabilities(PostgisLayer postgisLayer, Document doc, String requestUrl) {
-		Element rootElement = doc.createElementNS("http://www.opengis.net/wfs", "WFS_Capabilities");
-		rootElement.setAttribute("version", "1.1.0");		
+		//Element rootElement = doc.createElementNS("http://www.opengis.net/wfs", "WFS_Capabilities");
+		Element rootElement = doc.createElement("wfs:WFS_Capabilities");
+		rootElement.setAttribute("version", "1.1.0");
+		rootElement.setAttribute("xmlns:ows", "http://www.opengis.net/ows");
+		rootElement.setAttribute("xmlns:wfs", "http://www.opengis.net/wfs");
+		rootElement.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 		addOperationsMetadata(rootElement, requestUrl);
 		addFeatureTypeList(rootElement, postgisLayer);		
 		return rootElement;
 	}
-	
+
 	private static void addFeatureTypeList(Element rootElement, PostgisLayer postgisLayer) {
-		Element eFeatureTypeList = XmlUtil.addElement(rootElement, "FeatureTypeList");
-		Element eFeatureType = XmlUtil.addElement(eFeatureTypeList, "FeatureType");
-		XmlUtil.addElement(eFeatureType, "Name", postgisLayer.name);
-		XmlUtil.addElement(eFeatureType, "Title", postgisLayer.name);
+		Element eFeatureTypeList = XmlUtil.addElement(rootElement, "wfs:FeatureTypeList");
+		Element eFeatureType = XmlUtil.addElement(eFeatureTypeList, "wfs:FeatureType");
+		XmlUtil.addElement(eFeatureType, "wfs:Name", postgisLayer.name);
+		XmlUtil.addElement(eFeatureType, "wfs:Title", postgisLayer.name);
 		int epsg = postgisLayer.getEPSG();
-		XmlUtil.addElement(eFeatureType, "DefaultSRS", "EPSG:" + epsg);
+		XmlUtil.addElement(eFeatureType, "wfs:DefaultSRS", "EPSG:" + epsg);
+		tryAdd_WGS84BoundingBox(eFeatureType, postgisLayer);
 	}
-	
+
+	private static void tryAdd_WGS84BoundingBox(Element eFeatureType, PostgisLayer postgisLayer) {	 
+		Rect2d wgs84Rect = GeoUtil.toWGS84(postgisLayer.getEPSG(), postgisLayer.getExtent());
+		if(wgs84Rect == null) {
+			return;
+		}
+		if(wgs84Rect.isFinite()) {
+			Element eWGS84BoundingBox = XmlUtil.addElement(eFeatureType, "ows:WGS84BoundingBox");
+			XmlUtil.addElement(eWGS84BoundingBox, "ows:LowerCorner", "" + wgs84Rect.xmin + " " + wgs84Rect.ymin);
+			XmlUtil.addElement(eWGS84BoundingBox, "ows:UpperCorner", "" + wgs84Rect.xmax + " " + wgs84Rect.ymax);
+		}		
+	}
+
 	private static void addOperationsMetadata(Element rootElement, String requestUrl) {
-		Element eOperationsMetadata = XmlUtil.addElement(rootElement, "OperationsMetadata");
-		
-		Element eOperationGetCapabilities = XmlUtil.addElement(eOperationsMetadata, "Operation");
+		Element eOperationsMetadata = XmlUtil.addElement(rootElement, "ows:OperationsMetadata");
+
+		Element eOperationGetCapabilities = XmlUtil.addElement(eOperationsMetadata, "ows:Operation");
 		eOperationGetCapabilities.setAttribute("name", "GetCapabilities");
-		Element eOperationGetCapabilitiesDCP = XmlUtil.addElement(eOperationGetCapabilities, "DCP");
-		Element eOperationGetCapabilitiesHTTP = XmlUtil.addElement(eOperationGetCapabilitiesDCP, "HTTP");
-		Element eOperationGetCapabilitiesGet = XmlUtil.addElement(eOperationGetCapabilitiesHTTP, "Get");
+		Element eOperationGetCapabilitiesDCP = XmlUtil.addElement(eOperationGetCapabilities, "ows:DCP");
+		Element eOperationGetCapabilitiesHTTP = XmlUtil.addElement(eOperationGetCapabilitiesDCP, "ows:HTTP");
+		Element eOperationGetCapabilitiesGet = XmlUtil.addElement(eOperationGetCapabilitiesHTTP, "ows:Get");
 		eOperationGetCapabilitiesGet.setAttribute("xlink:href", requestUrl);
-		
-		Element eOperationDescribeFeatureType = XmlUtil.addElement(eOperationsMetadata, "Operation");
+
+		Element eOperationDescribeFeatureType = XmlUtil.addElement(eOperationsMetadata, "ows:Operation");
 		eOperationDescribeFeatureType.setAttribute("name", "DescribeFeatureType");
-		Element eOperationDescribeFeatureTypeDCP = XmlUtil.addElement(eOperationDescribeFeatureType, "DCP");
-		Element eOperationDescribeFeatureTypeHTTP = XmlUtil.addElement(eOperationDescribeFeatureTypeDCP, "HTTP");
-		Element eOperationDescribeFeatureTypeGet = XmlUtil.addElement(eOperationDescribeFeatureTypeHTTP, "Get");
+		Element eOperationDescribeFeatureTypeDCP = XmlUtil.addElement(eOperationDescribeFeatureType, "ows:DCP");
+		Element eOperationDescribeFeatureTypeHTTP = XmlUtil.addElement(eOperationDescribeFeatureTypeDCP, "ows:HTTP");
+		Element eOperationDescribeFeatureTypeGet = XmlUtil.addElement(eOperationDescribeFeatureTypeHTTP, "ows:Get");
 		eOperationDescribeFeatureTypeGet.setAttribute("xlink:href", requestUrl);
-		
-		Element eOperationGetFeature = XmlUtil.addElement(eOperationsMetadata, "Operation");
+
+		Element eOperationGetFeature = XmlUtil.addElement(eOperationsMetadata, "ows:Operation");
 		eOperationGetFeature.setAttribute("name", "GetFeature");
-		Element eOperationGetFeatureDCP = XmlUtil.addElement(eOperationGetFeature, "DCP");
-		Element eOperationGetFeatureHTTP = XmlUtil.addElement(eOperationGetFeatureDCP, "HTTP");
-		Element eOperationGetFeatureGet = XmlUtil.addElement(eOperationGetFeatureHTTP, "Get");
+		Element eOperationGetFeatureDCP = XmlUtil.addElement(eOperationGetFeature, "ows:DCP");
+		Element eOperationGetFeatureHTTP = XmlUtil.addElement(eOperationGetFeatureDCP, "ows:HTTP");
+		Element eOperationGetFeatureGet = XmlUtil.addElement(eOperationGetFeatureHTTP, "ows:Get");
 		eOperationGetFeatureGet.setAttribute("xlink:href", requestUrl);
 	}
 
@@ -146,7 +165,7 @@ public class PostgisHandler_wfs {
 		Element esequenceElement1 = XmlUtil.addElement(esequence, "element");
 		esequenceElement1.setAttribute("name", postgisLayer.primaryGeometryColumn);
 		esequenceElement1.setAttribute("type", "gml:GeometryPropertyType");
-		
+
 		for(PostgisColumn field : postgisLayer.fields) {
 			Element esequenceElement2 = XmlUtil.addElement(esequence, "element");
 			esequenceElement2.setAttribute("name", field.name);			
@@ -164,18 +183,24 @@ public class PostgisHandler_wfs {
 			rect2d = Rect2d.parseBbox(bbox);
 		}
 
+		int maxFeatures = Integer.MAX_VALUE;
+		String maxfeaturesParam = request.getParameter("MAXFEATURES");
+		if(maxfeaturesParam != null) {
+			maxFeatures = Integer.parseInt(maxfeaturesParam);			
+		}
+
 		response.setContentType("text/xml; subtype=gml/3.1.1; charset=UTF-8");
 		PrintWriter out = response.getWriter();	
 		try {
-			xmlGetFeatureStream(postgisLayer, out, rect2d);
+			xmlGetFeatureStream(postgisLayer, out, rect2d, maxFeatures);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}	
 	}
 
-	private void xmlGetFeatureStream(PostgisLayer postgisLayer, Writer out, Rect2d rect2d) throws XMLStreamException, SQLException {
+	public static void xmlGetFeatureStream(PostgisLayer postgisLayer, Writer out, Rect2d rect2d, int maxFeatures) throws XMLStreamException, SQLException {
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
-		factory.setProperty("escapeCharacters", false);
+		factory.setProperty("escapeCharacters", false); // needed for direct GML geometry output
 		XMLStreamWriter xmlWriterInner = factory.createXMLStreamWriter(out);
 		XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
 		xmlWriter.writeStartDocument();
@@ -183,23 +208,34 @@ public class PostgisHandler_wfs {
 		xmlWriter.writeDefaultNamespace("https://environmentalinformatics-marburg.github.io/rsdb");
 		xmlWriter.writeNamespace("wfs", "http://www.opengis.net/wfs");
 		xmlWriter.writeNamespace("gml", "http://www.opengis.net/gml");	
-		
-		ResultSet rs = postgisLayer.queryGMLWithFields(rect2d, true);		
-		while(rs.next()) {
+
+		ResultSet rs = postgisLayer.queryGMLWithFields(rect2d, false, maxFeatures);
+		int countFeatures = 0;
+		final ReadonlyArray<PostgisColumn> fields = postgisLayer.fields;
+		final int fieldsLen = fields.size();
+		while(countFeatures < maxFeatures && rs.next()) {
+			countFeatures++;
+			//Logger.info("next " + countFeatures);
+
 			xmlWriter.writeStartElement("gml:featureMember");
 			xmlWriter.writeStartElement(postgisLayer.name);
-			xmlWriter.writeStartElement(postgisLayer.primaryGeometryColumn);
+
+			for (int i = 0; i < fieldsLen; i++) {
+				PostgisColumn field = fields.get(i);
+				String fieldValue = rs.getString(i + 2);
+				if(fieldValue != null) {
+					xmlWriter.writeStartElement(field.name);
+					String escapedFieldValue = XmlUtil.encodeXML(fieldValue);
+					xmlWriter.writeCharacters(escapedFieldValue);
+					xmlWriter.writeEndElement(); // fieldName
+				}
+			}
+
+			xmlWriter.writeStartElement(postgisLayer.primaryGeometryColumn); // geometry after properties for better properties reading by qgis
 			String gml = rs.getString(1);
 			xmlWriter.writeCharacters(gml);
-			xmlWriter.writeEndElement(); // postgisLayer.geoColumnName			
-			
-			for (int i = 0; i < postgisLayer.fields.size(); i++) {
-				PostgisColumn field = postgisLayer.fields.get(i);
-				String fieldValue = rs.getString(i + 2);
-				xmlWriter.writeStartElement(field.name);
-				xmlWriter.writeCharacters(fieldValue);
-				xmlWriter.writeEndElement(); // fieldName
-			}
+			xmlWriter.writeEndElement(); // postgisLayer.geoColumnName
+
 			xmlWriter.writeEndElement(); // FEATURE_NAME
 			xmlWriter.writeEndElement(); // gml:featureMember
 		}

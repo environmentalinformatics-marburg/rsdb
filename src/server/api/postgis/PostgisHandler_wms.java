@@ -7,21 +7,13 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.osr.CoordinateTransformation;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -30,10 +22,8 @@ import ar.com.hjg.pngj.PngjOutputException;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
-import postgis.PostgisLayer.PostgisColumn;
 import postgis.style.StyleProvider;
 import util.GeoUtil;
-import util.IndentedXMLStreamWriter;
 import util.Interruptor;
 import util.Web;
 import util.XmlUtil;
@@ -248,25 +238,18 @@ public class PostgisHandler_wms {
 		eOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
-	private static void tryAdd_GeographicBoundingBox(Rect2d layerRect, int layerEPSG, Element eRootLayer) {
-		try {
-			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, GeoUtil.EPSG_WGS84);
-			if(ct == null) {
-				return;
-			}
-			double[][] rePoints = layerRect.createPoints9();
-			ct.TransformPoints(rePoints);
-			Rect2d wgs84Rect = Rect2d.ofPoints(rePoints);
-			if(wgs84Rect.isFinite()) {
-				Element eEX_GeographicBoundingBox = XmlUtil.addElement(eRootLayer, "EX_GeographicBoundingBox");		
-				XmlUtil.addElement(eEX_GeographicBoundingBox, "westBoundLongitude", "" + wgs84Rect.xmin);
-				XmlUtil.addElement(eEX_GeographicBoundingBox, "eastBoundLongitude", "" + wgs84Rect.xmax);		
-				XmlUtil.addElement(eEX_GeographicBoundingBox, "southBoundLatitude", "" + wgs84Rect.ymin);
-				XmlUtil.addElement(eEX_GeographicBoundingBox, "northBoundLatitude", "" + wgs84Rect.ymax);
-			}			
-		} catch(Exception e) {
-			Logger.warn(e);
+	private static void tryAdd_GeographicBoundingBox(Rect2d layerRect, int layerEPSG, Element eRootLayer) {		 
+		Rect2d wgs84Rect = GeoUtil.toWGS84(layerEPSG, layerRect);
+		if(wgs84Rect == null) {
+			return;
 		}
+		if(wgs84Rect.isFinite()) {
+			Element eEX_GeographicBoundingBox = XmlUtil.addElement(eRootLayer, "EX_GeographicBoundingBox");		
+			XmlUtil.addElement(eEX_GeographicBoundingBox, "westBoundLongitude", "" + wgs84Rect.xmin);
+			XmlUtil.addElement(eEX_GeographicBoundingBox, "eastBoundLongitude", "" + wgs84Rect.xmax);		
+			XmlUtil.addElement(eEX_GeographicBoundingBox, "southBoundLatitude", "" + wgs84Rect.ymin);
+			XmlUtil.addElement(eEX_GeographicBoundingBox, "northBoundLatitude", "" + wgs84Rect.ymax);
+		}		
 	}
 
 	private void handle_GetMap(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
@@ -336,7 +319,7 @@ public class PostgisHandler_wms {
 		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
 		Logger.info(rect2d);
 		Logger.info(pixelRect2d);
-		
+
 		String infoFormat = request.getParameter("INFO_FORMAT");
 		switch(infoFormat) {
 		case "application/json":
@@ -354,54 +337,17 @@ public class PostgisHandler_wms {
 		response.setContentType("text/xml; subtype=gml/3.1.1; charset=UTF-8");
 		PrintWriter out = response.getWriter();	
 		try {
-			xmlGetFeatureStream(postgisLayer, out, pixelRect2d);
+			PostgisHandler_wfs.xmlGetFeatureStream(postgisLayer, out, pixelRect2d, Integer.MAX_VALUE);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}	
 	}
-	
+
 	private void handle_GetFeatureInfoJSON(PostgisLayer postgisLayer, Request request, Response response, Rect2d pixelRect2d) throws IOException {
 		String geojson = APIHandler_postgis_layer.getGeoJSONWithProperties(postgisLayer, pixelRect2d, false);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_GEO_JSON);
 		response.getWriter().print(geojson);
-	}
-
-	private void xmlGetFeatureStream(PostgisLayer postgisLayer, Writer out, Rect2d pixelRect2d) throws XMLStreamException, SQLException {
-		XMLOutputFactory factory = XMLOutputFactory.newInstance();
-		factory.setProperty("escapeCharacters", false);
-		XMLStreamWriter xmlWriterInner = factory.createXMLStreamWriter(out);
-		XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
-		xmlWriter.writeStartDocument();
-		xmlWriter.writeStartElement("wfs:FeatureCollection");
-		xmlWriter.writeNamespace("wfs", "http://www.opengis.net/wfs");
-		xmlWriter.writeNamespace("gml", "http://www.opengis.net/gml");	
-
-		ResultSet rs = postgisLayer.queryGMLWithFields(pixelRect2d, false);		
-		while(rs.next()) {
-			xmlWriter.writeStartElement("gml:featureMember");
-			xmlWriter.writeStartElement(postgisLayer.name);
-			
-			for (int i = 0; i < postgisLayer.fields.size(); i++) {
-				PostgisColumn field = postgisLayer.fields.get(i);
-				String fieldValue = rs.getString(i + 2);
-				xmlWriter.writeStartElement(field.name);
-				xmlWriter.writeCharacters(fieldValue);
-				xmlWriter.writeEndElement(); // fieldName
-			}
-			
-			xmlWriter.writeStartElement(postgisLayer.primaryGeometryColumn); // geometry after properties for better properties reading by qgis
-			String gml = rs.getString(1);
-			xmlWriter.writeCharacters(gml);
-			xmlWriter.writeEndElement(); // postgisLayer.geoColumnName
-			
-			xmlWriter.writeEndElement(); // FEATURE_NAME
-			xmlWriter.writeEndElement(); // gml:featureMember
-		}
-
-		xmlWriter.writeEndElement(); // wfs:FeatureCollection
-		xmlWriter.writeEndDocument();
-		xmlWriter.close();
 	}
 
 	private void handle_GetLegendGraphic(PostgisLayer postgisLayer, Request request, Response response) throws IOException {

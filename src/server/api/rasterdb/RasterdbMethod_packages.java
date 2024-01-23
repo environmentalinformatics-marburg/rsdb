@@ -265,7 +265,7 @@ public class RasterdbMethod_packages extends RasterdbMethod {
 			for(int timestamp : timestamps) {
 				memWriter.reset();
 				XMLOutputFactory factory = XMLOutputFactory.newInstance();
-				factory.setProperty("escapeCharacters", false);
+				//factory.setProperty("escapeCharacters", false);  // not needed?  no direct GML geometry output?
 				XMLStreamWriter xmlWriter = factory.createXMLStreamWriter(memWriter);
 				xmlWriter = new IndentedXMLStreamWriter(xmlWriter);
 				//xmlWriter.writeStartDocument(); // xml meta tag

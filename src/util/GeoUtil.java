@@ -9,6 +9,8 @@ import org.gdal.osr.SpatialReference;
 import org.locationtech.proj4j.CRSFactory;
 import org.tinylog.Logger;
 
+import pointcloud.Rect2d;
+
 public class GeoUtil {
 
 	public static final int EPSG_WGS84 = 4326;
@@ -102,5 +104,27 @@ public class GeoUtil {
 	public static String getWKT(int epsg) {
 		String wkt = epsgWKTMap.computeIfAbsent(epsg, GeoUtil::wktFromEPSG);
 		return wkt;
+	}
+	
+	/**
+	 * 
+	 * @param srcEPSG
+	 * @param srcRect
+	 * @return null if not transformed
+	 */
+	public static Rect2d toWGS84(int srcEPSG, Rect2d srcRect) {
+		try {
+			CoordinateTransformation ct = getCoordinateTransformation(srcEPSG, GeoUtil.EPSG_WGS84);
+			if(ct == null) {
+				return null;
+			}
+			double[][] rePoints = srcRect.createPoints9();
+			ct.TransformPoints(rePoints);
+			Rect2d wgs84Rect = Rect2d.ofPoints(rePoints);
+			return wgs84Rect;		
+		} catch(Exception e) {
+			Logger.warn(e);
+			return null;
+		}
 	}
 }

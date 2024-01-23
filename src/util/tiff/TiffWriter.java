@@ -258,7 +258,7 @@ public class TiffWriter {
 			try {
 				CharArrayWriterUnsync writer = new CharArrayWriterUnsync();
 				XMLOutputFactory factory = XMLOutputFactory.newInstance();
-				factory.setProperty("escapeCharacters", false);
+				//factory.setProperty("escapeCharacters", false);  // not needed?  no direct GML geometry output?
 				XMLStreamWriter xmlWriterInner = factory.createXMLStreamWriter(writer);
 				final XMLStreamWriter xmlWriter = new IndentedXMLStreamWriter(xmlWriterInner);
 				//xmlWriter.writeStartDocument(); // xml meta tag

@@ -856,23 +856,23 @@ public class PostgisLayer extends PostgisLayerBase {
 		}	
 	}
 
-	public ResultSet queryGMLWithFields(Rect2d rect2d, boolean crop) {
+	public ResultSet queryGMLWithFields(Rect2d rect2d, boolean crop, int maxFeatures) {
 		try (Connection conn = postgisConnector.getConnection()) {
 			Timer.start("query");
 			String sql;
 			if(rect2d == null) {
 				String sql_ST_AsGML = SQL_ST_AsGML(geometrySQL);
-				sql = String.format("SELECT %s, %s FROM %s", sql_ST_AsGML, selectorFields, name);		
+				sql = String.format("SELECT %s, %s FROM %s LIMIT %d", sql_ST_AsGML, selectorFields, name, maxFeatures);		
 			} else {				
 				int epsg = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
 				if(crop) {
 					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
 					String sql_ST_AsGML = SQL_ST_AsGML(sql_ST_Intersection);
-					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_AsGML, selectorFields, name, sql_ST_Intersects);	
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s LIMIT %d", sql_ST_AsGML, selectorFields, name, sql_ST_Intersects, maxFeatures);	
 				} else {
 					String sql_ST_AsGML = SQL_ST_AsGML(geometrySQL);
-					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_AsGML, selectorFields, name, sql_ST_Intersects);
+					sql = String.format("SELECT %s, %s FROM %s WHERE %s LIMIT %d", sql_ST_AsGML, selectorFields, name, sql_ST_Intersects, maxFeatures);
 				}
 			}	
 			Logger.info(sql);
