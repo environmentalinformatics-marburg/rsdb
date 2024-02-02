@@ -452,7 +452,7 @@ public class PostgisLayer extends PostgisLayerBase {
 		}
 		return e;
 	}
-	
+
 	private synchronized ReadonlyArray<String> calcUsedGeometryTypes() {
 		if(geometryTypes != null) {
 			return geometryTypes;
@@ -812,39 +812,146 @@ public class PostgisLayer extends PostgisLayerBase {
 			Logger.info(sql);
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
-			long featureCount = 0;
+			consumer.acceptFields(fields);
+			consumer.acceptStart();
+			int featureCount = 0;
 			while(rs.next()) {
-				consumer.acceptFeatureStart(featureCount == 0);
+				consumer.acceptFeatureStart(featureCount);
 				String geometry = rs.getString(1);
-				consumer.acceptFeatureGeometry(geometry);
-				consumer.acceptFeatureFieldsStart();
+				consumer.acceptGeometry(geometry);
+				consumer.acceptCellsStart(featureCount);
 				for (int i = 0; i < flds.length; i++) {
 					PostgisColumn field = flds[i];
+
 					switch(field.type) {
+					case "int2": {
+						short fieldValue = rs.getShort(i + 2);
+						if(rs.wasNull()) {
+							consumer.acceptCellNull(i);
+						} else {
+							consumer.acceptCellInt16(i, fieldValue);
+						}
+						break;
+					}
 					case "serial":
 					case "int4": {
 						int fieldValue = rs.getInt(i + 2);
 						if(rs.wasNull()) {
-							consumer.acceptFeatureFieldNull(field, i == 0);
+							consumer.acceptCellNull(i);
 						} else {
-							consumer.acceptFeatureFieldInt32(field, fieldValue, i == 0);
+							consumer.acceptCellInt32(i, fieldValue);
 						}
 						break;
-					}
+					}	
+					case "float8": {
+						double fieldValue = rs.getDouble(i + 2);
+						if(rs.wasNull()) {
+							consumer.acceptCellNull(i);
+						} else {
+							consumer.acceptCellFloat64(i, fieldValue);
+						}
+						break;
+					}	
+					case "text":
+					case "timestamp": // included as text for simplicity (data type: java.sql.Timestamp)
 					case "varchar":
 					default: {
 						//Logger.info("field type: " + field.type);
 						String fieldValue = rs.getString(i + 2);
 						if(rs.wasNull()) {
-							consumer.acceptFeatureFieldNull(field, i == 0);
+							consumer.acceptCellNull(i);
 						} else {
-							consumer.acceptFeatureField(field, fieldValue, i == 0);
+							consumer.acceptCell(i, fieldValue);
 						}
 					}
 					}
 				}
-				consumer.acceptFeatureFieldsEnd();
-				consumer.acceptFeatureEnd();
+				consumer.acceptCellsEnd(featureCount);
+				consumer.acceptFeatureEnd(featureCount);
+				featureCount++;
+			}
+			consumer.acceptEnd();
+			Logger.info("features " + featureCount);
+			Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;	
+		}	
+	}
+
+	/**
+	 * 
+	 * @param rect2d  nullable
+	 * @param consumer
+	 * @return
+	 */
+	public long forEachWithFields(Rect2d rect2d, FieldsConsumer consumer) {
+		try (Connection conn = postgisConnector.getConnection()) {
+			Timer.start("query");
+			String sql;
+			if(rect2d == null) {
+				sql = String.format("SELECT %s FROM %s", selectorFields, name);
+			} else {				
+				int epsg = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);
+				sql = String.format("SELECT %s FROM %s WHERE %s", selectorFields, name, sql_ST_Intersects);				
+			}
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			consumer.acceptFields(fields);
+			int featureCount = 0;
+			while(rs.next()) {
+				consumer.acceptCellsStart(featureCount);
+				for (int i = 0; i < flds.length; i++) {
+					PostgisColumn field = flds[i];
+					switch(field.type) {
+					case "int2": {
+						short fieldValue = rs.getShort(i + 1);
+						if(rs.wasNull()) {
+							consumer.acceptCellNull(i);
+						} else {
+							consumer.acceptCellInt16(i, fieldValue);
+						}
+						break;
+					}
+					case "serial":
+					case "int4": {
+						int fieldValue = rs.getInt(i + 1);
+						if(rs.wasNull()) {
+							consumer.acceptCellNull(i);
+						} else {
+							consumer.acceptCellInt32(i, fieldValue);
+						}
+						break;
+					}	
+					case "float8": {
+						double fieldValue = rs.getDouble(i + 1);
+						if(rs.wasNull()) {
+							consumer.acceptCellNull(i);
+						} else {
+							consumer.acceptCellFloat64(i, fieldValue);
+						}
+						break;
+					}	
+					case "text":
+					case "timestamp": // included as text for simplicity (data type: java.sql.Timestamp)
+					case "varchar":
+					default: {
+						/*if(!(field.type.equals("varchar") || field.type.equals("timestamp") || field.type.equals("text"))) {
+							Logger.info("field type: " + field.type);
+						}*/
+						String fieldValue = rs.getString(i + 1);
+						if(rs.wasNull()) {
+							consumer.acceptCellNull(i);
+						} else {
+							consumer.acceptCell(i, fieldValue);
+						}
+					}
+					}
+				}
+				consumer.acceptCellsEnd(featureCount);
 				featureCount++;
 			}
 			Logger.info("features " + featureCount);

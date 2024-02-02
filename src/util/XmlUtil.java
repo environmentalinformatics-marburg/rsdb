@@ -11,6 +11,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -57,10 +58,45 @@ public class XmlUtil {
 		return e;
 	}
 	
+	public static String encodeXMLifNeeded(String s) {
+		return isEncodeXMLneeded(s) ? encodeXML(s) : s;
+	}
+	
+	public static boolean isEncodeXMLneeded(String s) { // derived from: https://stackoverflow.com/questions/439298/best-way-to-encode-text-data-for-xml-in-java
+	    int len = s.length();
+	    for (int i = 0; i < len; ) {
+	        int c = s.codePointAt(i);
+	        if (c < 0x80) {      // ASCII range: test most common case first
+	            if (c < 0x20 && (c != '\t' && c != '\r' && c != '\n')) {
+	                return true;
+	            } else {
+	                switch(c) {
+	                  case '&':
+	                  case '>':
+	                  case '<':
+	                  // Uncomment next two if encoding for an XML attribute
+	                  //case '\'':
+	                  //case '\"':
+	                  // Uncomment next three if you prefer, but not required
+	                  //case '\n':
+	                  //case '\r':
+	                  //case '\t':
+	                  return true;
+	                }
+	            }
+	        } else {
+	           return true;
+	        }
+	        i += c <= 0xffff ? 1 : 2;
+	    }
+	    return false;
+	}
+	
 	public static String encodeXML(String s) { // derived from: https://stackoverflow.com/questions/439298/best-way-to-encode-text-data-for-xml-in-java
+		//Logger.info("encodeXML " + s);
 	    StringBuilder sb = new StringBuilder();
 	    int len = s.length();
-	    for (int i=0;i<len;) {
+	    for (int i = 0; i < len; ) {
 	        int c = s.codePointAt(i);
 	        if (c < 0x80) {      // ASCII range: test most common case first
 	            if (c < 0x20 && (c != '\t' && c != '\r' && c != '\n')) {

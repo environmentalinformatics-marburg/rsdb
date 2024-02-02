@@ -221,9 +221,8 @@ public class VectordbHandler_wfs extends VectordbHandler {
 			vectorFeature.forEachField(vectorFeatureField -> {
 				String fieldName = vectorFeatureField.getName();
 				String fieldValue = vectorFeatureField.getAsString();
-				String escapedFieldValue = XmlUtil.encodeXML(fieldValue);
 				xmlWriter.writeStartElement(fieldName);
-				xmlWriter.writeCharacters(escapedFieldValue);
+				xmlWriter.writeCharacters(XmlUtil.encodeXMLifNeeded(fieldValue));
 				xmlWriter.writeEndElement(); // fieldName
 			});
 			

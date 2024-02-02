@@ -225,8 +225,7 @@ public class PostgisHandler_wfs {
 				String fieldValue = rs.getString(i + 2);
 				if(fieldValue != null) {
 					xmlWriter.writeStartElement(field.name);
-					String escapedFieldValue = XmlUtil.encodeXML(fieldValue);
-					xmlWriter.writeCharacters(escapedFieldValue);
+					xmlWriter.writeCharacters(XmlUtil.encodeXMLifNeeded(fieldValue));
 					xmlWriter.writeEndElement(); // fieldName
 				}
 			}

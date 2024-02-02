@@ -1,14 +1,19 @@
 package postgis;
 
 import postgis.PostgisLayer.PostgisColumn;
+import util.collections.array.ReadonlyArray;
 
-public interface FeatureConsumer {
-	void acceptFeatureStart(boolean isFirstFeature);
-	void acceptFeatureGeometry(String geometry);
-	void acceptFeatureFieldsStart();
-	void acceptFeatureField(PostgisColumn field, String fieldValue, boolean isFirstFeatureField);
-	void acceptFeatureFieldNull(PostgisColumn field, boolean isFirstFeatureField);
-	void acceptFeatureFieldInt32(PostgisColumn field, int fieldValue, boolean isFirstFeatureField);
-	void acceptFeatureFieldsEnd();
-	void acceptFeatureEnd();
+public interface FeatureConsumer extends FieldsConsumer {
+	
+	// FieldsConsumer methods
+	
+	void acceptFields(ReadonlyArray<PostgisColumn> fields);
+	
+	void acceptFeatureStart(int i);
+	
+	void acceptGeometry(String geometry);
+	
+	// FieldsConsumer methods
+	
+	void acceptFeatureEnd(int i);	
 }

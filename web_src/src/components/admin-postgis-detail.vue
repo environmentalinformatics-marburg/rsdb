@@ -104,19 +104,38 @@
             <div class="meta-content">                
                 <table>
                     <tr>
-                        <th>Service</th>
-                        <th>URL</th>
-                        <th>Copy to clipboard</th>
+                        <th style="padding-right: 25px;">Service</th>
+                        <th>Access</th>
+                        <th>Description</th>
                     </tr>
                     <tr>
-                        <td><b>WFS</b></td>
-                        <td class="url">{{wfsUrl}}</td>
-                        <td><v-btn @click="onUrlCopy(wfsUrl)" title="copy WFS URL of this PostGIS layer to clipboard" small><v-icon small>content_copy</v-icon></v-btn></td>
+                        <td style="text-align: center;"><b>WFS</b></td>
+                        <td style="text-align: center;">
+                            <span class="url">{{wfsUrl}}</span>
+                            <v-btn @click="onUrlCopy(wfsUrl)" title="Copy WFS URL of this PostGIS layer to clipboard." small><v-icon small>content_copy</v-icon>copy url</v-btn>
+                        </td>
+                        <td>Vector feature access to e.g. QGIS</td>
                     </tr>
                     <tr>
-                        <td><b>WMS</b></td>
-                        <td class="url">{{wmsUrl}}</td>
-                        <td><v-btn @click="onUrlCopy(wmsUrl)" title="copy WMS URL of this PostGIS layer to clipboard" small><v-icon small>content_copy</v-icon></v-btn></td>
+                        <td style="text-align: center;"><b>WMS</b></td>
+                        <td style="text-align: center;">
+                            <span class="url">{{wmsUrl}}</span>
+                            <v-btn @click="onUrlCopy(wmsUrl)" title="Copy WMS URL of this PostGIS layer to clipboard." small><v-icon small>content_copy</v-icon>copy url</v-btn>
+                        </td>
+                        <td>Vector feature access as image visualization to e.g. QGIS</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;"><b>GeoJSON</b></td>
+                        <td style="text-align: center;"><a :href="geojsonUrl" :download="postgis + '.geojson'" target="_blank" title="Download GeoJSON file. Includes geometries and field values." style="padding-left: 10px;">Download GeoJSON</a></td>                        
+                        <td>Export vector features as file to be opened by e.g. QGIS</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;"><b>CSV</b></td>
+                        <td style="text-align: center;">
+                            <a :href="csvUrl" :download="postgis + '.csv'" target="_blank"  title="Download CSV file. Includes a table of field values." style="padding-left: 10px;">Download CSV</a>
+                            <admin-postgis-data-table :meta="meta" />                            
+                        </td>
+                        <td>Export vector feature properties as file to be opened by e.g. spreadsheet application</td>
                     </tr>
                 </table>
             </div>
@@ -214,6 +233,7 @@ import dialogSetInfo from './dialog-set-info.vue'
 import boxInfo from './box-info.vue'
 import adminPostgisDialogSetAcl from './admin-postgis-dialog-set-acl.vue'
 import adminPostgisStructuredAccess from './admin-postgis-structured-access'
+import adminPostgisDataTable from './admin-postgis-data-table'
 
 
 export default {
@@ -223,7 +243,8 @@ export default {
         'dialog-set-info': dialogSetInfo,
         'box-info': boxInfo,
         'admin-postgis-dialog-set-acl': adminPostgisDialogSetAcl,
-        'admin-postgis-structured-access': adminPostgisStructuredAccess,              
+        'admin-postgis-structured-access': adminPostgisStructuredAccess,
+        'admin-postgis-data-table': adminPostgisDataTable,                
     },
     props: ['postgis'],
     data() {
@@ -293,6 +314,12 @@ export default {
         wmsUrl() {
             return this.identity === undefined || this.meta === undefined ? '[unknown]' : (this.identity.url_base + '/postgis/layers/' + this.meta.name + '/wms');
         },        
+        csvUrl() {
+            return this.identity === undefined || this.meta === undefined ? '[unknown]' : (this.identity.url_base + '/postgis/layers/' + this.meta.name + '/table.csv');
+        },
+        geojsonUrl() {
+            return this.identity === undefined || this.meta === undefined ? '[unknown]' : (this.identity.url_base + '/postgis/layers/' + this.meta.name + '/geometry.geojson');
+        },
     },
     watch: {
         postgis() {

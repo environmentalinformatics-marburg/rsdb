@@ -3,22 +3,20 @@ package util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.function.IntSupplier;
 
-import jakarta.servlet.ServletInputStream;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Authentication;
+import org.eclipse.jetty.server.Authentication.User;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.UserIdentity;
-import org.eclipse.jetty.server.Authentication.User;
 import org.json.JSONObject;
+import org.tinylog.Logger;
+
+import jakarta.servlet.ServletInputStream;
 
 public final class Web {	
 
@@ -26,7 +24,7 @@ public final class Web {
 	public static final String MIME_XML = "application/xml;charset=utf-8";
 	public static final String MIME_JSON = "application/json;charset=utf-8";
 	public static final String MIME_GEO_JSON = "application/geo+json;charset=utf-8";
-	//public static final String MIME_CSV = "text/csv;charset=utf-8";
+	public static final String MIME_CSV = "text/csv;charset=utf-8";
 	public static final String MIME_HTML = "text/html;charset=utf-8";
 	public static final String MIME_BINARY = "application/octet-stream";
 	public static final String MIME_ZIP = "application/zip";
@@ -260,8 +258,6 @@ public final class Web {
 			user = userIdentity.getUserPrincipal().getName();
 		}
 		StringBuilder s = new StringBuilder();
-		s.append(timestampText(LocalDateTime.now()));
-		s.append(" ");
 		s.append(user);
 		s.append(" ");
 		s.append(request.getRemoteAddr());

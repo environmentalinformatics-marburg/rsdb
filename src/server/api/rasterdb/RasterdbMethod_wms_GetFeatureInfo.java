@@ -32,10 +32,8 @@ import util.Range2d;
 import util.TemplateUtil;
 import util.TimeUtil;
 import util.Web;
-import util.XmlUtil;
 import util.collections.vec.Vec;
 import util.frame.DoubleFrame;
-import vectordb.VectorDB;
 
 public class RasterdbMethod_wms_GetFeatureInfo {
 

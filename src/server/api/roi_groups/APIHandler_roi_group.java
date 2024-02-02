@@ -1,21 +1,17 @@
 package server.api.roi_groups;
 
 import java.io.IOException;
-import java.util.Iterator;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
-import org.apache.commons.math3.analysis.function.Multiply;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.group.Roi;
 import broker.group.RoiGroup;
+import jakarta.servlet.http.HttpServletResponse;
 import pointdb.base.Point2d;
 import pointdb.base.PolygonUtil;
 import pointdb.base.PolygonUtil.PolygonWithHoles;

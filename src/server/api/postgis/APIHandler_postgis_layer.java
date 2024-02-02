@@ -1,6 +1,7 @@
 package server.api.postgis;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
@@ -19,9 +20,7 @@ import broker.acl.ACL;
 import broker.acl.AclUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
-import postgis.FeatureConsumer;
 import postgis.PostgisLayer;
-import postgis.PostgisLayer.PostgisColumn;
 import postgis.PostgisLayerManager;
 import postgis.style.StyleProviderFactory;
 import util.JsonUtil;
@@ -38,6 +37,7 @@ public class APIHandler_postgis_layer {
 	private final PostgisHandler_wms postgisHandler_wms;
 	private final PostgisHandler_indices postgisHandler_indices;
 	private final PostgisHandler_image_png postgisHandler_image_png;
+	private final PostgisHandler_table_csv postgisHandler_table_csv;
 
 	public APIHandler_postgis_layer(Broker broker) {
 		this.broker = broker;
@@ -46,6 +46,7 @@ public class APIHandler_postgis_layer {
 		this.postgisHandler_wms = new PostgisHandler_wms();
 		this.postgisHandler_indices = new PostgisHandler_indices();
 		this.postgisHandler_image_png = new PostgisHandler_image_png();
+		this.postgisHandler_table_csv = new PostgisHandler_table_csv();
 	}
 
 	public void handle(String layerName, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {
@@ -88,6 +89,7 @@ public class APIHandler_postgis_layer {
 					postgisHandler_wms.handle(postgisLayer, next, request, response, userIdentity);
 					break;
 				}
+				case "geometry.geojson": // alias for file download
 				case "geojson": {
 					PostgisLayer postgisLayer = layerManager.getPostgisLayer(layerName);
 					postgisLayer.check(userIdentity);
@@ -104,6 +106,12 @@ public class APIHandler_postgis_layer {
 					PostgisLayer postgisLayer = layerManager.getPostgisLayer(layerName);
 					postgisLayer.check(userIdentity);
 					postgisHandler_image_png.handle(postgisLayer, next, request, response, userIdentity);
+					break;
+				}
+				case "table.csv": {
+					PostgisLayer postgisLayer = layerManager.getPostgisLayer(layerName);
+					postgisLayer.check(userIdentity);
+					postgisHandler_table_csv.handle(postgisLayer, next, request, response, userIdentity);
 					break;
 				}
 				default:
@@ -176,10 +184,10 @@ public class APIHandler_postgis_layer {
 
 		json.key("geometry_field");
 		json.value(postgisLayer.primaryGeometryColumn);
-		
+
 		json.key("name_field");
 		json.value(postgisLayer.getNameField());
-		
+
 		json.key("fields");
 		json.array();
 		postgisLayer.fields.forEach(pc -> json.value(pc.name));
@@ -343,11 +351,10 @@ public class APIHandler_postgis_layer {
 		}		
 		boolean crop = Web.getBoolean(request, "crop", true);
 
-		//String geojson = getGeoJSON(postgisLayer, rect2d, crop);
-		String geojson = getGeoJSONWithProperties(postgisLayer, rect2d, crop);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_GEO_JSON);
-		response.getWriter().print(geojson);		
+		//writeGeoJSON(postgisLayer, rect2d, crop, response.getWriter());	
+		writeGeoJSONWithProperties(postgisLayer, rect2d, crop, response.getWriter());	
 	}
 
 	/**
@@ -356,114 +363,23 @@ public class APIHandler_postgis_layer {
 	 * @param rect2d  nullable
 	 * @return
 	 */
-	private static String getGeoJSON(PostgisLayer postgisLayer, Rect2d rect2d, boolean crop) {
-
+	public static void writeGeoJSON(PostgisLayer postgisLayer, Rect2d rect2d, boolean crop, PrintWriter out) {		
 		int epsg = postgisLayer.getEPSG();
-
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\":\"FeatureCollection\"");
-		if(epsg > 0) {
-			sb.append(",\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::");
-			sb.append(epsg);
-			sb.append("\"}}");
-		}
-		sb.append(",\"features\":");
-		sb.append("[");
-
-		postgisLayer.forEachGeoJSON(rect2d, crop, new Consumer<String>() {			
-			boolean isFirst = true;
-			StringBuilder sb1 = sb;			
-			@Override
-			public void accept(String geometry) {
-				if(isFirst) {
-					isFirst = false;
-				} else {
-					sb1.append(",");						
-				}
-				sb1.append("{\"type\":\"Feature\",\"geometry\":");
-				sb1.append(geometry);				
-				sb1.append("}");
-			}
+		GeojsonWriter geojsonWriter = new GeojsonWriter(out, epsg);
+		geojsonWriter.acceptFields(null);
+		geojsonWriter.acceptStart();
+		postgisLayer.forEachGeoJSON(rect2d, crop, geometry -> {
+			geojsonWriter.acceptFeatureStart(-1);
+			geojsonWriter.acceptGeometry(geometry);
+			geojsonWriter.acceptFeatureEnd(-1);
 		});
-
-		sb.append("]");
-		sb.append("}");
-
-		return sb.toString();
+		geojsonWriter.acceptEnd();
 	}
 
-	public static String getGeoJSONWithProperties(PostgisLayer postgisLayer, Rect2d rect2d, boolean crop) {
-
+	public static void writeGeoJSONWithProperties(PostgisLayer postgisLayer, Rect2d rect2d, boolean crop, PrintWriter out) {
 		int epsg = postgisLayer.getEPSG();
-
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\":\"FeatureCollection\"");
-		if(epsg > 0) {
-			sb.append(",\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::");
-			sb.append(epsg);
-			sb.append("\"}}");
-		}
-		sb.append(",\"features\":");
-		sb.append("[");
-
-		postgisLayer.forEachGeoJSONWithFields(rect2d, crop, new FeatureConsumer() {			
-			StringBuilder sb1 = sb;			
-
-			@Override
-			public void acceptFeatureStart(boolean isFirstFeature) {
-				if(isFirstFeature) {
-					sb1.append("{\"type\":\"Feature\"");
-				} else {
-					sb1.append(",{\"type\":\"Feature\"");						
-				}			
-			}
-			@Override
-			public void acceptFeatureGeometry(String geometry) {
-				sb1.append(",\"geometry\":");
-				sb1.append(geometry);				
-			}
-			@Override
-			public void acceptFeatureFieldsStart() {
-				sb1.append(",\"properties\":{");
-			}
-			@Override
-			public void acceptFeatureField(PostgisColumn field, String fieldValue, boolean isFirstFeatureField) {	
-				if(isFirstFeatureField) {
-					sb1.append("\"" + field.name + "\":\"" + fieldValue + "\"");
-				} else {
-					sb1.append(",\"" + field.name + "\":\"" + fieldValue + "\"");						
-				}
-			}
-			@Override
-			public void acceptFeatureFieldNull(PostgisColumn field, boolean isFirstFeatureField) {
-				if(isFirstFeatureField) {
-					sb1.append("\"" + field.name + "\":null");
-				} else {
-					sb1.append(",\"" + field.name + "\":null");						
-				}
-			}
-			@Override
-			public void acceptFeatureFieldInt32(PostgisColumn field, int fieldValue, boolean isFirstFeatureField) {
-				if(isFirstFeatureField) {
-					sb1.append("\"" + field.name + "\":" + fieldValue);
-				} else {
-					sb1.append(",\"" + field.name + "\":" + fieldValue);						
-				}
-			}
-			@Override
-			public void acceptFeatureFieldsEnd() {
-				sb1.append("}");				
-			}
-			@Override
-			public void acceptFeatureEnd() {
-				sb1.append("}");				
-			}						
-		});
-
-		sb.append("]");
-		sb.append("}");
-
-		return sb.toString();
+		GeojsonWriter geojsonWriter = new GeojsonWriter(out, epsg);
+		postgisLayer.forEachGeoJSONWithFields(rect2d, crop, geojsonWriter);		
 	}
 }
 

@@ -46,7 +46,12 @@
         <q-select
           v-model="selectedLayer"
           :options="filteredOptionsLayers"
-          :label="'Layer (' + filteredOptionsLayers.length + ')'"
+          :label="
+            'Layer' +
+            (filteredOptionsLayers.length > 0
+              ? ' (' + filteredOptionsLayers.length + ')'
+              : '')
+          "
           option-label="name"
           clearable
           use-input

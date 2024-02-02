@@ -344,10 +344,9 @@ public class PostgisHandler_wms {
 	}
 
 	private void handle_GetFeatureInfoJSON(PostgisLayer postgisLayer, Request request, Response response, Rect2d pixelRect2d) throws IOException {
-		String geojson = APIHandler_postgis_layer.getGeoJSONWithProperties(postgisLayer, pixelRect2d, false);
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_GEO_JSON);
-		response.getWriter().print(geojson);
+		APIHandler_postgis_layer.writeGeoJSONWithProperties(postgisLayer, pixelRect2d, false, response.getWriter());
 	}
 
 	private void handle_GetLegendGraphic(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
