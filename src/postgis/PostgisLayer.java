@@ -574,10 +574,10 @@ public class PostgisLayer extends PostgisLayerBase {
 			if(rect2d == null) {
 				sql = String.format("SELECT %s FROM %s", geometrySQL, name);		
 			} else {				
-				int epsg = getEPSG();
-				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, epsg);				
+				int layerEPSG = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, rect2d, layerEPSG);				
 				if(crop) {
-					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, epsg);
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, rect2d, layerEPSG);
 					sql = String.format("SELECT %s FROM %s WHERE %s", sql_ST_Intersection, name, sql_ST_Intersects);	
 				} else {
 					sql = String.format("SELECT %s FROM %s WHERE %s", geometrySQL, name, sql_ST_Intersects);

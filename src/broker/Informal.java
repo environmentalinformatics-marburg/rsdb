@@ -1,20 +1,15 @@
 package broker;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
 
-
-import org.tinylog.Logger;
 import org.json.JSONWriter;
 
 import util.JsonUtil;
 import util.collections.ReadonlyList;
-import util.collections.array.ReadonlyArray;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap;
 
-public class Informal {
-	
+public class Informal {	
 
 	public final static Informal EMPTY = new Builder().build();
 
@@ -60,17 +55,9 @@ public class Informal {
 	}
 
 	public void writeJson(JSONWriter json) {
-		/*metaTags.addAll(tags);		
-		ReadonlyArray<String> subjectTags = properties.get("subject");
-		if(subjectTags != null) {
-			metaTags.addAll(subjectTags);
-		}
-		String[] metaTagsArray = metaTags.toArray(String[]::new);*/
-		
 		JsonUtil.put(json, "title", title);
 		JsonUtil.put(json, "description", description);
 		JsonUtil.writeOptList(json, "tags", tags);
-		//JsonUtil.writeOptArray(json, "tags", metaTagsArray);
 		JsonUtil.optPut(json, "acquisition_date", acquisition_date);
 		JsonUtil.optPut(json, "corresponding_contact", corresponding_contact);
 

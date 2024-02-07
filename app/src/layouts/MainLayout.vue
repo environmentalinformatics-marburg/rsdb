@@ -414,6 +414,7 @@ import { shiftKeyOnly } from "ol/events/condition";
 import { transformExtent } from "ol/proj";
 import proj4 from "proj4";
 import { register } from "ol/proj/proj4";
+import { fromEPSGCode } from "ol/proj/proj4";
 import draggable from "vuedraggable";
 
 import AddLayer from "../components/AddLayer.vue";
@@ -475,6 +476,7 @@ export default defineComponent({
     },
 
     async completePostgisLayer(layerEntry) {
+      //console.log("completePostgisLayer");
       try {
         if (layerEntry.postgisLayerURLPart === undefined) {
           layerEntry.postgisLayerURLPart = "postgis/layers/" + layerEntry.name;
@@ -499,11 +501,28 @@ export default defineComponent({
             this.$api.getUri() + layerEntry.postgisLayerURLPart + "/wms";
         }
 
+        if (layerEntry.projection === undefined) {
+          const srs = "EPSG:" + layerEntry.meta.epsg;
+
+          proj4.defs(srs, layerEntry.meta.wkt_srs);
+          //console.log("completePostgisLayer  add srs: " + srs);
+          //console.log(layerEntry.meta.wkt_srs);
+          register(proj4);
+
+          /*layerEntry.projection = new Projection({
+            code: srs,
+            units: "m",
+          });*/
+          layerEntry.projection = await fromEPSGCode(srs);
+          //console.log(layerEntry.projection);
+        }
+
         if (layerEntry.layer === undefined) {
           layerEntry.layer = new ImageLayer({
-            extent: layerEntry.extent,
+            //extent: layerEntry.extent, // bug? wrong extent if view is in other projection. Workaround: no extent
             source: new ImageWMS({
               url: layerEntry.wmsURL,
+              projection: layerEntry.projection,
               ratio: 1,
               interpolate: false,
               imageLoadFunction: (image, src) => {
@@ -517,18 +536,6 @@ export default defineComponent({
               },
               params: {},
             }),
-          });
-        }
-
-        if (layerEntry.projection === undefined) {
-          const srs = "EPSG" + layerEntry.meta.epsg;
-
-          proj4.defs(srs, layerEntry.meta.wkt_srs);
-          register(proj4);
-
-          layerEntry.projection = new Projection({
-            code: srs,
-            units: "m",
           });
         }
       } catch (e) {
@@ -738,7 +745,7 @@ export default defineComponent({
           } else {
             try {
               const code = layerEntry.meta.ref.code;
-              console.log(code);
+              //console.log(code);
               const params = { crs: code };
               const response = await this.$api.get("api/epsg", { params });
               proj4.defs(srs, response.data.proj4);
@@ -783,6 +790,7 @@ export default defineComponent({
     },
 
     async refreshLayers(keepView) {
+      console.log("refreshLayers");
       try {
         this.initializingLayers = true;
         if (this.layers.length > 0) {
