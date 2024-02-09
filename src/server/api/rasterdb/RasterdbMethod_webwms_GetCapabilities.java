@@ -137,9 +137,9 @@ public class RasterdbMethod_webwms_GetCapabilities {
 
 	private static void tryAdd_GeographicBoundingBox(Range2d localRange, GeoReference ref, int layerEPSG, Element eRootLayer) {
 		try {
-			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, GeoUtil.EPSG_WGS84);
-			double[] p1 = ct.TransformPoint(ref.pixelXToGeo(localRange.xmin), ref.pixelYToGeo(localRange.ymin));
-			double[] p2 = ct.TransformPoint(ref.pixelXToGeo(localRange.xmax + 1), ref.pixelYToGeo(localRange.ymax + 1));
+			util.GeoUtil.Transformer transfomer = GeoUtil.getCoordinateTransformer(layerEPSG, GeoUtil.EPSG_WGS84);
+			double[] p1 = transfomer.transformWithAxisOrderCorrection(ref.pixelXToGeo(localRange.xmin), ref.pixelYToGeo(localRange.ymin));
+			double[] p2 = transfomer.transformWithAxisOrderCorrection(ref.pixelXToGeo(localRange.xmax + 1), ref.pixelYToGeo(localRange.ymax + 1));
 			double westBoundLongitude = p1[0];
 			double eastBoundLongitude = p2[0];
 			double southBoundLatitude = p1[1];
@@ -190,11 +190,11 @@ public class RasterdbMethod_webwms_GetCapabilities {
 		double[][] layerPoints = layerRect.createPoints9(); // larger extent
 		//double[][] layerPoints = layerRect.createPointsMidBorder(); // mean extent
 		Logger.info(Arrays.deepToString(layerPoints));
-		CoordinateTransformation ctToWMS = GeoUtil.getCoordinateTransformation(layerEPSG, wmsEPSG);
+		util.GeoUtil.Transformer ctToWMS = GeoUtil.getCoordinateTransformer(layerEPSG, wmsEPSG);
 		if(ctToWMS == null) {
 			throw new RuntimeException("no valid EPSG projection information");
 		}
-		ctToWMS.TransformPoints(layerPoints);
+		ctToWMS.transformWithAxisOrderCorrection(layerPoints);
 		Logger.info(Arrays.deepToString(layerPoints));
 
 		Rect2d wmsRect = Rect2d.ofPoints(layerPoints);

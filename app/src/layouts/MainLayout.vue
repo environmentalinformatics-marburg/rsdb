@@ -831,11 +831,6 @@ export default defineComponent({
           this.mainLayer =
             this.layers.length > 1 ? this.layers[1] : this.layers[0];
           const layers = [];
-          /*layers.push(
-            new TileLayer({
-              source: new OSM(),
-            })
-          );*/
           for (const layerEntry of this.layers) {
             if (layerEntry.layer !== undefined) {
               layerEntry.layer.setVisible(layerEntry.visible);

@@ -98,12 +98,12 @@ public class RasterdbMethod_wcs_DescribeCoverage {
 		double wcsResx = Double.NaN;
 		double wcsResy = Double.NaN;
 		if(isTransform) {
-			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, wcsEPSG);	
-			if(ct == null) {
+			util.GeoUtil.Transformer transformer = GeoUtil.getCoordinateTransformer(layerEPSG, wcsEPSG);	
+			if(transformer == null) {
 				throw new RuntimeException("no transform");
 			}
 			double[][] rePoints = layerRect.createPoints9();
-			ct.TransformPoints(rePoints);
+			transformer.transformWithAxisOrderCorrection(rePoints);
 			wcsRect = Rect2d.ofPoints(rePoints);
 			if(!wcsRect.isFinite()) {
 				throw new RuntimeException("no rect");

@@ -20,14 +20,41 @@ public class GeoUtil {
 	public static final CRSFactory CRS_FACTORY = new CRSFactory();
 
 	public static Driver GDAL_MEM_DRIVER = null;
-	
+
 	private static final ConcurrentHashMap<Integer, SpatialReference> epsgSrMap = new ConcurrentHashMap<Integer, SpatialReference>();
 	private static final ConcurrentHashMap<Integer, String> epsgWKTMap = new ConcurrentHashMap<Integer, String>();
-	private static final ConcurrentHashMap<Long, CoordinateTransformation> transMap = new ConcurrentHashMap<Long, CoordinateTransformation>();
+	private static final ConcurrentHashMap<Long, Transformer> transMap = new ConcurrentHashMap<Long, Transformer>();
 
 	static {
 		gdal.AllRegister();
 		GDAL_MEM_DRIVER = gdal.GetDriverByName("MEM");
+	}
+
+	public static class Transformer {
+		public final SpatialReference srcSr;
+		public final SpatialReference dstSr;
+		public final CoordinateTransformation coordinateTransformation;
+		public final int srcFirstAxis; //description: https://gdal.org/development/rfc/rfc20_srs_axes.html
+		public final int dstFirstAxis;
+
+		public Transformer(SpatialReference srcSr, SpatialReference dstSr, CoordinateTransformation coordinateTransformation) {
+			this.srcSr = srcSr;
+			this.dstSr = dstSr;
+			this.coordinateTransformation = coordinateTransformation;
+			this.srcFirstAxis = srcSr.GetAxisOrientation(null, 0);
+			this.dstFirstAxis = dstSr.GetAxisOrientation(null, 0);
+		}
+
+		public void transformWithAxisOrderCorrection(double[][] points) {
+			swapOrderIfNeeded(srcFirstAxis, points);
+			coordinateTransformation.TransformPoints(points);
+			swapOrderIfNeeded(dstFirstAxis, points);			
+		}
+
+		public double[] transformWithAxisOrderCorrection(double x, double y) {
+			double[] p = transformSwapOrderIfNeeded(srcFirstAxis, dstFirstAxis, coordinateTransformation, x, y);
+			return p;		
+		}
 	}
 
 	private GeoUtil() {}	
@@ -41,7 +68,7 @@ public class GeoUtil {
 	public static double[] createGeotranform(double ref_x, double ref_y, double pixelSize_x, double pixelSize_y) {
 		return new double[] {ref_x, pixelSize_x, 0, ref_y, 0, pixelSize_y};
 	}
-	
+
 	public static int parseEPSG(String crs, int missing) {
 		if(crs != null && !crs.isBlank()) {
 			String epsgText = crs.toLowerCase();
@@ -68,30 +95,31 @@ public class GeoUtil {
 		SpatialReference sr = epsgSrMap.computeIfAbsent(epsg, GeoUtil::spatialReferenceFromEPSG);
 		return sr;
 	}
-	
-	private static CoordinateTransformation createCoordinateTransformation(int srcEPSG, int dstEPSG) {
+
+	private static Transformer createCoordinateTransformer(int srcEPSG, int dstEPSG) {
 		SpatialReference srcSr = getSpatialReference(srcEPSG);
 		SpatialReference dstSr = getSpatialReference(dstEPSG);
 		if(srcSr == null || dstSr == null) {
 			return null;
 		}
 		CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(srcSr, dstSr);
-		return ct;
+		Transformer transformer = new Transformer(srcSr, dstSr, ct);
+		return transformer;
 	}
-	
-	private static CoordinateTransformation createCoordinateTransformation(long srcEPSG_dstEPSG) {
+
+	private static Transformer createCoordinateTransformer(long srcEPSG_dstEPSG) {
 		int srcEPSG = (int) (srcEPSG_dstEPSG >> 32);
 		int dstEPSG = (int) srcEPSG_dstEPSG;	
-		return createCoordinateTransformation(srcEPSG, dstEPSG);
+		return createCoordinateTransformer(srcEPSG, dstEPSG);
 	}
-	
-	public static CoordinateTransformation getCoordinateTransformation(int srcEPSG, int dstEPSG) {
+
+	public static Transformer getCoordinateTransformer(int srcEPSG, int dstEPSG) {
 		long srcEPSG_dstEPSG = (((long) srcEPSG) << 32) | (dstEPSG & 0xffffffffL);
-		CoordinateTransformation ct = transMap.computeIfAbsent(srcEPSG_dstEPSG, GeoUtil::createCoordinateTransformation);
-		return ct;
-		
+		Transformer transformer = transMap.computeIfAbsent(srcEPSG_dstEPSG, GeoUtil::createCoordinateTransformer);
+		return transformer;
+
 	}
-	
+
 	private static String wktFromEPSG(int epsg) {
 		SpatialReference sr = getSpatialReference(epsg);
 		if(sr == null) {
@@ -100,12 +128,12 @@ public class GeoUtil {
 		String wkt = sr.ExportToWkt();
 		return wkt;
 	}
-	
+
 	public static String getWKT(int epsg) {
 		String wkt = epsgWKTMap.computeIfAbsent(epsg, GeoUtil::wktFromEPSG);
 		return wkt;
 	}
-	
+
 	/**
 	 * 
 	 * @param srcEPSG
@@ -114,17 +142,73 @@ public class GeoUtil {
 	 */
 	public static Rect2d toWGS84(int srcEPSG, Rect2d srcRect) {
 		try {
-			CoordinateTransformation ct = getCoordinateTransformation(srcEPSG, GeoUtil.EPSG_WGS84);
-			if(ct == null) {
+			Transformer transformer = getCoordinateTransformer(srcEPSG, GeoUtil.EPSG_WGS84);
+			if(transformer == null) {
 				return null;
 			}
 			double[][] rePoints = srcRect.createPoints9();
-			ct.TransformPoints(rePoints);
+			transformer.transformWithAxisOrderCorrection(rePoints);
 			Rect2d wgs84Rect = Rect2d.ofPoints(rePoints);
 			return wgs84Rect;		
 		} catch(Exception e) {
 			Logger.warn(e);
 			return null;
 		}
+	}
+
+	public static void swapOrder(double[] p) {
+		double p0 = p[0];
+		p[0] = p[1];
+		p[1] = p0;
+	}
+
+	public static void swapOrder(double[][] points) {
+		for (double[] p : points) {
+			double p0 = p[0];
+			p[0] = p[1];
+			p[1] = p0;
+		}
+	}
+
+	public static void swapOrderIfNeeded(int firstAxis, double[] p) {
+		switch(firstAxis) {
+		case 1: // OAO_North --> swap;
+			Logger.info("swap order");
+			swapOrder(p);
+			break;
+		case 3: // OAO_East --> correct
+		default:
+			// not further checked if order is correct
+		}		
+	}
+
+	public static void swapOrderIfNeeded(int firstAxis, double[][] points) {
+		switch(firstAxis) {
+		case 1: // OAO_North --> swap;
+			Logger.info("swap order");
+			swapOrder(points);
+			break;
+		case 3: // OAO_East --> correct
+		default:
+			// not further checked if order is correct
+		}		
+	}
+	
+	public static double[] transformSwapOrderIfNeeded(int srcFirstAxis, int dstFirstAxis, CoordinateTransformation coordinateTransformation, double x, double y) {
+		double[] p;
+		switch(srcFirstAxis) {
+		case 1: {// OAO_North --> swap;
+			Logger.info("swap order");
+			p = coordinateTransformation.TransformPoint(y, x);
+			break;
+		}
+		case 3: // OAO_East --> correct
+		default: {
+			// not further checked if order is correct
+			p = coordinateTransformation.TransformPoint(x, y);
+		}
+		}
+		swapOrderIfNeeded(dstFirstAxis, p);
+		return p;
 	}
 }

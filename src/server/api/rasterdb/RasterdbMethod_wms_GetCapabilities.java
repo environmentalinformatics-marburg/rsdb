@@ -17,7 +17,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.osr.CoordinateTransformation;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -177,12 +176,12 @@ public class RasterdbMethod_wms_GetCapabilities {
 		}
 
 		if(isTransform) {
-			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, wmsEPSG);	
-			if(ct == null) {
+			util.GeoUtil.Transformer transformer = GeoUtil.getCoordinateTransformer(layerEPSG, wmsEPSG);	
+			if(transformer == null) {
 				throw new RuntimeException("no transform");
 			}
 			double[][] rePoints = layerRect.createPoints9();
-			ct.TransformPoints(rePoints);
+			transformer.transformWithAxisOrderCorrection(rePoints);
 			Rect2d wmsRect = Rect2d.ofPoints(rePoints);
 			if(!wmsRect.isFinite()) {
 				throw new RuntimeException("no rect");
@@ -237,12 +236,12 @@ public class RasterdbMethod_wms_GetCapabilities {
 
 	private static void tryAdd_GeographicBoundingBox(Rect2d layerRect, GeoReference ref, int layerEPSG, Element eRootLayer) {
 		try {
-			CoordinateTransformation ct = GeoUtil.getCoordinateTransformation(layerEPSG, GeoUtil.EPSG_WGS84);
-			if(ct == null) {
+			util.GeoUtil.Transformer transformer = GeoUtil.getCoordinateTransformer(layerEPSG, GeoUtil.EPSG_WGS84);
+			if(transformer == null) {
 				return;
 			}
 			double[][] rePoints = layerRect.createPoints9();
-			ct.TransformPoints(rePoints);
+			transformer.transformWithAxisOrderCorrection(rePoints);
 			Rect2d wgs84Rect = Rect2d.ofPoints(rePoints);
 			if(wgs84Rect.isFinite()) {
 				Element eEX_GeographicBoundingBox = addElement(eRootLayer, "EX_GeographicBoundingBox");		
