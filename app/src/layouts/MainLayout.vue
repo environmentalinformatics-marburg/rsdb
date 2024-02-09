@@ -9,6 +9,15 @@
       style="position: absolute; pointer-events: auto; cursor: pointer"
       color="black"
     />
+    <span
+      style="
+        padding-left: 50px;
+        font-size: 1em;
+        position: absolute;
+        color: grey;
+      "
+      >{{ viewProjectionLabel }}</span
+    >
     <div
       style="
         position: absolute;
@@ -449,6 +458,7 @@ export default defineComponent({
       drag: false,
       initializingLayers: false,
       mainLayer: undefined,
+      viewProjectionLabel: undefined,
       backgroundMap: undefined,
       backgroundMaps: undefined,
       mapCursor: "auto",
@@ -522,7 +532,7 @@ export default defineComponent({
             //extent: layerEntry.extent, // bug? wrong extent if view is in other projection. Workaround: no extent
             source: new ImageWMS({
               url: layerEntry.wmsURL,
-              projection: layerEntry.projection,
+              projection: layerEntry.projection, // currently no server side reprojection of postgis layer
               ratio: 1,
               interpolate: false,
               imageLoadFunction: (image, src) => {
@@ -572,11 +582,29 @@ export default defineComponent({
             this.$api.getUri() + layerEntry.vectordbLayerURLPart + "/wms";
         }
 
+        if (layerEntry.projection === undefined) {
+          const srs = "EPSG:" + layerEntry.meta.details.epsg;
+          console.log("completeVectordbLayer srs  " + srs);
+          console.log(
+            "completeVectordbLayer srs  " + layerEntry.meta.details.proj4
+          );
+          proj4.defs(srs, layerEntry.meta.details.proj4);
+          register(proj4);
+
+          /*layerEntry.projection = new Projection({
+            code: srs,
+            units: "m",
+          });*/
+          layerEntry.projection = await fromEPSGCode(srs);
+          //console.log(layerEntry.projection);
+        }
+
         if (layerEntry.layer === undefined) {
           layerEntry.layer = new ImageLayer({
-            extent: layerEntry.extent,
+            //extent: layerEntry.extent,  // Wrong extent if view is in other projection. Workaround: no extent
             source: new ImageWMS({
               url: layerEntry.wmsURL,
+              //projection: layerEntry.projection, // not set: VectorDB layer reprojects to view projection at server side
               ratio: 1,
               interpolate: false,
               imageLoadFunction: (image, src) => {
@@ -590,18 +618,6 @@ export default defineComponent({
               },
               params: {},
             }),
-          });
-        }
-
-        if (layerEntry.projection === undefined) {
-          const srs = "EPSG" + layerEntry.meta.details.epsg;
-
-          proj4.defs(srs, layerEntry.meta.details.proj4);
-          register(proj4);
-
-          layerEntry.projection = new Projection({
-            code: srs,
-            units: "m",
           });
         }
       } catch (e) {
@@ -701,12 +717,42 @@ export default defineComponent({
           layerEntry.timeSlice = layerEntry.meta.time_slices[0];
         }
 
+        if (layerEntry.projection === undefined) {
+          //const srs = layerEntry.meta.ref.code;
+          //const srs = "SRS:" + layerEntry.name;
+          const srs = "EPSG:" + layerEntry.meta.ref.code;
+
+          if (layerEntry.meta.ref.proj4) {
+            proj4.defs(srs, layerEntry.meta.ref.proj4);
+            register(proj4);
+          } /*else { // included in fromEPSGCode request
+            try {
+              const code = layerEntry.meta.ref.code;
+              //console.log(code);
+              const params = { crs: code };
+              const response = await this.$api.get("api/epsg", { params });
+              proj4.defs(srs, response.data.proj4);
+              register(proj4);
+            } catch (e) {
+              console.log(e);
+            }
+          }*/
+
+          /*layerEntry.projection = new Projection({
+            code: srs,
+            units: "m",
+          });*/
+          layerEntry.projection = await fromEPSGCode(srs);
+          //console.log(layerEntry.projection);
+        }
+
         if (layerEntry.layer === undefined) {
           layerEntry.layer = new ImageLayer({
-            extent: layerEntry.extent,
+            //extent: layerEntry.extent,  // Wrong extent if view is in other projection. Workaround: no extent
             //minResolution: res,
             source: new ImageWMS({
               url: layerEntry.wmsURL,
+              //projection: layerEntry.projection, // not set: RasterDB layer reprojects to view projection at server side
               ratio: 1,
               interpolate: false,
               /*resolutions: [
@@ -733,32 +779,6 @@ export default defineComponent({
             }),
           });
           this.refreshRasterdbLayerParameters(layerEntry);
-        }
-
-        if (layerEntry.projection === undefined) {
-          //const srs = layerEntry.meta.ref.code;
-          const srs = "SRS:" + layerEntry.name;
-
-          if (layerEntry.meta.ref.proj4) {
-            proj4.defs(srs, layerEntry.meta.ref.proj4);
-            register(proj4);
-          } else {
-            try {
-              const code = layerEntry.meta.ref.code;
-              //console.log(code);
-              const params = { crs: code };
-              const response = await this.$api.get("api/epsg", { params });
-              proj4.defs(srs, response.data.proj4);
-              register(proj4);
-            } catch (e) {
-              console.log(e);
-            }
-          }
-
-          layerEntry.projection = new Projection({
-            code: srs,
-            units: "m",
-          });
         }
       } catch (e) {
         console.log(e);
@@ -825,8 +845,9 @@ export default defineComponent({
           this.map.setLayers(layers);
 
           if (keepView === undefined || !keepView) {
+            const viewProjection = this.mainLayer.projection;
             this.view = new View({
-              projection: this.mainLayer.projection,
+              projection: viewProjection,
             });
             this.view.on("change:resolution", (e) => {
               this.onViewChange();
@@ -835,6 +856,7 @@ export default defineComponent({
             if (this.mainLayer.extent !== undefined) {
               this.view.fit(this.mainLayer.extent);
             }
+            this.viewProjectionLabel = viewProjection.getCode();
           }
         } else {
           this.map.setLayers([]);

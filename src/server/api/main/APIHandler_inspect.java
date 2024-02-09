@@ -609,8 +609,8 @@ public class APIHandler_inspect extends APIHandler {
 		Path path;
 		if(chunkedUpload == null) {
 			//throw new RuntimeException("file not found");
-			Logger.warn("old session ? ");
-			path = Paths.get("temp", fileID);
+			Logger.warn("old session ?   fileID: " + fileID);
+			path = Paths.get("temp/raster", fileID);
 		} else {
 			path = chunkedUpload.path;
 		}
