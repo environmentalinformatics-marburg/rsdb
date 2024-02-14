@@ -175,11 +175,13 @@ public class RasterdbMethod_webwms_GetMap {
 			if(eCause != null && eCause instanceof EofException) {				
 				Throwable eCauseSub = eCause.getCause();
 				if(eCauseSub != null && eCause instanceof IOException) {
-					Logger.info(eCauseSub.getMessage());
+					Logger.info(eCauseSub.getMessage().replace('\n', ' ').replace('\r', ' '));
 				} else {
 					Logger.warn(eCause);
 				}
-			} else {
+			} else if(eCause != null && eCause instanceof IOException) {
+				Logger.info(eCause.getMessage().replace('\n', ' ').replace('\r', ' '));
+			} else{
 				Logger.warn(e);
 			}			
 		} catch(Exception e) {

@@ -17,9 +17,11 @@ import org.gdal.gdalconst.gdalconst;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 
+import util.GeoUtil;
 import util.MinMax2d;
 import util.Timer;
 import util.Util;
+import util.GeoUtil.Transformer;
 
 public class GdalReader {
 	
@@ -71,8 +73,8 @@ public class GdalReader {
 		return new double[]{Xp,Yp, 0d};
 	}
 
-	public double[] transform(CoordinateTransformation ct, double[] p) {
-		ct.TransformPoint(p);
+	public double[] transform(Transformer transformer, double[] p) {
+		transformer.transformWithAxisOrderCorrection(p);
 		return p;
 	}
 
@@ -185,13 +187,13 @@ public class GdalReader {
 		}*/
 
 		String proj4 = "+proj=utm +zone=32 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ";
-		SpatialReference sprDst = new SpatialReference();
-		sprDst.ImportFromProj4(proj4);
+		SpatialReference dstSr = new SpatialReference();
+		dstSr.ImportFromProj4(proj4);
 
 
-		SpatialReference sprSrc = new SpatialReference("");		
-		sprSrc.ImportFromWkt(dataset.GetGCPProjection());
-		CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(sprSrc, sprDst);
+		SpatialReference srcSr = new SpatialReference("");		
+		srcSr.ImportFromWkt(dataset.GetGCPProjection());
+		Transformer transformer = GeoUtil.createCoordinateTransformer(srcSr, dstSr);
 
 		Vector<GCP> gcps = dataset.GetGCPs();
 		Logger.info("gcps "+gcps.size());
@@ -200,16 +202,16 @@ public class GdalReader {
 		for(GCP gcp:gcps) {
 			p[0] = gcp.getGCPX();
 			p[1] = gcp.getGCPY();
-			ct.TransformPoint(p);
+			transformer.transformWithAxisOrderCorrection(p);
 			minmax.apply(p[0], p[1]);
 		}
-		if(gcps.size()<4) { // TODO change
+		if(gcps.size() < 4) { // TODO change
 			double[] trSrc = dataset.GetGeoTransform();
 			Logger.info("src "+Arrays.toString(trSrc));
-			minmax.apply(transform(ct, transform(trSrc, 0, 0)));
-			minmax.apply(transform(ct, transform(trSrc, x_range-1, 0)));
-			minmax.apply(transform(ct, transform(trSrc, 0, y_range-1)));
-			minmax.apply(transform(ct, transform(trSrc, x_range-1, y_range-1)));
+			minmax.apply(transform(transformer, transform(trSrc, 0, 0)));
+			minmax.apply(transform(transformer, transform(trSrc, x_range-1, 0)));
+			minmax.apply(transform(transformer, transform(trSrc, 0, y_range-1)));
+			minmax.apply(transform(transformer, transform(trSrc, x_range-1, y_range-1)));
 		}
 
 		Logger.info(minmax);
@@ -227,7 +229,7 @@ public class GdalReader {
 		Dataset outDataset = driver.Create("c:/temp_sentinel/S1A_IW_GRDH_1SDV_20141221T053417_20141221T053442_003813_0048ED_51F1.SAFE/measurement/test.tif", dstWidth, dstHeight, rasterCount, gdalconst.GDT_UInt16);
 
 
-		String wkt = sprDst.ExportToWkt();
+		String wkt = dstSr.ExportToWkt();
 		Logger.info(wkt);
 
 		outDataset.SetProjection(wkt);

@@ -112,6 +112,23 @@ public class Rect2d {
 		return points;
 	}
 	
+	public double[][] createPoly9() {
+		double xmid = (xmin + xmax) / 2d;
+		double ymid = (ymin + ymax) / 2d;
+		double[][] points = new double[][] {
+			{xmin, ymin},
+			{xmin, ymid},
+			{xmin, ymax},			
+			{xmid, ymax},
+			{xmax, ymax},
+			{xmax, ymid},
+			{xmax, ymin},
+			{xmid, ymin},
+			{xmin, ymin},
+		};
+		return points;
+	}
+	
 	public double[][] createPointsMidBorder() {
 		double xmid = (xmin + xmax) / 2d;
 		double ymid = (ymin + ymax) / 2d;

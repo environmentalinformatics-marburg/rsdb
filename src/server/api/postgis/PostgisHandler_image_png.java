@@ -85,27 +85,34 @@ public class PostgisHandler_image_png {
 		int height = (int) Math.ceil(targetScale * yGeoLen);
 
 		
-		ImageBufferARGB image = render(postgisLayer, rect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
+		ImageBufferARGB image = render(postgisLayer, 0, rect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_PNG);
 		image.writePngCompressed(response.getOutputStream());		
 	}
 
-	public static ImageBufferARGB render(PostgisLayer postgisLayer, Rect2d rect, boolean crop, int width, int height, StyleProvider styleProvider, Interruptor interruptor) {
+	public static ImageBufferARGB render(PostgisLayer postgisLayer, int renderEPSG, Rect2d renderRect, boolean crop, int width, int height, StyleProvider styleProvider, Interruptor interruptor) {
 		ImageBufferARGB image = new ImageBufferARGB(width, height);
 		Graphics2D gc = image.bufferedImage.createGraphics();
 		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		gc.setColor(Color.DARK_GRAY);
 
-		double xlen = rect.width();
-		double ylen = rect.height();
+		double xlen = renderRect.width();
+		double ylen = renderRect.height();
 		double xscale = (width - 4) / xlen;
 		double yscale = (height - 4) / ylen;
-		double xoff = - rect.xmin + 2 * (1 / xscale);
-		double yoff = rect.ymax + 2 * (1 / yscale);
+		double xoff = - renderRect.xmin + 2 * (1 / xscale);
+		double yoff = renderRect.ymax + 2 * (1 / yscale);
 		
 		StyleJtsGeometryRasterizer styleJtsGeometryRasterizer = new StyleJtsGeometryRasterizer(xoff, yoff, xscale, yscale, gc);
+		
+		int layerEPSG = postgisLayer.getEPSG();
+		if(renderEPSG == layerEPSG) {
+			renderEPSG = 0;
+		}
+		Logger.info(renderRect);
+		Rect2d layerRect = renderEPSG > 0 && layerEPSG > 0 ? postgisLayer.projectToLayer(renderRect, renderEPSG) : renderRect;		
 		
 		String field = styleProvider.getValueField();
 		if(field == null) {
@@ -114,7 +121,7 @@ public class PostgisHandler_image_png {
 		
 		if(field != null && postgisLayer.hasFieldName(field)) {
 			Timer.start("render");
-			postgisLayer.forEachIntJtsGeometry(rect, crop, field, interruptor, (value, geometry) -> {
+			postgisLayer.forEachIntJtsGeometry(layerRect, renderEPSG, crop, field, interruptor, (value, geometry) -> {
 				Style style = styleProvider.getStyleByValue(value);
 				styleJtsGeometryRasterizer.acceptGeometry(style, geometry);
 			});
@@ -122,7 +129,7 @@ public class PostgisHandler_image_png {
 		} else {
 			final Style style = styleProvider.getStyle();
 			Timer.start("render");
-			postgisLayer.forEachJtsGeometry(rect, crop, interruptor, geometry -> styleJtsGeometryRasterizer.acceptGeometry(style, geometry));
+			postgisLayer.forEachJtsGeometry(layerRect, renderEPSG, crop, interruptor, geometry -> styleJtsGeometryRasterizer.acceptGeometry(style, geometry));
 			Logger.info(Timer.stop("render"));
 		}
 

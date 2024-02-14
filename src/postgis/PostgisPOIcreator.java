@@ -96,7 +96,7 @@ public class PostgisPOIcreator {
 			try {
 				String nameField = postgisLayer.getNameField();
 				if(nameField.isBlank()) {
-					postgisLayer.forEachJtsGeometry(null, false, null, poijtsGeometryConsumer);
+					postgisLayer.forEachJtsGeometry(null, 0, false, null, poijtsGeometryConsumer);
 				} else {
 					postgisLayer.forEachObjectJtsGeometry(null, false, nameField, poijtsGeometryConsumer);
 				}		

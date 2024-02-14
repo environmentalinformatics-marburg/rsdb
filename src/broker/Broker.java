@@ -161,7 +161,7 @@ public class Broker implements AutoCloseable {
 				ACL acl_read = AclUtil.union(postgis.getACL_owner(), postgis.getACL_mod(), postgis.getACL());
 				int epsg = postgis.getEPSG();
 				String proj4 = "";
-				SpatialReference sr = GeoUtil.getSpatialReference(postgis.getEPSG());
+				SpatialReference sr = GeoUtil.getSpatialReferenceFromEPSG(postgis.getEPSG());
 				if(sr != null) {
 					proj4 = sr.ExportToProj4();
 					if(proj4 == null) {
@@ -216,7 +216,7 @@ public class Broker implements AutoCloseable {
 				ACL acl_read = AclUtil.union(postgis.getACL_owner(), postgis.getACL_mod(), postgis.getACL());
 				int epsg = postgis.getEPSG();
 				String proj4 = "";
-				SpatialReference sr = GeoUtil.getSpatialReference(postgis.getEPSG());
+				SpatialReference sr = GeoUtil.getSpatialReferenceFromEPSG(postgis.getEPSG());
 				if(sr != null) {
 					proj4 = sr.ExportToProj4();
 					if(proj4 == null) {

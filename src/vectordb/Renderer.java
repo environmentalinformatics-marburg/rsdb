@@ -61,12 +61,12 @@ public class Renderer {
 
 	}	
 
-	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, Object sync, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
+	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, Object sync, int maxWidth, int maxHeight, util.GeoUtil.Transformer transformer, Style style) {		
 		Rect2d extent = VectorDB.getExtent(VectorDB.getPoints(datasource, sync));		
-		return renderProportionalMaxSize(datasource, sync, extent, maxWidth, maxHeight, ct, style);
+		return renderProportionalMaxSize(datasource, sync, extent, maxWidth, maxHeight, transformer, style);
 	}
 
-	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Object sync, Rect2d rect, int maxWidth, int maxHeight, CoordinateTransformation ct, Style style) {		
+	public static ImageBufferARGB renderProportionalMaxSize(DataSource datasource, Object sync, Rect2d rect, int maxWidth, int maxHeight, util.GeoUtil.Transformer transformer, Style style) {		
 		double xlen = rect.width();
 		double ylen = rect.height();
 
@@ -80,10 +80,10 @@ public class Renderer {
 
 		Logger.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
 
-		return render(datasource, sync, rect, width, height, ct, style);
+		return render(datasource, sync, rect, width, height, transformer, style);
 	}
 
-	public static ImageBufferARGB render(DataSource datasource, Object sync, Rect2d rect, int width, int height, CoordinateTransformation ct, Style style) {
+	public static ImageBufferARGB render(DataSource datasource, Object sync, Rect2d renderRect, int width, int height, util.GeoUtil.Transformer transformer, Style style) {
 		if(style == null) {
 			style = STYLE_DEFAULT;
 		}
@@ -94,14 +94,14 @@ public class Renderer {
 		gc.setColor(Color.DARK_GRAY);
 		//gc.drawLine(0, 0, 99, 99);		
 
-		double xlen = rect.width();
-		double ylen = rect.height();
+		double xlen = renderRect.width();
+		double ylen = renderRect.height();
 
 		double xscale = (width - 4) / xlen;
 		double yscale = (height - 4) / ylen;
 
-		double xoff = - rect.xmin + 2 * (1 / xscale);
-		double yoff = rect.ymax + 2 * (1 / yscale);
+		double xoff = - renderRect.xmin + 2 * (1 / xscale);
+		double yoff = renderRect.ymax + 2 * (1 / yscale);
 		//Logger.info("xscale " + xscale);
 		//Logger.info("yscale " + yscale);
 		//Logger.info("1/xscale " + (1 / xscale));
@@ -116,7 +116,7 @@ public class Renderer {
 		Vec<Point2d> points = new Vec<Point2d>();
 		Vec<Object[]> lines = new Vec<Object[]>();
 		Vec<Object[]> polygons = new Vec<Object[]>();
-		collectDataSource(datasource, sync, points, lines, polygons, ct);
+		collectDataSource(datasource, sync, points, lines, polygons, transformer);
 		style.drawPolygons(gc, drawer, polygons);
 		style.drawLines(gc, drawer, lines);				
 		style.drawPoints(gc, drawer, points);
@@ -447,15 +447,15 @@ public class Renderer {
         100 No Geometry
 	 */
 
-	private static void collectDataSource(DataSource datasource, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
+	private static void collectDataSource(DataSource datasource, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, util.GeoUtil.Transformer transformer) {
 		int layerCount = datasource.GetLayerCount();
 		for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 			Layer layer = datasource.GetLayerByIndex(layerIndex);
-			collectLayer(layer, sync, points, lines, polygons, ct);
+			collectLayer(layer, sync, points, lines, polygons, transformer);
 		}
 	}
 
-	private static void collectLayer(Layer layer, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) { // layer iterator and layer filter possibly not parallel
+	private static void collectLayer(Layer layer, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, util.GeoUtil.Transformer transformer) { // layer iterator and layer filter possibly not parallel
 		synchronized (sync) {
 			layer.SetSpatialFilter(null); // clear filter
 			layer.ResetReading(); // reset iterator
@@ -463,7 +463,7 @@ public class Renderer {
 			while(feature != null) {
 				Geometry geometry = feature.GetGeometryRef();
 				if(geometry != null) {
-					collectGeometry(geometry, points, lines, polygons, ct);
+					collectGeometry(geometry, points, lines, polygons, transformer);
 				} else {
 					Logger.warn("missing geometry");
 				}
@@ -472,7 +472,7 @@ public class Renderer {
 		}
 	}
 
-	private static void collectGeometry(Geometry geometry, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, CoordinateTransformation ct) {
+	private static void collectGeometry(Geometry geometry, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, util.GeoUtil.Transformer transformer) {
 		int type = geometry.GetGeometryType();
 		switch (type) {
 		case 1:  // 1  POINT
@@ -480,9 +480,8 @@ public class Renderer {
 			//Logger.info("read point");
 			double x = geometry.GetX();
 			double y = geometry.GetY();
-			if(ct != null) {
-				double[] p = new double[] {x, y, 0};
-				ct.TransformPoint(p);
+			if(transformer != null) {
+				double[] p = transformer.transformWithAxisOrderCorrection(x, y);
 				x = p[0];
 				y = p[1];
 			}
@@ -493,8 +492,8 @@ public class Renderer {
 		case -2147483646: { // 0x80000002  LineString25D
 			//Logger.info("read line");
 			double[][] linePoints = geometry.GetPoints();
-			if(ct != null) {
-				ct.TransformPoints(linePoints);
+			if(transformer != null) {
+				transformer.transformWithAxisOrderCorrection(linePoints);
 			}
 			lines.add(linePoints);
 			break;
@@ -510,8 +509,8 @@ public class Renderer {
 				case -2147483646: { // 0x80000002  LineString25D
 					//Logger.info("read polygon");
 					double[][] polygonPoints = subGeo.GetPoints();
-					if(ct != null) {
-						ct.TransformPoints(polygonPoints);
+					if(transformer != null) {
+						transformer.transformWithAxisOrderCorrection(polygonPoints);
 					}
 					polygons.add(polygonPoints);
 					break;
@@ -526,8 +525,8 @@ public class Renderer {
 		case -2147483644: { // 0x80000004  MultiPoint25D
 			//Logger.info("read points");
 			double[][] ps = geometry.GetPoints();
-			if(ct != null) {
-				ct.TransformPoints(ps);
+			if(transformer != null) {
+				transformer.transformWithAxisOrderCorrection(ps);
 			}
 			for(Object p : ps) {
 				double[] pp = (double[]) p;
@@ -546,8 +545,8 @@ public class Renderer {
 				case -2147483646: { // 0x80000002  LineString25D
 					//Logger.info("read lines");
 					double[][] linePoints = subGeo.GetPoints(3); // 3 dimensions needed for correct parameter TransformPoints
-					if(ct != null) {
-						ct.TransformPoints(linePoints);
+					if(transformer != null) {
+						transformer.transformWithAxisOrderCorrection(linePoints);
 					}
 					lines.add(linePoints);
 					break;
@@ -576,8 +575,8 @@ public class Renderer {
 						case -2147483646: { // 0x80000002  LineString25D
 							//Logger.info("read polygons");
 							double[][] polygonPoints = subsubGeo.GetPoints();
-							if(ct != null) {
-								ct.TransformPoints(polygonPoints);
+							if(transformer != null) {
+								transformer.transformWithAxisOrderCorrection(polygonPoints);
 							}
 							polygons.add(polygonPoints);
 

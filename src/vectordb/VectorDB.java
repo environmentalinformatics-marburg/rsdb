@@ -46,6 +46,7 @@ import pointdb.base.PolygonUtil.PolygonWithHoles;
 import server.api.vectordbs.VectordbDetails;
 import util.GeoUtil;
 import util.Util;
+import util.GeoUtil.Transformer;
 import util.collections.ReadonlyList;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap;
@@ -272,13 +273,12 @@ public class VectorDB {
 		} else {
 			attributes = getDetails().attributes;
 		}
-		SpatialReference refDst = null;
+		SpatialReference dstSr = null;
 		if(epsg >= 0) {
 			if(epsg == GeoUtil.EPSG_WEB_MERCATOR) {
-				refDst = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
+				dstSr = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
 			} else {
-				refDst = new SpatialReference("");
-				refDst.ImportFromEPSG(epsg);			
+				dstSr = GeoUtil.getSpatialReferenceFromEPSG(epsg);		
 			}
 		}
 		DataSource datasource = getDataSource();
@@ -306,12 +306,10 @@ public class VectorDB {
 			for(int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
 				try {
-					SpatialReference layerRef = layer.GetSpatialRef();
-					CoordinateTransformation ct = null;
-					if(refDst != null && layerRef != null) {
-						ct = CoordinateTransformation.CreateCoordinateTransformation(layerRef, refDst);	
-						//Logger.info("refDst " + refDst);
-						//Logger.info("layerRef " + layerRef);
+					SpatialReference layerSr = layer.GetSpatialRef();
+					Transformer transformer = null;
+					if(dstSr != null && layerSr != null) {
+						transformer = GeoUtil.createCoordinateTransformer(layerSr, dstSr);
 					}
 					if(ext == null) {
 						layer.SetSpatialFilter(null); // clear filter
@@ -323,8 +321,8 @@ public class VectorDB {
 					while(feature != null) {
 						Geometry geometry = feature.GetGeometryRef();
 						if(geometry != null) {
-							if(ct != null) {
-								geometry.Transform(ct);
+							if(transformer != null) {
+								geometry.Transform(transformer.coordinateTransformation);
 							}
 							String json = geometry.ExportToJson();
 							if(isFirst) {
@@ -411,7 +409,7 @@ public class VectorDB {
 		String json = geometry.ExportToJson();*/
 
 
-			SpatialReference refSrc = null;
+			SpatialReference srcSr = null;
 			int layerCount = datasource.GetLayerCount();
 			Logger.info("datasource.GetLayerCount() " + layerCount);
 			Geometry resultGeo = new Geometry(7);// GEOMETRYCOLLECTION
@@ -420,8 +418,8 @@ public class VectorDB {
 			for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 				Layer layer = datasource.GetLayerByIndex(layerIndex);
 				SpatialReference layerRef = layer.GetSpatialRef();
-				if(layerRef != null && refSrc == null) {
-					refSrc = layerRef;
+				if(layerRef != null && srcSr == null) {
+					srcSr = layerRef;
 				}
 				layer.SetSpatialFilter(null); // clear filter
 				layer.ResetReading();  // reset iterator
@@ -438,15 +436,14 @@ public class VectorDB {
 			}
 
 			if(epsg >= 0) {
-				SpatialReference refDst;
+				SpatialReference dstSr;
 				if(epsg == GeoUtil.EPSG_WEB_MERCATOR) {
-					refDst = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
+					dstSr = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
 				} else {
-					refDst = new SpatialReference("");
-					refDst.ImportFromEPSG(epsg);			
+					dstSr = GeoUtil.getSpatialReferenceFromEPSG(epsg);		
 				}
-				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(refSrc, refDst);		
-				resultGeo.Transform(ct);
+				Transformer transformer = GeoUtil.createCoordinateTransformer(srcSr, dstSr);
+				resultGeo.Transform(transformer.coordinateTransformation);
 			}
 
 			String json = resultGeo.ExportToJson();		

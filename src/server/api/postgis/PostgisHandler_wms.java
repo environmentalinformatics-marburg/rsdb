@@ -14,6 +14,7 @@ import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -105,7 +106,9 @@ public class PostgisHandler_wms {
 				} else {
 					Logger.warn(eCause);
 				}
-			} else {
+			} else if(eCause != null && eCause instanceof IOException) {
+				Logger.info(eCause.getMessage().replace('\n', ' ').replace('\r', ' '));
+			} else{
 				Logger.warn(e);
 			}			
 		} catch(Exception e) {
@@ -238,7 +241,7 @@ public class PostgisHandler_wms {
 		eOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
-	private static void tryAdd_GeographicBoundingBox(Rect2d layerRect, int layerEPSG, Element eRootLayer) {		 
+	public static void tryAdd_GeographicBoundingBox(Rect2d layerRect, int layerEPSG, Element eRootLayer) {		 
 		Rect2d wgs84Rect = GeoUtil.toWGS84(layerEPSG, layerRect);
 		if(wgs84Rect == null) {
 			return;
@@ -253,7 +256,7 @@ public class PostgisHandler_wms {
 	}
 
 	private void handle_GetMap(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
-
+		
 		long session = Web.getLong(request, "session", -1);
 		long sessionCnt = Web.getLong(request, "cnt", -1);
 		Interruptor interruptor = null;
@@ -283,13 +286,24 @@ public class PostgisHandler_wms {
 				}
 			}			
 		}
+		
+		int wmsEPSG = 0;
+		String crs = Web.getString(request, "CRS");
+		if(crs != null) {
+			if(crs.startsWith("EPSG:")) {
+				wmsEPSG = Integer.parseInt(crs.substring(5));				
+			} else {
+				throw new RuntimeException("unknown CRS");
+			}
+		}
 
 		String[] bbox = request.getParameter("BBOX").split(",");
 		Rect2d wmsRect = Rect2d.parseBbox(bbox);
+		
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");		
 
-		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsRect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
+		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsEPSG, wmsRect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
 		if(Interruptor.isInterrupted(interruptor)) {
 			response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
 		} else {

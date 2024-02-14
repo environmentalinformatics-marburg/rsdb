@@ -37,10 +37,10 @@ public class GeoUtil {
 		public final int srcFirstAxis; //description: https://gdal.org/development/rfc/rfc20_srs_axes.html
 		public final int dstFirstAxis;
 
-		public Transformer(SpatialReference srcSr, SpatialReference dstSr, CoordinateTransformation coordinateTransformation) {
+		public Transformer(SpatialReference srcSr, SpatialReference dstSr) {
 			this.srcSr = srcSr;
 			this.dstSr = dstSr;
-			this.coordinateTransformation = coordinateTransformation;
+			this.coordinateTransformation = CoordinateTransformation.CreateCoordinateTransformation(srcSr, dstSr);
 			this.srcFirstAxis = srcSr.GetAxisOrientation(null, 0);
 			this.dstFirstAxis = dstSr.GetAxisOrientation(null, 0);
 		}
@@ -50,11 +50,17 @@ public class GeoUtil {
 			coordinateTransformation.TransformPoints(points);
 			swapOrderIfNeeded(dstFirstAxis, points);			
 		}
+		
+		public void transformWithAxisOrderCorrection(double[] p) {
+			swapOrderIfNeeded(srcFirstAxis, p);
+			coordinateTransformation.TransformPoint(p);
+			swapOrderIfNeeded(dstFirstAxis, p);				
+		}
 
 		public double[] transformWithAxisOrderCorrection(double x, double y) {
 			double[] p = transformSwapOrderIfNeeded(srcFirstAxis, dstFirstAxis, coordinateTransformation, x, y);
 			return p;		
-		}
+		}				
 	}
 
 	private GeoUtil() {}	
@@ -88,7 +94,7 @@ public class GeoUtil {
 
 	}
 
-	public static SpatialReference getSpatialReference(int epsg) {
+	public static SpatialReference getSpatialReferenceFromEPSG(int epsg) {
 		if(epsg <= 0) {
 			return null;
 		}
@@ -97,13 +103,16 @@ public class GeoUtil {
 	}
 
 	private static Transformer createCoordinateTransformer(int srcEPSG, int dstEPSG) {
-		SpatialReference srcSr = getSpatialReference(srcEPSG);
-		SpatialReference dstSr = getSpatialReference(dstEPSG);
+		SpatialReference srcSr = getSpatialReferenceFromEPSG(srcEPSG);
+		SpatialReference dstSr = getSpatialReferenceFromEPSG(dstEPSG);
+		return createCoordinateTransformer(srcSr, dstSr);
+	}
+	
+	public static Transformer createCoordinateTransformer(SpatialReference srcSr, SpatialReference dstSr) {
 		if(srcSr == null || dstSr == null) {
 			return null;
 		}
-		CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(srcSr, dstSr);
-		Transformer transformer = new Transformer(srcSr, dstSr, ct);
+		Transformer transformer = new Transformer(srcSr, dstSr);
 		return transformer;
 	}
 
@@ -121,7 +130,7 @@ public class GeoUtil {
 	}
 
 	private static String wktFromEPSG(int epsg) {
-		SpatialReference sr = getSpatialReference(epsg);
+		SpatialReference sr = getSpatialReferenceFromEPSG(epsg);
 		if(sr == null) {
 			return null;
 		}

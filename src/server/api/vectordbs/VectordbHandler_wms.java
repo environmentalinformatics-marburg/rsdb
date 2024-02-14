@@ -15,6 +15,7 @@ import javax.xml.transform.stream.StreamResult;
 
 
 import org.tinylog.Logger;
+import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
@@ -25,8 +26,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import ar.com.hjg.pngj.PngjOutputException;
 import broker.Broker;
 import pointcloud.Rect2d;
+import server.api.postgis.PostgisHandler_wms;
 import util.GeoUtil;
 import util.Web;
 import util.XmlUtil;
@@ -77,48 +80,70 @@ public class VectordbHandler_wms extends VectordbHandler {
 	}
 
 	public void handle_GetMap(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
-		int width = Web.getInt(request, "WIDTH");
-		int height = Web.getInt(request, "HEIGHT");
-		String crs = Web.getString(request, "CRS");
-		CoordinateTransformation ct = null;
-		{
-			SpatialReference refDst = null;
-			if(crs != null) {
-				//Logger.info(crs);
-				if(crs.startsWith("EPSG:")) {
-					int epsg = Integer.parseInt(crs.substring(5));
-					//Logger.info(epsg);
-					if(epsg >= 0) {					
-						if(epsg == GeoUtil.EPSG_WEB_MERCATOR) {
-							refDst = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
-						} else {
-							refDst = new SpatialReference("");
-							refDst.ImportFromEPSG(epsg);			
-						}
+		try {
+			int width = Web.getInt(request, "WIDTH");
+			int height = Web.getInt(request, "HEIGHT");
+			String crs = Web.getString(request, "CRS");
+			util.GeoUtil.Transformer transformer = null;
+
+			SpatialReference srcSr = vectordb.getSpatialReference();
+			if(srcSr != null && crs != null && crs.startsWith("EPSG:")) {
+				SpatialReference dstSr = null;
+				int epsg = Integer.parseInt(crs.substring(5));
+				if(epsg > 0) {
+					if(epsg == GeoUtil.EPSG_WEB_MERCATOR) {
+						dstSr = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
+					} else {
+						dstSr = GeoUtil.getSpatialReferenceFromEPSG(epsg);		
+					}
+				}
+				if(dstSr != null) {
+					if(dstSr.IsSame(srcSr) == 0) {
+						Logger.info("transform");
+						transformer = new GeoUtil.Transformer(srcSr, dstSr);
 					}
 				}
 			}
 
-			if(refDst != null) {
-				SpatialReference refSrc = vectordb.getSpatialReference();
-				if(refSrc != null) {
-					ct = CoordinateTransformation.CreateCoordinateTransformation(refSrc, refDst);	
-				}
+			String[] bbox = request.getParameter("BBOX").split(",");
+			Rect2d wmsRect = Rect2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
+			ImageBufferARGB image = null;
+			DataSource datasource = vectordb.getDataSource();
+			try {		
+				image = Renderer.render(datasource, vectordb, wmsRect, width, height, transformer, vectordb.getStyle());
+			} finally {
+				VectorDB.closeDataSource(datasource);
 			}
-		}
-
-		String[] bbox = request.getParameter("BBOX").split(",");
-		Rect2d rect = Rect2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
-		ImageBufferARGB image = null;
-		DataSource datasource = vectordb.getDataSource();
-		try {		
-			image = Renderer.render(datasource, vectordb, rect, width, height, ct, vectordb.getStyle());
-		} finally {
-			VectorDB.closeDataSource(datasource);
-		}
-		if(image != null) {
-			response.setContentType(Web.MIME_PNG);
-			image.writePngCompressed(response.getOutputStream());
+			if(image != null) {
+				response.setContentType(Web.MIME_PNG);
+				image.writePngCompressed(response.getOutputStream());
+			}
+		} catch(PngjOutputException  e) {
+			try {
+				response.closeOutput();
+			} catch(Exception e1) {
+				Logger.warn(e1);
+			}
+			Throwable eCause = e.getCause();
+			if(eCause != null && eCause instanceof EofException) {				
+				Throwable eCauseSub = eCause.getCause();
+				if(eCauseSub != null && eCause instanceof IOException) {
+					Logger.info(eCauseSub.getMessage().replace('\n', ' ').replace('\r', ' '));
+				} else {
+					Logger.warn(eCause);
+				}
+			} else if(eCause != null && eCause instanceof IOException) {
+				Logger.info(eCause.getMessage().replace('\n', ' ').replace('\r', ' '));
+			} else{
+				Logger.warn(e);
+			}			
+		} catch(Exception e) {
+			try {
+				response.closeOutput();
+			} catch(Exception e1) {
+				Logger.warn(e1);
+			}
+			Logger.warn(e);
 		}
 	}
 
@@ -164,7 +189,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 
 		return rootElement;
 	}
-	
+
 	private static void addRequest(Element eCapability, String requestUrl) {
 		Element eRootRequest = XmlUtil.addElement(eCapability, "Request");
 
@@ -200,20 +225,26 @@ public class VectordbHandler_wms extends VectordbHandler {
 	private void addRootLayer(VectorDB vectordb, Element eCapability, String name, String title) {
 		Element eRootLayer = XmlUtil.addElement(eCapability, "Layer");
 		eRootLayer.setAttribute("queryable", "1");
-		String code = vectordb.getDetails().epsg;
-		String crs = "EPSG:" + code;
+		int layerEPSG = Integer.parseInt(vectordb.getDetails().epsg);
+		boolean hasLayerCRS = layerEPSG > 0;
+		String crs = "EPSG:" + layerEPSG;
 		XmlUtil.addElement(eRootLayer, "Name", name);
 		XmlUtil.addElement(eRootLayer, "Title", title);
 		XmlUtil.addElement(eRootLayer, "CRS", crs);
+
+		Rect2d layerRect = vectordb.getExtent();
+
+		if(hasLayerCRS) {
+			PostgisHandler_wms.tryAdd_GeographicBoundingBox(layerRect, layerEPSG, eRootLayer);
+		}
+
 		Element eBoundingBox = XmlUtil.addElement(eRootLayer, "BoundingBox");
 		eBoundingBox.setAttribute("CRS", crs);
 
-		Rect2d extent = vectordb.getExtent();
-
-		eBoundingBox.setAttribute("minx", "" + extent.xmin);
-		eBoundingBox.setAttribute("miny", "" + extent.ymin);
-		eBoundingBox.setAttribute("maxx", "" + extent.xmax);
-		eBoundingBox.setAttribute("maxy", "" + extent.ymax);
+		eBoundingBox.setAttribute("minx", "" + layerRect.xmin);
+		eBoundingBox.setAttribute("miny", "" + layerRect.ymin);
+		eBoundingBox.setAttribute("maxx", "" + layerRect.xmax);
+		eBoundingBox.setAttribute("maxy", "" + layerRect.ymax);
 	}
 
 	public void handle_GetFeatureInfo(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {

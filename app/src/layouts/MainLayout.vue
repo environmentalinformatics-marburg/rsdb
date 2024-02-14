@@ -529,10 +529,10 @@ export default defineComponent({
 
         if (layerEntry.layer === undefined) {
           layerEntry.layer = new ImageLayer({
-            //extent: layerEntry.extent, // bug? wrong extent if view is in other projection. Workaround: no extent
+            //extent: layerEntry.extent,  // Wrong extent if view is in other projection. Workaround: no extent
             source: new ImageWMS({
               url: layerEntry.wmsURL,
-              projection: layerEntry.projection, // currently no server side reprojection of postgis layer
+              //projection: layerEntry.projection, // not set: Postgis layer reprojects to view projection at server side
               ratio: 1,
               interpolate: false,
               imageLoadFunction: (image, src) => {

@@ -19,10 +19,7 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,13 +27,13 @@ import org.json.JSONWriter;
 import org.locationtech.jts.algorithm.ConvexHull;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
-import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
+import org.tinylog.Logger;
 
 import broker.Associated;
 import broker.Broker;
@@ -55,6 +52,8 @@ import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.tile.TilePixel;
 import rasterunit.TileKey;
+import util.GeoUtil;
+import util.GeoUtil.Transformer;
 import util.Range2d;
 import util.Timer;
 import util.collections.vec.Vec;
@@ -102,7 +101,7 @@ public class Catalog {
 					return generateCatalogEntry(rasterdb.config.getName(), CatalogKey.TYPE_RASTERDB, null, rasterdb.associated, rasterdb.getACL(), acl_ownermod, rasterdb.informal(), null);
 				}
 
-				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);
+				Transformer transformer = GeoUtil.createCoordinateTransformer(src, CATALOG_SPATIAL_REFERENCE);
 
 				final int polygon = 0;
 				final int fastPoly = 1;
@@ -205,7 +204,7 @@ public class Catalog {
 					Logger.warn("unknown hullType");
 					return null;
 				}
-				ct.TransformPoints(points);
+				transformer.transformWithAxisOrderCorrection(points);
 			}
 			return generateCatalogEntry(rasterdb.config.getName(), CatalogKey.TYPE_RASTERDB, points, rasterdb.associated, rasterdb.getACL(), rasterdb.getACL_mod(), rasterdb.informal(), null);			
 		} catch(Exception e) {
@@ -237,7 +236,7 @@ public class Catalog {
 				} else {
 					src.ImportFromProj4(proj4);				
 				}
-				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);
+				Transformer transformer = GeoUtil.createCoordinateTransformer(src, CATALOG_SPATIAL_REFERENCE);
 
 				Logger.info("generateCatalogEntryPointDB ...");
 				Timer.start("generateCatalogEntryPointDB");
@@ -270,7 +269,7 @@ public class Catalog {
 				Logger.info(Timer.stop("generateConvexHullPoints"));
 				Logger.info("generateCatalogEntryPointDB ct.TransformPoints ...");
 				Timer.start("ct.TransformPoints");
-				ct.TransformPoints(points);
+				transformer.transformWithAxisOrderCorrection(points);
 				Logger.info(Timer.stop("ct.TransformPoints"));
 				Logger.info(Timer.stop("generateCatalogEntryPointDB"));
 			}
@@ -301,7 +300,7 @@ public class Catalog {
 				} else {
 					src.ImportFromProj4(proj4);				
 				}
-				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);
+				Transformer transformer = GeoUtil.createCoordinateTransformer(src, CATALOG_SPATIAL_REFERENCE);
 
 				Set<TileKey> keys = pointcloud.getTileKeys();
 				Coordinate[] coordinates = new Coordinate[keys.size() * 4];
@@ -320,7 +319,7 @@ public class Catalog {
 					coordinates[i++] = new Coordinate(xmax, ymax);
 				}
 				points = generateConvexHullPoints(coordinates);
-				ct.TransformPoints(points);
+				transformer.transformWithAxisOrderCorrection(points);
 			}
 			return generateCatalogEntry(pointcloud.getName(), CatalogKey.TYPE_POINTCLOUD, points, pointcloud.getAssociated(), pointcloud.getACL(), pointcloud.getACL_mod(), pointcloud.informal(), null);
 		} catch(Exception e) {
@@ -349,8 +348,8 @@ public class Catalog {
 					coordinates[j] = new Coordinate(points[j][0], points[j][1]);
 				}
 				points = generateConvexHullPoints(coordinates);
-				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);
-				ct.TransformPoints(points);
+				Transformer transformer = GeoUtil.createCoordinateTransformer(src, CATALOG_SPATIAL_REFERENCE);
+				transformer.transformWithAxisOrderCorrection(points);
 			}
 			return generateCatalogEntry(vectordb.getName(), CatalogKey.TYPE_VECTORDB, points, null, vectordb.getACL(), acl_ownermod, vectordb.informal(), vectordb.getStructuredAccess());
 		} catch(Exception e) {
@@ -407,11 +406,11 @@ public class Catalog {
 				String wkt = postgis.getWKT_SRS();				
 				SpatialReference src = new SpatialReference("");
 				src.ImportFromWkt(wkt);				
-				CoordinateTransformation ct = CoordinateTransformation.CreateCoordinateTransformation(src, CATALOG_SPATIAL_REFERENCE);				
+				Transformer transformer = GeoUtil.createCoordinateTransformer(src, CATALOG_SPATIAL_REFERENCE);			
 				PointCollector pointCollector = new PointCollector();				
-				postgis.forEachJtsGeometry(null, false, null, pointCollector);
+				postgis.forEachJtsGeometry(null, 0, false, null, pointCollector);
 				points = generateConvexHullPoints(pointCollector.vec.toArray(Coordinate[]::new));
-				ct.TransformPoints(points);
+				transformer.transformWithAxisOrderCorrection(points);
 			}
 			return generateCatalogEntry(postgis.name, CatalogKey.TYPE_POSTGIS, points, null, postgis.getACL(), acl_ownermod, postgis.informal(), postgis.getStructuredAccess());
 		} catch(Exception e) {
