@@ -834,6 +834,7 @@ export default defineComponent({
           for (const layerEntry of this.layers) {
             if (layerEntry.layer !== undefined) {
               layerEntry.layer.setVisible(layerEntry.visible);
+              layerEntry.layer.set("layerEntry", layerEntry, true);
               layers.push(layerEntry.layer);
             }
           }
@@ -852,6 +853,29 @@ export default defineComponent({
               this.view.fit(this.mainLayer.extent);
             }
             this.viewProjectionLabel = viewProjection.getCode();
+          }
+
+          if (this.mainLayer && this.mainLayer.projection) {
+            for (const layer of layers) {
+              const layerEntry = layer.get("layerEntry");
+              console.log(layerEntry);
+              if (
+                layerEntry.type !== "background" &&
+                layerEntry.extent &&
+                layerEntry.projection
+              ) {
+                const projectedExtent = transformExtent(
+                  layerEntry.extent,
+                  layerEntry.projection,
+                  this.mainLayer.projection
+                );
+                if (projectedExtent) {
+                  console.log(projectedExtent);
+                  layer.setExtent(projectedExtent);
+                } else {
+                }
+              }
+            }
           }
         } else {
           this.map.setLayers([]);

@@ -1,8 +1,8 @@
 {
   "name": "app",
   "version": "0.0.1",
-  "description": "app",
-  "productName": "app",
+  "description": "RSDB viewer app",
+  "productName": "RSDB viewer app",
   "author": "user",
   "private": true,
   "scripts": {

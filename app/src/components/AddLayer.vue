@@ -8,9 +8,13 @@
           <q-tooltip class="bg-white text-primary">Close</q-tooltip>
         </q-btn>
       </q-bar>
-
-      <div v-if="layersLoading">Loading RSDB layers meta data ...</div>
-      <div v-if="layersError">ERROR loading RSDB layers meta data.</div>
+      <div v-if="layersLoading">
+        Loading RSDB layers meta data <q-spinner />
+      </div>
+      <div v-if="layersError">
+        ERROR loading RSDB layers meta data.
+        <q-btn label="Retry" color="primary" @click="layersInit(this)" />
+      </div>
 
       <q-card-section>
         Layer types:
@@ -112,15 +116,29 @@
           </div>
         </div>
       </q-card-section>
+      <q-card-section v-else-if="selectedLayer && !selectedLayerMetaError">
+        Loading layer meta data...
+      </q-card-section>
+      <q-card-section v-else-if="selectedLayer && selectedLayerMetaError">
+        ERROR Loading layer meta data: {{ selectedLayerMetaError }}
+        <q-btn
+          label="Retry"
+          color="primary"
+          @click="refreshSelectedLayerMeta()"
+        />
+      </q-card-section>
+      <q-card-section v-else> No layer selected. </q-card-section>
 
       <q-card-actions align="right">
         <q-btn
-          flat
           label="Add"
           color="primary"
           v-close-popup
           @click="onOk"
           :disable="!selectedLayerVisLayer"
+          :loading="
+            selectedLayer && !selectedLayerMeta && !selectedLayerMetaError
+          "
         />
       </q-card-actions>
     </q-card>
@@ -150,6 +168,7 @@ export default defineComponent({
       },
       filteredOptionsLayers: [],
       selectedLayerMeta: undefined,
+      selectedLayerMetaError: undefined,
       selectedLayerVisLayer: undefined,
     };
   },
@@ -221,12 +240,10 @@ export default defineComponent({
       );
       //}, 300);
     },
-  },
-
-  watch: {
-    async selectedLayer() {
+    async refreshSelectedLayerMeta() {
       try {
         this.selectedLayerMeta = undefined;
+        this.selectedLayerMetaError = undefined;
         this.selectedLayerVisLayer = undefined;
         if (this.selectedLayer) {
           if (this.selectedLayer.type === "rasterdb") {
@@ -270,12 +287,20 @@ export default defineComponent({
           }
         }
       } catch (e) {
-        console.log(e.message ? e.message : e);
+        const errorText = e.message ? e.message : e;
+        this.selectedLayerMetaError = errorText;
+        console.log(errorText);
         this.$q.notify({
           type: "negative",
-          message: "Layer load meta data error: " + (e.message ? e.message : e),
+          message: "Layer load meta data error: " + errorText,
         });
       }
+    },
+  },
+
+  watch: {
+    async selectedLayer() {
+      this.refreshSelectedLayerMeta();
     },
   },
 

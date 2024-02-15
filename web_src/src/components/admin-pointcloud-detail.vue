@@ -11,8 +11,8 @@
                 <v-btn v-if="meta !== undefined && meta.associated.rasterdb !== undefined" icon class="indigo--text" :href="'#/viewer/' + meta.associated.rasterdb" target="_blank" title="open layer in viewer on new tab">
                     <v-icon>zoom_in</v-icon>
                 </v-btn>
-                <v-btn class="indigo--text" v-if="meta !== undefined && meta.associated.rasterdb !== undefined" :href="$store.getters.apiUrl('web/app/#/?rasterdb=' + meta.associated.rasterdb)" target="_blank" title="open layer in viewer app (beta) on new tab">
-                    <v-icon>launch</v-icon> Viewer app (beta)
+                <v-btn class="indigo--text" v-if="meta !== undefined && meta.associated.rasterdb !== undefined" :href="$store.getters.apiUrl('web/app/#/?rasterdb=' + meta.associated.rasterdb)" target="_blank" title="open layer in viewer app on new tab">
+                    <v-icon>launch</v-icon> Viewer app
                 </v-btn>                
             </h3>
             <span v-if="meta !== undefined && meta.title !== undefined && meta.title !== ''"><span style="user-select: none;">id: </span><b>{{pointcloud}}</b></span>

@@ -12,7 +12,7 @@ export const useLayersStore = defineStore("layers", {
   actions: {
     async init(component) {
       this.component = component;
-      this.lading = true;
+      this.loading = true;
       this.error = false;
       try {
         const response = await this.component.$api.get("api/layers");
@@ -21,11 +21,11 @@ export const useLayersStore = defineStore("layers", {
         this.rsdb_layers.sort((a, b) => {
           return collator.compare(a.name, b.name);
         });
-        this.lading = false;
+        this.loading = false;
       } catch (e) {
-        this.lading = false;
+        this.loading = false;
         this.error = true;
-        Console.log(e);
+        console.log(e);
       }
     },
   },
