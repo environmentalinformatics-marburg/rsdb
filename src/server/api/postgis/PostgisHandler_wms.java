@@ -314,35 +314,51 @@ public class PostgisHandler_wms {
 	}
 
 	private void handle_GetFeatureInfo(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
+		
+		int wmsEPSG = 0;
+		String crs = Web.getString(request, "CRS");
+		if(crs != null) {
+			if(crs.startsWith("EPSG:")) {
+				wmsEPSG = Integer.parseInt(crs.substring(5));				
+			} else {
+				throw new RuntimeException("unknown CRS");
+			}
+		}
+		int layerEPSG = postgisLayer.getEPSG();
+		boolean reproject = wmsEPSG > 0 && layerEPSG > 0 && wmsEPSG != layerEPSG;
+		
 		String bboxParam = request.getParameter("BBOX");
-		Rect2d rect2d = null;
+		Rect2d wmsRect2d = null;
 		if(bboxParam != null) {
 			String[] bbox = bboxParam.split(",");
-			rect2d = Rect2d.parseBbox(bbox);
+			wmsRect2d = Rect2d.parseBbox(bbox);
 		}		
 		int reqWidth = Web.getInt(request, "WIDTH");
 		int reqHeight = Web.getInt(request, "HEIGHT");		
 		int reqX = Web.getInt(request, "I");
 		int reqY = Web.getInt(request, "J");
 
-		double xres = rect2d.width() / reqWidth;
-		double yres = rect2d.height() / reqHeight;
+		double xres = wmsRect2d.width() / reqWidth;
+		double yres = wmsRect2d.height() / reqHeight;
 
-		Rect2d pixelRect2d = new Rect2d(rect2d.xmin + xres * reqX, rect2d.ymax - yres * (reqY + 1), rect2d.xmin + xres * (reqX + 1), rect2d.ymax - yres * reqY);
+		Rect2d wmsPixelRect2d = new Rect2d(wmsRect2d.xmin + xres * reqX, wmsRect2d.ymax - yres * (reqY + 1), wmsRect2d.xmin + xres * (reqX + 1), wmsRect2d.ymax - yres * reqY);
+		Rect2d layerRect = reproject ? postgisLayer.projectToLayer(wmsPixelRect2d, wmsEPSG) : wmsPixelRect2d;		
 
-		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
-		Logger.info(rect2d);
-		Logger.info(pixelRect2d);
+		//Logger.info(wmsEPSG + "   " + layerEPSG);
+		//Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
+		//Logger.info(wmsRect2d);
+		//Logger.info(wmsPixelRect2d);
+		//Logger.info(layerRect);
 
 		String infoFormat = request.getParameter("INFO_FORMAT");
 		switch(infoFormat) {
 		case "application/json":
 		case "application/geo+json":
-			handle_GetFeatureInfoJSON(postgisLayer, request, response, pixelRect2d);
+			handle_GetFeatureInfoJSON(postgisLayer, request, response, layerRect);
 			break;
 		case "text/xml":
 		default: 
-			handle_GetFeatureInfoXML(postgisLayer, request, response, pixelRect2d);
+			handle_GetFeatureInfoXML(postgisLayer, request, response, layerRect);
 			break;
 		}
 	}

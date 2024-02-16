@@ -13,10 +13,12 @@ import org.eclipse.jetty.util.security.Password;
 import util.yaml.YamlMap;
 
 public class Account implements UserIdentity, Principal {
+	
+	private static final String[] NO_ROLES = new String[0];
 
 	public final String user;
 	public final String password;
-	public final String[] roles;
+	public final String[] roles; // not null
 	public final boolean managed;	
 	public final String date_created; // nullable
 	public final String comment; // nullable
@@ -24,9 +26,10 @@ public class Account implements UserIdentity, Principal {
 	private final Credential credential;
 	
 	public static class Builder {
+
 		public String user;
 		public String password;
-		public String[] roles;
+		public String[] roles = NO_ROLES;
 		public boolean managed;
 		public String date_created; // nullable
 		public String comment; // nullable
@@ -41,14 +44,14 @@ public class Account implements UserIdentity, Principal {
 		}
 		
 		public Account build() {
-			return new Account(user, password, roles, managed, date_created, comment);
+			return new Account(user, password, roles == null ? NO_ROLES : roles, managed, date_created, comment);
 		}
 	}
 
 	public Account(String user, String password, String[] roles, boolean managed, String date_created, String comment) {
 		this.user = user;
 		this.password = password;
-		this.roles = roles;
+		this.roles = roles == null ? NO_ROLES : roles;
 		this.managed = managed;
 		this.date_created = date_created;
 		this.comment = comment;

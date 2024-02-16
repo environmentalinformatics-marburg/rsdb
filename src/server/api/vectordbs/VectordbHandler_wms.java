@@ -2,6 +2,7 @@ package server.api.vectordbs;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -248,35 +249,63 @@ public class VectordbHandler_wms extends VectordbHandler {
 	}
 
 	public void handle_GetFeatureInfo(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
+		int wmsEPSG = 0;
+		String crs = Web.getString(request, "CRS");
+		if(crs != null) {
+			if(crs.startsWith("EPSG:")) {
+				wmsEPSG = Integer.parseInt(crs.substring(5));				
+			} else {
+				throw new RuntimeException("unknown CRS");
+			}
+		}
+		
+		int layerEPSG = 0;
+		try {
+			layerEPSG = Integer.parseInt(vectordb.getDetails().epsg);
+		} catch(Exception e) {
+			Logger.warn(e);
+		}
+		boolean reproject = wmsEPSG > 0 && layerEPSG > 0 && wmsEPSG != layerEPSG;
+		
 		String bboxParam = request.getParameter("BBOX");
-		Rect2d rect2d = null;
+		Rect2d wmsRect2d = null;
 		if(bboxParam != null) {
 			String[] bbox = bboxParam.split(",");
-			rect2d = Rect2d.parseBbox(bbox);
+			wmsRect2d = Rect2d.parseBbox(bbox);
 		}		
 		int reqWidth = Web.getInt(request, "WIDTH");
 		int reqHeight = Web.getInt(request, "HEIGHT");		
 		int reqX = Web.getInt(request, "I");
 		int reqY = Web.getInt(request, "J");
 
-		double xres = rect2d.width() / reqWidth;
-		double yres = rect2d.height() / reqHeight;
+		double xres = wmsRect2d.width() / reqWidth;
+		double yres = wmsRect2d.height() / reqHeight;
 
-		Rect2d pixelRect2d = new Rect2d(rect2d.xmin + xres * reqX, rect2d.ymax - yres * (reqY + 1), rect2d.xmin + xres * (reqX + 1), rect2d.ymax - yres * reqY);
+		Rect2d wmsPixelRect2d = new Rect2d(wmsRect2d.xmin + xres * reqX, wmsRect2d.ymax - yres * (reqY + 1), wmsRect2d.xmin + xres * (reqX + 1), wmsRect2d.ymax - yres * reqY);
 
 		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
-		Logger.info(rect2d);
-		Logger.info(pixelRect2d);
+		Logger.info(wmsRect2d);
+		Logger.info(wmsPixelRect2d);
+		
+		Rect2d layerPixelRect2d = wmsPixelRect2d;		
+		if(reproject) {			
+			SpatialReference wmsSr = GeoUtil.getSpatialReferenceFromEPSG(wmsEPSG);
+			SpatialReference layerSr = vectordb.getSpatialReference();
+			util.GeoUtil.Transformer transformer = GeoUtil.createCoordinateTransformer(wmsSr, layerSr);
+			double[][] points = wmsPixelRect2d.createPoints9();
+			transformer.transformWithAxisOrderCorrection(points);
+			layerPixelRect2d = Rect2d.ofPoints(points);
+		}
 
 		String infoFormat = request.getParameter("INFO_FORMAT");
 		switch(infoFormat) {
 		case "application/json":
 		case "application/geo+json":
-			VectordbHandler_geometry.handle_GetFeatureInfoJSON(vectordb, pixelRect2d, request, response);
+			VectordbHandler_geometry.handle_GetFeatureInfoJSON(vectordb, layerPixelRect2d, request, response);
 			break;
 		case "text/xml":
 		default:
-			VectordbHandler_wfs.handle_GetFeature(vectordb, pixelRect2d, request, response);
+			VectordbHandler_wfs.handle_GetFeature(vectordb, layerPixelRect2d, request, response);
 			break;
 		}
 	}

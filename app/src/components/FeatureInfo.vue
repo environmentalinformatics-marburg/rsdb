@@ -38,7 +38,8 @@
             </div>
           </q-card-section>
           <q-card-section v-else style="white-space: pre">
-            {{ info.data }}
+            Layer: {{ info.name }}
+            <div>{{ info.data }}</div>
           </q-card-section>
           <hr />
         </template>

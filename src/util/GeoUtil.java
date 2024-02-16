@@ -102,7 +102,7 @@ public class GeoUtil {
 		return sr;
 	}
 
-	private static Transformer createCoordinateTransformer(int srcEPSG, int dstEPSG) {
+	public static Transformer createCoordinateTransformer(int srcEPSG, int dstEPSG) {
 		SpatialReference srcSr = getSpatialReferenceFromEPSG(srcEPSG);
 		SpatialReference dstSr = getSpatialReferenceFromEPSG(dstEPSG);
 		return createCoordinateTransformer(srcSr, dstSr);

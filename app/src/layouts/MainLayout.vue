@@ -228,6 +228,35 @@
                       @update:model-value="refreshLayerVisibility"
                   /></q-item-section>
                 </template>
+                <template v-else-if="element.type === 'vectordb'">
+                  <q-item-section side top
+                    ><q-btn
+                      size="sm"
+                      flat
+                      round
+                      color="grey"
+                      icon="delete_forever"
+                      @click.stop="
+                        layers.splice(index, 1);
+                        refreshLayers(true);
+                        //console.log('done!');
+                      "
+                  /></q-item-section>
+                  <q-item-section>
+                    <q-item-label caption>VectorDB</q-item-label>
+                    <q-item-label class="ellipsis">{{
+                      element.name
+                    }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side top
+                    ><q-checkbox
+                      size="xs"
+                      v-model="element.visible"
+                      val="xs"
+                      color="grey"
+                      @update:model-value="refreshLayerVisibility"
+                  /></q-item-section>
+                </template>
                 <template v-else-if="element.type === 'background'">
                   <q-item-section>
                     <q-item-label caption>Background</q-item-label>
@@ -969,7 +998,13 @@ export default defineComponent({
             //this.$refs.FeatureInfo.show(response.data);
             infos.push({ name: layerEntry.name, data: response.data });
           } catch (e) {
-            console.log(e);
+            const error = e.response
+              ? e.response.data
+                ? e.response.data
+                : e
+              : e;
+            console.log(error);
+            infos.push({ name: layerEntry.name, data: "ERROR: " + error });
           }
         } else if (layerEntry.type === "vectordb") {
           try {
@@ -991,7 +1026,13 @@ export default defineComponent({
             //this.$refs.FeatureInfo.show(response.data);
             infos.push({ name: layerEntry.name, data: response.data });
           } catch (e) {
-            console.log(e);
+            const error = e.response
+              ? e.response.data
+                ? e.response.data
+                : e
+              : e;
+            console.log(error);
+            infos.push({ name: layerEntry.name, data: "ERROR: " + error });
           }
         } else if (layerEntry.type === "postgis") {
           try {
@@ -1013,7 +1054,13 @@ export default defineComponent({
             //this.$refs.FeatureInfo.show(response.data);
             infos.push({ name: layerEntry.name, data: response.data });
           } catch (e) {
-            console.log(e);
+            const error = e.response
+              ? e.response.data
+                ? e.response.data
+                : e
+              : e;
+            console.log(error);
+            infos.push({ name: layerEntry.name, data: "ERROR: " + error });
           }
         }
       }

@@ -13,6 +13,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 
 import broker.TimeSlice;
@@ -27,6 +28,7 @@ import rasterdb.RasterDB;
 import rasterdb.TimeBand;
 import rasterdb.dsl.DSL;
 import rasterdb.dsl.ErrorCollector;
+import util.GeoUtil;
 import util.IndentedXMLStreamWriter;
 import util.Range2d;
 import util.TemplateUtil;
@@ -38,6 +40,18 @@ import util.frame.DoubleFrame;
 public class RasterdbMethod_wms_GetFeatureInfo {
 
 	public static void handle_GetFeatureInfo(RasterDB rasterdb, Request request, Response response, UserIdentity userIdentity) throws IOException {
+		int wmsEPSG = 0;
+		String crs = Web.getString(request, "CRS");
+		if(crs != null) {
+			if(crs.startsWith("EPSG:")) {
+				wmsEPSG = Integer.parseInt(crs.substring(5));				
+			} else {
+				throw new RuntimeException("unknown CRS");
+			}
+		}		
+		int layerEPSG = rasterdb.ref().getEPSG(0);
+		boolean reproject = wmsEPSG > 0 && layerEPSG > 0 && wmsEPSG != layerEPSG;
+		
 		String bboxParam = request.getParameter("BBOX");
 		Rect2d rect2d = null;
 		if(bboxParam != null) {
@@ -52,23 +66,32 @@ public class RasterdbMethod_wms_GetFeatureInfo {
 		double xres = rect2d.width() / reqWidth;
 		double yres = rect2d.height() / reqHeight;
 
-		Rect2d pixelRect2d = new Rect2d(rect2d.xmin + xres * reqX, rect2d.ymax - yres * (reqY + 1), rect2d.xmin + xres * (reqX + 1), rect2d.ymax - yres * reqY);
+		Rect2d wmsPixelRect2d = new Rect2d(rect2d.xmin + xres * reqX, rect2d.ymax - yres * (reqY + 1), rect2d.xmin + xres * (reqX + 1), rect2d.ymax - yres * reqY);
 
 		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
 		Logger.info(rect2d);
-		Logger.info(pixelRect2d);
+		Logger.info(wmsPixelRect2d);
+		
+		Rect2d layerPixelRect2d = wmsPixelRect2d;
+		if(reproject) {
+			util.GeoUtil.Transformer transformer = GeoUtil.getCoordinateTransformer(wmsEPSG, layerEPSG);
+			double[][] points = wmsPixelRect2d.createPoints9();
+			transformer.transformWithAxisOrderCorrection(points);
+			layerPixelRect2d = Rect2d.ofPoints(points);			
+			//throw new RuntimeException("RasterDB layer GetFeatureInfo with reprojection not implemented");
+		}		
 
 		String infoFormat = request.getParameter("INFO_FORMAT");
 		switch(infoFormat) {
 		case "text/xml": 
-			handle_GetFeatureInfoGML(rasterdb, request, response, pixelRect2d);
+			handle_GetFeatureInfoGML(rasterdb, request, response, layerPixelRect2d);
 			break;
 		case "text/plain": 
-			handle_GetFeatureInfoTXT(rasterdb, request, response, pixelRect2d);
+			handle_GetFeatureInfoTXT(rasterdb, request, response, layerPixelRect2d);
 			break;
 		case "text/html": 
 		default: 
-			handle_GetFeatureInfoHTML(rasterdb, request, response, pixelRect2d);
+			handle_GetFeatureInfoHTML(rasterdb, request, response, layerPixelRect2d);
 		}
 	}
 
