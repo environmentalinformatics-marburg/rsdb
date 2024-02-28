@@ -88,7 +88,7 @@ public class PostgisLayerManager {
 		try {
 			ConcurrentSkipListMap<String, PostgisLayerConfig> map = new ConcurrentSkipListMap<String, PostgisLayerConfig>();
 			Path[] paths = getYamlFiles(postgis_root);
-			for(Path path:paths) {
+			for(Path path : paths) {
 				Logger.info("found postgis layer " + path);
 				PostgisLayerConfig config = PostgisLayerConfig.ofPath(path);
 				map.put(config.name, config);

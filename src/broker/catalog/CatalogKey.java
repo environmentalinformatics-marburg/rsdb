@@ -7,6 +7,7 @@ public class CatalogKey implements Comparable<CatalogKey> {
 	public static final String TYPE_POINTCLOUD = "pointcloud";
 	public static final String TYPE_VECTORDB = "vectordb";
 	public static final String TYPE_POSTGIS = "postgis";
+	public static final String TYPE_VOXELDB = "voxeldb";
 
 	public final String name;
 	public final String type;	

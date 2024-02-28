@@ -40,6 +40,7 @@ import postgis.PostgisPOIcreator;
 import postgis.PostgisROIcreator;
 import rasterdb.RasterDB;
 import rasterdb.RasterdbConfig;
+import remotetask.MessageSink;
 import server.api.vectordbs.VectordbDetails;
 import util.GeoUtil;
 import util.Timer;
@@ -382,6 +383,32 @@ public class Broker implements AutoCloseable {
 			rasterdbMap = null;
 			pointcloudMap = null;
 		}
+	}
+	
+	public synchronized void refreshAllLayers(MessageSink messageSink) {
+		messageSink.setMessage("refresh RasterDB layers");
+		refreshRasterdbConfigs();
+		
+		messageSink.setMessage("refresh Pointcloud layers");
+		refreshPointcloudConfigs();
+		
+		messageSink.setMessage("refresh VoxelDB layers");
+		refreshVoxeldbConfigs();
+		
+		messageSink.setMessage("refresh VectorDB layers");
+		refreshVectordbConfigs();
+		
+		messageSink.setMessage("refresh PostGIS layers");
+		postgisLayerManager().refresh();
+		
+		messageSink.setMessage("refresh VoxelDB layers");
+		refreshVoxeldbConfigs();
+		
+		messageSink.setMessage("refresh PoiGroup layers");
+		refreshPoiGroupMap();
+		
+		messageSink.setMessage("refresh RoiGroup layers");
+		refreshRoiGroupMap();
 	}
 
 	public synchronized void refreshRasterdbConfigs() {

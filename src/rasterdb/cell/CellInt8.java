@@ -7,8 +7,7 @@ import rasterdb.Band;
 import rasterunit.Tile;
 import util.Serialisation;
 
-public class CellInt8 extends Cell<byte[][]>{
-	
+public class CellInt8 extends Cell<byte[][]>{	
 
 	public CellInt8(int pixel_len) {
 		super(pixel_len);

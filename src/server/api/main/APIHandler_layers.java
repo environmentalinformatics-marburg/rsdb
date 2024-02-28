@@ -1,6 +1,8 @@
 package server.api.main;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -12,13 +14,14 @@ import broker.Broker;
 import broker.catalog.CatalogKey;
 import jakarta.servlet.http.HttpServletResponse;
 import postgis.PostgisLayerManager;
-import rasterdb.RasterDB;
+import remotetask.MessageSink;
 import server.api.APIHandler;
-import util.JsonUtil;
 import util.Web;
 
 
 public class APIHandler_layers extends APIHandler {
+	
+	private static final HashSet<String> QUERY_LAYER_TYPES = new HashSet<String>(Arrays.asList(CatalogKey.TYPE_RASTERDB, CatalogKey.TYPE_POINTCLOUD, CatalogKey.TYPE_VECTORDB, CatalogKey.TYPE_POSTGIS));
 
 	private PostgisLayerManager postgisLayerManager;
 
@@ -55,8 +58,7 @@ public class APIHandler_layers extends APIHandler {
 	private void handleList(Request request, HttpServletResponse response, UserIdentity userIdentity) throws IOException {
 		boolean refresh = Web.getFlagBoolean(request, "refresh");
 		if(refresh) {
-			postgisLayerManager.refresh();
-			broker.refreshRasterdbConfigs();
+			broker.refreshAllLayers(MessageSink.MESSAGE_SINK_LOG);
 		}
 
 		response.setStatus(HttpServletResponse.SC_OK);
@@ -66,7 +68,7 @@ public class APIHandler_layers extends APIHandler {
 		json.key("layers");
 		json.array();
 
-		for (String name : broker.getRasterdbNames()) {	
+		/*for (String name : broker.getRasterdbNames()) {	
 			RasterDB rasterdb = broker.getRasterdb(name);
 			if (rasterdb.isAllowed(userIdentity)) {
 				json.object();
@@ -97,15 +99,6 @@ public class APIHandler_layers extends APIHandler {
 			json.value("vectordb");
 			json.endObject();
 		});
-		
-		/*broker.catalog.getSorted(userIdentity).forEach(entry -> {
-			json.object();
-			json.key("name");
-			json.value(entry.name);
-			json.key("type");
-			json.value(entry.type.toLowerCase());
-			json.endObject();
-		});*/
 
 		postgisLayerManager.forEach(userIdentity, postgisLayerBase -> {
 			json.object();
@@ -113,6 +106,15 @@ public class APIHandler_layers extends APIHandler {
 			json.value(postgisLayerBase.name);
 			json.key("type");
 			json.value("postgis");
+			json.endObject();
+		});*/
+
+		broker.catalog.getSorted(QUERY_LAYER_TYPES, userIdentity).forEach(entry -> {
+			json.object();
+			json.key("name");
+			json.value(entry.name);
+			json.key("type");
+			json.value(entry.type.toLowerCase());
 			json.endObject();
 		});
 

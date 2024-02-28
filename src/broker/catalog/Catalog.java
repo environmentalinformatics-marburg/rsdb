@@ -52,6 +52,7 @@ import rasterdb.GeoReference;
 import rasterdb.RasterDB;
 import rasterdb.tile.TilePixel;
 import rasterunit.TileKey;
+import remotetask.MessageSink;
 import util.GeoUtil;
 import util.GeoUtil.Transformer;
 import util.Range2d;
@@ -61,7 +62,6 @@ import vectordb.VectorDB;
 import voxeldb.VoxelDB;
 
 public class Catalog {
-
 
 	private static final Path CATALOG_FILENAME = Paths.get("catalog/catalog.json");
 	private static final String CATALOG_TEMP_PREFIX = "catalog/catalog_temp";
@@ -80,7 +80,7 @@ public class Catalog {
 			loadFromFile();
 			refreshCatalog();
 		} else {
-			rebuildCatalog();
+			rebuildCatalog(MessageSink.MESSAGE_SINK_LOG);
 		}
 	}
 
@@ -419,7 +419,25 @@ public class Catalog {
 			return generateCatalogEntry(postgis.name, CatalogKey.TYPE_POSTGIS, null, null, postgis.getACL(), acl_ownermod, postgis.informal(), postgis.getStructuredAccess());
 		}
 	}
-
+	
+	private CatalogEntry generateCatalogEntryVoxeldb(VoxelDB voxeldb, boolean generateHull) {		
+		if(voxeldb == null) {
+			return null;
+		}
+		Logger.info("generateCatalogEntryVoxeldb " + voxeldb.getName());
+		ACL acl_ownermod = AclUtil.union(voxeldb.getACL_owner(), voxeldb.getACL_mod());
+		try {
+			double[][] points = null;
+			if(generateHull) { // TODO
+				//Logger.info("generateCatalogEntryVoxeldb generateHull " + voxeldb.getName());				
+			}
+			return generateCatalogEntry(voxeldb.getName(), CatalogKey.TYPE_VOXELDB, points, null, voxeldb.getACL(), acl_ownermod, voxeldb.informal(), null);
+		} catch(Exception e) {
+			e.printStackTrace();
+			Logger.warn(e);
+			return generateCatalogEntry(voxeldb.getName(), CatalogKey.TYPE_VOXELDB, null, null, voxeldb.getACL(), acl_ownermod, voxeldb.informal(), null);
+		}
+	}
 
 	public CatalogEntry generateCatalogEntry(String name, String type, double[][] points, Associated associated, ACL acl, ACL acl_mod, Informal informal, StructuredAccess structuredAccess) {
 
@@ -473,9 +491,10 @@ public class Catalog {
 	}
 
 
-	public synchronized void rebuildCatalog() {
+	public synchronized void rebuildCatalog(MessageSink messageSink) {
 		Map<CatalogKey, CatalogEntry> map = new LinkedHashMap<>();
-		for(String name:broker.getRasterdbNames()) {				
+		for(String name : broker.getRasterdbNames()) {
+			messageSink.log("Generate catalog entry for RasterDB " + name);
 			try {
 				RasterDB rasterdb = broker.getRasterdb(name);
 				CatalogEntry catalogEntry = generateCatalogEntryRasterDB(rasterdb, true);
@@ -487,7 +506,8 @@ public class Catalog {
 			}
 		}
 
-		for(String name:broker.brokerConfig.pointdbMap().keySet()) {
+		for(String name : broker.brokerConfig.pointdbMap().keySet()) {
+			messageSink.log("Generate catalog entry for PointDB " + name);
 			try {
 				PointDB pointdb = broker.getPointdb(name);
 				CatalogEntry catalogEntry = generateCatalogEntryPointDB(pointdb, true);
@@ -499,7 +519,8 @@ public class Catalog {
 			}
 		}
 
-		for(String name:broker.getPointCloudNames()) {
+		for(String name : broker.getPointCloudNames()) {
+			messageSink.log("Generate catalog entry for PointCloud " + name);
 			try {
 				PointCloud pointcloud = broker.getPointCloud(name);
 				CatalogEntry catalogEntry = generateCatalogEntryPointcloud(pointcloud, true);
@@ -511,10 +532,37 @@ public class Catalog {
 			}
 		}
 
-		for(String name:broker.getVectordbNames()) {
+		for(String name : broker.getVectordbNames()) {
+			messageSink.log("Generate catalog entry for VectorDB " + name);
 			try {
 				VectorDB vectordb = broker.getVectorDB(name);
 				CatalogEntry catalogEntry = generateCatalogEntryVectordb(vectordb, true);
+				if(catalogEntry != null) {
+					map.put(catalogEntry.toKey(), catalogEntry);
+				}
+			} catch(Exception e) {				
+				Logger.error(e);
+			}
+		}
+		
+		for(String name : broker.postgisLayerManager().getNames()) {
+			messageSink.log("Generate catalog entry for PostGIS layer " + name);
+			try {
+				PostgisLayer postgisLayer = broker.postgisLayerManager().getPostgisLayer(name);
+				CatalogEntry catalogEntry = generateCatalogEntryPostgis(postgisLayer, true);
+				if(catalogEntry != null) {
+					map.put(catalogEntry.toKey(), catalogEntry);
+				}
+			} catch(Exception e) {				
+				Logger.error(e);
+			}
+		}
+		
+		for(String name : broker.getVoxeldbNames()) {
+			messageSink.log("Generate catalog entry for VoxelDB " + name);
+			try {
+				VoxelDB voxeldb = broker.getVoxeldb(name);
+				CatalogEntry catalogEntry = generateCatalogEntryVoxeldb(voxeldb, true);
 				if(catalogEntry != null) {
 					map.put(catalogEntry.toKey(), catalogEntry);
 				}
@@ -573,6 +621,14 @@ public class Catalog {
 			case CatalogKey.TYPE_POSTGIS: {
 				if(!broker.postgisLayerManager().getNames().contains(catalogEntry.name)) {
 					Logger.warn("remove missing PostGIS: " + catalogEntry);
+					it.remove();
+					changed = true;
+				}
+				break;
+			}
+			case CatalogKey.TYPE_VOXELDB: {
+				if(!broker.getVoxeldbNames().contains(catalogEntry.name)) {
+					Logger.warn("remove missing voxeldb: " + catalogEntry);
 					it.remove();
 					changed = true;
 				}
@@ -651,6 +707,21 @@ public class Catalog {
 				try {
 					PostgisLayer postgis = broker.postgisLayerManager().getPostgisLayer(name);
 					CatalogEntry catalogEntry = generateCatalogEntryPostgis(postgis, true);
+					if(catalogEntry != null) {
+						map.put(catalogEntry.toKey(), catalogEntry);
+						changed = true;
+					}
+				} catch(Exception e) {
+					Logger.error(e);
+				}
+			}
+		}
+		
+		for(String name:broker.getVoxeldbNames()) {
+			if(!map.containsKey(new CatalogKey(name, CatalogKey.TYPE_VOXELDB))) {
+				try {
+					VoxelDB voxeldb = broker.getVoxeldb(name);
+					CatalogEntry catalogEntry = generateCatalogEntryVoxeldb(voxeldb, true);
 					if(catalogEntry != null) {
 						map.put(catalogEntry.toKey(), catalogEntry);
 						changed = true;
@@ -822,7 +893,7 @@ public class Catalog {
 			Logger.info("update");
 			update(genCatalogEntry);
 		}
-	}
+	}	
 	
 	public void update(PostgisLayer postgisLayer, boolean updateHull) {
 		Logger.info("update catalog entry postgis " + postgisLayer.name);
@@ -833,6 +904,23 @@ public class Catalog {
 			genCatalogEntry = generateCatalogEntryPostgis(postgisLayer, true);
 		} else {
 			genCatalogEntry = generateCatalogEntryPostgis(postgisLayer, false);
+			genCatalogEntry = CatalogEntry.of(genCatalogEntry, oldCatalogEntry.points);
+		}
+		if(!genCatalogEntry.equals(oldCatalogEntry)) {
+			Logger.info("update");
+			update(genCatalogEntry);
+		}
+	}
+	
+	public void update(VoxelDB voxeldb, boolean updateHull) {
+		Logger.info("update catalog entry VoxelDB " + voxeldb.getName());
+		CatalogKey catalogKey = new CatalogKey(voxeldb.getName(), CatalogKey.TYPE_VOXELDB);
+		CatalogEntry oldCatalogEntry = map.get(catalogKey);
+		CatalogEntry genCatalogEntry;
+		if(oldCatalogEntry == null || updateHull) {
+			genCatalogEntry = generateCatalogEntryVoxeldb(voxeldb, true);
+		} else {
+			genCatalogEntry = generateCatalogEntryVoxeldb(voxeldb, false);
 			genCatalogEntry = CatalogEntry.of(genCatalogEntry, oldCatalogEntry.points);
 		}
 		if(!genCatalogEntry.equals(oldCatalogEntry)) {
@@ -867,9 +955,12 @@ public class Catalog {
 				.filter(entry -> AclUtil.isAllowed(entry.acl, entry.acl_mod, userIdentity))
 				.sorted(CATALOG_ENTRY_COMPARATOR);
 	}
-
-	public void update(VoxelDB voxeldb, boolean updateCatalogPoints) {
-		// TODO Auto-generated method stub
-
+	
+	public Stream<CatalogEntry> getSorted(Set<String> types, UserIdentity userIdentity) {
+		return map.keySet().stream()
+				.filter(key -> types.contains(key.type))
+				.map(key -> map.get(key))
+				.filter(entry -> AclUtil.isAllowed(entry.acl, entry.acl_mod, userIdentity))
+				.sorted(CATALOG_ENTRY_COMPARATOR);
 	}
 }

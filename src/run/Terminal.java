@@ -702,7 +702,7 @@ public class Terminal {
 	public static void command_catalog_refresh(String[] args) {
 		if(args.length == 1) {
 			try(Broker broker = new Broker()) {
-				broker.catalog.rebuildCatalog();
+				broker.catalog.rebuildCatalog(MessageSink.MESSAGE_SINK_LOG);
 			} catch (Exception e) {
 				e.printStackTrace();
 				Logger.error(e);

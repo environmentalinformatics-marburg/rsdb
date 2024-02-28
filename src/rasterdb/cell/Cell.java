@@ -3,9 +3,6 @@ package rasterdb.cell;
 import java.io.IOException;
 import java.util.Collection;
 
-
-import org.tinylog.Logger;
-
 import me.lemire.integercompression.FastPFOR;
 import rasterdb.Band;
 import rasterdb.tile.Processing.Commiter;

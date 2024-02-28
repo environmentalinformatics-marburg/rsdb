@@ -1,8 +1,5 @@
 package rasterdb.cell;
 
-
-import org.tinylog.Logger;
-
 public class Int16 {
 	
 	

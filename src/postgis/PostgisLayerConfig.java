@@ -60,11 +60,11 @@ public class PostgisLayerConfig extends PostgisLayerBase {
 					}
 
 				}
-				return AclUtil.isAllowed(userIdentity);
+				//return AclUtil.isAllowed(userIdentity);
 			} catch (Exception e) {
 				e.printStackTrace();
 				Logger.warn(e);
-				return AclUtil.isAllowed(userIdentity);
+				//return AclUtil.isAllowed(userIdentity);
 			}
 		}
 
