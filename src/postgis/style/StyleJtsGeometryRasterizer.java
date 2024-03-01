@@ -4,8 +4,10 @@ import java.awt.Graphics2D;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
+import util.collections.vec.Vec;
 import vectordb.style.Style;
 
 public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
@@ -17,6 +19,20 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 
 	public final Graphics2D gc;
 
+	private static class Label {
+		public final String text;
+		public final int x;
+		public final int y;
+
+		public Label(String text, int x, int y) {
+			this.text = text;
+			this.x = x;
+			this.y = y;
+		}
+	}
+
+	private final Vec<Label> labelBuffer = new Vec<Label>();
+
 	public StyleJtsGeometryRasterizer(double xoff, double yoff, double xscale, double yscale, Graphics2D gc) {
 		this.xoff = xoff;
 		this.yoff = yoff;
@@ -26,7 +42,7 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 	}
 
 	@Override
-	public void acceptPolygon(Style style, Polygon polygon) {
+	public void acceptPolygon(Style style, Polygon polygon, String text) {
 		final int interiorRings = polygon.getNumInteriorRing();
 		if(interiorRings == 0) {
 			LinearRing ring = polygon.getExteriorRing();
@@ -39,7 +55,7 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 				xs[i] = (int) ((c.x + xoff) * xscale);
 				ys[i] = (int) ((yoff - c.y) * yscale);
 			}
-			style.drawPolygon(gc, xs, ys, len);
+			style.drawPolygon(gc, xs, ys, len);			
 		} else {
 			float[][] rings = new float[interiorRings + 1][];
 			{
@@ -47,7 +63,7 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 				Coordinate[] cs = ring.getCoordinateSequence().toCoordinateArray();
 				rings[0] = convert(cs);
 			}			
-			
+
 			for (int r = 0; r < interiorRings; r++) {
 				LinearRing ring = polygon.getInteriorRingN(r);
 				Coordinate[] cs = ring.getCoordinateSequence().toCoordinateArray();
@@ -55,6 +71,27 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 			}
 			style.drawPolygonWithHoles(gc, rings);
 		}
+		
+		if(text != null) {
+			double lenScale = Math.max(xscale, xscale);
+			double polyLen = polygon.getLength() * lenScale;
+			if(polyLen >= 50d) {
+				Point ptext = polygon.getInteriorPoint();
+				if(!ptext.isEmpty()) {
+					int xtext = (int) ((ptext.getX() + xoff) * xscale);
+					int ytext = (int) ((yoff - ptext.getY()) * yscale);
+					Label label = new Label(text, xtext, ytext);
+					labelBuffer.add(label);
+				}
+			}
+		}
+	}
+
+	public void drawLabels(Style style) {
+		for (Label label : labelBuffer) {
+			style.drawText(gc, label.x, label.y, label.text);
+		}
+		labelBuffer.clear();
 	}
 
 	private float[] convert(Coordinate[] cs) {

@@ -171,7 +171,7 @@ public class PostgisROIcreator {
 				if(nameField.isBlank()) {
 					postgisLayer.forEachJtsGeometry(null, 0, false, null, roijtsGeometryConsumer);
 				} else {
-					postgisLayer.forEachObjectJtsGeometry(null, false, nameField, roijtsGeometryConsumer);
+					postgisLayer.forEachObjectJtsGeometry(null, 0, false, nameField, null, roijtsGeometryConsumer);
 				}		
 			} catch(Exception e) {
 				messages.add("Skip ROIs: " + e.getMessage());

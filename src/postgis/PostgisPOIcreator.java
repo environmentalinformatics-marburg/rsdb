@@ -98,7 +98,7 @@ public class PostgisPOIcreator {
 				if(nameField.isBlank()) {
 					postgisLayer.forEachJtsGeometry(null, 0, false, null, poijtsGeometryConsumer);
 				} else {
-					postgisLayer.forEachObjectJtsGeometry(null, false, nameField, poijtsGeometryConsumer);
+					postgisLayer.forEachObjectJtsGeometry(null, 0, false, nameField, null, poijtsGeometryConsumer);
 				}		
 			} catch(Exception e) {
 				messages.add("Skip POIs: " + e.getMessage());

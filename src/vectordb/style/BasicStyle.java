@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -27,7 +28,8 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	private BasicStroke stroke = createStroke(DEFAULT_STROKE_WIDTH);	
 	private Color stroke_color = Renderer.COLOR_POINT;
 	private Color fill_color = Renderer.COLOR_POLYGON;
-	
+	private Color text_color = new Color(0, 0, 0, 255);
+
 	public static BasicStroke createStroke(float stroke_width) {
 		return createStroke(stroke_width, null);
 	}
@@ -39,7 +41,7 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	}
 
 	public BasicStyle() {}
-	
+
 	public BasicStyle(BasicStroke stroke, Color stroke_color, Color fill_color) {
 		this.stroke = stroke;
 		this.stroke_color = stroke_color;
@@ -123,7 +125,17 @@ public class BasicStyle extends Style implements PolygonDrawer {
 		gc.fillPolygon(xs, ys, len);
 		gc.setStroke(stroke);
 		gc.setColor(stroke_color);
-		gc.drawPolygon(xs, ys, len);		
+		gc.drawPolygon(xs, ys, len);
+	}
+
+	@Override
+	public void drawText(Graphics2D gc, int x, int y, String text) {
+		gc.setStroke(stroke);
+		gc.setColor(text_color);
+		Rectangle2D bounds = gc.getFontMetrics().getStringBounds(text, gc);
+		int xoff = (int) bounds.getCenterX();
+		int yoff = (int) bounds.getCenterY();
+		gc.drawString(text, x - xoff, y - yoff);
 	}
 
 	@Override
@@ -142,6 +154,6 @@ public class BasicStyle extends Style implements PolygonDrawer {
 		gc.fill(path);
 		gc.setStroke(stroke);
 		gc.setColor(stroke_color);
-		gc.draw(path);		
+		gc.draw(path);
 	}
 }

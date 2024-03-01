@@ -40,4 +40,9 @@ public class RotatingArrayStyleProvider extends StyleProvider {
 	public String getValueField() {
 		return null;
 	}
+
+	@Override
+	public String getLabelField() {
+		return null;
+	}
 }

@@ -46,9 +46,10 @@ public class StyleProviderFactory {
 	public static StyleProvider ofYaml(YamlMap yamlMap) {
 		StyleProvider fallbackStyleProvider = DEFAULT_STYLE_PROVIDER;
 		String fallbackType = yamlMap.optString("type");
+		String labelField = yamlMap.optString("label_field");
 		if(fallbackType != null) {
 			Style fallbackStyle = Style.ofYaml(yamlMap);
-			fallbackStyleProvider = new SimpleStyleProvider(fallbackStyle);
+			fallbackStyleProvider = new SimpleStyleProvider(fallbackStyle, labelField);
 		}
 		String valueField = yamlMap.optString("value_field");
 		if(valueField == null) {
@@ -61,16 +62,17 @@ public class StyleProviderFactory {
 				Style style = Style.ofYaml(valueMap.getMap(key));
 				map.put(i, style);
 			});			
-			return new MappedStyleProvider(valueField, map, fallbackStyleProvider);
+			return new MappedStyleProvider(valueField, labelField, map, fallbackStyleProvider);
 		}		
 	}
 	
 	public static StyleProvider ofJSON(JSONObject json) {
 		StyleProvider fallbackStyleProvider = DEFAULT_STYLE_PROVIDER;
 		String fallbackType = json.optString("type");
+		String labelField = json.optString("label_field");
 		if(fallbackType != null) {
 			Style fallbackStyle = Style.ofJSON(json);
-			fallbackStyleProvider = new SimpleStyleProvider(fallbackStyle);
+			fallbackStyleProvider = new SimpleStyleProvider(fallbackStyle, labelField);
 		}
 		String valueField = json.optString("value_field");
 		if(valueField == null) {
@@ -83,7 +85,7 @@ public class StyleProviderFactory {
 				Style style = Style.ofJSON(valueJson.getJSONObject(key));
 				map.put(i, style);
 			}		
-			return new MappedStyleProvider(valueField, map, fallbackStyleProvider);
+			return new MappedStyleProvider(valueField, labelField, map, fallbackStyleProvider);
 		}		
 	}
 }

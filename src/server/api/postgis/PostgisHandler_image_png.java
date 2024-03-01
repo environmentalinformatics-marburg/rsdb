@@ -23,7 +23,7 @@ import util.image.ImageBufferARGB;
 import vectordb.style.Style;
 
 public class PostgisHandler_image_png {	
-	
+
 	private ConcurrentHashMap<Long, Interruptor> sessionMap = new ConcurrentHashMap<Long, Interruptor>();
 
 	public void handle(PostgisLayer postgisLayer, String target, Request request, Response response, UserIdentity userIdentity) throws IOException {	
@@ -42,7 +42,7 @@ public class PostgisHandler_image_png {
 
 		Rect2d rect = postgisLayer.getExtent();
 		Logger.info(rect);
-		
+
 		long session = Web.getLong(request, "session", -1);
 		long sessionCnt = Web.getLong(request, "cnt", -1);
 		Interruptor interruptor = null;
@@ -84,7 +84,7 @@ public class PostgisHandler_image_png {
 		int width = (int) Math.ceil(targetScale * xGeoLen);
 		int height = (int) Math.ceil(targetScale * yGeoLen);
 
-		
+
 		ImageBufferARGB image = render(postgisLayer, 0, rect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
 
 		response.setStatus(HttpServletResponse.SC_OK);
@@ -104,33 +104,58 @@ public class PostgisHandler_image_png {
 		double yscale = (height - 4) / ylen;
 		double xoff = - renderRect.xmin + 2 * (1 / xscale);
 		double yoff = renderRect.ymax + 2 * (1 / yscale);
-		
+
 		StyleJtsGeometryRasterizer styleJtsGeometryRasterizer = new StyleJtsGeometryRasterizer(xoff, yoff, xscale, yscale, gc);
-		
+
 		int layerEPSG = postgisLayer.getEPSG();
 		if(renderEPSG == layerEPSG) {
 			renderEPSG = 0;
 		}
 		Logger.info(renderRect);
-		Rect2d layerRect = renderEPSG > 0 && layerEPSG > 0 ? postgisLayer.projectToLayer(renderRect, renderEPSG) : renderRect;		
-		
-		String field = styleProvider.getValueField();
-		if(field == null) {
-			field = "class_1";
-		}
-		
-		if(field != null && postgisLayer.hasFieldName(field)) {
-			Timer.start("render");
-			postgisLayer.forEachIntJtsGeometry(layerRect, renderEPSG, crop, field, interruptor, (value, geometry) -> {
-				Style style = styleProvider.getStyleByValue(value);
-				styleJtsGeometryRasterizer.acceptGeometry(style, geometry);
-			});
-			Logger.info(Timer.stop("render"));
+		Rect2d layerRect = renderEPSG > 0 && layerEPSG > 0 ? postgisLayer.projectToLayer(renderRect, renderEPSG) : renderRect;
+
+		String valueField = styleProvider.getValueField();
+		String labelField = styleProvider.getLabelField();
+		if(postgisLayer.hasFieldName(valueField)) {
+			if(postgisLayer.hasFieldName(labelField)) {
+				Timer.start("render");
+				if(postgisLayer.hasNameField()) {
+					labelField = postgisLayer.getNameField();
+				}
+				Logger.info("labelField " + labelField);
+				postgisLayer.forEachIntObjectJtsGeometry(layerRect, renderEPSG, crop, valueField, labelField, interruptor, (value, object, geometry) -> {
+					Style style = styleProvider.getStyleByValue(value);
+					String label = object == null ? null : object.toString();
+					styleJtsGeometryRasterizer.acceptGeometry(style, geometry, label);
+				});
+				styleJtsGeometryRasterizer.drawLabels(styleProvider.getStyle());
+				Logger.info(Timer.stop("render"));
+			} else {
+				Timer.start("render");
+				postgisLayer.forEachIntJtsGeometry(layerRect, renderEPSG, crop, valueField, interruptor, (value, geometry) -> {
+					Style style = styleProvider.getStyleByValue(value);
+					styleJtsGeometryRasterizer.acceptGeometry(style, geometry, null);
+				});				
+				Logger.info(Timer.stop("render"));
+			}			
 		} else {
-			final Style style = styleProvider.getStyle();
-			Timer.start("render");
-			postgisLayer.forEachJtsGeometry(layerRect, renderEPSG, crop, interruptor, geometry -> styleJtsGeometryRasterizer.acceptGeometry(style, geometry));
-			Logger.info(Timer.stop("render"));
+			if(postgisLayer.hasFieldName(labelField)) {
+				final Style style = styleProvider.getStyle();
+				Timer.start("render");
+				postgisLayer.forEachObjectJtsGeometry(layerRect, renderEPSG, crop, labelField, interruptor, (object, geometry) -> {
+					String label = object == null ? null : object.toString();
+					styleJtsGeometryRasterizer.acceptGeometry(style, geometry, label);
+				});
+				styleJtsGeometryRasterizer.drawLabels(style);
+				Logger.info(Timer.stop("render"));	
+			} else {
+				final Style style = styleProvider.getStyle();
+				Timer.start("render");
+				postgisLayer.forEachJtsGeometry(layerRect, renderEPSG, crop, interruptor, geometry -> {
+					styleJtsGeometryRasterizer.acceptGeometry(style, geometry, null);	
+				});
+				Logger.info(Timer.stop("render"));				
+			}
 		}
 
 		gc.dispose();

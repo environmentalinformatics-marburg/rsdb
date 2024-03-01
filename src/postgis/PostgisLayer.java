@@ -651,6 +651,11 @@ public class PostgisLayer extends PostgisLayerBase {
 		void accept(int value, Geometry geometry);
 	}
 
+	@FunctionalInterface
+	public static interface IntObjectJtsGeometryConsumer {
+		void accept(int value, Object object, Geometry geometry);
+	}
+
 	private static Geometry bytesToJtsGeometry(byte[] raw, WKBReader wkbReader) throws ParseException {
 		if(raw.length % 2 != 0) {
 			throw new RuntimeException("read error");
@@ -733,27 +738,41 @@ public class PostgisLayer extends PostgisLayerBase {
 		}
 	}
 
-	@FunctionalInterface
-	public static interface ObjectJtsGeometryConsumer {
-		void accept(Object value, Geometry geometry);
-	}
-
-	public <T extends JtsGeometryConsumer> int forEachObjectJtsGeometry(Rect2d layerRect, boolean crop, String valueField, ObjectJtsGeometryConsumer consumer) {
+	public <T extends JtsGeometryConsumer> int forEachIntObjectJtsGeometry(Rect2d layerRect, int dstEPSG, boolean crop, String valueField, String objectField, Interruptor interruptor, IntObjectJtsGeometryConsumer consumer) {
 		//Logger.info("getGeometry");
+
+		boolean reproject = dstEPSG > 0;
+
+		if(Interruptor.isInterrupted(interruptor)) {
+			Logger.info("interrupted " + interruptor.id + "     out");
+			return -1;
+		}
 
 		try (Connection conn = postgisConnector.getConnection()) {
 			//Timer.start("query");
 			String sql;
 			if(layerRect == null) {
-				sql = String.format("SELECT %s, %s FROM %s", geometrySQL, valueField, name);		
+				if(reproject) {
+					sql = String.format("SELECT ST_Transform(%s, %s), %s %s FROM %s", geometrySQL, dstEPSG, valueField, objectField, name);
+				} else {
+					sql = String.format("SELECT %s, %s, %s FROM %s", geometrySQL, valueField, objectField, name);
+				}
 			} else {
 				int layerEPSG = getEPSG();
 				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, layerRect, layerEPSG);				
 				if(crop) {
 					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, layerRect, layerEPSG);
-					sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_Intersection, valueField, name, sql_ST_Intersects);	
+					if(reproject) {
+						sql = String.format("SELECT ST_Transform(%s, %s), %s, %s FROM %s WHERE %s", sql_ST_Intersection, dstEPSG, valueField, objectField, name, sql_ST_Intersects);
+					} else {
+						sql = String.format("SELECT %s, %s, %s FROM %s WHERE %s", sql_ST_Intersection, valueField, objectField, name, sql_ST_Intersects);
+					}
 				} else {
-					sql = String.format("SELECT %s, %s FROM %s WHERE %s", geometrySQL, valueField, name, sql_ST_Intersects);
+					if(reproject) {
+						sql = String.format("SELECT ST_Transform(%s, %s), %s, %s FROM %s WHERE %s", geometrySQL, dstEPSG, valueField, objectField, name, sql_ST_Intersects);
+					} else {
+						sql = String.format("SELECT %s, %s, %s FROM %s WHERE %s", geometrySQL, valueField, objectField, name, sql_ST_Intersects);
+					}
 				}
 			}	
 			Logger.info(sql);
@@ -761,6 +780,87 @@ public class PostgisLayer extends PostgisLayerBase {
 			ResultSet rs = stmt.executeQuery();
 			int featureCount = 0;
 			WKBReader wkbReader = new WKBReader();
+			if(Interruptor.isInterrupted(interruptor)) {
+				Logger.info("interrupted " + interruptor.id);
+				return -1;
+			}
+			while(rs.next()) {
+				byte[] raw = rs.getBytes(1);
+				if(raw != null) {
+					Geometry geometry = bytesToJtsGeometry(raw, wkbReader);
+					int value = rs.getInt(2);
+					Object object = rs.getObject(3);
+					consumer.accept(value, object, geometry);
+					featureCount++;
+				} else {
+					//Logger.info("null");
+				}
+				if(Interruptor.isInterrupted(interruptor)) {
+					Logger.info("interrupted " + interruptor.id + "     inner");
+					return -1;
+				}
+			}
+			//Logger.info("features " + featureCount);
+			//Logger.info(Timer.stop("query"));
+			return featureCount;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@FunctionalInterface
+	public static interface ObjectJtsGeometryConsumer {
+		void accept(Object value, Geometry geometry);
+	}
+
+	public <T extends JtsGeometryConsumer> int forEachObjectJtsGeometry(Rect2d layerRect, int dstEPSG, boolean crop, String valueField, Interruptor interruptor, ObjectJtsGeometryConsumer consumer) {
+		//Logger.info("getGeometry");
+
+		boolean reproject = dstEPSG > 0;
+
+		if(Interruptor.isInterrupted(interruptor)) {
+			Logger.info("interrupted " + interruptor.id + "     out");
+			return -1;
+		}
+
+		try (Connection conn = postgisConnector.getConnection()) {
+			//Timer.start("query");
+			String sql;
+			if(layerRect == null) {
+				if(reproject) {
+					sql = String.format("SELECT ST_Transform(%s, %s), %s FROM %s", geometrySQL, dstEPSG, valueField, name);
+				} else {
+					sql = String.format("SELECT %s, %s FROM %s", geometrySQL, valueField, name);
+				}
+			} else {
+				int layerEPSG = getEPSG();
+				String sql_ST_Intersects = SQL_ST_Intersects(primaryGeometryColumn, layerRect, layerEPSG);				
+				if(crop) {
+					String sql_ST_Intersection = SQL_ST_Intersection(geometrySQL, layerRect, layerEPSG);
+					if(reproject) {
+						sql = String.format("SELECT ST_Transform(%s, %s), %s FROM %s WHERE %s", sql_ST_Intersection, dstEPSG, valueField, name, sql_ST_Intersects);
+					} else {
+						sql = String.format("SELECT %s, %s FROM %s WHERE %s", sql_ST_Intersection, valueField, name, sql_ST_Intersects);	
+					}
+				} else {
+					if(reproject) {
+						sql = String.format("SELECT ST_Transform(%s, %s), %s FROM %s WHERE %s", geometrySQL, dstEPSG, valueField, name, sql_ST_Intersects);
+					} else {
+						sql = String.format("SELECT %s, %s FROM %s WHERE %s", geometrySQL, valueField, name, sql_ST_Intersects);
+					}
+				}
+			}	
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			int featureCount = 0;
+			WKBReader wkbReader = new WKBReader();
+
+			if(Interruptor.isInterrupted(interruptor)) {
+				Logger.info("interrupted " + interruptor.id + "     out");
+				return -1;
+			}
+
 			while(rs.next()) {
 				byte[] raw = rs.getBytes(1);
 				if(raw != null) {
@@ -780,6 +880,10 @@ public class PostgisLayer extends PostgisLayerBase {
 					featureCount++;
 				} else {
 					//Logger.info("null");
+				}
+				if(Interruptor.isInterrupted(interruptor)) {
+					Logger.info("interrupted " + interruptor.id + "     out");
+					return -1;
 				}
 			}
 			//Logger.info("features " + featureCount);
@@ -1074,7 +1178,15 @@ public class PostgisLayer extends PostgisLayerBase {
 		}	
 	}
 
+	/**
+	 * 
+	 * @param fieldName nullable
+	 * @return
+	 */
 	public boolean hasFieldName(String fieldName) {
+		if(fieldName == null || fieldName.isBlank()) {
+			return false;
+		}
 		for(PostgisColumn fld : flds) {
 			if(fld.name.equals(fieldName)) {
 				return true;
@@ -1087,7 +1199,7 @@ public class PostgisLayer extends PostgisLayerBase {
 		return styleProvider;
 	}
 
-	public int forEachInt(String valueField, IntConsumer consumer) {
+	public int forEachIntUniqueSorted(String valueField, IntConsumer consumer) {
 		try (Connection conn = postgisConnector.getConnection()) {
 			String sql = String.format("SELECT DISTINCT %s FROM %s ORDER BY %s", valueField, name, valueField);		
 			Logger.info(sql);
@@ -1096,6 +1208,24 @@ public class PostgisLayer extends PostgisLayerBase {
 			int count = 0;
 			while(rs.next()) {
 				int value = rs.getInt(1);
+				consumer.accept(value);
+				count++;
+			}
+			return count;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public int forEachObjectUniqueSorted(String valueField, Consumer<Object> consumer) {
+		try (Connection conn = postgisConnector.getConnection()) {
+			String sql = String.format("SELECT DISTINCT %s FROM %s ORDER BY %s", valueField, name, valueField);		
+			Logger.info(sql);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			int count = 0;
+			while(rs.next()) {
+				Object value = rs.getObject(1);
 				consumer.accept(value);
 				count++;
 			}
@@ -1116,5 +1246,9 @@ public class PostgisLayer extends PostgisLayerBase {
 
 	public String getNameField() {
 		return nameField;
+	}
+
+	public boolean hasNameField() {
+		return nameField != null && !nameField.isBlank();
 	}
 }

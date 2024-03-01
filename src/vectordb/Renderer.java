@@ -4,26 +4,20 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
-
-import org.tinylog.Logger;
-
-import pointcloud.Rect2d;
-
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
-import org.gdal.osr.CoordinateTransformation;
+import org.tinylog.Logger;
 
+import pointcloud.Rect2d;
 import pointdb.base.Point2d;
-import server.api.vectordbs.VectordbHandler_raster_png;
 import util.collections.vec.Vec;
 import util.image.ImageBufferARGB;
 import vectordb.style.BasicStyle;
 import vectordb.style.Style;
 
 public class Renderer {
-
 
 	public static Color COLOR_POLYGON = new Color(0, 255, 0, 100);
 	public static Color COLOR_POLYGON_OUTLINE = new Color(128, 128, 128, 100);

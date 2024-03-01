@@ -10,11 +10,13 @@ import vectordb.style.Style;
 public class MappedStyleProvider extends StyleProvider {
 
 	private final String valueField;
+	private final String labelField;
 	private final Map<Integer, Style> map;
 	private final StyleProvider fallbackStyleProvider;
 
-	public MappedStyleProvider(String valueField, Map<Integer, Style> map, StyleProvider fallbackStyleProvider) {
+	public MappedStyleProvider(String valueField, String labelField, Map<Integer, Style> map, StyleProvider fallbackStyleProvider) {
 		this.valueField = valueField;
+		this.labelField = labelField;
 		this.map = map;
 		this.fallbackStyleProvider = fallbackStyleProvider;
 	}
@@ -36,6 +38,7 @@ public class MappedStyleProvider extends StyleProvider {
 		if(fallbackStyleProvider != StyleProviderFactory.DEFAULT_STYLE_PROVIDER) {
 			fallbackStyleProvider.getStyle().toYaml(yamlMap);
 		}
+		yamlMap.put("label_field", labelField);
 		yamlMap.put("value_field", valueField);
 		LinkedHashMap<String, Object> valueMap = new LinkedHashMap<String, Object>();
 		map.forEach((value, style) -> valueMap.put(Integer.toString(value), style.toYaml()));
@@ -51,6 +54,8 @@ public class MappedStyleProvider extends StyleProvider {
 		}
 		json.key("value_field");
 		json.value(valueField);
+		json.key("label_field");
+		json.value(labelField);
 		json.key("values");
 		json.object();
 		map.forEach((value, style) -> {
@@ -64,5 +69,10 @@ public class MappedStyleProvider extends StyleProvider {
 	@Override
 	public String getValueField() {
 		return valueField;
+	}
+
+	@Override
+	public String getLabelField() {
+		return labelField;
 	}
 }

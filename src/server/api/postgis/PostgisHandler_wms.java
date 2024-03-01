@@ -215,7 +215,7 @@ public class PostgisHandler_wms {
 
 	private static int getDistictInt(PostgisLayer postgisLayer, String field) {
 		int[] cnt = new int [] {0};
-		postgisLayer.forEachInt(field, value -> {
+		postgisLayer.forEachIntUniqueSorted(field, value -> {
 			cnt[0]++;
 		});
 		return cnt[0];
@@ -225,9 +225,13 @@ public class PostgisHandler_wms {
 		return 20 + (field == null ? 20 : (getDistictInt(postgisLayer, field) * 20)) + 5;
 	}
 
-	private static void addStyle(PostgisLayer postgisLayer, Element eRootLayer, String requestUrl) {		
-		String field = getValueField(postgisLayer);
-		int height = getHeight(postgisLayer, field);
+	private static void addStyle(PostgisLayer postgisLayer, Element eRootLayer, String requestUrl) {
+		
+		String valueField = postgisLayer.getStyleProvider().getValueField();
+		if(!postgisLayer.hasFieldName(valueField)) {
+			valueField = null;
+		}
+		int height = getHeight(postgisLayer, valueField);
 
 		Element eStyle = XmlUtil.addElement(eRootLayer, "Style");
 		XmlUtil.addElement(eStyle, "Name", "default");
@@ -389,40 +393,30 @@ public class PostgisHandler_wms {
 		image.writePngCompressed(response.getOutputStream());		
 	}
 
-	private static String getValueField(PostgisLayer postgisLayer) {
-		String field = postgisLayer.getStyleProvider().getValueField();
-		if(field == null) {
-			field = "class_1";
-		}
-		if(field != null && postgisLayer.hasFieldName(field)) {	
-			return field;
-		} else {
-			return null;
-		}
-	}
-
 	private ImageBufferARGB createLegend(PostgisLayer postgisLayer, boolean crop, StyleProvider styleProvider, Interruptor interruptor) {
 
-		String field = getValueField(postgisLayer);
-		int height = getHeight(postgisLayer, field);
+		String valueField = styleProvider.getValueField();
+		if(!postgisLayer.hasFieldName(valueField)) {
+			valueField = null;
+		}			
+		int height = getHeight(postgisLayer, valueField);
 
 		ImageBufferARGB image = new ImageBufferARGB(200, height);
 		Graphics2D gc = image.bufferedImage.createGraphics();
 		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		gc.setColor(Color.DARK_GRAY);		
-
-
-
+		gc.setColor(Color.DARK_GRAY);
+		
 		Font font = new Font("Arial", Font.PLAIN, 12);
 		gc.setFont(font);
 		FontMetrics fontMetrics = gc.getFontMetrics(font);
-		gc.setColor(Color.BLACK);
-		if(field != null) {	
+		gc.setColor(Color.BLACK);		
+		
+		if(valueField != null) {
 			int[] vPos = new int[] {20};
-			gc.drawString(field, 5, vPos[0]);
+			gc.drawString(valueField, 5, vPos[0]);
 			vPos[0] += 20;
-			postgisLayer.forEachInt(field, value -> {
-				int x = 30;
+			postgisLayer.forEachIntUniqueSorted(valueField, value -> {
+				//int x = 30;
 				int y = vPos[0] - 20;				
 				//Logger.info("field value: " + value);
 				Style style = styleProvider.getStyleByValue(value);
@@ -434,7 +428,6 @@ public class PostgisHandler_wms {
 				}
 				vPos[0] += 20;
 			});
-
 		} else {
 			gc.drawString("no field", 0, 20);
 			Style style = styleProvider.getStyle();

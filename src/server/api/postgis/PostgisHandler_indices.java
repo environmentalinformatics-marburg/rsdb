@@ -270,7 +270,7 @@ public class PostgisHandler_indices {
 		
 		HashMap<Object, CalcProcessor> groupMap = new HashMap<Object, CalcProcessor>();
 		
-		postgisLayer.forEachObjectJtsGeometry(rect2d, crop, classField, (value, geometry) -> {
+		postgisLayer.forEachObjectJtsGeometry(rect2d, 0, crop, classField, null, (value, geometry) -> {
 			JtsGeometryConsumer consumer = groupMap.computeIfAbsent(value, o -> new CalcProcessor());
 			consumer.acceptGeometry(geometry);	
 		});
