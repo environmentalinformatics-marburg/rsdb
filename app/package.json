@@ -15,16 +15,16 @@
   "dependencies": {
     "@quasar/extras": "^1.16.9",
     "axios": "^1.2.1",
-    "ol": "^8.0.0",
+    "ol": "^9.0.0",
     "pinia": "^2.0.11",
     "proj4": "^2.9.0",
-    "quasar": "^2.14.5",
+    "quasar": "^2.14.6",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0",
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
-    "@quasar/app-vite": "^1.7.3",
+    "@quasar/app-vite": "^1.7.4",
     "autoprefixer": "^10.4.2",
     "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.1.0",

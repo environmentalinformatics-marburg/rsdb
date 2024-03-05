@@ -16,8 +16,13 @@
         position: absolute;
         color: grey;
       "
-      >{{ viewProjectionLabel }}</span
-    >
+      >{{ viewProjectionLabel
+      }}<q-icon
+        name="crop_free"
+        title="Zoom to all layers"
+        @click="onZoomToFullView()"
+        style="pointer-events: auto; cursor: pointer; padding-left: 10px"
+    /></span>
     <div
       style="
         position: absolute;
@@ -329,12 +334,17 @@
                             option-label="name"
                           />
                         </div>
-                        <div v-if="element.type === 'postgis'">
-                          <img
-                            :src="element.wmsURL + '?REQUEST=GetLegendGraphic'"
-                            style="border: 1px solid rgba(0, 0, 0, 0.151)"
-                          />
-                        </div>
+                        <PostgisLayerSettings
+                          v-if="element.type === 'postgis'"
+                          :layer="element"
+                          @changeLabelField="
+                            (labelField) => {
+                              element.labelField = labelField;
+                              refreshPostgisLayerParameters(element);
+                            }
+                          "
+                        >
+                        </PostgisLayerSettings>
                         <RasterLayerSettings
                           v-if="element.type === 'rasterdb'"
                           :layer="element"
@@ -461,6 +471,7 @@ import RasterLayerSettings from "../components/RasterLayerSettings.vue";
 import RasterdbExport from "../components/RasterdbExport.vue";
 import PointcloudExport from "../components/PointcloudExport.vue";
 import PointcloudIndices from "../components/PointcloudIndices.vue";
+import PostgisLayerSettings from "../components/PostgisLayerSettings.vue";
 
 export default defineComponent({
   name: "MainLayout",
@@ -473,6 +484,7 @@ export default defineComponent({
     RasterdbExport,
     PointcloudExport,
     PointcloudIndices,
+    PostgisLayerSettings,
   },
 
   data() {
@@ -535,6 +547,21 @@ export default defineComponent({
           ];
         }
 
+        if (layerEntry.labelFieldDefault === undefined) {
+          if (
+            layerEntry.meta.style !== undefined &&
+            layerEntry.meta.style.label_field !== undefined
+          ) {
+            layerEntry.labelFieldDefault = layerEntry.meta.style.label_field;
+          } else {
+            layerEntry.labelFieldDefault = null;
+          }
+        }
+
+        if (layerEntry.labelField === undefined) {
+          layerEntry.labelField = layerEntry.labelFieldDefault;
+        }
+
         if (layerEntry.wmsURL === undefined) {
           layerEntry.wmsURL =
             this.$api.getUri() + layerEntry.postgisLayerURLPart + "/wms";
@@ -576,6 +603,7 @@ export default defineComponent({
               params: {},
             }),
           });
+          this.refreshPostgisLayerParameters(layerEntry);
         }
       } catch (e) {
         console.log(e);
@@ -869,6 +897,7 @@ export default defineComponent({
           }
           this.map.setLayers(layers);
 
+          let zoomToView = false;
           if (keepView === undefined || !keepView) {
             const viewProjection = this.mainLayer.projection;
             this.view = new View({
@@ -879,7 +908,8 @@ export default defineComponent({
             });
             this.map.setView(this.view);
             if (this.mainLayer.extent !== undefined) {
-              this.view.fit(this.mainLayer.extent);
+              //this.view.fit(this.mainLayer.extent);
+              zoomToView = true;
             }
             this.viewProjectionLabel = viewProjection.getCode();
           }
@@ -887,7 +917,7 @@ export default defineComponent({
           if (this.mainLayer && this.mainLayer.projection) {
             for (const layer of layers) {
               const layerEntry = layer.get("layerEntry");
-              console.log(layerEntry);
+              //console.log(layerEntry);
               if (
                 layerEntry.type !== "background" &&
                 layerEntry.extent &&
@@ -902,8 +932,12 @@ export default defineComponent({
                   console.log(projectedExtent);
                   layer.setExtent(projectedExtent);
                 } else {
+                  layer.setExtent(undefined);
                 }
               }
+            }
+            if (zoomToView) {
+              this.onZoomToFullView();
             }
           }
         } else {
@@ -969,6 +1003,38 @@ export default defineComponent({
         }
       } catch (e) {
         console.log(e);
+      }
+    },
+
+    onZoomToFullView() {
+      const ext = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const layerEntry of this.layers) {
+        const layer = layerEntry.layer;
+        if (layer !== undefined && layerEntry.visible) {
+          const layerExtent = layer.getExtent();
+          if (layerExtent) {
+            if (layerExtent[0] < ext[0]) {
+              ext[0] = layerExtent[0];
+            }
+            if (layerExtent[1] < ext[1]) {
+              ext[1] = layerExtent[1];
+            }
+            if (layerExtent[2] > ext[2]) {
+              ext[2] = layerExtent[2];
+            }
+            if (layerExtent[3] > ext[3]) {
+              ext[3] = layerExtent[3];
+            }
+          }
+        }
+      }
+      if (
+        Number.isFinite(ext[0]) &&
+        Number.isFinite(ext[1]) &&
+        Number.isFinite(ext[2]) &&
+        Number.isFinite(ext[3])
+      ) {
+        this.view.fit(ext);
       }
     },
 
@@ -1104,6 +1170,19 @@ export default defineComponent({
         params.sync_bands = true;
       } else {
         params.sync_bands = false;
+      }
+      layerEntry.layer.getSource().updateParams(params);
+    },
+
+    refreshPostgisLayerParameters(layerEntry) {
+      console.log("refreshPostgisLayerParameters " + layerEntry.name);
+
+      let params = {};
+
+      if (layerEntry.labelField) {
+        params.label_field = layerEntry.labelField;
+      } else {
+        params.label_field = "null";
       }
       layerEntry.layer.getSource().updateParams(params);
     },

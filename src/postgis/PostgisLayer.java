@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -74,6 +75,13 @@ public class PostgisLayer extends PostgisLayerBase {
 	private StructuredAccess structuredAccess = StructuredAccess.DEFAULT;
 
 	public static class PostgisColumn {
+		
+		public static final Comparator<PostgisColumn> CASE_INSENSITIVE_ORDER = new Comparator<PostgisLayer.PostgisColumn>() {			
+			@Override
+			public int compare(PostgisColumn o1, PostgisColumn o2) {
+				return String.CASE_INSENSITIVE_ORDER.compare(o1.name, o2.name);
+			}
+		};
 
 		public String name;
 		public String type;
@@ -81,6 +89,7 @@ public class PostgisLayer extends PostgisLayerBase {
 		public PostgisColumn(String name, String type) {
 			this.name = name;
 			this.type = type;
+			
 		}
 	}
 

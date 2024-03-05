@@ -3,7 +3,6 @@ package server.api.postgis;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
-import java.util.function.Consumer;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -13,14 +12,15 @@ import org.json.JSONWriter;
 import org.tinylog.Logger;
 
 import broker.Broker;
+import broker.Informal.Builder;
 import broker.InformalProperties;
 import broker.StructuredAccess;
-import broker.Informal.Builder;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
 import postgis.PostgisLayer;
+import postgis.PostgisLayer.PostgisColumn;
 import postgis.PostgisLayerManager;
 import postgis.style.StyleProviderFactory;
 import util.JsonUtil;
@@ -190,7 +190,8 @@ public class APIHandler_postgis_layer {
 
 		json.key("fields");
 		json.array();
-		postgisLayer.fields.forEach(pc -> json.value(pc.name));
+		//postgisLayer.fields.forEach(pc -> json.value(pc.name));
+		postgisLayer.fields.stream().sorted(PostgisColumn.CASE_INSENSITIVE_ORDER).forEach(pc -> json.value(pc.name));
 		json.endArray();
 
 		json.key("class_fields");

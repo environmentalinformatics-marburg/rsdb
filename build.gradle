@@ -57,12 +57,12 @@ repositories {
 }
 
 dependencies {
-	implementation group: 'org.tinylog', name: 'tinylog-impl', version: '2.6.2'
-	runtimeOnly group: 'org.tinylog', name: 'slf4j-tinylog', version: '2.6.2'
+	implementation group: 'org.tinylog', name: 'tinylog-impl', version: '2.7.0'
+	runtimeOnly group: 'org.tinylog', name: 'slf4j-tinylog', version: '2.7.0'
   	
   	implementation group: 'org.mapdb', name: 'mapdb', version: '2.0-beta13' // warning: newer versions v3.x do break storage layout
   	
-  	implementation group: 'org.json', name: 'json', version: '20231013'
+  	implementation group: 'org.json', name: 'json', version: '20240303'
   	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.33'  // TODO: check compatibility with newer version 2.x
   	implementation group: 'com.opencsv', name: 'opencsv', version: '5.9'  	
   	implementation group: 'com.github.mreutegg', name: 'laszip4j', version: '0.17'
@@ -80,11 +80,11 @@ dependencies {
   	
   	implementation group: 'org.antlr', name: 'antlr4-runtime', version: '4.9.3' // caution: newer versions may break with generated DSL Java source files
   	
-	implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '11.0.19' // keep v11.x, newer Java version is needed for v12.x
-	implementation group: 'org.eclipse.jetty', name: 'jetty-security', version: '11.0.19' // keep v11.x, newer Java version is needed for v12.x
-	implementation group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '11.0.19' // keep v11.x, newer Java version is needed for v12.x
-	implementation group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: '11.0.19' // keep v11.x, newer Java version is needed for v12.x
-	implementation group: 'org.eclipse.jetty', name: 'jetty-client', version: '11.0.19' // keep v11.x, newer Java version is needed for v12.x
+	implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '11.0.20' // keep v11.x, newer Java version is needed for v12.x
+	implementation group: 'org.eclipse.jetty', name: 'jetty-security', version: '11.0.20' // keep v11.x, newer Java version is needed for v12.x
+	implementation group: 'org.eclipse.jetty.http2', name: 'http2-server', version: '11.0.20' // keep v11.x, newer Java version is needed for v12.x
+	implementation group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: '11.0.20' // keep v11.x, newer Java version is needed for v12.x
+	implementation group: 'org.eclipse.jetty', name: 'jetty-client', version: '11.0.20' // keep v11.x, newer Java version is needed for v12.x
 	
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // TODO: check for breaking changes in v0.12.x
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5' // TODO: check for breaking changes in v0.12.x

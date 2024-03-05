@@ -307,7 +307,14 @@ public class PostgisHandler_wms {
 		int width = Web.getInt(request, "WIDTH");
 		int height = Web.getInt(request, "HEIGHT");		
 
-		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsEPSG, wmsRect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
+		StyleProvider styleProvider = postgisLayer.getStyleProvider();
+		String labelField = styleProvider.getLabelField();		
+		String wmsLabelField = Web.getString(request, "label_field", null);
+		if(wmsLabelField != null) {
+			labelField = wmsLabelField.equals("null") ? null : wmsLabelField;
+		}
+		
+		ImageBufferARGB image = PostgisHandler_image_png.render(postgisLayer, wmsEPSG, wmsRect, false, width, height, styleProvider, labelField, interruptor);
 		if(Interruptor.isInterrupted(interruptor)) {
 			response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
 		} else {
@@ -429,7 +436,7 @@ public class PostgisHandler_wms {
 				vPos[0] += 20;
 			});
 		} else {
-			gc.drawString("no field", 0, 20);
+			gc.drawString("Uniform style", 0, 20);
 			Style style = styleProvider.getStyle();
 			int y = 20;
 			style.drawPolygon(gc, new int[] {20, 160, 160, 20}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);			

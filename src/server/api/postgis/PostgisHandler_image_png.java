@@ -84,15 +84,14 @@ public class PostgisHandler_image_png {
 		int width = (int) Math.ceil(targetScale * xGeoLen);
 		int height = (int) Math.ceil(targetScale * yGeoLen);
 
-
-		ImageBufferARGB image = render(postgisLayer, 0, rect, false, width, height, postgisLayer.getStyleProvider(), interruptor);
+		ImageBufferARGB image = render(postgisLayer, 0, rect, false, width, height, postgisLayer.getStyleProvider(), null, interruptor);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_PNG);
 		image.writePngCompressed(response.getOutputStream());		
 	}
 
-	public static ImageBufferARGB render(PostgisLayer postgisLayer, int renderEPSG, Rect2d renderRect, boolean crop, int width, int height, StyleProvider styleProvider, Interruptor interruptor) {
+	public static ImageBufferARGB render(PostgisLayer postgisLayer, int renderEPSG, Rect2d renderRect, boolean crop, int width, int height, StyleProvider styleProvider, String labelField, Interruptor interruptor) {
 		ImageBufferARGB image = new ImageBufferARGB(width, height);
 		Graphics2D gc = image.bufferedImage.createGraphics();
 		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -115,7 +114,6 @@ public class PostgisHandler_image_png {
 		Rect2d layerRect = renderEPSG > 0 && layerEPSG > 0 ? postgisLayer.projectToLayer(renderRect, renderEPSG) : renderRect;
 
 		String valueField = styleProvider.getValueField();
-		String labelField = styleProvider.getLabelField();
 		if(postgisLayer.hasFieldName(valueField)) {
 			if(postgisLayer.hasFieldName(labelField)) {
 				Timer.start("render");
