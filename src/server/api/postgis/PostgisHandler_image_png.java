@@ -157,7 +157,6 @@ public class PostgisHandler_image_png {
 		}
 
 		gc.dispose();
-
 		return image;		
 	}
 }

@@ -427,7 +427,7 @@ public class PostgisHandler_wms {
 				int y = vPos[0] - 20;				
 				//Logger.info("field value: " + value);
 				Style style = styleProvider.getStyleByValue(value);
-				style.drawPolygon(gc, new int[] {5, 40, 40, 5}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);
+				style.drawImgPolygon(gc, new int[] {5, 40, 40, 5}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);
 				gc.setColor(Color.BLACK);
 				gc.drawString(""+value, 52 - fontMetrics.stringWidth(""+value), vPos[0]);
 				if(style.hasTitle()) {
@@ -439,7 +439,7 @@ public class PostgisHandler_wms {
 			gc.drawString("Uniform style", 0, 20);
 			Style style = styleProvider.getStyle();
 			int y = 20;
-			style.drawPolygon(gc, new int[] {20, 160, 160, 20}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);			
+			style.drawImgPolygon(gc, new int[] {20, 160, 160, 20}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);			
 		}
 
 		gc.dispose();

@@ -2,7 +2,6 @@ package server.api.vectordbs;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -14,15 +13,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.gdal.ogr.DataSource;
-import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
+import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -37,6 +34,7 @@ import util.XmlUtil;
 import util.image.ImageBufferARGB;
 import vectordb.Renderer;
 import vectordb.VectorDB;
+import vectordb.style.Style;
 
 public class VectordbHandler_wms extends VectordbHandler {	
 
@@ -85,33 +83,43 @@ public class VectordbHandler_wms extends VectordbHandler {
 			int width = Web.getInt(request, "WIDTH");
 			int height = Web.getInt(request, "HEIGHT");
 			String crs = Web.getString(request, "CRS");
-			util.GeoUtil.Transformer transformer = null;
+			util.GeoUtil.Transformer layerWmsTransformer = null;
 
-			SpatialReference srcSr = vectordb.getSpatialReference();
-			if(srcSr != null && crs != null && crs.startsWith("EPSG:")) {
-				SpatialReference dstSr = null;
-				int epsg = Integer.parseInt(crs.substring(5));
-				if(epsg > 0) {
-					if(epsg == GeoUtil.EPSG_WEB_MERCATOR) {
-						dstSr = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
+			SpatialReference layerSr = vectordb.getSpatialReference();
+			if(layerSr != null && crs != null && crs.startsWith("EPSG:")) {
+				SpatialReference wmsSr = null;
+				int wmsEPSG = Integer.parseInt(crs.substring(5));
+				if(wmsEPSG > 0) {
+					if(wmsEPSG == GeoUtil.EPSG_WEB_MERCATOR) {
+						wmsSr = GeoUtil.WEB_MERCATOR_SPATIAL_REFERENCE;
 					} else {
-						dstSr = GeoUtil.getSpatialReferenceFromEPSG(epsg);		
+						wmsSr = GeoUtil.getSpatialReferenceFromEPSG(wmsEPSG);		
 					}
 				}
-				if(dstSr != null) {
-					if(dstSr.IsSame(srcSr) == 0) {
+				if(wmsSr != null) {
+					if(wmsSr.IsSame(layerSr) == 0) {
 						Logger.info("transform");
-						transformer = new GeoUtil.Transformer(srcSr, dstSr);
+						layerWmsTransformer = new GeoUtil.Transformer(layerSr, wmsSr);
 					}
 				}
 			}
 
+			String labelField = vectordb.hasNameAttribute() ? vectordb.getNameAttribute() : null;
+
 			String[] bbox = request.getParameter("BBOX").split(",");
-			Rect2d wmsRect = Rect2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
+			Rect2d wmsRect = Rect2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);			
+			
 			ImageBufferARGB image = null;
 			DataSource datasource = vectordb.getDataSource();
 			try {		
-				image = Renderer.render(datasource, vectordb, wmsRect, width, height, transformer, vectordb.getStyle());
+				//image = Renderer.render(datasource, vectordb, wmsRect, width, height, layerWmsTransformer, vectordb.getStyle(), labelField);
+				{
+					Style style = vectordb.getStyle();
+					if(style == null) {
+						style = Renderer.STYLE_DEFAULT;
+					}
+					image = ConverterRenderer.render(datasource, vectordb, wmsRect, width, height, labelField, style, layerWmsTransformer);
+				}
 			} finally {
 				VectorDB.closeDataSource(datasource);
 			}
@@ -258,7 +266,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 				throw new RuntimeException("unknown CRS");
 			}
 		}
-		
+
 		int layerEPSG = 0;
 		try {
 			layerEPSG = Integer.parseInt(vectordb.getDetails().epsg);
@@ -266,7 +274,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 			Logger.warn(e);
 		}
 		boolean reproject = wmsEPSG > 0 && layerEPSG > 0 && wmsEPSG != layerEPSG;
-		
+
 		String bboxParam = request.getParameter("BBOX");
 		Rect2d wmsRect2d = null;
 		if(bboxParam != null) {
@@ -286,7 +294,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
 		Logger.info(wmsRect2d);
 		Logger.info(wmsPixelRect2d);
-		
+
 		Rect2d layerPixelRect2d = wmsPixelRect2d;		
 		if(reproject) {			
 			SpatialReference wmsSr = GeoUtil.getSpatialReferenceFromEPSG(wmsEPSG);

@@ -8,6 +8,7 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
 import util.collections.vec.Vec;
+import vectordb.style.ImgLabel;
 import vectordb.style.Style;
 
 public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
@@ -19,19 +20,7 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 
 	public final Graphics2D gc;
 
-	private static class Label {
-		public final String text;
-		public final int x;
-		public final int y;
-
-		public Label(String text, int x, int y) {
-			this.text = text;
-			this.x = x;
-			this.y = y;
-		}
-	}
-
-	private final Vec<Label> labelBuffer = new Vec<Label>();
+	private final Vec<ImgLabel> labelBuffer = new Vec<ImgLabel>();
 
 	public StyleJtsGeometryRasterizer(double xoff, double yoff, double xscale, double yscale, Graphics2D gc) {
 		this.xoff = xoff;
@@ -55,7 +44,7 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 				xs[i] = (int) ((c.x + xoff) * xscale);
 				ys[i] = (int) ((yoff - c.y) * yscale);
 			}
-			style.drawPolygon(gc, xs, ys, len);			
+			style.drawImgPolygon(gc, xs, ys, len);			
 		} else {
 			float[][] rings = new float[interiorRings + 1][];
 			{
@@ -69,7 +58,7 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 				Coordinate[] cs = ring.getCoordinateSequence().toCoordinateArray();
 				rings[r + 1] = convert(cs);
 			}
-			style.drawPolygonWithHoles(gc, rings);
+			style.drawImgPolygonWithHoles(gc, rings);
 		}
 		
 		if(text != null) {
@@ -80,7 +69,7 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 				if(!ptext.isEmpty()) {
 					int xtext = (int) ((ptext.getX() + xoff) * xscale);
 					int ytext = (int) ((yoff - ptext.getY()) * yscale);
-					Label label = new Label(text, xtext, ytext);
+					ImgLabel label = new ImgLabel(text, xtext, ytext);
 					labelBuffer.add(label);
 				}
 			}
@@ -88,8 +77,8 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 	}
 
 	public void drawLabels(Style style) {
-		for (Label label : labelBuffer) {
-			style.drawText(gc, label.x, label.y, label.text);
+		for (ImgLabel label : labelBuffer) {
+			style.drawImgText(gc, label.x, label.y, label.text);
 		}
 		labelBuffer.clear();
 	}

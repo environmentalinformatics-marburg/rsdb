@@ -24,12 +24,13 @@ public abstract class Style {
 	public abstract void parseYamlProperties(YamlMap yamlMap);		 
 	protected abstract void parseJsonProperties(JSONObject json);
 	
-	public abstract void drawPoints(Graphics2D gc, Drawer drawer, Vec<Point2d> points);
-	public abstract void drawLines(Graphics2D gc, Drawer drawer, Vec<Object[]> lines);
-	public abstract void drawPolygons(Graphics2D gc, Drawer drawer, Vec<Object[]> polygons);
-	public abstract void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
-	public abstract void drawPolygonWithHoles(Graphics2D gc, float[][] rings);
-	public abstract void drawText(Graphics2D gc, int x, int y, String text);
+	public abstract void drawGeoPoints(Graphics2D gc, Drawer drawer, Vec<Point2d> points);
+	public abstract void drawGeoLines(Graphics2D gc, Drawer drawer, Vec<Object[]> lines);
+	public abstract void drawGeoPolygons(Graphics2D gc, Drawer drawer, Vec<Object[]> polygons);
+	public abstract void drawGeoLabels(Graphics2D gc, Drawer drawer, Vec<GeoLabel> labels);
+	public abstract void drawImgPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
+	public abstract void drawImgPolygonWithHoles(Graphics2D gc, float[][] rings);
+	public abstract void drawImgText(Graphics2D gc, int x, int y, String text);
 	
 	public final Map<String, Object> toYaml() {
 		LinkedHashMap<String, Object> yamlMap = new LinkedHashMap<String, Object>();
@@ -88,5 +89,5 @@ public abstract class Style {
 	}
 	public String getTitle() {
 		return title;
-	}
+	}	
 }

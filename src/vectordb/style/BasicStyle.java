@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -95,7 +96,7 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	}	
 
 	@Override
-	public void drawPoints(Graphics2D gc, Drawer drawer, Vec<Point2d> points) {
+	public void drawGeoPoints(Graphics2D gc, Drawer drawer, Vec<Point2d> points) {
 		gc.setStroke(stroke);
 		gc.setColor(stroke_color);
 		for(Point2d p:points) {
@@ -104,7 +105,7 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	}
 
 	@Override
-	public void drawLines(Graphics2D gc, Drawer drawer, Vec<Object[]> lines) {
+	public void drawGeoLines(Graphics2D gc, Drawer drawer, Vec<Object[]> lines) {
 		gc.setStroke(stroke);
 		gc.setColor(stroke_color);
 		for(Object[] line:lines) {
@@ -113,14 +114,25 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	}
 
 	@Override
-	public void drawPolygons(Graphics2D gc, Drawer drawer, Vec<Object[]> polygons) {
+	public void drawGeoPolygons(Graphics2D gc, Drawer drawer, Vec<Object[]> polygons) {
 		for(Object[] polygon:polygons) {
 			drawer.drawPolygon(polygon, this);
 		}		
 	}
+	
 
 	@Override
-	public void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len) {
+	public void drawGeoLabels(Graphics2D gc, Drawer drawer, Vec<GeoLabel> labels) {
+		for (GeoLabel geoLabel : labels) {
+			int x = (int) ((geoLabel.x + drawer.xoff) * drawer.xscale);
+			int y = (int) ((drawer.yoff - geoLabel.y) * drawer.yscale);
+			drawImgText(gc, x, y, geoLabel.text);
+		}
+	}
+
+
+	@Override
+	public void drawImgPolygon(Graphics2D gc, int[] xs, int[] ys, int len) {
 		gc.setColor(fill_color);
 		gc.fillPolygon(xs, ys, len);
 		gc.setStroke(stroke);
@@ -129,7 +141,7 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	}
 
 	@Override
-	public void drawText(Graphics2D gc, int x, int y, String text) {
+	public void drawImgText(Graphics2D gc, int x, int y, String text) {
 		gc.setStroke(stroke);
 		gc.setColor(text_color);
 		Rectangle2D bounds = gc.getFontMetrics().getStringBounds(text, gc);
@@ -139,7 +151,7 @@ public class BasicStyle extends Style implements PolygonDrawer {
 	}
 
 	@Override
-	public void drawPolygonWithHoles(Graphics2D gc, float[][] rings) {
+	public void drawImgPolygonWithHoles(Graphics2D gc, float[][] rings) {
 		Path2D.Float path = new Path2D.Float(Path2D.WIND_NON_ZERO);
 		for(float[] ring : rings) {
 			path.moveTo(ring[0], ring[1]);

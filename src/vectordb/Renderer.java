@@ -15,6 +15,7 @@ import pointdb.base.Point2d;
 import util.collections.vec.Vec;
 import util.image.ImageBufferARGB;
 import vectordb.style.BasicStyle;
+import vectordb.style.GeoLabel;
 import vectordb.style.Style;
 
 public class Renderer {
@@ -74,10 +75,22 @@ public class Renderer {
 
 		Logger.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
 
-		return render(datasource, sync, rect, width, height, transformer, style);
+		return render(datasource, sync, rect, width, height, transformer, style, null);
 	}
 
-	public static ImageBufferARGB render(DataSource datasource, Object sync, Rect2d renderRect, int width, int height, util.GeoUtil.Transformer transformer, Style style) {
+	/**
+	 * 
+	 * @param datasource
+	 * @param sync
+	 * @param renderRect
+	 * @param width
+	 * @param height
+	 * @param transformer
+	 * @param style
+	 * @param labelField nullable
+	 * @return
+	 */
+	public static ImageBufferARGB render(DataSource datasource, Object sync, Rect2d renderRect, int width, int height, util.GeoUtil.Transformer transformer, Style style, String labelField) {
 		if(style == null) {
 			style = STYLE_DEFAULT;
 		}
@@ -110,10 +123,12 @@ public class Renderer {
 		Vec<Point2d> points = new Vec<Point2d>();
 		Vec<Object[]> lines = new Vec<Object[]>();
 		Vec<Object[]> polygons = new Vec<Object[]>();
-		collectDataSource(datasource, sync, points, lines, polygons, transformer);
-		style.drawPolygons(gc, drawer, polygons);
-		style.drawLines(gc, drawer, lines);				
-		style.drawPoints(gc, drawer, points);
+		Vec<GeoLabel> labels  = new Vec<GeoLabel>();
+		collectDataSource(datasource, sync, points, lines, polygons, labels, transformer, labelField);
+		style.drawGeoPolygons(gc, drawer, polygons);
+		style.drawGeoLines(gc, drawer, lines);				
+		style.drawGeoPoints(gc, drawer, points);
+		style.drawGeoLabels(gc, drawer, labels);
 
 		/*gc.setColor(COLOR_POINT_TOP);
 		for(Point2d p:points) {
@@ -206,7 +221,7 @@ public class Renderer {
 		@FunctionalInterface
 		public
 		interface PolygonDrawer {
-			void drawPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
+			void drawImgPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
 		}
 
 		public void drawPolygon(Object[] points, PolygonDrawer polygonDrawer) {
@@ -219,7 +234,7 @@ public class Renderer {
 				ys[i] = (int) ((yoff - p[1]) * yscale);
 				//Logger.info("polygon point " + xs[i] + " " + ys[i]);
 			}
-			polygonDrawer.drawPolygon(gc, xs, ys, len);			
+			polygonDrawer.drawImgPolygon(gc, xs, ys, len);			
 		}
 	}
 
@@ -441,15 +456,15 @@ public class Renderer {
         100 No Geometry
 	 */
 
-	private static void collectDataSource(DataSource datasource, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, util.GeoUtil.Transformer transformer) {
+	private static void collectDataSource(DataSource datasource, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, Vec<GeoLabel> labels, util.GeoUtil.Transformer transformer, String labelField) {
 		int layerCount = datasource.GetLayerCount();
 		for(int layerIndex=0; layerIndex<layerCount; layerIndex++) {
 			Layer layer = datasource.GetLayerByIndex(layerIndex);
-			collectLayer(layer, sync, points, lines, polygons, transformer);
+			collectLayer(layer, sync, points, lines, polygons, labels, transformer, labelField);
 		}
 	}
 
-	private static void collectLayer(Layer layer, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, util.GeoUtil.Transformer transformer) { // layer iterator and layer filter possibly not parallel
+	private static void collectLayer(Layer layer, Object sync, Vec<Point2d> points, Vec<Object[]> lines, Vec<Object[]> polygons, Vec<GeoLabel> labels, util.GeoUtil.Transformer transformer, String labelField) { // layer iterator and layer filter possibly not parallel
 		synchronized (sync) {
 			layer.SetSpatialFilter(null); // clear filter
 			layer.ResetReading(); // reset iterator
@@ -458,6 +473,27 @@ public class Renderer {
 				Geometry geometry = feature.GetGeometryRef();
 				if(geometry != null) {
 					collectGeometry(geometry, points, lines, polygons, transformer);
+					if(labelField != null) {
+						String label = feature.GetFieldAsString(labelField);
+						if(label != null && !label.isBlank()) {
+							Geometry clabel = geometry.Centroid();
+							if(clabel != null) {
+								double xlabel = clabel.GetX();
+								double ylabel = clabel.GetY();
+								if(Double.isFinite(xlabel) && Double.isFinite(ylabel)) {
+									if(transformer != null) {
+										double[] pLabel = transformer.transformWithAxisOrderCorrection(xlabel, ylabel);
+										xlabel = pLabel[0];
+										ylabel = pLabel[1];
+									}									
+									if(Double.isFinite(xlabel) && Double.isFinite(ylabel)) {
+										GeoLabel geoLabel = new GeoLabel(label, xlabel, ylabel);
+										labels.add(geoLabel);
+									}
+								}
+							}
+						}
+					}
 				} else {
 					Logger.warn("missing geometry");
 				}

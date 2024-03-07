@@ -27,7 +27,6 @@ import org.gdal.ogr.FieldDefn;
 import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
-import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import org.json.JSONWriter;
 import org.tinylog.Logger;
@@ -45,8 +44,8 @@ import pointdb.base.Point2d;
 import pointdb.base.PolygonUtil.PolygonWithHoles;
 import server.api.vectordbs.VectordbDetails;
 import util.GeoUtil;
-import util.Util;
 import util.GeoUtil.Transformer;
+import util.Util;
 import util.collections.ReadonlyList;
 import util.collections.vec.Vec;
 import util.yaml.YamlMap;
@@ -611,6 +610,10 @@ public class VectorDB {
 
 	public String getNameAttribute() {
 		return nameAttribute;
+	}
+	
+	public boolean hasNameAttribute() {
+		return nameAttribute != null && !nameAttribute.isBlank();
 	}
 
 	public void close() {		
