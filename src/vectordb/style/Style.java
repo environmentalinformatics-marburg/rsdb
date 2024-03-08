@@ -29,6 +29,7 @@ public abstract class Style {
 	public abstract void drawGeoPolygons(Graphics2D gc, Drawer drawer, Vec<Object[]> polygons);
 	public abstract void drawGeoLabels(Graphics2D gc, Drawer drawer, Vec<GeoLabel> labels);
 	public abstract void drawImgPolygon(Graphics2D gc, int[] xs, int[] ys, int len);
+	public abstract void drawImgPolyline(Graphics2D gc, int[] xs, int[] ys, int len);	
 	public abstract void drawImgPolygonWithHoles(Graphics2D gc, float[][] rings);
 	public abstract void drawImgText(Graphics2D gc, int x, int y, String text);
 	

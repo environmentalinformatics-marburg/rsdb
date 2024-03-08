@@ -19,9 +19,9 @@ import util.Web;
 import util.image.ImageBufferARGB;
 import vectordb.Renderer;
 import vectordb.VectorDB;
+import vectordb.style.Style;
 
-public class VectordbHandler_raster_png extends VectordbHandler {
-	
+public class VectordbHandler_raster_png extends VectordbHandler {	
 
 	public VectordbHandler_raster_png(Broker broker) {
 		super(broker, "raster.png");
@@ -49,7 +49,13 @@ public class VectordbHandler_raster_png extends VectordbHandler {
 			int maxWidth = reqWidth < 1 ? (reqHeight < 1 ? 100 : reqHeight * 10) : reqWidth;			
 			int maxHeight = reqHeight < 1 ? (reqWidth < 1 ? 100 : reqWidth * 10) : reqHeight;			
 			
-			ImageBufferARGB image = Renderer.renderProportionalFullMaxSize(datasource, this, maxWidth, maxHeight, null, vectordb.getStyle());
+			//ImageBufferARGB image = Renderer.renderProportionalFullMaxSize(datasource, this, maxWidth, maxHeight, null, vectordb.getStyle());
+			
+			Style style = vectordb.getStyle();
+			if(style == null) {
+				style = Renderer.STYLE_DEFAULT;
+			}
+			ImageBufferARGB image = ConverterRenderer.renderProportionalFullMaxSize(datasource, this, maxWidth, maxHeight, null, style, null, false);
 
 			/*double[] extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
 			Logger.info(Arrays.toString(extent));			

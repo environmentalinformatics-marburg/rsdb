@@ -60,6 +60,12 @@ public class GeoUtil {
 		public double[] transformWithAxisOrderCorrection(double x, double y) {
 			double[] p = transformSwapOrderIfNeeded(srcFirstAxis, dstFirstAxis, coordinateTransformation, x, y);
 			return p;		
+		}
+
+		@Override
+		public String toString() {
+			return "Transformer [\nsrcSr=" + srcSr.ExportToProj4() + ", \ndstSr=" + dstSr.ExportToProj4() + ", \nsrcFirstAxis=" + srcFirstAxis
+					+ ", \ndstFirstAxis=" + dstFirstAxis + "\n]";
 		}				
 	}
 

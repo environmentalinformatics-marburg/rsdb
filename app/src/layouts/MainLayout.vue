@@ -345,6 +345,17 @@
                           "
                         >
                         </PostgisLayerSettings>
+                        <VectordbLayerSettings
+                          v-if="element.type === 'vectordb'"
+                          :layer="element"
+                          @changeLabelField="
+                            (labelField) => {
+                              element.labelField = labelField;
+                              refreshVectordbLayerParameters(element);
+                            }
+                          "
+                        >
+                        </VectordbLayerSettings>
                         <RasterLayerSettings
                           v-if="element.type === 'rasterdb'"
                           :layer="element"
@@ -472,6 +483,7 @@ import RasterdbExport from "../components/RasterdbExport.vue";
 import PointcloudExport from "../components/PointcloudExport.vue";
 import PointcloudIndices from "../components/PointcloudIndices.vue";
 import PostgisLayerSettings from "../components/PostgisLayerSettings.vue";
+import VectordbLayerSettings from "../components/VectordbLayerSettings.vue";
 
 export default defineComponent({
   name: "MainLayout",
@@ -485,6 +497,7 @@ export default defineComponent({
     PointcloudExport,
     PointcloudIndices,
     PostgisLayerSettings,
+    VectordbLayerSettings,
   },
 
   data() {
@@ -633,6 +646,18 @@ export default defineComponent({
             layerEntry.meta.extent.ymax,
           ];
         }
+        console.log(layerEntry.meta.details);
+        if (layerEntry.labelFieldDefault === undefined) {
+          if (layerEntry.meta.name_attribute !== undefined) {
+            layerEntry.labelFieldDefault = layerEntry.meta.name_attribute;
+          } else {
+            layerEntry.labelFieldDefault = null;
+          }
+        }
+
+        if (layerEntry.labelField === undefined) {
+          layerEntry.labelField = layerEntry.labelFieldDefault;
+        }
 
         if (layerEntry.wmsURL === undefined) {
           layerEntry.wmsURL =
@@ -676,6 +701,7 @@ export default defineComponent({
               params: {},
             }),
           });
+          this.refreshVectordbLayerParameters(layerEntry);
         }
       } catch (e) {
         console.log(e);
@@ -1176,6 +1202,19 @@ export default defineComponent({
 
     refreshPostgisLayerParameters(layerEntry) {
       console.log("refreshPostgisLayerParameters " + layerEntry.name);
+
+      let params = {};
+
+      if (layerEntry.labelField) {
+        params.label_field = layerEntry.labelField;
+      } else {
+        params.label_field = "null";
+      }
+      layerEntry.layer.getSource().updateParams(params);
+    },
+
+    refreshVectordbLayerParameters(layerEntry) {
+      console.log("refreshVectordbLayerParameters " + layerEntry.name);
 
       let params = {};
 

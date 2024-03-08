@@ -139,6 +139,13 @@ public class BasicStyle extends Style implements PolygonDrawer {
 		gc.setColor(stroke_color);
 		gc.drawPolygon(xs, ys, len);
 	}
+	
+	@Override
+	public void drawImgPolyline(Graphics2D gc, int[] xs, int[] ys, int len) {
+		gc.setStroke(stroke);
+		gc.setColor(stroke_color);
+		gc.drawPolyline(xs, ys, len);
+	}
 
 	@Override
 	public void drawImgText(Graphics2D gc, int x, int y, String text) {

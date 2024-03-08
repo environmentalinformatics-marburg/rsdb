@@ -8,6 +8,8 @@ import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.CoordinateSequenceFilter;
 import org.locationtech.jts.io.WKBReader;
 import org.tinylog.Logger;
 
@@ -15,11 +17,53 @@ import pointcloud.Rect2d;
 import postgis.style.StyleJtsGeometryRasterizer;
 import util.GeoUtil.Transformer;
 import util.image.ImageBufferARGB;
+import vectordb.VectorDB;
 import vectordb.style.Style;
 
 public class ConverterRenderer {
 
-	public static ImageBufferARGB render(DataSource datasource, Object sync, Rect2d renderRect, int width, int height, String labelField, Style style, Transformer layerRenderTransformer) {
+	private static final CoordinateSequenceFilter SWAP_COORDINATES = new CoordinateSequenceFilter() {									
+		@Override
+		public boolean isGeometryChanged() {
+			return true;
+		}
+
+		@Override
+		public boolean isDone() {
+			return false;
+		}
+
+		@Override
+		public void filter(CoordinateSequence seq, int i) {
+			double x = seq.getX(i);
+			double y = seq.getY(i);
+			seq.setOrdinate(i, 0, y);
+			seq.setOrdinate(i, 1, x);
+		}
+	};
+	
+	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, Object sync, int maxWidth, int maxHeight, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
+		Rect2d renderRect = VectorDB.getExtent(VectorDB.getPoints(datasource, sync));
+		return renderProportionalFullMaxSize(datasource, sync, renderRect, maxWidth, maxHeight, labelField, style, layerRenderTransformer, swapCoordinates);
+	}
+	
+	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, Object sync, Rect2d renderRect, int maxWidth, int maxHeight, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
+		double xlen = renderRect.width();
+		double ylen = renderRect.height();
+
+		double xTargetScale = maxWidth / xlen;
+		double yTargetScale = maxHeight / ylen;
+
+		double targetScale = Math.min(xTargetScale, yTargetScale);
+
+		int width = (int) Math.ceil(targetScale * xlen);
+		int height = (int) Math.ceil(targetScale * ylen);
+
+		Logger.info(maxWidth + " x " + maxHeight + " -> " + width + " x " + height);
+		return render(datasource, sync, renderRect, width, height, labelField, style, layerRenderTransformer, swapCoordinates);
+	}
+
+	public static ImageBufferARGB render(DataSource datasource, Object sync, Rect2d renderRect, int width, int height, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
 		ImageBufferARGB image = new ImageBufferARGB(width, height);
 		Graphics2D gc = image.bufferedImage.createGraphics();
 		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -51,14 +95,17 @@ public class ConverterRenderer {
 							}
 							byte[] wkb = geometry.ExportToWkb();						
 							if(wkb != null) {								
-								org.locationtech.jts.geom.Geometry jtsGeometry = wkbReader.read(wkb);	
+								org.locationtech.jts.geom.Geometry jtsGeometry = wkbReader.read(wkb);
+								if(swapCoordinates) {
+									jtsGeometry.apply(SWAP_COORDINATES);
+								}
 								String label = null;
 								if(labelField != null) {
 									label = feature.GetFieldAsString(labelField);
 									if(label != null && label.isBlank()) {
 										label = null;
 									}
-								}								
+								}
 								//Logger.info(jtsGeometry.getClass() + "   " + label);	
 								styleJtsGeometryRasterizer.acceptGeometry(style, jtsGeometry, label);								
 							}

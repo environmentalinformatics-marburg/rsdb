@@ -3,6 +3,7 @@ package postgis.style;
 import java.awt.Graphics2D;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
@@ -60,7 +61,7 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 			}
 			style.drawImgPolygonWithHoles(gc, rings);
 		}
-		
+
 		if(text != null) {
 			double lenScale = Math.max(xscale, xscale);
 			double polyLen = polygon.getLength() * lenScale;
@@ -73,6 +74,50 @@ public class StyleJtsGeometryRasterizer implements StyleJtsGeometryConsumer {
 					labelBuffer.add(label);
 				}
 			}
+		}
+	}
+
+	@Override
+	public void acceptLineString(Style style, LineString lineString, String text) {
+		Coordinate[] cs = lineString.getCoordinateSequence().toCoordinateArray();
+		int len = cs.length;
+		int[] xs = new int[len];
+		int[] ys = new int[len];
+		for (int i = 0; i < len; i++) {
+			Coordinate c = cs[i];
+			xs[i] = (int) ((c.x + xoff) * xscale);
+			ys[i] = (int) ((yoff - c.y) * yscale);
+		}
+		style.drawImgPolyline(gc, xs, ys, len);	
+
+		if(text != null) {
+			double lenScale = Math.max(xscale, xscale);
+			double polyLen = lineString.getLength() * lenScale;
+			if(polyLen >= 50d) {
+				Point ptext = lineString.getInteriorPoint();
+				if(!ptext.isEmpty()) {
+					int xtext = (int) ((ptext.getX() + xoff) * xscale);
+					int ytext = (int) ((yoff - ptext.getY()) * yscale);
+					ImgLabel label = new ImgLabel(text, xtext, ytext);
+					labelBuffer.add(label);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void acceptPoint(Style style, Point point, String text) {
+		double x = point.getX();
+		double y = point.getY();
+		int xi = (int) ((x + xoff) * xscale);
+		int yi = (int) ((yoff - y) * yscale);
+
+		style.drawImgPolyline(gc, new int[] {xi-5, xi+5}, new int[] {yi-7, yi+7}, 2);
+		style.drawImgPolyline(gc, new int[] {xi+5, xi-5}, new int[] {yi-7, yi+7}, 2);	
+
+		if(text != null) {
+			ImgLabel label = new ImgLabel(text, xi, yi);
+			labelBuffer.add(label);			
 		}
 	}
 

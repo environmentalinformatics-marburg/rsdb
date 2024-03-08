@@ -2,8 +2,13 @@
   <div>
     <div>
       <q-select
-        v-if="meta && meta.fields.length > 0"
-        :options="meta.fields"
+        v-if="
+          meta &&
+          meta.details &&
+          meta.details.attributes &&
+          meta.details.attributes.length > 0
+        "
+        :options="meta.details.attributes"
         :model-value="layer.labelField"
         @update:model-value="onUpdateLabelField"
         label="Label field"
@@ -53,7 +58,7 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-  name: "PostgisLayerSettings",
+  name: "VectorLayerSettings",
   props: ["layer"],
   components: {},
 

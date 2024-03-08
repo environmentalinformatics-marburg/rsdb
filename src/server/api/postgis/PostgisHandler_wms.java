@@ -14,7 +14,6 @@ import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -436,6 +435,7 @@ public class PostgisHandler_wms {
 				vPos[0] += 20;
 			});
 		} else {
+			gc.setColor(Color.BLACK);
 			gc.drawString("Uniform style", 0, 20);
 			Style style = styleProvider.getStyle();
 			int y = 20;

@@ -1,5 +1,10 @@
 package server.api.vectordbs;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -26,9 +31,13 @@ import org.w3c.dom.Node;
 
 import ar.com.hjg.pngj.PngjOutputException;
 import broker.Broker;
+import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
+import postgis.PostgisLayer;
+import postgis.style.StyleProvider;
 import server.api.postgis.PostgisHandler_wms;
 import util.GeoUtil;
+import util.Interruptor;
 import util.Web;
 import util.XmlUtil;
 import util.image.ImageBufferARGB;
@@ -72,6 +81,9 @@ public class VectordbHandler_wms extends VectordbHandler {
 		case "GetFeatureInfo":				
 			handle_GetFeatureInfo(vectordb, request, response, userIdentity);
 			break;
+		case "GetLegendGraphic":
+			handle_GetLegendGraphic(vectordb, request, response);
+			break;				
 		default:
 			Logger.error("unknown request " + reqParam);
 			return;
@@ -98,17 +110,21 @@ public class VectordbHandler_wms extends VectordbHandler {
 				}
 				if(wmsSr != null) {
 					if(wmsSr.IsSame(layerSr) == 0) {
-						Logger.info("transform");
 						layerWmsTransformer = new GeoUtil.Transformer(layerSr, wmsSr);
+						//Logger.info("transform " + layerWmsTransformer.toString());
 					}
 				}
 			}
 
 			String labelField = vectordb.hasNameAttribute() ? vectordb.getNameAttribute() : null;
+			String wmsLabelField = Web.getString(request, "label_field", null);
+			if(wmsLabelField != null) {
+				labelField = wmsLabelField.equals("null") ? null : wmsLabelField;
+			}
 
 			String[] bbox = request.getParameter("BBOX").split(",");
 			Rect2d wmsRect = Rect2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);			
-			
+
 			ImageBufferARGB image = null;
 			DataSource datasource = vectordb.getDataSource();
 			try {		
@@ -118,7 +134,8 @@ public class VectordbHandler_wms extends VectordbHandler {
 					if(style == null) {
 						style = Renderer.STYLE_DEFAULT;
 					}
-					image = ConverterRenderer.render(datasource, vectordb, wmsRect, width, height, labelField, style, layerWmsTransformer);
+					boolean swapCoordinates = layerWmsTransformer != null && layerWmsTransformer.dstFirstAxis == 1;
+					image = ConverterRenderer.render(datasource, vectordb, wmsRect, width, height, labelField, style, layerWmsTransformer, swapCoordinates);
 				}
 			} finally {
 				VectorDB.closeDataSource(datasource);
@@ -194,7 +211,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 		Element eCapability = XmlUtil.addElement(rootElement, "Capability");
 
 		addRequest(eCapability, requestUrl);
-		addRootLayer(vectordb, eCapability, vectordb.getName(), vectordb.getName());
+		addRootLayer(vectordb, eCapability, vectordb.getName(), vectordb.getName(), requestUrl);
 
 		return rootElement;
 	}
@@ -231,7 +248,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 		eGetFeatureInfoDCPTypeHTTPGetOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
-	private void addRootLayer(VectorDB vectordb, Element eCapability, String name, String title) {
+	private void addRootLayer(VectorDB vectordb, Element eCapability, String name, String title, String requestUrl) {
 		Element eRootLayer = XmlUtil.addElement(eCapability, "Layer");
 		eRootLayer.setAttribute("queryable", "1");
 		int layerEPSG = Integer.parseInt(vectordb.getDetails().epsg);
@@ -254,6 +271,27 @@ public class VectordbHandler_wms extends VectordbHandler {
 		eBoundingBox.setAttribute("miny", "" + layerRect.ymin);
 		eBoundingBox.setAttribute("maxx", "" + layerRect.xmax);
 		eBoundingBox.setAttribute("maxy", "" + layerRect.ymax);
+
+		addStyle(vectordb, eRootLayer, requestUrl);
+	}
+	
+	private static int getHeight() {
+		return 45;
+	}
+
+	private static void addStyle(VectorDB vectordb, Element eRootLayer, String requestUrl) {
+		int height = getHeight();
+
+		Element eStyle = XmlUtil.addElement(eRootLayer, "Style");
+		XmlUtil.addElement(eStyle, "Name", "default");
+		XmlUtil.addElement(eStyle, "Title", "default");
+		Element eLegendURL = XmlUtil.addElement(eStyle, "LegendURL");
+		eLegendURL.setAttribute("width", "200");
+		eLegendURL.setAttribute("height", Integer.toString(height));
+		XmlUtil.addElement(eLegendURL, "Format", "image/png");
+		Element eOnlineResource = XmlUtil.addElement(eLegendURL, "OnlineResource");
+		eOnlineResource.setAttribute("xlink:type", "simple");
+		eOnlineResource.setAttribute("xlink:href", requestUrl);
 	}
 
 	public void handle_GetFeatureInfo(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
@@ -316,5 +354,41 @@ public class VectordbHandler_wms extends VectordbHandler {
 			VectordbHandler_wfs.handle_GetFeature(vectordb, layerPixelRect2d, request, response);
 			break;
 		}
+	}
+
+	private void handle_GetLegendGraphic(VectorDB vectordb, Request request, Response response) throws IOException {
+		Logger.info("GetLegendGraphic");
+
+		Style style = vectordb.getStyle();
+		if(style == null) {
+			style = Renderer.STYLE_DEFAULT;
+		}
+		ImageBufferARGB image = createLegend(vectordb, false, style, null);
+
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(Web.MIME_PNG);
+		image.writePngCompressed(response.getOutputStream());		
+	}
+
+	private ImageBufferARGB createLegend(VectorDB vectordb, boolean crop, Style style, Interruptor interruptor) {				
+		int height = getHeight();
+
+		ImageBufferARGB image = new ImageBufferARGB(200, height);
+		Graphics2D gc = image.bufferedImage.createGraphics();
+		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		gc.setColor(Color.DARK_GRAY);
+
+		Font font = new Font("Arial", Font.PLAIN, 12);
+		gc.setFont(font);
+
+		gc.setColor(Color.BLACK);
+
+		gc.drawString("Uniform style", 0, 20);
+
+		int y = 20;
+		style.drawImgPolygon(gc, new int[] {20, 160, 160, 20}, new int[] {y + 10, y + 10, y + 20, y + 20}, 4);
+
+		gc.dispose();
+		return image;
 	}
 }
