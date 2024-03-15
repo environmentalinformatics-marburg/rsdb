@@ -698,7 +698,7 @@ export default defineComponent({
                   this.sessionCnt++;
                 image.getImage().src = srcUrl;
               },
-              params: {},
+              params: { VERSION: "1.1.1" },
             }),
           });
           this.refreshVectordbLayerParameters(layerEntry);

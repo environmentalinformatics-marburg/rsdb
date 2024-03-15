@@ -41,8 +41,8 @@ public class GeoUtil {
 			this.srcSr = srcSr;
 			this.dstSr = dstSr;
 			this.coordinateTransformation = CoordinateTransformation.CreateCoordinateTransformation(srcSr, dstSr);
-			this.srcFirstAxis = srcSr.GetAxisOrientation(null, 0);
-			this.dstFirstAxis = dstSr.GetAxisOrientation(null, 0);
+			this.srcFirstAxis = GeoUtil.WGS84_SPATIAL_REFERENCE.IsSame(srcSr) != 0 ? 1 : srcSr.GetAxisOrientation(null, 0); // workaround for swapped axis but not in GetAxisOrientation for EPSG:4326
+			this.dstFirstAxis = GeoUtil.WGS84_SPATIAL_REFERENCE.IsSame(dstSr) != 0 ? 1 : dstSr.GetAxisOrientation(null, 0); // workaround for swapped axis but not in GetAxisOrientation for EPSG:4326
 		}
 
 		public void transformWithAxisOrderCorrection(double[][] points) {

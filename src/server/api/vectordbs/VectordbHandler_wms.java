@@ -94,7 +94,13 @@ public class VectordbHandler_wms extends VectordbHandler {
 		try {
 			int width = Web.getInt(request, "WIDTH");
 			int height = Web.getInt(request, "HEIGHT");
-			String crs = Web.getString(request, "CRS");
+			String crs = Web.getString(request, "CRS", null);
+			if(crs == null) {
+				crs = Web.getString(request, "SRS", null);
+			}
+			if(crs == null) {
+				throw new RuntimeException("parameter not found: CRS or SRS");
+			}
 			util.GeoUtil.Transformer layerWmsTransformer = null;
 
 			SpatialReference layerSr = vectordb.getSpatialReference();
@@ -111,7 +117,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 				if(wmsSr != null) {
 					if(wmsSr.IsSame(layerSr) == 0) {
 						layerWmsTransformer = new GeoUtil.Transformer(layerSr, wmsSr);
-						//Logger.info("transform " + layerWmsTransformer.toString());
+						Logger.info("transform " + layerWmsTransformer.toString());
 					}
 				}
 			}
@@ -135,7 +141,25 @@ public class VectordbHandler_wms extends VectordbHandler {
 						style = Renderer.STYLE_DEFAULT;
 					}
 					boolean swapCoordinates = layerWmsTransformer != null && layerWmsTransformer.dstFirstAxis == 1;
-					image = ConverterRenderer.render(datasource, vectordb, wmsRect, width, height, labelField, style, layerWmsTransformer, swapCoordinates);
+					if(layerWmsTransformer == null) {
+						if(layerSr != null) {
+							swapCoordinates = layerSr.GetAxisOrientation(null, 0) == 1;
+//							if(GeoUtil.WGS84_SPATIAL_REFERENCE.IsSame(layerSr) != 0) { // workaround for swapped axis but not in GetAxisOrientation for EPSG:4326
+//								swapCoordinates = true;
+//							} else {
+//								swapCoordinates = layerSr.GetAxisOrientation(null, 0) == 1;
+//							}
+						}
+					}
+					Logger.info("layerSr.GetAxisOrientation(null, 0) " + layerSr.GetAxisOrientation(null, 0) + "    " + swapCoordinates);
+					image = ConverterRenderer.render(datasource, vectordb, wmsRect, width, height, labelField, style, layerWmsTransformer, swapCoordinates);					
+					//image = ConverterRenderer.render(datasource, vectordb, wmsRect, width, height, labelField, style, layerWmsTransformer, false);
+					
+					printCRSinfo(3044);
+					printCRSinfo(3857);
+					printCRSinfo(4326);
+					printCRSinfo(32632);
+					printCRSinfo(32633);
 				}
 			} finally {
 				VectorDB.closeDataSource(datasource);
@@ -171,6 +195,11 @@ public class VectordbHandler_wms extends VectordbHandler {
 			}
 			Logger.warn(e);
 		}
+	}
+	
+	private static void printCRSinfo(int epsg) {
+		SpatialReference sr = GeoUtil.getSpatialReferenceFromEPSG(epsg);
+		Logger.info(epsg + " AxisOrientation " + sr.GetAxisOrientation(null, 0)); 
 	}
 
 	public void handle_GetCapabilities(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
@@ -274,7 +303,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 
 		addStyle(vectordb, eRootLayer, requestUrl);
 	}
-	
+
 	private static int getHeight() {
 		return 45;
 	}

@@ -42,12 +42,12 @@ public class ConverterRenderer {
 		}
 	};
 	
-	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, Object sync, int maxWidth, int maxHeight, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
+	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, VectorDB sync, int maxWidth, int maxHeight, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
 		Rect2d renderRect = VectorDB.getExtent(VectorDB.getPoints(datasource, sync));
 		return renderProportionalFullMaxSize(datasource, sync, renderRect, maxWidth, maxHeight, labelField, style, layerRenderTransformer, swapCoordinates);
 	}
 	
-	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, Object sync, Rect2d renderRect, int maxWidth, int maxHeight, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
+	public static ImageBufferARGB renderProportionalFullMaxSize(DataSource datasource, VectorDB sync, Rect2d renderRect, int maxWidth, int maxHeight, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
 		double xlen = renderRect.width();
 		double ylen = renderRect.height();
 
@@ -63,7 +63,7 @@ public class ConverterRenderer {
 		return render(datasource, sync, renderRect, width, height, labelField, style, layerRenderTransformer, swapCoordinates);
 	}
 
-	public static ImageBufferARGB render(DataSource datasource, Object sync, Rect2d renderRect, int width, int height, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
+	public static ImageBufferARGB render(DataSource datasource, VectorDB sync, Rect2d renderRect, int width, int height, String labelField, Style style, Transformer layerRenderTransformer, boolean swapCoordinates) {
 		ImageBufferARGB image = new ImageBufferARGB(width, height);
 		Graphics2D gc = image.bufferedImage.createGraphics();
 		gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -86,6 +86,7 @@ public class ConverterRenderer {
 				layer.SetSpatialFilter(null); // clear filter
 				layer.ResetReading(); // reset iterator
 				Feature feature = layer.GetNextFeature();
+				int missingGeometries = 0;
 				while(feature != null) {
 					try {
 						Geometry geometry = feature.GetGeometryRef();			
@@ -110,12 +111,15 @@ public class ConverterRenderer {
 								styleJtsGeometryRasterizer.acceptGeometry(style, jtsGeometry, label);								
 							}
 						} else {
-							Logger.warn("missing geometry");
+							missingGeometries++;
 						}
 					} catch(Exception e) {
-						Logger.warn(e);
+						Logger.warn(e.getMessage());
 					}
 					feature = layer.GetNextFeature();
+				}
+				if(missingGeometries > 0) {
+					Logger.info(missingGeometries + " missing geometries of feature from vectordb " + sync.getName());					
 				}
 			}
 		}

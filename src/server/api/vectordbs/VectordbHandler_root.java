@@ -80,7 +80,7 @@ public class VectordbHandler_root extends VectordbHandler {
 			json.key("proj4");
 			json.value(details.proj4);
 			json.key("attributes");
-			json.value(details.attributes);
+			json.value(details.attributes.stream().sorted(String.CASE_INSENSITIVE_ORDER).toArray());
 			json.endObject();
 
 			if(Web.getFlagBoolean(request, "extent")) {

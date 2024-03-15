@@ -55,7 +55,7 @@ public class VectordbHandler_raster_png extends VectordbHandler {
 			if(style == null) {
 				style = Renderer.STYLE_DEFAULT;
 			}
-			ImageBufferARGB image = ConverterRenderer.renderProportionalFullMaxSize(datasource, this, maxWidth, maxHeight, null, style, null, false);
+			ImageBufferARGB image = ConverterRenderer.renderProportionalFullMaxSize(datasource, vectordb, maxWidth, maxHeight, null, style, null, false);
 
 			/*double[] extent = VectorDB.getExtent(VectorDB.getPoints(datasource));
 			Logger.info(Arrays.toString(extent));			
