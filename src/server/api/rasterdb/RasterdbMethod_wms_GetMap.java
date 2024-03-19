@@ -118,6 +118,12 @@ public class RasterdbMethod_wms_GetMap {
 			int layerEPSG = -1;
 			int wmsEPSG = -1;
 			String crsParameter = Web.getString(request, "CRS", null);
+			if(crsParameter == null) {
+				crsParameter = Web.getString(request, "SRS", null);
+			}
+			/*if(crsParameter == null) {
+				throw new RuntimeException("parameter not found: CRS or SRS");
+			}*/
 			if(crsParameter != null) {
 				GeoReference ref = rasterdb.ref();
 				if(ref.has_code()) {

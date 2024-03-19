@@ -613,7 +613,7 @@ export default defineComponent({
                   this.sessionCnt++;
                 image.getImage().src = srcUrl;
               },
-              params: {},
+              params: { VERSION: "1.1.1" },
             }),
           });
           this.refreshPostgisLayerParameters(layerEntry);
@@ -858,7 +858,7 @@ export default defineComponent({
                   this.sessionCnt++;
                 image.getImage().src = srcUrl;
               },
-              params: {},
+              params: { VERSION: "1.1.1" },
             }),
           });
           this.refreshRasterdbLayerParameters(layerEntry);

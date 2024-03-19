@@ -183,4 +183,8 @@ public class Rect2d {
 	public Point2d toMinPoint() {
 		return new Point2d(xmin, ymin);
 	}
+
+	public Rect2d toSwappedAxes() {
+		return new Rect2d(this.ymin, this.xmin, this.ymax, this.xmax);
+	}
 }

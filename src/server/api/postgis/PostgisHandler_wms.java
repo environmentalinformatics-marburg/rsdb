@@ -133,7 +133,8 @@ public class PostgisHandler_wms {
 
 	private Element xmlGetCapabilities(PostgisLayer postgisLayer, Document doc, String requestUrl) {
 		Element rootElement = doc.createElementNS("http://www.opengis.net/wms", "WMS_Capabilities");
-		rootElement.setAttribute("version", "1.3.0");
+		//rootElement.setAttribute("version", "1.3.0");
+		rootElement.setAttribute("version", "1.1.1"); // workaround for swapped axis order in some projections in WMS 1.3.0 but not in WMS 1.1.1
 		rootElement.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
 		Element eService = XmlUtil.addElement(rootElement, "Service");
@@ -291,7 +292,13 @@ public class PostgisHandler_wms {
 		}
 		
 		int wmsEPSG = 0;
-		String crs = Web.getString(request, "CRS");
+		String crs = Web.getString(request, "CRS", null);
+		if(crs == null) {
+			crs = Web.getString(request, "SRS", null);
+		}
+		/*if(crs == null) {
+			throw new RuntimeException("parameter not found: CRS or SRS");
+		}*/
 		if(crs != null) {
 			if(crs.startsWith("EPSG:")) {
 				wmsEPSG = Integer.parseInt(crs.substring(5));				
@@ -345,8 +352,20 @@ public class PostgisHandler_wms {
 		}		
 		int reqWidth = Web.getInt(request, "WIDTH");
 		int reqHeight = Web.getInt(request, "HEIGHT");		
-		int reqX = Web.getInt(request, "I");
-		int reqY = Web.getInt(request, "J");
+		int reqX = Web.getInt(request, "I", -999);
+		if(reqX == -999) {
+			reqX = Web.getInt(request, "X", -999);
+		}
+		if(reqX == -999) {
+			throw new RuntimeException("parameter not found: I or X");
+		}
+		int reqY = Web.getInt(request, "J", -999);
+		if(reqY == -999) {
+			reqY = Web.getInt(request, "Y", -999);
+		}
+		if(reqY == -999) {
+			throw new RuntimeException("parameter not found: J or Y");
+		}
 
 		double xres = wmsRect2d.width() / reqWidth;
 		double yres = wmsRect2d.height() / reqHeight;

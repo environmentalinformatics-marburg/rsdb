@@ -13,7 +13,6 @@ import javax.xml.stream.XMLStreamWriter;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.osr.SpatialReference;
 import org.tinylog.Logger;
 
 import broker.TimeSlice;
@@ -41,17 +40,21 @@ public class RasterdbMethod_wms_GetFeatureInfo {
 
 	public static void handle_GetFeatureInfo(RasterDB rasterdb, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		int wmsEPSG = 0;
-		String crs = Web.getString(request, "CRS");
-		if(crs != null) {
-			if(crs.startsWith("EPSG:")) {
-				wmsEPSG = Integer.parseInt(crs.substring(5));				
-			} else {
-				throw new RuntimeException("unknown CRS");
-			}
-		}		
+		String crs = Web.getString(request, "CRS", null);
+		if(crs == null) {
+			crs = Web.getString(request, "SRS", null);
+		}
+		if(crs == null) {
+			throw new RuntimeException("parameter not found: CRS or SRS");
+		}
+		if(crs.startsWith("EPSG:")) {
+			wmsEPSG = Integer.parseInt(crs.substring(5));				
+		} else {
+			throw new RuntimeException("unknown CRS");
+		}	
 		int layerEPSG = rasterdb.ref().getEPSG(0);
 		boolean reproject = wmsEPSG > 0 && layerEPSG > 0 && wmsEPSG != layerEPSG;
-		
+
 		String bboxParam = request.getParameter("BBOX");
 		Rect2d rect2d = null;
 		if(bboxParam != null) {
@@ -59,9 +62,22 @@ public class RasterdbMethod_wms_GetFeatureInfo {
 			rect2d = Rect2d.parseBbox(bbox);
 		}		
 		int reqWidth = Web.getInt(request, "WIDTH");
-		int reqHeight = Web.getInt(request, "HEIGHT");		
-		int reqX = Web.getInt(request, "I");
-		int reqY = Web.getInt(request, "J");
+		int reqHeight = Web.getInt(request, "HEIGHT");
+		
+		int reqX = Web.getInt(request, "I", -999);
+		if(reqX == -999) {
+			reqX = Web.getInt(request, "X", -999);
+		}
+		if(reqX == -999) {
+			throw new RuntimeException("parameter not found: I or X");
+		}
+		int reqY = Web.getInt(request, "J", -999);
+		if(reqY == -999) {
+			reqY = Web.getInt(request, "Y", -999);
+		}
+		if(reqY == -999) {
+			throw new RuntimeException("parameter not found: J or Y");
+		}
 
 		double xres = rect2d.width() / reqWidth;
 		double yres = rect2d.height() / reqHeight;
@@ -71,7 +87,7 @@ public class RasterdbMethod_wms_GetFeatureInfo {
 		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
 		Logger.info(rect2d);
 		Logger.info(wmsPixelRect2d);
-		
+
 		Rect2d layerPixelRect2d = wmsPixelRect2d;
 		if(reproject) {
 			util.GeoUtil.Transformer transformer = GeoUtil.getCoordinateTransformer(wmsEPSG, layerEPSG);
@@ -209,16 +225,16 @@ public class RasterdbMethod_wms_GetFeatureInfo {
 
 		xmlWriter.writeStartElement("gml:featureMember");
 		xmlWriter.writeStartElement("pixel");
-		
+
 		//String escapedFieldValue = XmlUtil.encodeXML(ctx.get("values").toString());
 		xmlWriter.writeStartElement("value");
 		xmlWriter.writeCharacters(ctx.get("values").toString());
 		xmlWriter.writeEndElement(); // fieldName
-		
+
 		GeoReference ref = rasterdb.ref();
 		int layerEPSG = ref.getEPSG(0);
 		boolean hasLayerCRS = layerEPSG > 0;
-		
+
 		xmlWriter.writeStartElement("geometry");  // geometry after properties for better properties reading by qgis
 		xmlWriter.writeStartElement("gml:MultiSurface");
 		if(hasLayerCRS) {
@@ -229,7 +245,7 @@ public class RasterdbMethod_wms_GetFeatureInfo {
 		xmlWriter.writeStartElement("gml:exterior");
 		xmlWriter.writeStartElement("gml:LinearRing");
 		xmlWriter.writeStartElement("gml:posList");
-		
+
 		Rect2d pixelRect2d = (Rect2d) ctx.get("centerPixelrect");		
 		String s = pixelRect2d.xmin + " " + pixelRect2d.ymax + " " + 
 				pixelRect2d.xmax + " " + pixelRect2d.ymax + " " + 

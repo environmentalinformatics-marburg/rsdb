@@ -3,7 +3,6 @@ package server.api.rasterdb;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
-import org.gdal.osr.CoordinateTransformation;
 import org.tinylog.Logger;
 
 import pointcloud.Rect2d;

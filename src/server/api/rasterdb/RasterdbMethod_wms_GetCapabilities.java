@@ -90,7 +90,8 @@ public class RasterdbMethod_wms_GetCapabilities {
 
 	private static Node getCapabilities(RasterDB rasterdb, CustomWMS customWMS, String requestUrl, Document doc) {
 		Element rootElement = doc.createElementNS(NS_URL, "WMS_Capabilities");
-		rootElement.setAttribute("version", "1.3.0");
+		//rootElement.setAttribute("version", "1.3.0");
+		rootElement.setAttribute("version", "1.1.1"); // workaround for swapped axis order in some projections in WMS 1.3.0 but not in WMS 1.1.1
 		rootElement.setAttribute("xmlns:xlink", NS_XLINK);
 
 		Element eService = addElement(rootElement, "Service");

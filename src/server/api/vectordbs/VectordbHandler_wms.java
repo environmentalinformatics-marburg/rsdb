@@ -2,7 +2,6 @@ package server.api.vectordbs;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.io.IOException;
@@ -33,8 +32,6 @@ import ar.com.hjg.pngj.PngjOutputException;
 import broker.Broker;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Rect2d;
-import postgis.PostgisLayer;
-import postgis.style.StyleProvider;
 import server.api.postgis.PostgisHandler_wms;
 import util.GeoUtil;
 import util.Interruptor;
@@ -92,6 +89,8 @@ public class VectordbHandler_wms extends VectordbHandler {
 
 	public void handle_GetMap(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		try {
+			String version = Web.getString(request, "VERSION", "1.1.1");
+			boolean version130 = version.equals("1.3.0");
 			int width = Web.getInt(request, "WIDTH");
 			int height = Web.getInt(request, "HEIGHT");
 			String crs = Web.getString(request, "CRS", null);
@@ -129,7 +128,27 @@ public class VectordbHandler_wms extends VectordbHandler {
 			}
 
 			String[] bbox = request.getParameter("BBOX").split(",");
-			Rect2d wmsRect = Rect2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);			
+			Rect2d wmsRect = Rect2d.parse(bbox[0], bbox[1], bbox[2], bbox[3]);
+			/*if(version130) {
+				try {
+					Logger.info(crs);
+					CRSFactory crsFactory = new CRSFactory();
+					CoordinateReferenceSystem proj4Crs = crsFactory.createFromName("EPSG:4326");
+					//CoordinateReferenceSystem proj4Crs = crsFactory.createFromName(crs);
+					Logger.info(proj4Crs.getParameterString());
+					Projection proj4Projection = proj4Crs.getProjection();
+					Logger.info(proj4Projection.getEPSGCode());
+					AxisOrder proj4AxisOrder = proj4Projection.getAxisOrder();
+					if(!AxisOrder.ENU.equals(proj4AxisOrder)) {
+						Logger.info("toSwappedAxes");
+						wmsRect = wmsRect.toSwappedAxes();
+					} else {
+						Logger.info("ENU");
+					}
+				} catch(Exception e) {
+					Logger.info(e);
+				}
+			}*/
 
 			ImageBufferARGB image = null;
 			DataSource datasource = vectordb.getDataSource();
@@ -144,17 +163,17 @@ public class VectordbHandler_wms extends VectordbHandler {
 					if(layerWmsTransformer == null) {
 						if(layerSr != null) {
 							swapCoordinates = layerSr.GetAxisOrientation(null, 0) == 1;
-//							if(GeoUtil.WGS84_SPATIAL_REFERENCE.IsSame(layerSr) != 0) { // workaround for swapped axis but not in GetAxisOrientation for EPSG:4326
-//								swapCoordinates = true;
-//							} else {
-//								swapCoordinates = layerSr.GetAxisOrientation(null, 0) == 1;
-//							}
+							//							if(GeoUtil.WGS84_SPATIAL_REFERENCE.IsSame(layerSr) != 0) { // workaround for swapped axis but not in GetAxisOrientation for EPSG:4326
+							//								swapCoordinates = true;
+							//							} else {
+							//								swapCoordinates = layerSr.GetAxisOrientation(null, 0) == 1;
+							//							}
 						}
 					}
 					Logger.info("layerSr.GetAxisOrientation(null, 0) " + layerSr.GetAxisOrientation(null, 0) + "    " + swapCoordinates);
 					image = ConverterRenderer.render(datasource, vectordb, wmsRect, width, height, labelField, style, layerWmsTransformer, swapCoordinates);					
 					//image = ConverterRenderer.render(datasource, vectordb, wmsRect, width, height, labelField, style, layerWmsTransformer, false);
-					
+
 					printCRSinfo(3044);
 					printCRSinfo(3857);
 					printCRSinfo(4326);
@@ -196,7 +215,7 @@ public class VectordbHandler_wms extends VectordbHandler {
 			Logger.warn(e);
 		}
 	}
-	
+
 	private static void printCRSinfo(int epsg) {
 		SpatialReference sr = GeoUtil.getSpatialReferenceFromEPSG(epsg);
 		Logger.info(epsg + " AxisOrientation " + sr.GetAxisOrientation(null, 0)); 
@@ -229,7 +248,8 @@ public class VectordbHandler_wms extends VectordbHandler {
 
 	private Node getCapabilities(VectorDB vectordb, Document doc, String requestUrl) {
 		Element rootElement = doc.createElementNS("http://www.opengis.net/wms", "WMS_Capabilities");
-		rootElement.setAttribute("version", "1.3.0");
+		//rootElement.setAttribute("version", "1.3.0");
+		rootElement.setAttribute("version", "1.1.1"); // workaround for swapped axis order in some projections in WMS 1.3.0 but not in WMS 1.1.1
 		rootElement.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
 		Element eService = XmlUtil.addElement(rootElement, "Service");
@@ -325,13 +345,17 @@ public class VectordbHandler_wms extends VectordbHandler {
 
 	public void handle_GetFeatureInfo(VectorDB vectordb, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		int wmsEPSG = 0;
-		String crs = Web.getString(request, "CRS");
-		if(crs != null) {
-			if(crs.startsWith("EPSG:")) {
-				wmsEPSG = Integer.parseInt(crs.substring(5));				
-			} else {
-				throw new RuntimeException("unknown CRS");
-			}
+		String crs = Web.getString(request, "CRS", null);
+		if(crs == null) {
+			crs = Web.getString(request, "SRS", null);
+		}
+		if(crs == null) {
+			throw new RuntimeException("parameter not found: CRS or SRS");
+		}
+		if(crs.startsWith("EPSG:")) {
+			wmsEPSG = Integer.parseInt(crs.substring(5));				
+		} else {
+			throw new RuntimeException("unknown CRS");
 		}
 
 		int layerEPSG = 0;
@@ -350,13 +374,26 @@ public class VectordbHandler_wms extends VectordbHandler {
 		}		
 		int reqWidth = Web.getInt(request, "WIDTH");
 		int reqHeight = Web.getInt(request, "HEIGHT");		
-		int reqX = Web.getInt(request, "I");
-		int reqY = Web.getInt(request, "J");
+		int reqX = Web.getInt(request, "I", -999);
+		if(reqX == -999) {
+			reqX = Web.getInt(request, "X", -999);
+		}
+		if(reqX == -999) {
+			throw new RuntimeException("parameter not found: I or X");
+		}
+		int reqY = Web.getInt(request, "J", -999);
+		if(reqY == -999) {
+			reqY = Web.getInt(request, "Y", -999);
+		}
+		if(reqY == -999) {
+			throw new RuntimeException("parameter not found: J or Y");
+		}
 
 		double xres = wmsRect2d.width() / reqWidth;
 		double yres = wmsRect2d.height() / reqHeight;
 
-		Rect2d wmsPixelRect2d = new Rect2d(wmsRect2d.xmin + xres * reqX, wmsRect2d.ymax - yres * (reqY + 1), wmsRect2d.xmin + xres * (reqX + 1), wmsRect2d.ymax - yres * reqY);
+		//Rect2d wmsPixelRect2d = new Rect2d(wmsRect2d.xmin + xres * reqX, wmsRect2d.ymax - yres * (reqY + 1), wmsRect2d.xmin + xres * (reqX + 1), wmsRect2d.ymax - yres * reqY);
+		Rect2d wmsPixelRect2d = new Rect2d(wmsRect2d.xmin + xres * (reqX - 4), wmsRect2d.ymax - yres * (reqY + 5), wmsRect2d.xmin + xres * (reqX + 5), wmsRect2d.ymax - yres * (reqY - 4));
 
 		Logger.info(reqWidth + " " + reqHeight + "   " + reqX + " " + reqY);
 		Logger.info(wmsRect2d);

@@ -712,6 +712,7 @@ public class VectorDB {
 	}
 
 	public VectordbDetails getDetails() {
+		//Logger.info("|getDetails()| " + getName());
 		VectordbDetails details = new VectordbDetails();
 		try {
 			DataSource datasource = getDataSource();
@@ -726,6 +727,11 @@ public class VectorDB {
 						if(proj4 != null) {
 							details.proj4 = proj4;
 						}
+						if("EPSG".equals(layerRef.GetAuthorityName("PROJCS"))) {
+							String layerEPSG = layerRef.GetAuthorityCode("PROJCS");
+							details.epsg = layerEPSG == null || layerEPSG.isBlank() ? "" : layerEPSG;
+							//Logger.info(details.epsg);
+						}
 						FeatureDefn featureDfn = layer.GetLayerDefn();
 						int fieldCount = featureDfn.GetFieldCount();
 						for (int i = 0; i < fieldCount; i++) {
@@ -735,10 +741,12 @@ public class VectorDB {
 						}
 					}
 				}
-				if(!details.proj4.isEmpty()) {
+				if((details.epsg == null || details.epsg.isBlank()) && !details.proj4.isEmpty()) {
 					String epsg = GeoUtil.CRS_FACTORY.readEpsgFromParameters(details.proj4);
-					details.epsg = epsg == null ? "" : epsg;
+					details.epsg = epsg == null || epsg.isBlank() ? "" : epsg;
+					//Logger.info(details.epsg);
 				}
+				//Logger.info("|" + details.proj4 + "|");
 				details.attributes = attributes.readonlyWeakView();
 			} finally {
 				closeDataSource(datasource);
