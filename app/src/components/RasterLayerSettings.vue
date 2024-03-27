@@ -229,6 +229,22 @@
           </q-item-label>
         </q-item-section>
       </q-item>
+
+      <q-item>
+        <q-item-section>
+          <q-select
+            :model-value="layer.palette"
+            @update:model-value="onUpdatePalette"
+            :options="layer.palettes"
+            label="Colors (for one band only)"
+            outlined
+            stack-label
+            dense
+            title="testing"
+          >
+          </q-select>
+        </q-item-section>
+      </q-item>
     </q-expansion-item>
 
     <!--<q-expansion-item
@@ -381,6 +397,10 @@ export default defineComponent({
     },
     onUpdateSyncBands(value) {
       this.$emit("changeSyncBands", value);
+      console.log(value);
+    },
+    onUpdatePalette(value) {
+      this.$emit("changePalette", value);
       console.log(value);
     },
   },

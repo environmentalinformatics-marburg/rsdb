@@ -330,10 +330,15 @@ public class PostgisHandler_wms {
 		}
 	}
 
-	private void handle_GetFeatureInfo(PostgisLayer postgisLayer, Request request, Response response) throws IOException {
-		
+	private void handle_GetFeatureInfo(PostgisLayer postgisLayer, Request request, Response response) throws IOException {		
 		int wmsEPSG = 0;
-		String crs = Web.getString(request, "CRS");
+		String crs = Web.getString(request, "CRS", null);
+		if(crs == null) {
+			crs = Web.getString(request, "SRS", null);
+		}
+		if(crs == null) {
+			throw new RuntimeException("parameter not found: CRS or SRS");
+		}
 		if(crs != null) {
 			if(crs.startsWith("EPSG:")) {
 				wmsEPSG = Integer.parseInt(crs.substring(5));				

@@ -78,6 +78,11 @@ public class RasterdbMethod_wms_GetMap {
 					throw new RuntimeException("custom WMS not found |" + target + "|");
 				}
 			}
+			
+			String paletteText = Web.getString(request, "palette", null);
+			if(paletteText != null) {
+				palette = MonoColor.getPaletteDefaultNull(paletteText);
+			}
 
 			String layers = Web.getString(request, "LAYERS", "color");
 			String[] layerList = layers.split(",", -1);

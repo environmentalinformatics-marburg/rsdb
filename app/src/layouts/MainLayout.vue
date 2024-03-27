@@ -407,6 +407,12 @@
                               refreshRasterdbLayerParameters(element);
                             }
                           "
+                          @changePalette="
+                            (palette) => {
+                              element.palette = palette;
+                              refreshRasterdbLayerParameters(element);
+                            }
+                          "
                           @interaction="
                             interaction = $event;
                             interaction.layer = element;
@@ -736,6 +742,15 @@ export default defineComponent({
           layerEntry.rangeMax = 255;
 
           layerEntry.syncBands = false;
+
+          layerEntry.palettes = [
+            { value: "grayscale", label: "Grayscale (default)" },
+            { value: "cividis", label: "Cividis" },
+            { value: "viridis", label: "Viridis" },
+            { value: "inferno", label: "Inferno" },
+            { value: "jet", label: "Jet" },
+          ];
+          layerEntry.palette = layerEntry.palettes[0];
 
           let bandMap = {};
           layerEntry.meta.bands.forEach((band) => (bandMap[band.index] = band));
@@ -1196,6 +1211,9 @@ export default defineComponent({
         params.sync_bands = true;
       } else {
         params.sync_bands = false;
+      }
+      if (layerEntry.palette) {
+        params.palette = layerEntry.palette.value;
       }
       layerEntry.layer.getSource().updateParams(params);
     },
