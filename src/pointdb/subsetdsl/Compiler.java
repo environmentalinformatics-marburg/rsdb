@@ -9,11 +9,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-
-import org.tinylog.Logger;
 import org.mapdb.Fun.Pair;
+import org.tinylog.Logger;
 
 import broker.Broker;
 import broker.group.Poi;
@@ -34,14 +33,12 @@ import pointdb.subsetdsl.SubsetDSLParser.UrlContext;
 import util.collections.vec.Vec;
 
 public class Compiler {
-	
 
 	public Compiler() {
 	}
 
 	public SubsetDSL_AST_region parse(String script) {		
-		ANTLRInputStream in = new ANTLRInputStream(script);
-		SubsetDSLLexer lexer = new SubsetDSLLexer(in);
+		SubsetDSLLexer lexer = new SubsetDSLLexer(CharStreams.fromString(script));		
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		SubsetDSLParser parser = new SubsetDSLParser(tokens);
 		return parser.region_scirpt().accept(RegionVisitor.DEFAULT);		
@@ -303,7 +300,7 @@ public class Compiler {
 			if(ctx.roi()!=null) {
 				return ctx.roi().accept(this);
 			}
-			
+
 			if(ctx.bbox()!=null) {
 				return ctx.bbox().accept(this);
 			}
@@ -352,7 +349,7 @@ public class Compiler {
 			}
 			return new SubsetDSL_AST_point_sequence(list);
 		}
-		
+
 		@Override
 		public SubsetDSL_AST_point visitPoint_sequence2(Point_sequence2Context ctx) {
 			Vec<SubsetDSL_AST_point> list = new Vec<>();

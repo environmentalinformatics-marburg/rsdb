@@ -148,7 +148,7 @@ public class Functions {
 	
 	public static ProcessingFun getFun(String func) {
 		ProcessingFun fun = funMap.get(func);
-		if(fun==null) {
+		if(fun == null) {
 			throw new RuntimeException("unknown function |" + func + "|");
 		}
 		return fun;

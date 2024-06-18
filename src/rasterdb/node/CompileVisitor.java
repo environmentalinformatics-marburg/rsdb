@@ -2,11 +2,7 @@ package rasterdb.node;
 
 import java.util.ArrayList;
 
-
-import org.tinylog.Logger;
-
 import rasterdb.Band;
-import rasterdb.BandProcessor;
 import rasterdb.FrameProducer;
 import rasterdb.ast.AST;
 import rasterdb.ast.AST_Band_number;

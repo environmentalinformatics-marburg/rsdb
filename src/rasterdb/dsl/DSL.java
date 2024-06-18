@@ -2,12 +2,10 @@ package rasterdb.dsl;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-
 import org.tinylog.Logger;
 
 import rasterdb.BindVisitor;
 import rasterdb.FrameProducer;
-import rasterdb.BandProcessor;
 import rasterdb.RasterDB;
 import rasterdb.ast.AST;
 import rasterdb.ast.MacroVisitor;

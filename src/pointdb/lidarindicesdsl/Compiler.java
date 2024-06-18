@@ -1,6 +1,6 @@
 package pointdb.lidarindicesdsl;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import pointdb.lidarindicesdsl.LidarIndicesDSLParser.IndexContext;
@@ -9,14 +9,12 @@ import pointdb.lidarindicesdsl.LidarIndicesDSLParser.Index_sequenceContext;
 import util.collections.vec.Vec;
 
 public class Compiler {
-	//
 	
 	public Compiler() {
 	}
 	
 	public Vec<String> parse(String script) {		
-		ANTLRInputStream in = new ANTLRInputStream(script);
-		LidarIndicesDSLLexer lexer = new LidarIndicesDSLLexer(in);
+		LidarIndicesDSLLexer lexer = new LidarIndicesDSLLexer(CharStreams.fromString(script));
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		LidarIndicesDSLParser parser = new LidarIndicesDSLParser(tokens);
 		return parser.index_scirpt().accept(IndexVisitor.DEFAULT);	

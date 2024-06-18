@@ -46,19 +46,21 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		String rasterdb_name = task.getString("rasterdb");
 		RasterDB rasterdb = broker.getRasterdb(rasterdb_name);
 		rasterdb.checkMod(ctx.userIdentity, "task index_raster");
-		JSONArray indices_text = task.getJSONArray("indices");
+		
 		Band maskBand = null;
 		if(task.has("mask_band")) {
 			int maskBandIndex = task.getInt("mask_band");
 			maskBand = rasterdb.getBandByNumber(maskBandIndex);
 		}
 
+		JSONArray indices_text = task.getJSONArray("indices");
 		int indices_len = indices_text.length();
 		ProcessingFun[] indices = new ProcessingFun[indices_len];
 		Band[] bands = new Band[indices_len];
 		for (int i = 0; i < indices_len; i++) {
 			String index_text = indices_text.getString(i);
 			indices[i] = Functions.getFun(index_text);
+			pointdb.indexfuncdsl.Compiler.compile(index_text);
 			bands[i] = rasterdb.createBand(TilePixel.TYPE_FLOAT, index_text, null);
 		}
 
