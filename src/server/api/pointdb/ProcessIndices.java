@@ -20,8 +20,7 @@ import util.Web;
 import util.collections.vec.Vec;
 import util.rdat.RdatDataFrame;
 
-public class ProcessIndices {
-	
+public class ProcessIndices {	
 
 	public static void process(int t, String req_t_name, Vec<Pair<Region, String>> areas, Vec<String> functions, String format, Response response, PointDB db, PointCloud pointcloud, boolean omit_empty_areas) throws IOException {
 		switch(format) {

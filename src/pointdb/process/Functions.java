@@ -15,11 +15,10 @@ import pointdb.process.Fun_BE.Fun_BE_RD_H;
 import pointdb.process.Fun_BE.Fun_BE_RD_Q;
 
 public class Functions {
-	
 
-	private static final TreeMap<String, ProcessingFun> funMap = new TreeMap<>();
+	private static final TreeMap<String, AbstractProcessingFun> funMap = new TreeMap<>();
 	private static final TreeSet<String> funTags = new TreeSet<>();
-	
+
 	static {
 		add(Fun_point_count.class);
 		add(Fun_ground_point_count.class);
@@ -48,18 +47,18 @@ public class Functions {
 		addContained(Fun_surface_area.class);
 		addContained(Fun_forest_structure.class);
 		addContained(Fun_ENL.class);
-		
+
 		for (int i = 1; i <= 55; i++) {
-        	Functions.add(new Fun_BE_PR_INTERVAL(i));			
+			Functions.add(new Fun_BE_PR_INTERVAL(i));			
 		}
-		
+
 		for (int i = 1; i <= 10; i++) {
-        	Functions.add(new Fun_BE_PR_H(i));			
+			Functions.add(new Fun_BE_PR_H(i));			
 		}
 		for (int i = 1; i <= 4; i++) {
 			Functions.add(new Fun_BE_PR_Q(i));			
 		}
-		
+
 		int LAYER_MAX = 55;
 		for (int i = 1; i <= LAYER_MAX; i++) {
 			double hsetMin = i == 1 ? Double.NEGATIVE_INFINITY : i - 1;
@@ -72,24 +71,26 @@ public class Functions {
 			if( i == LAYER_MAX) {
 				description = "Return density of " + i + " meter layer (points above included) (based on point height above ground)";
 			}
-        	Functions.add(new Fun_BE_RD_INTERVAL(hsetMin, hsetMax, name, description));			
+			Functions.add(new Fun_BE_RD_INTERVAL(hsetMin, hsetMax, name, description));			
 		}
-		
+
 		for (int i = 1; i <= 10; i++) {
-        	Functions.add(new Fun_BE_RD_H(i));			
+			Functions.add(new Fun_BE_RD_H(i));			
 		}
 		for (int i = 1; i <= 4; i++) {
 			Functions.add(new Fun_BE_RD_Q(i));			
 		}
-		
-		for(ProcessingFun fun:funMap.values()) {
+
+		for(AbstractProcessingFun fun:funMap.values()) {
 			for(String tag:fun.tags) {
 				funTags.add(tag);
 			}
 		}
+
+		add(Fun_RD.class);
 	}
 
-	public static void add(ProcessingFun fun) {
+	public static void add(AbstractProcessingFun fun) {
 		if(funMap.containsKey(fun.name)) {
 			Logger.warn("overwriting existing function "+fun.name);
 		}
@@ -117,47 +118,58 @@ public class Functions {
 		}
 		return false;
 	}
-	
-	private static void add(Class<? extends ProcessingFun> clazz) {		
+
+	private static void add(Class<? extends AbstractProcessingFun> clazz) {		
 		if(clazz.getAnnotation(Exculde.class) == null) {
 			if((!clazz.isMemberClass()) || Modifier.isStatic(clazz.getModifiers())) {
-			if(hasEmptyConstructor(clazz)) {
-				try {
-					add(clazz.getDeclaredConstructor().newInstance());
-				} catch (Exception e) {
-					Logger.error(e);
+				if(hasEmptyConstructor(clazz)) {
+					try {
+						AbstractProcessingFun instance = clazz.getDeclaredConstructor().newInstance();
+						if(instance instanceof ProcessingFun) {
+							add((ProcessingFun) instance);
+						} else if(instance instanceof ParamProcessingFun) {
+							add((ParamProcessingFun) instance);
+						} else {
+							Logger.error("class of unknown type: " + clazz);
+						}
+					} catch (Exception e) {
+						Logger.error(e);
+					}
+				} else {
+					Logger.error("class does not have empty constructor: " + clazz);
 				}
 			} else {
-				Logger.error("class does not have empty constructor: "+clazz);
-			}
-			} else {
-				Logger.error("inner class is not static: "+clazz);
+				Logger.error("inner class is not static: " + clazz);
 			}
 		} else {
-			Logger.info("class excluded by marker: "+clazz);
+			Logger.info("class excluded by marker: " + clazz);
 		}
 	}
 
 	public static double apply(DataProvider2 provider, String func) {
-		ProcessingFun fun = funMap.get(func);
-		if(fun==null) {
-			new RuntimeException("unknown function "+func);
+		AbstractProcessingFun fun = funMap.get(func);
+		if(fun == null) {
+			new RuntimeException("unknown function " + func);
 		}
-		return fun.process(provider);
+		if(fun instanceof ProcessingFun) {
+			return ((ProcessingFun) fun).process(provider);
+		} else {
+			throw new RuntimeException("no plain function " + func);
+		}
 	}
-	
-	public static ProcessingFun getFun(String func) {
-		ProcessingFun fun = funMap.get(func);
+
+	public static AbstractProcessingFun getFun(String func) {
+		AbstractProcessingFun fun = funMap.get(func);
 		if(fun == null) {
 			throw new RuntimeException("unknown function |" + func + "|");
 		}
 		return fun;
 	}
 
-	public static ProcessingFun[] getFunctions() {
-		return funMap.values().toArray(new ProcessingFun[0]);
+	public static AbstractProcessingFun[] getFunctions() {
+		return funMap.values().toArray(AbstractProcessingFun[]::new);
 	}
-	
+
 	public static String[] getTags() {
 		return funTags.toArray(new String[0]);
 	}

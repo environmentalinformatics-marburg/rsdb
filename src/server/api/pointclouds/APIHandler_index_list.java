@@ -9,6 +9,7 @@ import org.json.JSONWriter;
 
 import broker.Broker;
 import pointcloud.PointCloud;
+import pointdb.process.AbstractProcessingFun;
 import pointdb.process.Functions;
 import pointdb.process.ProcessingFun;
 import util.Web;
@@ -27,7 +28,7 @@ public class APIHandler_index_list {
 		json.object();
 		json.key("index_list");
 		json.array();
-		for(ProcessingFun f:Functions.getFunctions()) {
+		for(AbstractProcessingFun f : Functions.getFunctions()) {
 			json.object();
 			json.key("name");
 			json.value(f.name);

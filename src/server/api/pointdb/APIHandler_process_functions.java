@@ -8,6 +8,7 @@ import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
 
 import broker.Broker;
+import pointdb.process.AbstractProcessingFun;
 import pointdb.process.Functions;
 import pointdb.process.ProcessingFun;
 import util.JsonUtil;
@@ -35,7 +36,7 @@ public class APIHandler_process_functions extends PointdbAPIHandler {
 			json.object();
 			json.key("functions");
 			json.array();
-			for(ProcessingFun f:Functions.getFunctions()) {
+			for(AbstractProcessingFun f : Functions.getFunctions()) {
 				json.object();
 				json.key("name");
 				json.value(f.name);
@@ -55,9 +56,9 @@ public class APIHandler_process_functions extends PointdbAPIHandler {
 			break;
 		}
 		case "rdat": {
-			RdatDataFrame<ProcessingFun> df = new RdatDataFrame<ProcessingFun>(Collection::size);
-			df.addString("name", ProcessingFun::getName);
-			df.addString("description", ProcessingFun::getDescription);
+			RdatDataFrame<AbstractProcessingFun> df = new RdatDataFrame<AbstractProcessingFun>(Collection::size);
+			df.addString("name", AbstractProcessingFun::getName);
+			df.addString("description", AbstractProcessingFun::getDescription);
 			df.write(new ResponseReceiver(response), Functions.getFunctions());
 			break;
 		}

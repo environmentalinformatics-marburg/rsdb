@@ -59,8 +59,8 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		Band[] bands = new Band[indices_len];
 		for (int i = 0; i < indices_len; i++) {
 			String index_text = indices_text.getString(i);
-			indices[i] = Functions.getFun(index_text);
-			pointdb.indexfuncdsl.Compiler.compile(index_text);
+			//indices[i] = Functions.getFun(index_text);
+			indices[i] = pointdb.indexfuncdsl.Compiler.compile(index_text);
 			bands[i] = rasterdb.createBand(TilePixel.TYPE_FLOAT, index_text, null);
 		}
 

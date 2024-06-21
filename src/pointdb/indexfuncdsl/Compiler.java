@@ -2,7 +2,6 @@ package pointdb.indexfuncdsl;
 
 import java.util.HashMap;
 
-import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -15,13 +14,14 @@ import pointdb.indexfuncdsl.IndexFuncDSLParser.Index_funcContext;
 import pointdb.indexfuncdsl.IndexFuncDSLParser.ParamContext;
 import pointdb.indexfuncdsl.IndexFuncDSLParser.Param_sequenceContext;
 import pointdb.indexfuncdsl.IndexFuncDSLParser.ValueContext;
+import pointdb.process.AbstractProcessingFun;
+import pointdb.process.ParamProcessingFun;
 import pointdb.process.ProcessingFun;
 
 public class Compiler {
 
 	/**
 	 * Derived from https://stackoverflow.com/questions/18132078/handling-errors-in-antlr4   https://stackoverflow.com/a/26573239
-	 * @author woellauer
 	 *
 	 */
 	public static class ThrowingErrorListener extends BaseErrorListener {
@@ -67,12 +67,19 @@ public class Compiler {
 			throw e;
 		}
 	}
-	
+
 	private static ProcessingFun compileFunc(String funcName, HashMap<String, ValueContext> paramMap) {
-		ProcessingFun processingFun = pointdb.process.Functions.getFun(funcName);
-		if(!paramMap.isEmpty()) {
-			throw new RuntimeException("parameters not expected for function");
+		AbstractProcessingFun fun = pointdb.process.Functions.getFun(funcName);
+		if(fun instanceof ProcessingFun) {
+			if(paramMap.isEmpty()) {
+				return (ProcessingFun) fun;
+			} else {
+				throw new RuntimeException("parameters not expected for function");
+			}
+		} else  if(fun instanceof ParamProcessingFun) {
+			return ((ParamProcessingFun) fun).instantiate(paramMap);
+		} else {
+			throw new RuntimeException("unknown type for function");
 		}
-		return processingFun;
 	}
 }
