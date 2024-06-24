@@ -7,7 +7,7 @@ import pointdb.indexfuncdsl.IndexFuncDSLParser.ValueContext;
 import util.collections.vec.Vec;
 
 @Tag("parameterized")
-@Description("[parameterized] Return density of points at specifiec height. With height_lower < point <= height_upper  (based on point height above ground)")
+@Description("Point return density at specific height. Parameters height_lower and height_upper with height_lower < point <= height_upper  (based on point height above ground)")
 public class Fun_RD extends ParamProcessingFun {
 
 	@Override
@@ -22,8 +22,14 @@ public class Fun_RD extends ParamProcessingFun {
 
 		public Fun(Fun_RD that, HashMap<String, ValueContext> paramMap) {
 			super(that.getClass());
-			height_lower = Double.parseDouble(paramMap.get("height_lower").number().getText());
-			height_upper = Double.parseDouble(paramMap.get("height_upper").number().getText());
+			ValueContext hl = paramMap.get("height_lower");
+			if(hl != null) {
+				height_lower = Double.parseDouble(hl.number().getText());
+			}
+			ValueContext hu = paramMap.get("height_upper");
+			if(hu != null) {
+				height_upper = Double.parseDouble(hu.number().getText());
+			}
 		}
 
 		@Override

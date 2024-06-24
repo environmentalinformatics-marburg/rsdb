@@ -72,6 +72,42 @@ point_coverage: |
   <br>
   <br>
   point_coverage := covered_areas_count / areas_count
+RD: |
+  Return density at height range specified by parameters <b>height_lower</b> and <b>height_upper</b>.
+  <br>  
+  <br>
+  Filtering formula: &emsp; <i><b>height_lower</b> &lt;  point height &leq; <b>height_upper</b></i> &emsp; (point height in meter above ground)
+  <br>
+  <br>
+  <i>Point classification is not filtered, e.g. near the ground, ground classified points may be included in the calculation.</i>
+  <br>
+  <br>
+  <i>Omitting parameters causes no lower and/or upper point filtering.</i>
+  <br>
+  <br>
+  Examples:
+  <pre>
+  RD(height_lower = 1.1; height_upper = 8.7)
+  
+  RD(height_lower=1;height_upper=8)
+  
+  RD(height_lower = 1)
+  
+  RD(height_upper=8)
+  
+  RD()
+  
+  RD
+  </pre>
+  <br>
+  Height range filtering is precise. In following example each point is counted exactly once in one of the two ranges:
+  <pre>
+  RD(height_lower = -100; height_upper = 2)
+  
+  RD(height_lower = 2; height_upper = 100)
+  </pre>
+  
+  
 VDR: |
   reference: Martin Ehbrecht et al.: LiDAR-derived canopy structure supports the more-individuals hypothesis for arthropod diversity in temperate forests, Oikos (2018) 127: 814-824, <a href="https://doi.org/10.1111/oik.04972">https://doi.org/10.1111/oik.04972</a>
 ENL0: |
