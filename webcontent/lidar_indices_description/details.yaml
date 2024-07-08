@@ -72,6 +72,40 @@ point_coverage: |
   <br>
   <br>
   point_coverage := covered_areas_count / areas_count
+
+PR: |
+  Penetration rate at height range specified by parameters <b>height_lower</b> and <b>height_upper</b>.
+  <br>  
+  <br>
+  Filtering formula for height layer: &emsp; <i><b>height_lower</b> &lt;  point height &leq; <b>height_upper</b></i> &emsp; (point height in meter above ground)
+  <br>
+  <br>
+  Filtering formula for points reaching counting: &emsp; <i>point height &leq; <b>height_upper</b></i> &emsp;
+  <br>
+  <br>
+  <i>Point classification is not filtered, e.g. near the ground, ground classified points may be included in the calculation.</i>
+  <br>
+  <br>
+  <i>Parameter <b>height_lower</b> needs to be set. Omitting parameter <b>height_upper</b> causes no upper point filtering.</i>
+  <br>
+  <br>
+  Examples:
+  <pre>
+  PR(height_lower = 1.1; height_upper = 8.7)
+  
+  PR(height_lower=1;height_upper=8)
+  
+  PR(height_lower = 1)  
+  </pre>
+  <br>
+  Height range filtering is precise. In following example each point with height between 2 and 8 meter is counted exactly once in one of the two height layers:
+  <pre>
+  PR(height_lower = 2; height_upper = 4)
+  
+  PR(height_lower = 4; height_upper = 8)
+  </pre>
+  
+  
 RD: |
   Return density at height range specified by parameters <b>height_lower</b> and <b>height_upper</b>.
   <br>  
@@ -100,7 +134,7 @@ RD: |
   RD
   </pre>
   <br>
-  Height range filtering is precise. In following example each point is counted exactly once in one of the two ranges:
+  Height range filtering is precise. In following example each point is counted exactly once in one of the two height layer:
   <pre>
   RD(height_lower = -100; height_upper = 2)
   

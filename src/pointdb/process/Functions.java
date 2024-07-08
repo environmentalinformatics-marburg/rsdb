@@ -87,6 +87,7 @@ public class Functions {
 			}
 		}
 
+		add(Fun_PR.class);
 		add(Fun_RD.class);
 	}
 
