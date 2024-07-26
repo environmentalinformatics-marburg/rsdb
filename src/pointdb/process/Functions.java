@@ -93,7 +93,7 @@ public class Functions {
 
 	public static void add(AbstractProcessingFun fun) {
 		if(funMap.containsKey(fun.name)) {
-			Logger.warn("overwriting existing function "+fun.name);
+			Logger.warn("overwriting existing function " + fun.name);
 		}
 		funMap.put(fun.name, fun);
 	}
@@ -104,7 +104,7 @@ public class Functions {
 			if(ProcessingFun.class.isAssignableFrom(clazz)) {
 				add((Class<? extends ProcessingFun>) clazz);
 			} else {
-				Logger.warn("class not compatible to ProcessingFun: "+clazz);
+				Logger.warn("class not compatible to ProcessingFun: " + clazz);
 			}
 		}
 
