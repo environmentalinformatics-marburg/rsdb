@@ -2,7 +2,7 @@
 #'
 #' Creates an \link{extent} that covers the square over the circle at point x,y with radius r.
 #'
-#' Extents are used to query data from \link{RasterDB} , from \link{PointCloud} and from \link{PointDB}.   
+#' Extents are used to query data from \link{RasterDB} , from \link{PointCloud} and from \link{PointDB}.
 #'
 #' @param x first coordinate
 #' @param y second coordinate
@@ -19,7 +19,7 @@ extent_radius <- function(x, y, r) {
 #'
 #' Creates an \link{extent} that covers the square with center point x,y and with diameter (edge length) d.
 #'
-#' Extents are used to query data from \link{RasterDB} , from \link{PointCloud} and from \link{PointDB}. 
+#' Extents are used to query data from \link{RasterDB} , from \link{PointCloud} and from \link{PointDB}.
 #'
 #' @param x first coordinate
 #' @param y second coordinate
@@ -215,12 +215,12 @@ as.speclib <- function(rasterStack, na=NULL) {
 #'
 #' Convert data.frame of points (received from PointDB or PointCloud) to \link[lidR]{LAS} in lidR package.
 #'
-#' optional parameter proj4string: crs of points. e.g. proj4string <- CRS(pointdb$info$proj4)
+#' Optional parameter crs: crs of points. e.g. crs <- sf::st_crs(paste0('EPSG:', pointdb$info$epsg))
 #'
 #' @seealso \link[lidR]{LAS}
 #' @author woellauer
 #' @export
-as.LAS <- function(df, proj4string = sp::CRS()) {
+as.LAS <- function(df, crs = sf::NA_crs_) {
   stopifnot(is.data.frame(df))
   cn <- colnames(df)
   stopifnot("x" %in% cn && "y" %in% cn)
@@ -234,7 +234,7 @@ as.LAS <- function(df, proj4string = sp::CRS()) {
 
   header <- rlas::header_create(dt)
 
-  result <- lidR::LAS(data=dt, header=header, proj4string=proj4string, check=TRUE)
+  result <- lidR::LAS(data=dt, header=header, crs=crs, check=TRUE)
   return(result)
 }
 

@@ -2,6 +2,7 @@
 % Please edit documentation in R/RSDB-package.R
 \docType{package}
 \name{RSDB-package}
+\alias{RSDB}
 \alias{RSDB-package}
 \title{RSDB}
 \description{

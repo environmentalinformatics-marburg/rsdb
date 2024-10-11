@@ -103,6 +103,32 @@ public class RdatDataFrame<T> {
 		}
 
 	}
+	
+	public static class Int8Column<T> extends Column<T> {
+		@FunctionalInterface
+		public static interface ToByteFunction<T> {
+			byte applyAsByte(T value);
+		}
+
+		private final ToByteFunction<T> mapper;
+
+		public Int8Column(String name, ToByteFunction<T> mapper) {
+			super(name);
+			this.mapper = mapper;
+		}
+
+		@Override
+		public void write(DataOutput out, Iterable<T> coll) throws IOException {			
+			Rdat.writeSizedString(out, name);
+			out.writeByte(Rdat.TYPE_INT8);
+			out.writeByte(Rdat.TYPE_INT8_SIZE);
+			for (T e:coll) {
+				byte v = mapper.applyAsByte(e);
+				out.writeByte(v);
+			}		
+		}
+
+	}
 
 	public static class DoubleColumn<T> extends Column<T> {
 

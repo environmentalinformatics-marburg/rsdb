@@ -16,6 +16,7 @@ import util.rdat.RdatDataFrame.Column;
 import util.rdat.RdatDataFrame.DoubleColumn;
 import util.rdat.RdatDataFrame.UInt16Column;
 import util.rdat.RdatDataFrame.UInt8Column;
+import util.rdat.RdatDataFrame.Int8Column;
 
 public class RdatDataFrame_points {
 	
@@ -27,7 +28,7 @@ public class RdatDataFrame_points {
 		add(new UInt16Column<GeoPoint>("intensity", GeoPoint::getIntensity));
 		add(new UInt8Column<GeoPoint>("returnNumber", GeoPoint::getReturnNumber));
 		add(new UInt8Column<GeoPoint>("returns", GeoPoint::getReturns));
-		add(new UInt8Column<GeoPoint>("scanAngleRank", GeoPoint::getScanAngleRank));
+		add(new Int8Column<GeoPoint>("scanAngleRank", GeoPoint::getScanAngleRank));
 		add(new UInt8Column<GeoPoint>("classification", GeoPoint::getClassification));
 		add(new UInt8Column<GeoPoint>("classificationFlags", GeoPoint::getClassificationFlags));
 	}};	

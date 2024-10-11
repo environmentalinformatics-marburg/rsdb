@@ -4,13 +4,13 @@
 \alias{as.LAS}
 \title{Convert data.frame of points to LAS object of lidR package.}
 \usage{
-as.LAS(df, proj4string = sp::CRS())
+as.LAS(df, crs = sf::NA_crs_)
 }
 \description{
 Convert data.frame of points (received from PointDB or PointCloud) to \link[lidR]{LAS} in lidR package.
 }
 \details{
-optional parameter proj4string: crs of points. e.g. proj4string <- CRS(pointdb$info$proj4)
+Optional parameter crs: crs of points. e.g. crs <- sf::st_crs(paste0('EPSG:', pointdb$info$epsg))
 }
 \seealso{
 \link[lidR]{LAS}
