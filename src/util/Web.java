@@ -93,13 +93,13 @@ public final class Web {
 	 * @param name
 	 * @return
 	 */
-	public  static String[] getStrings(Request request, String name) {
+	public  static String[] getOneParameterStrings(Request request, String name) {
 		String text = request.getParameter(name);
 		if(text==null) {
 			throw new RuntimeException("parameter not found: "+name);
 		}
 		String[] texts = text.split(",");
-		if(texts.length<1) {
+		if(texts.length < 1) {
 			throw new RuntimeException("error in parameter: "+name+"    "+text);
 		}
 		String[] r = new String[texts.length];
@@ -126,7 +126,7 @@ public final class Web {
 		String text = request.getParameter(name);
 		return text==null ? defaultValue : text;
 	}
-	
+
 	public  static String getLastString(Request request, String name, String defaultValue) {
 		String[] values = request.getParameterValues(name);
 		return values == null ? defaultValue : values[values.length - 1];
@@ -139,6 +139,8 @@ public final class Web {
 		}
 		return text;
 	}
+
+
 
 	/**
 	 * get one or more integers separated by ","
@@ -178,7 +180,7 @@ public final class Web {
 			return defaultValue;
 		}
 	}
-	
+
 	public  static long getLong(Request request, String name, long defaultValue) {
 		String text = request.getParameter(name);
 		if(text==null) {
@@ -219,7 +221,7 @@ public final class Web {
 		Logger.warn("value unknown return default: |"+text+"|");
 		return defaultValue;
 	}
-	
+
 	public static boolean getFlag(Request request, String name) {
 		return request.getParameter(name) != null;
 	}

@@ -47,7 +47,7 @@ public class APIHandler_query_raster extends PointdbAPIHandler {
 
 		String format = Web.getString(request, "format", "rdat");
 
-		String[] processingTypes = Web.getStrings(request, "type");
+		String[] processingTypes = Web.getOneParameterStrings(request, "type");
 		if(processingTypes.length!=1) {
 			throw new RuntimeException("currently only one type per query supported: "+Arrays.toString(processingTypes));
 		}		

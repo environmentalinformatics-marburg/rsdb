@@ -2,8 +2,6 @@ package pointdb.base;
 
 import java.util.Arrays;
 
-import pointdb.base.PolygonUtil.PolygonWithHoles;
-
 /**
  * Point in polygon test
  * <p>
@@ -348,7 +346,7 @@ public class PolygonUtil {
 
 		public PolygonWithHoles(Point2d[] polygon, Point2d[] ...holes) {
 			this.polygon = polygon;
-			this.holes = holes; // nullable
+			this.holes = holes == null || holes.length == 0 ? null : holes; // nullable
 		}
 
 		public boolean hasHoles() {
