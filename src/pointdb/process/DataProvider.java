@@ -1,8 +1,6 @@
 package pointdb.process;
 
 
-import org.tinylog.Logger;
-
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
 import pointdb.base.Rect;
@@ -15,8 +13,7 @@ import server.api.pointdb.DTM2_generator;
 import server.api.pointdb.RasterGenerator;
 import util.collections.vec.Vec;
 
-public class DataProvider {
-	
+public class DataProvider {	
 
 	public DataProvider2 dp;
 

@@ -5,8 +5,6 @@ import java.util.stream.Stream;
 import pointcloud.GeoPointTransformer;
 import pointcloud.PointCloud;
 import pointcloud.PointTable;
-import pointcloud.PointTable.FilterByPolygonsWithHoleFunc;
-import pointcloud.PointTable.FilterByPolygonsWithHolesFunc;
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;
 import pointdb.base.Point2d;
