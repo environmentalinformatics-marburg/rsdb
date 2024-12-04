@@ -44,7 +44,9 @@ sudo apt-get install default-jdk
 java -version
 
 # install library connection GDAL to Java
-# If libgdal-java is not available for your os, you need to insert libgdal-java manually, see wiki below.
+# If libgdal-java is not available for your os,
+# you need to insert libgdal-java manually,
+# see wiki below.
 sudo apt install libgdal-java
 
 # copy zip-archiv to a new folder
@@ -67,7 +69,7 @@ chmod +x *.sh
 
 Consult the [RSDB wiki](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Troubleshooting) if you encounter issues.
 
-If libgdal-java is not available for your os, see in wiki: [Unable to locate package libgdal-java](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Troubleshooting#unable-to-locate-package-libgdal-java)
+If **libgdal-java** is not available for your os, see in wiki: [Unable to locate package libgdal-java](https://github.com/environmentalinformatics-marburg/rsdb/wiki/Troubleshooting#unable-to-locate-package-libgdal-java)
 
 ## Other Linux distributions
 
