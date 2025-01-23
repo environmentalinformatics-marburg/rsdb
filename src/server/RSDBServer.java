@@ -414,6 +414,9 @@ public class RSDBServer {
 		if(http_connector != null) {			
 			System.out.println("HTTP ("+ broker.brokerConfig.server().http_authentication +" authentication)\t\t" + toBold("http://[HOSTNAME]:" + http_connector));
 		}
+		if(broker.brokerConfig.server().useHTTPS() && !KEYSTORE_FILE.exists()) {
+			System.out.println("\nWARNING: The certificate key store file '" + KEYSTORE_FILE + "' does not exist => no HTTPS\n");
+		}
 		if(basic_https_connector != null) {
 			System.out.println("HTTPS (basic authentication)\t\t" + toBold("https://[HOSTNAME]:" + basic_https_connector));
 		}

@@ -8,7 +8,7 @@ server:
   #http_authentication: basic
   
   # HTTPS port (default 8082), (port 0 disables that connection) 
-  #port: 8082
+  #secure_port: 8082
 
   # password of certificate store
   #keystore_password: password  
