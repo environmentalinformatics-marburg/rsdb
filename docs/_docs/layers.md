@@ -10,3 +10,4 @@ RSDB stores data in layers of several types:
 * [VectorDB](../layers_vectordb) - **vector** data
 * [POI-group](../layers_poi_group) - **point** vector data
 * [ROI-group](../layers_roi_group) - **polygon** vector data
+* [PostGIS](../layers_postgis) - **postgis** vector data

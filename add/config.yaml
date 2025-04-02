@@ -34,3 +34,10 @@ Points_of_interest:
 
  # ROI config: list of ROI Layer entries    
 Regions_of_interest:
+
+# PostGIS server connection properties 
+postgis:
+  # URL example 'jdbc:postgresql://123.123.123.123/mydb'
+  #url: 'URL'
+  #user: 'USERNAME'
+  #password: 'PASSWORD' 

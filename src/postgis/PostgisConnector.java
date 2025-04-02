@@ -14,6 +14,9 @@ public class PostgisConnector {
 	
 	public Connection getConnection() {
 		try {
+			if(config.url.isBlank()) {
+				throw new RuntimeException("missing url in config for postgis");
+			}
 			Connection conn = DriverManager.getConnection(config.url, config.user, config.password);
 			return conn;
 		} catch (SQLException e) {

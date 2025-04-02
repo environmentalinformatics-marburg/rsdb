@@ -42,6 +42,8 @@ docs:
         url: /docs/layers_poi_group/ 
       - title: "ROI-group"
         url: /docs/layers_roi_group/         
+      - title: "PostGIS"
+        url: /docs/layers_postgis/         
   - title: "Tasks"
     url: /docs/tasks/
     children:

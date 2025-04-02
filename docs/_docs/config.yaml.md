@@ -35,7 +35,8 @@ top_level_key3:
 | ------------- | ------------- |
 | **server**  | server configuration (key-value pairs)  |
 | **jws**  | JWS configuration (list of jws-entries that contain key-value pairs) |
-| **pointdb**  | PointDB layer properties (list of pointdb-layer-entries that contain key-value pairs) |
+| **pointdb**  | PointDB layer properties (list of pointdb-layer-entries that contain key-value pairs) (obsolete) |
+| **postgis**  | PostGIS server connection properties |
 
 ~~~ yaml
 # server config
@@ -121,6 +122,13 @@ pointdb:
 
     # ROI group one layer name or list of names
     #roi: some_roi
+
+# PostGIS server connection properties 
+postgis:
+  # URL example 'jdbc:postgresql://123.123.123.123/mydb'
+  #url: 'URL'
+  #user: 'USERNAME'
+  #password: 'PASSWORD'  
 ~~~
 
 ### examples
@@ -167,5 +175,10 @@ pointdb:
     tags: point_data
     rasterdb: layer1_rasterized  
     poi: some_poi
-    roi: some_roi    
+    roi: some_roi
+
+postgis:
+  url: 'jdbc:postgresql://123.123.123.123/mydb'
+  user: 'user'
+  password: 'password'  
 ~~~
