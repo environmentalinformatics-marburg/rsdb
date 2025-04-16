@@ -150,6 +150,40 @@ public class TileFloat {
 		return targetShort;
 	}
 	
+	public static char[][] floatToChar(float[][] sourceFloat, char[][] targetchar, char targetNA) {
+		int w = sourceFloat[0].length;
+		int h = sourceFloat.length;
+		if(targetchar == null || targetchar.length != h || targetchar[0].length != w) {
+			targetchar = new char[h][w];
+		}
+		for (int y = 0; y < h; y++) {
+			float[] a = sourceFloat[y];
+			char[] b = targetchar[y];
+			for (int x = 0; x < w; x++) {
+				float v = a[x];
+				b[x] = Float.isFinite(v) ? (char) v : targetNA;
+			}
+		}
+		return targetchar;
+	}
+
+	public static char[][] floatToChar(float[][] sourceFloat, char[][] targetchar, float sourceNA, char targetNA) {
+		int w = sourceFloat[0].length;
+		int h = sourceFloat.length;
+		if(targetchar == null || targetchar.length != h || targetchar[0].length != w) {
+			targetchar = new char[h][w];
+		}
+		for (int y = 0; y < h; y++) {
+			float[] a = sourceFloat[y];
+			char[] b = targetchar[y];
+			for (int x = 0; x < w; x++) {
+				float v = a[x];
+				b[x] = Float.isFinite(v) && v != sourceNA ? (char) v : targetNA;
+			}
+		}
+		return targetchar;
+	}
+	
 	public static float[][] shortToFloat(short[][] sourceShort, float[][] targetFloat, short sourceNA) {
 		int w = sourceShort[0].length;
 		int h = sourceShort.length;

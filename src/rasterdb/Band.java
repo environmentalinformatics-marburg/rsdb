@@ -192,6 +192,10 @@ public class Band {
 		return 0;
 	}
 	
+	public char getUint16NA() {
+		return 0;
+	}
+	
 	public String getPixelTypeName() {
 		switch (type) {
 		case TilePixel.TYPE_SHORT:

@@ -58,7 +58,7 @@ public class Region {
 
 	@Override
 	public String toString() {
-		return "Region [bbox=" + bbox + ", polygons=" + polygons.length + "]";
+		return polygons == null ? "Region [bbox=" + bbox + "]" : "Region [bbox=" + bbox + ", polygons=" + polygons.length + "]";
 	}
 	
 	public Region toBboxRegion() {

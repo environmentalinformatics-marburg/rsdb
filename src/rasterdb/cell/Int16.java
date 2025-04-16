@@ -1,7 +1,6 @@
 package rasterdb.cell;
 
-public class Int16 {
-	
+public class Int16 {	
 	
 	public static byte[] encInt16_split(short[] data) {
 		int size = data.length;

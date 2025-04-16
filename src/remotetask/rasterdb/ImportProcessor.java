@@ -11,6 +11,8 @@ import rasterdb.RasterDB;
 import rasterdb.cell.CellInt16;
 import rasterdb.cell.CellInt8;
 import rasterdb.cell.CellType;
+import rasterdb.cell.CellUint16;
+import rasterdb.tile.ProcessingChar;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingShort;
 import rasterdb.tile.TileFloat;
@@ -20,6 +22,7 @@ import remotetask.RemoteProxy;
 import util.Util;
 import util.collections.vec.Vec;
 import util.frame.ByteFrame;
+import util.frame.CharFrame;
 import util.frame.FloatFrame;
 import util.frame.ShortFrame;
 import util.raster.GdalReader;
@@ -106,7 +109,7 @@ public class ImportProcessor extends RemoteProxy {
 		/*setMessage("calculate extent");
 		Range2d localRange = rasterdb.getLocalRange(true);
 		Logger.info("new local range " + localRange);*/
-		
+
 		setMessage("flush");
 		rasterdb.flush();
 
@@ -148,6 +151,10 @@ public class ImportProcessor extends RemoteProxy {
 		}
 		case CellType.INT8: {
 			importBand_TYPE_BYTE(rasterdb, bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize);
+			break;
+		}
+		case CellType.UINT16: {
+			importBand_TYPE_CHAR(rasterdb, bandSpec, gdalreader, rasterUnit, timestamp, rasterdbBand, pixelXmin, pixelYmin, yoff, ysize);
 			break;
 		}
 		default:
@@ -324,6 +331,82 @@ public class ImportProcessor extends RemoteProxy {
 		int xlen = dataBytes[0].length;
 		int ylen = dataBytes.length;
 		cnt = cellInt8.writeMerge(rasterUnit, timestamp, rasterdbBand, dataBytes, pixelYmin, pixelXmin, xlen, ylen);		
+		rasterUnit.commit();
+		Logger.info("tiles written: " + cnt);
+	}
+
+	private static void importBand_TYPE_CHAR(RasterDB rasterdb, BandSpec bandSpec, GdalReader gdalreader, RasterUnitStorage rasterUnit, int timestamp, Band rasterdbBand, int pixelXmin, int pixelYmin, int yoff, int ysize) throws IOException {
+		char[][] dataChar = null;		
+		switch(bandSpec.gdal_raster_data_type) {
+		case GdalReader.GDAL_BYTE:
+		case GdalReader.GDAL_UINT16:
+		case GdalReader.GDAL_INT16:
+		case GdalReader.GDAL_UINT32:
+		case GdalReader.GDAL_INT32: {
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_INT16) {
+				Logger.warn("The conversion of INT16 to UINT16 may not preserve the full value range.");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_INT32) {
+				Logger.warn("The conversion of INT32 to UINT16 may not preserve the full value range.");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_UINT32) {
+				Logger.warn("The conversion of UINT32 to UINT16 may not preserve the full value range.");
+			}
+			dataChar = gdalreader.getDataChar(bandSpec.file_band_index, null, yoff, ysize);			
+			if(bandSpec.no_data_value != null) {
+				char bandNaChar = rasterdbBand.getUint16NA();
+				char gdalNaChar = (char) bandSpec.no_data_value.intValue();
+				if(bandSpec.no_data_value < Character.MIN_VALUE) { // gdal mapping
+					gdalNaChar = Character.MIN_VALUE;
+				}
+				if(bandSpec.no_data_value > Character.MAX_VALUE) { // gdal mapping
+					gdalNaChar = Character.MAX_VALUE;
+				}
+				if(gdalNaChar != bandNaChar) {
+					Logger.info("convert file no data value float "+bandSpec.no_data_value + " ==>   char " + ((int)gdalNaChar) + " to band char " + ((int)bandNaChar));
+					ProcessingChar.convertNA(dataChar, gdalNaChar, bandNaChar);
+				}				
+			}			
+			break;
+		}
+		case GdalReader.GDAL_FLOAT64:
+		case GdalReader.GDAL_FLOAT32: {
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT64) {				
+				Logger.warn("The conversion of FLOAT64 to UINT16 may not preserve the full value range and precision.");
+			}
+			if(bandSpec.gdal_raster_data_type == GdalReader.GDAL_FLOAT32) {
+				Logger.warn("The conversion of FLOAT32 to UINT16 may not preserve the full value range and precision.");
+			}			
+			float[][] dataFloat = gdalreader.getDataFloat(bandSpec.file_band_index, null, yoff, ysize);
+			char bandNaChar = rasterdbBand.getUint16NA();
+			if(bandSpec.no_data_value == null) {				
+				dataChar = TileFloat.floatToChar(dataFloat, null, bandNaChar);						
+			} else {
+				float gdalNaFloat = bandSpec.no_data_value.floatValue();
+				Logger.info("convert no data value " + gdalNaFloat + " to " + ((char)bandNaChar));
+				dataChar = TileFloat.floatToChar(dataFloat, null, gdalNaFloat, bandNaChar);
+			}			
+			break;
+		}
+		default:
+			throw new RuntimeException("gdal data type not implemented for band type TYPE_CHAR " + bandSpec.gdal_raster_data_type);				
+		}
+		if(Double.isFinite(bandSpec.value_scale)) {
+			Logger.info("value_scale " + bandSpec.value_scale);
+			CharFrame.rawMul(dataChar, bandSpec.value_scale);
+		}
+		if(Double.isFinite(bandSpec.value_offset)) {
+			Logger.info("value_offset " + bandSpec.value_offset);
+			CharFrame.rawAdd(dataChar, bandSpec.value_offset);
+		}
+		dataChar = Util.flipRows(dataChar);
+		int cnt;
+
+		CellUint16 cellUint16 = new CellUint16(rasterdb.getTilePixelLen());
+		int xlen = dataChar[0].length;
+		int ylen = dataChar.length;
+		cnt = cellUint16.writeMerge(rasterUnit, timestamp, rasterdbBand, dataChar, pixelYmin, pixelXmin, xlen, ylen);			
+
 		rasterUnit.commit();
 		Logger.info("tiles written: " + cnt);
 	}

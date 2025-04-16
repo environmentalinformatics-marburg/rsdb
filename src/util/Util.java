@@ -136,6 +136,21 @@ public class Util {
 	 * @param data
 	 * @return
 	 */
+	public static char[][] flipRows(char[][] data) {
+		final int len = data.length;
+		final int max = len-1;
+		char[][] temp = new char[len][];		
+		for (int i = 0; i < len; i++) {
+			temp[i] = data[max-i];
+		}
+		return temp;
+	}
+	
+	/**
+	 * reverses rows (y-direction)
+	 * @param data
+	 * @return
+	 */
 	public static byte[][] flipRows(byte[][] data) {
 		final int len = data.length;
 		final int max = len-1;
@@ -201,6 +216,22 @@ public class Util {
 		return r;
 	}
 	
+	public static char[][] arrayToArrayArrayShortChar(short[] a, int line, char[][] r) {
+		int count = a.length;
+		int lines = count/line;
+		if(r==null || r.length!=lines) {
+			return arrayToArrayArrayShortChar(a, line);
+		}
+		for(int i=0;i<lines;i++) {
+			char[] row = r[i];
+			if(row==null || row.length!=line) {
+				return arrayToArrayArrayShortChar(a, line);
+			}
+			System.arraycopy(a, i*line, row, 0, line);
+		}
+		return r;
+	}
+	
 	public static byte[][] arrayToArrayArray(byte[] a, int line, byte[][] r) {
 		int count = a.length;
 		int lines = count/line;
@@ -256,6 +287,16 @@ public class Util {
 		int count = a.length;
 		int lines = count/line;
 		short[][] r = new short[lines][line];
+		for(int i=0;i<lines;i++) {
+			System.arraycopy(a, i*line, r[i], 0, line);
+		}
+		return r;
+	}
+	
+	public static char[][] arrayToArrayArrayShortChar(short[] a, int line) {
+		int count = a.length;
+		int lines = count/line;
+		char[][] r = new char[lines][line];
 		for(int i=0;i<lines;i++) {
 			System.arraycopy(a, i*line, r[i], 0, line);
 		}
