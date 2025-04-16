@@ -179,7 +179,10 @@ public class ImportSpec {
 								break;
 							case "int16":
 								bandSpec.rastedb_band_data_type = 3;
-								break;							
+								break;
+							case "uint16":
+								bandSpec.rastedb_band_data_type = 5;
+								break;									
 							default:
 								Logger.warn("unknown band type: " + rastedb_band_data_type_name);
 							}

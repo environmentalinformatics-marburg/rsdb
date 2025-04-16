@@ -10,6 +10,7 @@ import rasterdb.Band;
 import rasterdb.RasterDB;
 import rasterdb.cell.CellInt16;
 import rasterdb.cell.CellType;
+import rasterdb.cell.CellUint16;
 import rasterunit.BandKey;
 import rasterunit.RasterUnitStorage;
 import remotetask.MessageSink;
@@ -79,6 +80,10 @@ public class Processing {
 		case CellType.INT16:
 			CellInt16 cellInt16 = new CellInt16(rasterdb.getTilePixelLen());
 			cellInt16.writeStorageBandDiv(band, div, srcStorage, srcBandKey, dstStorage, dstBandKey, commiter);	
+			break;
+		case CellType.UINT16:
+			CellUint16 cellUint16 = new CellUint16(rasterdb.getTilePixelLen());
+			cellUint16.writeStorageBandDiv(band, div, srcStorage, srcBandKey, dstStorage, dstBandKey, commiter);	
 			break;
 		default:
 			throw new RuntimeException("unknown band type");

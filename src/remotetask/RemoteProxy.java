@@ -8,6 +8,10 @@ public abstract class RemoteProxy implements AutoCloseable {
 		this.messageSink = messageSink == null ? MessageSink.MESSAGE_SINK_LOG : messageSink;
 	}
 	
+	/**
+	 * 
+	 * @return not null
+	 */
 	public final MessageSink getMessageSink() {
 		return messageSink;
 	}

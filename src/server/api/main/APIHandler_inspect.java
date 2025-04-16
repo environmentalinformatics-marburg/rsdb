@@ -395,7 +395,7 @@ public class APIHandler_inspect extends APIHandler {
 				if(hasValueDerivation) {
 					json.value("float");	
 				} else {
-					json.value("short");
+					json.value("uint16");
 				}
 				break;
 			}

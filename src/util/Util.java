@@ -227,7 +227,10 @@ public class Util {
 			if(row==null || row.length!=line) {
 				return arrayToArrayArrayShortChar(a, line);
 			}
-			System.arraycopy(a, i*line, row, 0, line);
+			int srcPos = i*line;
+			for(int pos = 0; pos < line; pos++) {
+				row[pos] = (char) a[srcPos + pos];
+			}
 		}
 		return r;
 	}
@@ -293,12 +296,16 @@ public class Util {
 		return r;
 	}
 	
-	public static char[][] arrayToArrayArrayShortChar(short[] a, int line) {
-		int count = a.length;
+	public static char[][] arrayToArrayArrayShortChar(short[] src, int line) {
+		int count = src.length;
 		int lines = count/line;
 		char[][] r = new char[lines][line];
 		for(int i=0;i<lines;i++) {
-			System.arraycopy(a, i*line, r[i], 0, line);
+			int srcPos = i*line;
+			char[] dest = r[i];
+			for(int pos = 0; pos < line; pos++) {
+				dest[pos] = (char) src[srcPos + pos];
+			}
 		}
 		return r;
 	}
