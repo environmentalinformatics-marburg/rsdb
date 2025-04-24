@@ -54,6 +54,15 @@ public class FloatFrame {
 	public static FloatFrame ofExtent(ShortFrame extent) {
 		return new FloatFrame(new float[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
+	
+	/**
+	 * create empty
+	 * @param extent
+	 * @return
+	 */
+	public static FloatFrame ofExtent(CharFrame extent) {
+		return new FloatFrame(new float[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
+	}
 
 	/**
 	 * copy
@@ -77,6 +86,12 @@ public class FloatFrame {
 		shortToFloat(source.data, target.data, source.width, source.height, na);
 		return target;
 	}
+	
+	public static FloatFrame ofCharsWithNA(CharFrame source, char na) {
+		FloatFrame target = ofExtent(source);
+		charToFloat(source.data, target.data, source.width, source.height, na);
+		return target;
+	}
 
 	public static void shortToFloat(short[][] src, float[][] dst, int width, int height, short na) {
 		for (int y = 0; y < height; y++) {
@@ -84,6 +99,17 @@ public class FloatFrame {
 			float[] t = dst[y];
 			for (int x = 0; x < width; x++) {
 				short v = s[x];				
+				t[x] = v == na ? Float.NaN : v;
+			}
+		}
+	}
+	
+	public static void charToFloat(char[][] src, float[][] dst, int width, int height, char na) {
+		for (int y = 0; y < height; y++) {
+			char[] s = src[y];
+			float[] t = dst[y];
+			for (int x = 0; x < width; x++) {
+				char v = s[x];				
 				t[x] = v == na ? Float.NaN : v;
 			}
 		}

@@ -34,6 +34,10 @@ public class DoubleFrame {
 		return new DoubleFrame(new double[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
 	
+	public static DoubleFrame ofExtent(CharFrame extent) {
+		return new DoubleFrame(new double[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
+	}
+	
 	public static DoubleFrame ofExtent(ByteFrame extent) {
 		return new DoubleFrame(new double[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
@@ -75,6 +79,19 @@ public class DoubleFrame {
 			double[] t = target.data[y];
 			for (int x = 0; x < source.width; x++) {
 				short v = s[x];				
+				t[x] = v == na ? Double.NaN : v;
+			}
+		}
+		return target;
+	}
+	
+	public static DoubleFrame ofCharsWithNA(CharFrame source, char na) {
+		DoubleFrame target = ofExtent(source);
+		for (int y = 0; y < source.height; y++) {
+			char[] s = source.data[y];
+			double[] t = target.data[y];
+			for (int x = 0; x < source.width; x++) {
+				char v = s[x];				
 				t[x] = v == na ? Double.NaN : v;
 			}
 		}

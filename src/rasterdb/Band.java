@@ -173,11 +173,15 @@ public class Band {
 	}
 	
 	public boolean isPixelTypeFloat32OrExactConvertible() {
-		return isPixelTypeFloat32() || isPixelTypeInt16();
+		return isPixelTypeFloat32() || isPixelTypeInt16() || isPixelTypeUint16();
 	}
 	
 	public boolean isPixelTypeInt16() {
 		return type == TilePixel.TYPE_SHORT || type == CellType.INT16;
+	}
+	
+	public boolean isPixelTypeUint16() {
+		return type == CellType.UINT16;
 	}
 	
 	public boolean isPixelTypeFloat32() {

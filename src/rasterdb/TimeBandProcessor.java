@@ -4,12 +4,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.gdal.gdalconst.gdalconst;
 import org.tinylog.Logger;
 
 import rasterdb.cell.CellInt16;
 import rasterdb.cell.CellInt8;
 import rasterdb.cell.CellType;
+import rasterdb.cell.CellUint16;
 import rasterdb.tile.Processing;
 import rasterdb.tile.ProcessingFloat;
 import rasterdb.tile.ProcessingQuery;
@@ -27,7 +27,6 @@ import util.frame.IntFrame;
 import util.frame.ShortFrame;
 
 public class TimeBandProcessor implements TimeFrameProducer {
-
 
 	public final RasterDB rasterdb;
 	public final Range2d range2d;
@@ -274,6 +273,12 @@ public class TimeBandProcessor implements TimeFrameProducer {
 		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
 		return cellInt16.read(pyramid_rasterUnit, t, band, pyramid_srcRange, pyramidLayerInternalDiv);	
 	}
+	
+	private char[][] readUint16(int timestamp, Band band) {
+		CellUint16 cellUint16 = new CellUint16(rasterdb.getTilePixelLen());
+		int t = Processing.getTFromPyramidTimestamp(pyramid, timestamp);
+		return cellUint16.read(pyramid_rasterUnit, t, band, pyramid_srcRange, pyramidLayerInternalDiv);	
+	}
 
 	private byte[][] readInt8(int timestamp, Band band) {
 		CellInt8 cellInt8 = new CellInt8(rasterdb.getTilePixelLen());
@@ -393,6 +398,9 @@ public class TimeBandProcessor implements TimeFrameProducer {
 			char na_dst = 0;	
 			return CharFrame.ofBytes(ByteFrame.of(readInt8(timestamp, band), range2d), na_src, na_dst);
 		}
+		case CellType.UINT16: {
+			return CharFrame.of(readUint16(timestamp, band), range2d);
+		}
 		default:
 			throw new RuntimeException("unknown tile type: "+tileType);
 		}
@@ -449,6 +457,10 @@ public class TimeBandProcessor implements TimeFrameProducer {
 		case TilePixel.TYPE_FLOAT: {			
 			return FloatFrame.of(readFloat(timestamp, band), range2d);
 		}
+		case CellType.UINT16: {
+			char na = band.getUint16NA();			
+			return FloatFrame.ofCharsWithNA(getCharFrame(timestamp, band), na);
+		}
 		default:
 			throw new RuntimeException("unknown tile type: "+tileType);
 		}
@@ -472,6 +484,10 @@ public class TimeBandProcessor implements TimeFrameProducer {
 		}
 		case TilePixel.TYPE_FLOAT: {			
 			return DoubleFrame.ofFloats(readFloat(timestamp, band), range2d);
+		}
+		case CellType.UINT16: {
+			char na = band.getUint16NA();			
+			return DoubleFrame.ofCharsWithNA(getCharFrame(timestamp, band), na);
 		}
 		default:
 			throw new RuntimeException("unknown tile type: "+tileType);
