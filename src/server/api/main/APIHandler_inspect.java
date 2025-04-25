@@ -537,6 +537,9 @@ public class APIHandler_inspect extends APIHandler {
 				case CellType.INT16:
 					json.value("int16");
 					break;
+				case CellType.UINT16:
+					json.value("uint16");
+					break;
 				default:
 					throw new RuntimeException("unknown band type: "+ band.type);
 				}
