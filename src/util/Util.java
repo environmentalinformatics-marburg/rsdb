@@ -235,6 +235,25 @@ public class Util {
 		return r;
 	}
 	
+	public static char[][] arrayToArrayArrayIntChar(int[] a, int line, char[][] r) {
+		int count = a.length;
+		int lines = count/line;
+		if(r==null || r.length!=lines) {
+			return arrayToArrayArrayIntChar(a, line);
+		}
+		for(int i=0;i<lines;i++) {
+			char[] row = r[i];
+			if(row==null || row.length!=line) {
+				return arrayToArrayArrayIntChar(a, line);
+			}
+			int srcPos = i*line;
+			for(int pos = 0; pos < line; pos++) {
+				row[pos] = (char) a[srcPos + pos];
+			}
+		}
+		return r;
+	}
+	
 	public static byte[][] arrayToArrayArray(byte[] a, int line, byte[][] r) {
 		int count = a.length;
 		int lines = count/line;
@@ -297,6 +316,20 @@ public class Util {
 	}
 	
 	public static char[][] arrayToArrayArrayShortChar(short[] src, int line) {
+		int count = src.length;
+		int lines = count/line;
+		char[][] r = new char[lines][line];
+		for(int i=0;i<lines;i++) {
+			int srcPos = i*line;
+			char[] dest = r[i];
+			for(int pos = 0; pos < line; pos++) {
+				dest[pos] = (char) src[srcPos + pos];
+			}
+		}
+		return r;
+	}
+	
+	public static char[][] arrayToArrayArrayIntChar(int[] src, int line) {
 		int count = src.length;
 		int lines = count/line;
 		char[][] r = new char[lines][line];

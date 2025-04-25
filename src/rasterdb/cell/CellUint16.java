@@ -2,6 +2,8 @@ package rasterdb.cell;
 
 import java.nio.ByteOrder;
 
+import com.github.luben.zstd.Zstd;
+
 import me.lemire.integercompression.IntWrapper;
 import rasterdb.Band;
 import rasterunit.Tile;
@@ -122,29 +124,24 @@ public class CellUint16 extends Cell<char[][]>{
 		threadLocal_fastPFOR.get().headlessCompress(data, inpos, cell_pixel_count, compressed_raw, outpos);
 		byte[] transformed = Serialisation.intToByteArray(compressed_raw, outpos.get());
 		return transformed;
-		//byte[] result = Zstd.compress(transformed, 1);
-		/*try {
-			byte[] result = Snappy.rawCompress(compressed_raw, outpos.get() * 4);
-			return result;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-		//return null;
+		/*return Zstd.compress(transformed);*/
 	}
 
 	public int[] dec(byte[] data) {
-		//int len = (int) Zstd.decompressedSize(data);
-		//byte[] inter = Zstd.decompress(data, len);
-		//int[] inter2 = Serialisation.byteToIntArray(inter);
-		//int[] inter2 = Serialisation.byteToIntArray(data);
-		int SIZE_INTS = data.length/4;
-		int[] inter2 = new int[SIZE_INTS];
-		java.nio.ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(inter2);
+		/*int original_size = (int) Zstd.getFrameContentSize(data);
+		if(original_size <= 0) {
+			throw new RuntimeException("Decompress error: " + original_size);
+		}
+		byte[] transformed = Zstd.decompress(data, original_size);
+		int[] compressed_raw = Serialisation.byteToIntArray(transformed);*/
+		int[] compressed_raw = Serialisation.byteToIntArray(data);
 		IntWrapper inpos = new IntWrapper();
 		int[] result = new int[cell_pixel_count];
 		IntWrapper outpos = new IntWrapper();
-		threadLocal_fastPFOR.get().headlessUncompress(inter2, inpos, inter2.length, result, outpos, cell_pixel_count);
+		threadLocal_fastPFOR.get().headlessUncompress(compressed_raw, inpos, compressed_raw.length, result, outpos, cell_pixel_count);
+		if(outpos.intValue() != cell_pixel_count) {
+			throw new RuntimeException("dec error");
+		}
 		Serialisation.decodeDeltaZigZag(result);
 		return result;
 	}

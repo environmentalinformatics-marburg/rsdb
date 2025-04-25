@@ -29,7 +29,8 @@ import util.frame.ShortFrame;
 public class TimeBandProcessor implements TimeFrameProducer {
 
 	public final RasterDB rasterdb;
-	public final Range2d range2d;
+	public final int tilePixelLen;
+	public final Range2d range2d;	
 	private int scale;
 
 	private RasterUnitStorage pyramid_rasterUnit;
@@ -38,20 +39,21 @@ public class TimeBandProcessor implements TimeFrameProducer {
 	private int pyramidLayerInternalDiv;
 	private int pyramid;
 
-
 	public TimeBandProcessor(RasterDB rasterdb, Range2d range2d) {
 		this.rasterdb = rasterdb;
+		this.tilePixelLen = rasterdb.getTilePixelLen();
 		this.range2d = range2d;
 		this.pyramid_rasterUnit = rasterdb.rasterUnit();
 		this.pyramid_srcRange = range2d;
 		this.pyramid_dstRange = range2d;
 		this.pyramidLayerInternalDiv = 1;
 		this.pyramid = 0;
-		this.scale = 1;
+		this.scale = 1;		
 	}
 
 	public TimeBandProcessor(RasterDB rasterdb, Range2d range2d, int scale) {
 		this.rasterdb = rasterdb;
+		this.tilePixelLen = rasterdb.getTilePixelLen();
 		this.range2d = range2d;
 		this.scale = scale;
 		if(rasterdb.isInternalPyramid()) {
@@ -69,6 +71,7 @@ public class TimeBandProcessor implements TimeFrameProducer {
 
 	protected TimeBandProcessor(TimeBandProcessor tbp) {
 		this.rasterdb = tbp.rasterdb;
+		this.tilePixelLen = tbp.tilePixelLen;
 		this.range2d = tbp.range2d;
 		this.scale = tbp.scale;
 		this.pyramid_rasterUnit = tbp.pyramid_rasterUnit;
@@ -330,6 +333,11 @@ public class TimeBandProcessor implements TimeFrameProducer {
 			int na_target = 0;	
 			return IntFrame.ofShorts(ShortFrame.of(readInt16(timestamp, band), range2d), na_src, na_target);
 		}
+		case CellType.UINT16: {
+			char na_src = 0;
+			int na_target = 0;	
+			return IntFrame.ofChars(CharFrame.of(readUint16(timestamp, band), range2d), na_src, na_target);
+		}
 		case CellType.INT8: {
 			byte na_src = 0;
 			int na_target = 0;	
@@ -357,6 +365,12 @@ public class TimeBandProcessor implements TimeFrameProducer {
 		}
 		case CellType.INT16: {
 			return ShortFrame.of(readInt16(timestamp, band), range2d);
+		}
+		case CellType.UINT16: {
+			Logger.warn("downcast uint16 to int16");
+			char na_src = 0;
+			short na_target = 0;
+			return ShortFrame.ofChars(CharFrame.of(readUint16(timestamp, band), range2d), na_src, na_target);
 		}
 		case CellType.INT8: {
 			byte na_src = 0;
@@ -429,6 +443,12 @@ public class TimeBandProcessor implements TimeFrameProducer {
 			short na_src = 0;
 			byte na_target = 0;
 			return ByteFrame.ofShorts(ShortFrame.of(readInt16(timestamp, band), range2d), na_src, na_target);
+		}
+		case CellType.UINT16: {
+			Logger.warn("downcast uint16 to byte");
+			char na_src = 0;
+			byte na_target = 0;
+			return ByteFrame.ofChars(CharFrame.of(readUint16(timestamp, band), range2d), na_src, na_target);
 		}
 		case CellType.INT8: {
 			return ByteFrame.of(readInt8(timestamp, band), range2d);

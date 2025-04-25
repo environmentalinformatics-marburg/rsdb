@@ -343,12 +343,12 @@ public class GdalReader {
 	 */
 	public char[][] getDataChar(int bandIndex, char[][] targetData, int yoff, int ysize) throws IOException {
 		Band band = dataset.GetRasterBand(bandIndex);
-		short[] in = new short[x_range * ysize];
+		int[] in = new int[x_range * ysize];
 		int result = band.ReadRaster(0, yoff, x_range, ysize, in);
 		if(result!=0) {
 			throw new RuntimeException("read error "+result+"   in "+filename);
 		}
-		return Util.arrayToArrayArrayShortChar(in, x_range, targetData);
+		return Util.arrayToArrayArrayIntChar(in, x_range, targetData);
 	}
 	
 	/**

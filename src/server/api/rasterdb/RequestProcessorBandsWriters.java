@@ -48,7 +48,7 @@ import util.tiff.TiffTiledBandUint8;
 import util.tiff.TiffWriter;
 
 public class RequestProcessorBandsWriters {
-	
+
 
 	public static void writeRdat(TimeBandProcessor processor, Collection<TimeBand> processingBands, Receiver resceiver) throws IOException {
 		GeoReference ref = processor.rasterdb.ref();
@@ -129,26 +129,80 @@ public class RequestProcessorBandsWriters {
 		resceiver.setContentType(Web.MIME_BINARY);
 		rdatWriter.write(new DataOutputStream(resceiver.getOutputStream()));		
 	}
-	
-	public static TiffDataType getTiffDataType(Collection<TimeBand> processingBands) {
-		TiffDataType tiffdataType = TiffDataType.INT16;
-		for(TimeBand timeband : processingBands) {
-			switch (timeband.band.type) {
-			case TilePixel.TYPE_SHORT:
-			case CellType.INT16:
-				// nothing
-				break;
-			case TilePixel.TYPE_FLOAT:
-				if(tiffdataType == TiffDataType.INT16) {
-					tiffdataType = TiffDataType.FLOAT32;
-				}
-				break;
-			default:
-				tiffdataType = TiffDataType.FLOAT64;
-				break;
-			}
+
+	public static TiffDataType getTiffDataType(TimeBand processingBand) {
+		switch (processingBand.band.type) {
+		case TilePixel.TYPE_SHORT:
+		case CellType.INT16:
+			return TiffDataType.INT16;
+		case CellType.UINT16:
+			return TiffDataType.UINT16;
+		case TilePixel.TYPE_FLOAT:
+			return TiffDataType.FLOAT32;
+		default:
+			return TiffDataType.FLOAT64;
 		}
-		return tiffdataType;
+	}
+
+	public static TiffDataType getSamllestTiffDataType(TiffDataType tiffdataType, TimeBand processingBand) {
+		switch (processingBand.band.type) {
+		case TilePixel.TYPE_SHORT:
+		case CellType.INT16:
+			switch(tiffdataType) {
+			case UINT8:
+			case INT16:
+				return TiffDataType.INT16;
+			case UINT16:
+			case INT32:
+				return TiffDataType.INT32;				
+			case FLOAT32:	
+				return TiffDataType.FLOAT32;			
+			case FLOAT64:
+			default:
+				return TiffDataType.FLOAT64;
+			}
+		case CellType.UINT16:			
+			switch(tiffdataType) {
+			case UINT8:
+			case UINT16:
+				return TiffDataType.UINT16;
+			case INT16:
+				return TiffDataType.INT32;
+			case FLOAT32:	
+				return TiffDataType.FLOAT32;
+			case INT32:
+			case FLOAT64:
+			default:
+				return TiffDataType.FLOAT64;
+			}
+		case TilePixel.TYPE_FLOAT:
+			switch(tiffdataType) {
+			case UINT8:
+			case INT16:
+			case UINT16:
+			case FLOAT32:	
+				return TiffDataType.FLOAT32;
+			case INT32:
+			case FLOAT64:
+			default:
+				return TiffDataType.FLOAT64;
+			}
+		default:
+			return TiffDataType.FLOAT64;
+		}
+	}
+
+	public static TiffDataType getTiffDataType(Collection<TimeBand> processingBands) {
+		Iterator<TimeBand> it = processingBands.iterator();
+		if(it.hasNext()) {
+			TiffDataType tiffdataType = getTiffDataType(it.next());
+			while(it.hasNext()) {
+				tiffdataType = getSamllestTiffDataType(tiffdataType, it.next());
+			}
+			return tiffdataType;
+		} else {
+			return TiffDataType.INT16;
+		}
 	}
 
 	/**
@@ -237,7 +291,7 @@ public class RequestProcessorBandsWriters {
 		int xmin = TilePixel.tileToPixel(txmin);
 		int xmax = TilePixel.tileToPixelMax(txmax);
 		Range2d range2d = new Range2d(xmin, ymin, xmax, ymax);			
-		TimeBandProcessor processor = new TimeBandProcessor(queryProcessor.rasterdb, range2d, 1);		
+		TimeBandProcessor processor = new TimeBandProcessor(queryProcessor.rasterdb, range2d, 1);
 		Range2d dstRange = processor.getDstRange();
 		int dstWidth = dstRange.getWidth();
 		int dstHeight = dstRange.getHeight();

@@ -76,6 +76,9 @@ public class IntFrame {
 	public static IntFrame ofExtent(ShortFrame extent) {
 		return new IntFrame(new int[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
+	public static IntFrame ofExtent(CharFrame extent) {
+		return new IntFrame(new int[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
+	}
 	
 	public static IntFrame ofExtent(ByteFrame extent) {
 		return new IntFrame(new int[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
@@ -252,6 +255,12 @@ public class IntFrame {
 		return target;
 	}
 	
+	public static IntFrame ofChars(CharFrame source, char na_src, int na_target) {
+		IntFrame target = ofExtent(source);
+		charToInt(source.data, target.data, source.width, source.height, na_src, na_target);
+		return target;
+	}
+	
 	public static void shortToInt(short[][] src, int[][] dst, int width, int height, short na_src, int na_target) {
 		for (int y = 0; y < height; y++) {
 			short[] s = src[y];
@@ -262,6 +271,17 @@ public class IntFrame {
 			}
 		}
 	}	
+	
+	public static void charToInt(char[][] src, int[][] dst, int width, int height, char na_src, int na_target) {
+		for (int y = 0; y < height; y++) {
+			char[] s = src[y];
+			int[] t = dst[y];
+			for (int x = 0; x < width; x++) {
+				char v = s[x];				
+				t[x] = v == na_src ? na_target: v;
+			}
+		}
+	}
 	
 	public static IntFrame ofBytes(ByteFrame source, byte na_src, int na_target) {
 		IntFrame target = ofExtent(source);

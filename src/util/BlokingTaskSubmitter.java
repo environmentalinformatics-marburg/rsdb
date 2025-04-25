@@ -9,8 +9,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.tinylog.Logger;
 
-public class BlokingTaskSubmitter {
-	
+public class BlokingTaskSubmitter {	
 
 	private static final ForkJoinPool executor = ForkJoinPool.commonPool();
 	//private static final ForkJoinPool executor = new ForkJoinPool(1);
@@ -103,7 +102,7 @@ public class BlokingTaskSubmitter {
 			}
 			//Logger.info("remaining registered " + registered);
 			if(registered <= 2) {
-				Logger.warn("empty queue " + registered + "   " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
+				Logger.info("empty queue " + registered + "   " + executor.getQueuedSubmissionCount()+"   " + phaser.getArrivedParties()+"   " + phaser.getUnarrivedParties()+"   " + phaser.getRegisteredParties()+"   " + phaser.getPhase());
 			}
 		}
 	}

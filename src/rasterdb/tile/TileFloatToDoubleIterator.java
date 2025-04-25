@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import rasterunit.Tile;
 import util.frame.DoubleFrame;
-import util.frame.ShortFrame;
 
 public class TileFloatToDoubleIterator implements Iterator<double[][]> {
 	private final Iterator<Tile> it;

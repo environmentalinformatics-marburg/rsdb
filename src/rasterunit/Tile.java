@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.mapdb.Serializer;
 
 public class Tile {
-	//
 
 	public final int t;
 	public final int b;

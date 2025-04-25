@@ -73,10 +73,14 @@ public class ShortFrame {
 	public static ShortFrame ofExtent(ShortFrame extent) {
 		return new ShortFrame(new short[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
+
+	public static ShortFrame ofExtent(CharFrame extent) {
+		return new ShortFrame(new short[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
+	}
 	
 	public static ShortFrame ofExtent(ByteFrame extent) {
 		return new ShortFrame(new short[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
-	}
+	}	
 	
 	public static ShortFrame ofExtent(FloatFrame extent) {
 		return new ShortFrame(new short[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
@@ -251,12 +255,17 @@ public class ShortFrame {
 				t[x] = Float.isFinite(v) ? (short) v : na_target;
 			}
 		}
-	}
-	
+	}	
 	
 	public static ShortFrame ofBytes(ByteFrame source, byte na_src, short na_target) {
 		ShortFrame target = ofExtent(source);
 		byteToShort(source.data, target.data, source.width, source.height, na_src, na_target);
+		return target;
+	}
+	
+	public static ShortFrame ofChars(CharFrame source, char na_src, short na_target) {
+		ShortFrame target = ofExtent(source);
+		charToShort(source.data, target.data, source.width, source.height, na_src, na_target);
 		return target;
 	}
 	
@@ -267,6 +276,17 @@ public class ShortFrame {
 			for (int x = 0; x < width; x++) {
 				byte v = s[x];				
 				t[x] = v == na_src ? na_target: v;
+			}
+		}
+	}
+	
+	public static void charToShort(char[][] src, short[][] dst, int width, int height, char na_src, short na_target) {
+		for (int y = 0; y < height; y++) {
+			char[] s = src[y];
+			short[] t = dst[y];
+			for (int x = 0; x < width; x++) {
+				char v = s[x];				
+				t[x] = v == na_src ? na_target : (short) v;
 			}
 		}
 	}

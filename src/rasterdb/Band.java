@@ -208,6 +208,8 @@ public class Band {
 			return "float32";
 		case CellType.INT16:
 			return "int16";
+		case CellType.UINT16:
+			return "uint16";
 		default:
 			return "unknown";
 		}
@@ -221,6 +223,8 @@ public class Band {
 			return "Float32";
 		case CellType.INT16:
 			return "Int16";
+		case CellType.UINT16:
+			return "UInt16";
 		default:
 			return "Unknown";
 		}

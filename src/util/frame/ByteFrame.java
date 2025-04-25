@@ -73,6 +73,10 @@ public class ByteFrame {
 	public static ByteFrame ofExtent(ShortFrame extent) {
 		return new ByteFrame(new byte[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
 	}
+	
+	public static ByteFrame ofExtent(CharFrame extent) {
+		return new ByteFrame(new byte[extent.height][extent.width], extent.local_min_x, extent.local_min_y, extent.local_max_x, extent.local_max_y);
+	}
 
 	public static ByteFrame avg(ByteFrame a, ByteFrame b) {
 		byte[][] data = new byte[a.height][a.width];
@@ -151,12 +155,29 @@ public class ByteFrame {
 		return target;
 	}
 	
+	public static ByteFrame ofChars(CharFrame source, char na_src, byte na_dst) {
+		ByteFrame target = ofExtent(source);
+		charToByte(source.data, target.data, source.width, source.height, na_src, na_dst);
+		return target;
+	}
+	
 	public static void shortToByte(short[][] src, byte[][] dst, int width, int height, short na_src, byte na_dst) {
 		for (int y = 0; y < height; y++) {
 			short[] s = src[y];
 			byte[] t = dst[y];
 			for (int x = 0; x < width; x++) {
 				short v = s[x];				
+				t[x] = v == na_src ? na_dst: (byte) v;
+			}
+		}
+	}
+	
+	public static void charToByte(char[][] src, byte[][] dst, int width, int height, char na_src, byte na_dst) {
+		for (int y = 0; y < height; y++) {
+			char[] s = src[y];
+			byte[] t = dst[y];
+			for (int x = 0; x < width; x++) {
+				char v = s[x];				
 				t[x] = v == na_src ? na_dst: (byte) v;
 			}
 		}
