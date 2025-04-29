@@ -20,6 +20,8 @@ public class Rdat {
 
 	public final static int TYPE_INT32 = TYPE_SIGNED_INT;  // unsigned 32 bit not supported in R
 	public final static int TYPE_INT32_SIZE = 4;
+	public final static int TYPE_INT16 = TYPE_SIGNED_INT;
+	public final static int TYPE_INT16_SIZE = 2;
 	public final static int TYPE_UINT16 = TYPE_UNSIGNED_INT;
 	public final static int TYPE_UINT16_SIZE = 2;
 	public final static int TYPE_UINT8 = TYPE_UNSIGNED_INT;

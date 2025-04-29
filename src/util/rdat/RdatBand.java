@@ -91,6 +91,15 @@ public abstract class RdatBand {
 		};
 	}
 	
+	public static RdatBandUint16 ofUint16(int width, int height, RdatList meta, Supplier<char[][]> supplier) {
+		return new RdatBandUint16(width, height, meta) {			
+			@Override
+			protected char[][] getData() {
+				return supplier.get();
+			}
+		};
+	}
+	
 	public static RdatBandInt32 ofInt32(int width, int height, RdatList meta, Supplier<int[][]> supplier) {
 		return new RdatBandInt32(width, height, meta) {			
 			@Override

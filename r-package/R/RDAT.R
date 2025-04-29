@@ -129,7 +129,7 @@ read_RDAT_VECT_raw <- function(con, type, type_size, len) {
   #cat(paste("read_RDAT_VECT_raw type=", type, " type_size=", type_size, " len=", len, "\n"))
   values <- NULL
   switch(as.character(type),
-         "1" = {values <- readBin(con, "int", size=type_size, endian="big", n=len)},  # TYPE_SIGNED_INT
+         "1" = {values <- readBin(con, "int", size=type_size, signed=TRUE, endian="big", n=len)},  # TYPE_SIGNED_INT
          "2" = {values <- readBin(con, "int", size=type_size, signed=FALSE, endian="big", n=len)}, # TYPE_UNSIGNED_INT
          "3" = {values <- readBin(con, "double", size=type_size, endian="big", n=len)}, # TYPE_FLOAT
          "4" = {values <- readTextVec_raw(con, len)}, # TYPE_STRING

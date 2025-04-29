@@ -28,7 +28,7 @@ import util.collections.vec.Vec;
 
 public class RequestProcessor {	
 
-	enum RdatDataType {INT16, FLOAT32, FLOAT64};
+	enum RdatDataType {INT16, UINT16, FLOAT32, FLOAT64};
 
 	enum TiffDataType {
 		UINT8,

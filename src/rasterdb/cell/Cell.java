@@ -12,8 +12,7 @@ import rasterunit.Tile;
 import rasterunit.TileKey;
 import util.Range2d;
 
-public abstract class Cell<T> {
-	
+public abstract class Cell<T> {	
 
 	public final int pixel_len;
 	public final int cell_pixel_count;

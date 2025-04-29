@@ -6,11 +6,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.Supplier;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
 import org.tinylog.Logger;
 
+import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.GeoReference;
 import rasterdb.TimeBand;
 import rasterdb.TimeBandProcessor;
@@ -43,12 +41,77 @@ import util.tiff.TiffTiledBandFloat32;
 import util.tiff.TiffTiledBandFloat64;
 import util.tiff.TiffTiledBandInt16;
 import util.tiff.TiffTiledBandInt32;
-import util.tiff.TiffTiledBandInt8;
 import util.tiff.TiffTiledBandUint8;
 import util.tiff.TiffWriter;
 
 public class RequestProcessorBandsWriters {
 
+	private static RdatDataType getRdatType(TimeBand timeBand) {
+		switch(timeBand.band.type) {
+		case TilePixel.TYPE_SHORT:
+		case CellType.INT16:
+			return RdatDataType.INT16;
+		case CellType.UINT16:
+			return RdatDataType.UINT16;
+		case TilePixel.TYPE_FLOAT:
+			return RdatDataType.FLOAT32;
+		default:
+			return RdatDataType.FLOAT64;
+		}
+	}
+	
+	private static RdatDataType getSamllestRdatType(RdatDataType rdatDataType, TimeBand timeBand) {
+		switch (timeBand.band.type) {
+		case TilePixel.TYPE_SHORT:
+		case CellType.INT16:
+			switch(rdatDataType) {
+			case INT16:
+				return RdatDataType.INT16;			
+			case UINT16:
+			case FLOAT32:	
+				return RdatDataType.FLOAT32;			
+			case FLOAT64:
+			default:
+				return RdatDataType.FLOAT64;
+			}
+		case CellType.UINT16:			
+			switch(rdatDataType) {
+			case INT16:
+			case FLOAT32:
+				return RdatDataType.FLOAT32;
+			case UINT16:
+				return RdatDataType.UINT16;
+			case FLOAT64:
+			default:
+				return RdatDataType.FLOAT64;
+			}
+		case TilePixel.TYPE_FLOAT:
+			switch(rdatDataType) {
+			case INT16:
+			case UINT16:
+			case FLOAT32:	
+				return RdatDataType.FLOAT32;
+			case FLOAT64:
+			default:
+				return RdatDataType.FLOAT64;
+			}
+		default:
+			return RdatDataType.FLOAT64;
+		}
+	}
+	
+	private static RdatDataType getRdatType(Collection<TimeBand> processingBands) {
+		Iterator<TimeBand> it = processingBands.iterator();
+		if(it.hasNext()) {
+			RdatDataType rdatDataType = getRdatType(it.next());
+			while(it.hasNext()) {
+				rdatDataType = getSamllestRdatType(rdatDataType, it.next());
+			}
+			return rdatDataType;
+		} else {
+			return RdatDataType.INT16;
+		}
+	}
 
 	public static void writeRdat(TimeBandProcessor processor, Collection<TimeBand> processingBands, Receiver resceiver) throws IOException {
 		GeoReference ref = processor.rasterdb.ref();
@@ -79,24 +142,9 @@ public class RequestProcessorBandsWriters {
 			rdatWriter.setProj4(ref.proj4);
 		}
 		Short noDataValue = null;
-
-		RdatDataType dataType = RdatDataType.INT16;
-		for(TimeBand timeband : processingBands) {
-			switch (timeband.band.type) {
-			case TilePixel.TYPE_SHORT:
-			case CellType.INT16:
-				// nothing
-				break;
-			case TilePixel.TYPE_FLOAT:
-				if(dataType == RdatDataType.INT16) {
-					dataType = RdatDataType.FLOAT32;
-				}
-				break;
-			default:
-				dataType = RdatDataType.FLOAT64;
-				break;
-			}
-		}
+		
+		RdatDataType dataType = getRdatType(processingBands);
+				
 		for(TimeBand timeband : processingBands) {
 			RdatList bandMeta = new RdatList();
 			bandMeta.addInt32("index", timeband.band.index);
@@ -109,15 +157,25 @@ public class RequestProcessorBandsWriters {
 			}
 			switch(dataType) {
 			case INT16:
+				Logger.info("RDAT INT16");
 				rdatWriter.addRdatBand(RdatBand.ofInt16(dstWidth, dstHeight, bandMeta, ()->processor.getShortFrame(timeband).data));
 				if(noDataValue == null) {
 					noDataValue = timeband.band.getInt16NA();
 				}
 				break;
+			case UINT16:
+				Logger.info("RDAT UINT16");
+				rdatWriter.addRdatBand(RdatBand.ofUint16(dstWidth, dstHeight, bandMeta, ()->processor.getCharFrame(timeband).data));
+				if(noDataValue == null) {
+					noDataValue = (short) timeband.band.getUint16NA(); // !!! TODO change to char
+				}
+				break;
 			case FLOAT32:
+				Logger.info("RDAT FLOAT32");
 				rdatWriter.addRdatBand(RdatBand.ofFloat32(dstWidth, dstHeight, bandMeta, ()->processor.getFloatFrame(timeband).data));
 				break;
 			case FLOAT64:
+				Logger.info("RDAT FLOAT64");
 				rdatWriter.addRdatBand(RdatBand.ofFloat64(dstWidth, dstHeight, bandMeta, ()->processor.getDoubleFrame(timeband).data));
 				break;
 			default:
