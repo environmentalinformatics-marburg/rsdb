@@ -42,7 +42,7 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		String rasterdb_name = task.getString("rasterdb");
 		RasterDB rasterdb = broker.getRasterdb(rasterdb_name);
 		rasterdb.checkMod(ctx.userIdentity, "task index_raster");
-		
+
 		Band maskBand = null;
 		if(task.has("mask_band")) {
 			int maskBandIndex = task.getInt("mask_band");
@@ -65,7 +65,7 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		double ymin = pointcloudExtent.ymin;
 		double xmax = pointcloudExtent.xmax;
 		double ymax = pointcloudExtent.ymax;
-		
+
 		JSONArray rect_Text = task.optJSONArray("rect");
 		if(rect_Text != null) {
 			double rect_xmin = rect_Text.getDouble(0);
@@ -86,7 +86,7 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		int raster_ymin = ref.geoYToPixel(ymin);
 		int raster_xmax = ref.geoXToPixel(xmax);
 		int raster_ymax = ref.geoYToPixel(ymax);
-		
+
 		if(maskBand != null) {
 			Range2d localRange = rasterdb.getLocalRange(true);
 			if(raster_xmin < localRange.xmin) raster_xmin = localRange.xmin;
@@ -103,16 +103,21 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		} else {
 			log("use NO mask band");	
 		}
-		
+
 		if(isCanceled()) {
 			throw new RuntimeException("canceled");
 		}
-		long processed_pixel = process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmax, raster_ymax, bands, indices, maskBand);		
+		int[] rectCounter = new int[] {0};
+		long total_process_pixels = process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmax, raster_ymax, bands, indices, maskBand, true, 0, 0, rectCounter, 0);
+		log(total_process_pixels + " total process pixels");
+		int total_rects = rectCounter[0];
+		rectCounter[0] = 0;
+		long processed_pixel = process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmax, raster_ymax, bands, indices, maskBand, false, total_process_pixels, 0, rectCounter, total_rects);		
 		Timer timer = Timer.stop("index_raster processing");
 		long xsize = raster_xmax - raster_xmin + 1;
 		long ysize = raster_ymax - raster_ymin + 1;
 		long pixel = xsize * ysize;
-		log(timer+"   size " + xsize + " x " + ysize+":  " + processed_pixel + " pixel  of rect pixel " + pixel + "  " +  (((double)(timer.end - timer.begin))/(processed_pixel)) + " ms / pixel");
+		log(timer+"   size " + xsize + " x " + ysize+":  " + processed_pixel + " pixel  of rect pixel " + pixel + ";  " +  (((timer.end - timer.begin))/(processed_pixel)) + " ms/pixel");
 
 		if(isCanceled()) {
 			throw new RuntimeException("canceled");
@@ -121,16 +126,18 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		rasterdb.rebuildPyramid(true, this);
 	}
 
-	private static long MAX_RASTER_BYTES = 268_435_456;
+	private static long MAX_RASTER_BYTES = 268_435_456; // default
+	//private static long MAX_RASTER_BYTES = 1_024; // short testing
 
-	public long process_rect(DataProvider2Factory dpFactory, RasterDB rasterdb, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, Band maskBand) throws IOException {
-		long processed_pixel = 0;
+	public long process_rect(DataProvider2Factory dpFactory, RasterDB rasterdb, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, Band maskBand, boolean dryRun, long total_process_pixels, long processed_pixel, int[] rectCounter, int total_rects) throws IOException {
 		long xsize = raster_xmax - raster_xmin + 1;
 		long ysize = raster_ymax - raster_ymin + 1;
 		long maxPixel = (MAX_RASTER_BYTES / 4) / indices.length;
 		long pixel = xsize * ysize;
 		if(pixel <= maxPixel || (xsize <= 1 && ysize <= 1)) {
-			log("part process raster local rect ["+raster_xmin+", "+raster_ymin+", "+raster_xmax+", "+raster_ymax+"]     size " + xsize + " x " + ysize + "  =  " + pixel+" pixel");
+			if(!dryRun) {
+				log("part local rect ["+raster_xmin+", "+raster_ymin+", "+raster_xmax+", "+raster_ymax+"]     size " + xsize + " x " + ysize + "  =  " + pixel+" pixel");
+			}
 
 			boolean[][] mask = null;
 			if(maskBand != null) {
@@ -140,75 +147,97 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 				BooleanFrame maskFrame = processor.getFloatFrame(timestamp, maskBand).toMask();
 				mask = maskFrame.data;
 			}
-			processed_pixel += run_rect(dpFactory, rasterdb.rasterUnit(), ref, raster_xmin, raster_ymin, raster_xmax, raster_ymax, bands, indices, mask);			
+			processed_pixel = run_rect(dpFactory, rasterdb.rasterUnit(), ref, raster_xmin, raster_ymin, raster_xmax, raster_ymax, bands, indices, mask, dryRun, total_process_pixels, processed_pixel, rectCounter, total_rects);			
 		} else if(xsize >= ysize) {
 			int raster_xmid = (int) ((((long)raster_xmin) + ((long)raster_xmax)) >> 1);
-			log("split raster rect x " + raster_xmin + "  " + raster_xmid + "  " + raster_xmax);
-			processed_pixel += process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmid, raster_ymax, bands, indices, maskBand);
-			processed_pixel += process_rect(dpFactory, rasterdb, ref, raster_xmid + 1, raster_ymin, raster_xmax, raster_ymax, bands, indices, maskBand);
+			if(!dryRun) {
+				log("split rect on x " + raster_xmin + " .. " + raster_xmid + " .. " + raster_xmax);
+			}
+			processed_pixel = process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmid, raster_ymax, bands, indices, maskBand, dryRun, total_process_pixels, processed_pixel, rectCounter, total_rects);
+			processed_pixel = process_rect(dpFactory, rasterdb, ref, raster_xmid + 1, raster_ymin, raster_xmax, raster_ymax, bands, indices, maskBand, dryRun, total_process_pixels, processed_pixel, rectCounter, total_rects);
 		} else {
 			int raster_ymid = (int) ((((long)raster_ymin) + ((long)raster_ymax)) >> 1);
-			log("split raster rect y " + raster_ymin + "  " + raster_ymid + "  " + raster_ymax);
-			processed_pixel += process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmax, raster_ymid, bands, indices, maskBand);
-			processed_pixel += process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymid + 1, raster_xmax, raster_ymax, bands, indices, maskBand);
+			if(!dryRun) {
+				log("split rect on y " + raster_ymin + " .. " + raster_ymid + " .. " + raster_ymax);
+			}
+			processed_pixel = process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmax, raster_ymid, bands, indices, maskBand, dryRun, total_process_pixels, processed_pixel, rectCounter, total_rects);
+			processed_pixel = process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymid + 1, raster_xmax, raster_ymax, bands, indices, maskBand, dryRun, total_process_pixels, processed_pixel, rectCounter, total_rects);
 		}
 		return processed_pixel;
 	}
 
-	public long run_rect(DataProvider2Factory dpFactory, RasterUnitStorage rasterUnitStorage, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, boolean[][] mask) throws IOException {
+	public long run_rect(DataProvider2Factory dpFactory, RasterUnitStorage rasterUnitStorage, GeoReference ref, int raster_xmin, int raster_ymin, int raster_xmax, int raster_ymax, Band[] bands, ProcessingFun[] indices, boolean[][] mask, boolean dryRun, long total_process_pixels, long processed_pixel, int[] rectCounter, int total_rects) throws IOException {
+		rectCounter[0]++;
 		BlokingTaskSubmitter blokingTaskSubmitter = new BlokingTaskSubmitter();
 
 		int indices_len = indices.length;
 		int width = raster_xmax - raster_xmin + 1;
 		int height = raster_ymax - raster_ymin + 1;
 		float[][][] pixels = new float[indices_len][height][width];
-		for (int i = 0; i < indices_len; i++) {
-			float[][] ind = pixels[i];
-			for (int y = 0; y < height; y++) {
-				float[] row = ind[y];
-				for (int x = 0; x < width; x++) {
-					row[x] = Float.NaN;
+
+		if(!dryRun) {
+			for (int i = 0; i < indices_len; i++) {
+				float[][] ind = pixels[i];
+				for (int y = 0; y < height; y++) {
+					float[] row = ind[y];
+					for (int x = 0; x < width; x++) {
+						row[x] = Float.NaN;
+					}
 				}
-			}
+			}		
+			Timer.start("part rect");
 		}
-		Timer.start("index_raster part processing");
-		long processed_pixel = 0;
+		
+		long rect_processed_pixel = 0;
+
 		for (int y = 0; y < height; y++) {
-			Timer.start("current line");
+			if(!dryRun) {
+				Timer.start("for line");
+			}
 			for (int x = 0; x < width; x++) {
 				if(mask == null || mask[y][x]) {
-					double xgeo = ref.pixelXToGeo(raster_xmin + x);
-					double ygeo = ref.pixelYToGeo(raster_ymin + y);
-					double xgeo1 = ref.pixelXToGeo(raster_xmin + x + 1);
-					double ygeo1 = ref.pixelYToGeo(raster_ymin +y + 1);
-					long pxmin = PdbConst.to_utmm(xgeo);
-					long pymin = PdbConst.to_utmm(ygeo);
-					long pxmax = PdbConst.to_utmm(xgeo1) - 1;
-					long pymax = PdbConst.to_utmm(ygeo1) - 1;
-					Rect pRect = Rect.of_UTMM(pxmin, pymin, pxmax, pymax);
-					IndexRasterizerPixelTask pixeltask = new IndexRasterizerPixelTask(blokingTaskSubmitter, dpFactory, pRect, indices, pixels, x, y);
-					if(isCanceled()) {
-						throw new RuntimeException("canceled");
+					if(!dryRun) {
+						double xgeo = ref.pixelXToGeo(raster_xmin + x);
+						double ygeo = ref.pixelYToGeo(raster_ymin + y);
+						double xgeo1 = ref.pixelXToGeo(raster_xmin + x + 1);
+						double ygeo1 = ref.pixelYToGeo(raster_ymin +y + 1);
+						long pxmin = PdbConst.to_utmm(xgeo);
+						long pymin = PdbConst.to_utmm(ygeo);
+						long pxmax = PdbConst.to_utmm(xgeo1) - 1;
+						long pymax = PdbConst.to_utmm(ygeo1) - 1;
+						Rect pRect = Rect.of_UTMM(pxmin, pymin, pxmax, pymax);
+						IndexRasterizerPixelTask pixeltask = new IndexRasterizerPixelTask(blokingTaskSubmitter, dpFactory, pRect, indices, pixels, x, y);
+						if(isCanceled()) {
+							throw new RuntimeException("canceled");
+						}
+						blokingTaskSubmitter.submit(pixeltask);
 					}
-					blokingTaskSubmitter.submit(pixeltask);
-					processed_pixel++;
+					rect_processed_pixel++;
 				}
 			}
-			//Logger.info(Timer.stop("current line") + "     " + (y+1) +" of "+height);
-			setMessage("approx. " + Timer.stop("current line") + "     " + (y+1) +" of "+height + " lines in part processing raster");
+			if(!dryRun) {
+				//Logger.info(Timer.stop("current line") + "     " + (y+1) +" of "+height);
+				setMessage("approx. " + Timer.stop("for line") + "     " + (y+1) +" of "+height + " lines in part rect " + rectCounter[0] + " of total " + total_rects + "; " + (processed_pixel + rect_processed_pixel) + " pixel of total " + total_process_pixels + "; " +  ((processed_pixel + rect_processed_pixel)*100)/total_process_pixels + " %");
+			}
 		}
-		blokingTaskSubmitter.finish();
-		Timer timer = Timer.stop("index_raster part processing");
-		log(timer+"   size " + width + " x " + height+":  " + processed_pixel + " pixel  of rect pixel " + (width*height) + "  " +  (((double)(timer.end - timer.begin))/(processed_pixel)) + " ms / pixel");
+		processed_pixel += rect_processed_pixel;
 
-		if(isCanceled()) {
-			throw new RuntimeException("canceled");
+
+		if(!dryRun) {
+			blokingTaskSubmitter.finish();
+			Timer timer = Timer.stop("part rect");
+			log(timer+"   size " + width + " x " + height+":  " + rect_processed_pixel + " pixel  of " + (width*height) + "; " +  (((timer.end - timer.begin))/(rect_processed_pixel)) + " ms/pixel in rect " + rectCounter[0] + " of total " + total_rects);
+
+			if(isCanceled()) {
+				throw new RuntimeException("canceled");
+			}
+			log("write part rect local min ["+raster_xmin + ", " + raster_ymin + "]     geo min [" + ref.pixelXToGeo(raster_xmin) + ", " + ref.pixelYToGeo(raster_ymin) + "] in rect " + rectCounter[0] + " of total " + total_rects);
+			for (int i = 0; i < indices_len; i++) {
+				ProcessingFloat.writeMerge(rasterUnitStorage, 0, bands[i], pixels[i], raster_ymin, raster_xmin);
+			}
+			rasterUnitStorage.commit();
+			log(processed_pixel + " pixel of total pixel " + total_process_pixels + "; " +  (processed_pixel*100)/total_process_pixels + " % done");
 		}
-		log("part processing raster write local min ["+raster_xmin + ", " + raster_ymin + "]     geo min [" + ref.pixelXToGeo(raster_xmin) + ", " + ref.pixelYToGeo(raster_ymin) + "]" );
-		for (int i = 0; i < indices_len; i++) {
-			ProcessingFloat.writeMerge(rasterUnitStorage, 0, bands[i], pixels[i], raster_ymin, raster_xmin);
-		}
-		rasterUnitStorage.commit();
 		return processed_pixel;
 	}
 }
