@@ -6,25 +6,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-
-import org.tinylog.Logger;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
 import org.gdal.gdal.GCP;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
-import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
+import org.tinylog.Logger;
 
 import util.GeoUtil;
+import util.GeoUtil.Transformer;
 import util.MinMax2d;
 import util.Timer;
 import util.Util;
-import util.GeoUtil.Transformer;
 
-public class GdalReader {
-	
+public class GdalReader {	
 
 	public static final int GDAL_BYTE = 1;
 	public static final int GDAL_UINT16 = 2;

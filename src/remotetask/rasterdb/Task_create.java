@@ -1,5 +1,6 @@
 package remotetask.rasterdb;
 
+import org.gdal.osr.SpatialReference;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.tinylog.Logger;
@@ -13,6 +14,7 @@ import remotetask.Context;
 import remotetask.Description;
 import remotetask.Param;
 import remotetask.RemoteTask;
+import util.GeoUtil;
 import util.JsonUtil;
 
 @task_rasterdb("create")
@@ -20,10 +22,10 @@ import util.JsonUtil;
 @Param(name="rasterdb", type="layer_id", desc="ID of new RasterDB layer.", example="raster1")
 @Param(name="pixel_size", type="number_array" , desc="Size of pixels in projection units.", format="size or x_size, y_size", example="10, 15.1", required=false)
 @Param(name="offset", type="number_array", desc="Offset to projection origin.", format="x_offset, y_offset", example="0.5, -0.5", required=false)
-@Param(name="code", desc="Projection code.", format="EPSG:code", example="EPSG:32632", required=false)
-@Param(name="proj4", desc="Projection.", format="PROJ4", example="+proj=utm +zone=32 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
-@Param(name="storage_type", desc="Storage type of new RasterDB. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
-@Param(name="tile_pixel_len", type="integer", desc="Tile width and height in pixels, defaults to 256. Note for band type 1=tile_int16 and 2=tile_float32 size 256 is supported only", example="256", required=false)
+@Param(name="code", desc="Projection code. As code with prefix, eg. EPSG:32632, or just code number for an epsg code, e.g. 32632", format="EPSG:code  OR  code", example="EPSG:32632", required=false)
+@Param(name="proj4", desc="Projection. If left empty, try to infer from projection code.", format="PROJ4", example="+proj=utm +zone=32 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", required=false)
+@Param(name="storage_type", desc="Storage type of new RasterDB. Currently for internal use only. (default: TileStorage)", format="RasterUnit or TileStorage", example="TileStorage", required=false)
+@Param(name="tile_pixel_len", type="integer", desc="Tile width and height in pixels, defaults to 256. Note: for band type 1=tile_int16 and 2=tile_float32 size 256 is supported only", example="256", required=false)
 @Param(name="acl", type="string_array" , desc="'read' roles of the new rasterdb laye' (default: empty, admin role only)", format="group1, my_group2", example="my_read_group", required=false)
 @Param(name="acl_mod", type="string_array" , desc="'modfiy' roles of the new rasterdb laye' (default: empty, admin role only)", format="my_group1, group2", example="my_write_group", required=false)
 public class Task_create extends RemoteTask {
@@ -137,14 +139,55 @@ public class Task_create extends RemoteTask {
 
 		String code = task.optString("code");
 		if(code != null) {
-			rasterdb.setCode(code);
+			if(!code.isBlank()) {
+				code = code.toUpperCase();
+				if(code.startsWith("EPSG:")) {
+					log("set EPSG code: " + code);
+				} else {
+					try {
+						log("try parse geo code: " + code);
+						int intCode = Integer.parseInt(code);
+						code = "EPSG:" + intCode;
+						log("assume EPSG code: " + code);
+					} catch(Exception e) {
+						log("WARN: could not parse geocode: " + e.getMessage());
+					}
+				}
+			} else {
+				rasterdb.setCode(code);
+			}
 		}
 
 		String proj4 = task.optString("proj4");
+
+		if(proj4 == null || proj4.isBlank()) {
+			if(code != null && !code.isBlank()) {
+				try {
+					int intCode = GeoUtil.parseEPSG(code, 0);
+					if(intCode != 0) {
+						SpatialReference sr = GeoUtil.getSpatialReferenceFromEPSG(intCode);
+						if(sr != null) {
+							String proj4Export = sr.ExportToProj4();
+							if(proj4Export != null && !proj4Export.isBlank()) {
+								proj4 = proj4Export;
+								log("infer proj4: " + proj4);
+							}
+						} else {
+							log("WARN: could not get projection from geo code: " + code);
+						}
+					} else {
+						log("WARN: could not parse geo code: " + code);
+					}
+				} catch(Exception e) {
+					log("WARN: could not infer proj4 from geo code: " + e.getMessage());
+				}
+			}
+		}
+
 		if(proj4 != null) {
 			rasterdb.setProj4(proj4);
 		}
-		
+
 		boolean update_catalog = true;
 		if(update_catalog) {
 			setMessage("update catalog");

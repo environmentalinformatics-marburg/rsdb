@@ -162,7 +162,7 @@ public class Functions {
 	public static AbstractProcessingFun getFun(String func) {
 		AbstractProcessingFun fun = funMap.get(func);
 		if(fun == null) {
-			throw new RuntimeException("unknown function |" + func + "|");
+			throw new RuntimeException("unknown point cloud index function |" + func + "|");
 		}
 		return fun;
 	}

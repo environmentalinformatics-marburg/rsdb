@@ -10,15 +10,15 @@ import remotetask.pointdb.Abstract_task_index_raster;
 import remotetask.pointdb.DataProvider2Factory;
 
 @task_pointcloud("index_raster")
-@Description("Create raster of pointcloud with index metrics calculations. Existing target RasterDB layer is needed.")
+@Description("Create raster of pointcloud with index metrics calculations. Existing target RasterDB layer is needed. For each index a new band is created even if there exist bands with same name.")
 @Param(name="pointcloud", type="pointcloud", desc="ID of PointCloud layer. (source)", example="pointcloud1")
 @Param(name="rasterdb", type="rasterdb", desc="Existing ID of RasterDB layer. (target)", example="rasterdb1")
 @Param(name="indices", type="string_array", desc="List of indices.", example="BE_H_MAX, LAI, point_density")
 @Param(name="rect", type="number_rect", desc="Extent to process.", format="list of coordinates: xmin, ymin, xmax, ymax", example="609000.1, 5530100.7, 609094.1, 5530200.9", required=false)
 @Param(name="mask_band",  type="integer", desc="Band number of mask in RasterDB layer, no mask if left empty.", example="1", required=false)
 @Param(name="time_slice", type="string", desc="Name of the pointcloud time slice. (default: latest)", example="January", required=false)
-public class Task_index_raster extends Abstract_task_index_raster {
-	
+@Param(name="remove_bands", type="boolean", desc="Remove all bands from RasterDB layer before pocessing start. (default: false)", example="true", required=false)
+public class Task_index_raster extends Abstract_task_index_raster {	
 
 	public Task_index_raster(Context ctx) {
 		super(ctx, getDpFactory(ctx));

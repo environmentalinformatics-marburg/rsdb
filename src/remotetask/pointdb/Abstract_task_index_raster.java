@@ -52,12 +52,10 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		JSONArray indices_text = task.getJSONArray("indices");
 		int indices_len = indices_text.length();
 		ProcessingFun[] indices = new ProcessingFun[indices_len];
-		Band[] bands = new Band[indices_len];
 		for (int i = 0; i < indices_len; i++) {
 			String index_text = indices_text.getString(i);
 			//indices[i] = Functions.getFun(index_text);
 			indices[i] = pointdb.indexfuncdsl.Compiler.compile(index_text);
-			bands[i] = rasterdb.createBand(TilePixel.TYPE_FLOAT, index_text, null);
 		}
 
 		Rect2d pointcloudExtent = dpFactory.getExtent();
@@ -107,6 +105,51 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 		if(isCanceled()) {
 			throw new RuntimeException("canceled");
 		}
+
+		boolean remove_bands = ctx.task.optBoolean("remove_bands", false);
+		if(remove_bands) {
+
+			if(maskBand != null) {
+				throw new RuntimeException("Can not remove bands (parameter remove_bands) if a mask band (parameter mask_band) is used.");
+			}
+			
+    		setMessage("init remove bands");
+			int[] bands = rasterdb.bandMapReadonly.keySet().stream().mapToInt(i->i).toArray();
+			for(int band: bands) {
+				setMessage("remove band " + band);
+				if(rasterdb.hasRasterUnit()) {
+					rasterdb.rasterUnit().removeAllTilesOfBand(band);
+				}
+				if(rasterdb.hasRasterPyr1Unit()) {
+					rasterdb.rasterPyr1Unit().removeAllTilesOfBand(band);
+				}
+				if(rasterdb.hasRasterPyr2Unit()) {
+					rasterdb.rasterPyr2Unit().removeAllTilesOfBand(band);
+				}
+				if(rasterdb.hasRasterPyr3Unit()) {
+					rasterdb.rasterPyr3Unit().removeAllTilesOfBand(band);
+				}
+				if(rasterdb.hasRasterPyr4Unit()) {
+					rasterdb.rasterPyr4Unit().removeAllTilesOfBand(band);
+				}
+				rasterdb.removeBand(band);
+				setMessage("remove band " + band + "  done.");
+			}
+			setMessage("remove bands done.");
+		}
+
+		setMessage("init create bands");
+		Band[] bands = new Band[indices_len];
+		for (int i = 0; i < indices_len; i++) {
+			String index_text = indices_text.getString(i);
+			bands[i] = rasterdb.createBand(TilePixel.TYPE_FLOAT, index_text, null);
+		}
+		setMessage("create bands done.");
+		
+		if(isCanceled()) {
+			throw new RuntimeException("canceled");
+		}
+
 		int[] rectCounter = new int[] {0};
 		long total_process_pixels = process_rect(dpFactory, rasterdb, ref, raster_xmin, raster_ymin, raster_xmax, raster_ymax, bands, indices, maskBand, true, 0, 0, rectCounter, 0);
 		log(total_process_pixels + " total process pixels");
@@ -187,7 +230,7 @@ public abstract class Abstract_task_index_raster extends CancelableRemoteTask {
 			}		
 			Timer.start("part rect");
 		}
-		
+
 		long rect_processed_pixel = 0;
 
 		for (int y = 0; y < height; y++) {

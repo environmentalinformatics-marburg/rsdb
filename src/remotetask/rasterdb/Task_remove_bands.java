@@ -6,7 +6,6 @@ import remotetask.Description;
 import remotetask.Param;
 import remotetask.RemoteTask;
 import util.JsonUtil;
-import util.TimeUtil;
 
 @task_rasterdb("remove_bands")
 @Description("Remove all pixel data of some bands at all timestamps.")
@@ -32,10 +31,6 @@ public class Task_remove_bands extends RemoteTask {
 	@Override
 	protected void process() throws Exception {
 		setMessage("init remove bands");
-		//Thread.sleep(10000);
-		/*if(true) {
-			throw new RuntimeException("my new error");
-		}*/
 		for(int band: bands) {
 			setMessage("remove band " + band);
 			if(rasterdb.hasRasterUnit()) {
@@ -54,10 +49,9 @@ public class Task_remove_bands extends RemoteTask {
 				rasterdb.rasterPyr4Unit().removeAllTilesOfBand(band);
 			}
 			rasterdb.removeBand(band);
-			setMessage("remove band " + band + "  " + TimeUtil.toPrettyText(band) + "  done.");
+			setMessage("remove band " + band + "  done.");
 		}
 		setMessage("remove bands done.");
-
 	}
 
 }
