@@ -179,7 +179,7 @@ public class LasWriter {
 	private static int getFormat0Flag(int returnNumber, int returns) {		
 		int rn = 7 < returnNumber ? 7 : returnNumber;
 		int rs = 7 < returns ? 7 : returns;		
-		return rn & (rs << 3);		
+		return rn | (rs << 3);		
 	}
 
 	private static void writePointDataRecordFormat6(BufferedDataOuputStreamLE out, PointTable[] pointTables, double xoff, double yoff, double zoff) throws IOException {
