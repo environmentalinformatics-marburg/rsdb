@@ -2,7 +2,7 @@
 
 plugins {
   //id 'org.kordamp.gradle.markdown' version '2.2.0' // https://github.com/aalmiray/markdown-gradle-plugin //Workaround disable markdownToHtml, reason: "Could not find remark-1.1.0.jar (com.overzealous:remark:1.1.0)"
-  id "com.github.ben-manes.versions" version '0.43.0' // update check task: dependencyUpdates  https://github.com/ben-manes/gradle-versions-plugin
+  id "com.github.ben-manes.versions" version '0.52.0' // update check task: dependencyUpdates  https://github.com/ben-manes/gradle-versions-plugin
 }
 
 // check for updates:
@@ -57,14 +57,14 @@ repositories {
 }
 
 dependencies {
-	implementation group: 'org.tinylog', name: 'tinylog-impl', version: '2.7.0'
-	runtimeOnly group: 'org.tinylog', name: 'slf4j-tinylog', version: '2.7.0'
+	implementation group: 'org.tinylog', name: 'tinylog-impl', version: '2.8.0-M1'
+	runtimeOnly group: 'org.tinylog', name: 'slf4j-tinylog', version: '2.8.0-M1'
   	
   	implementation group: 'org.mapdb', name: 'mapdb', version: '2.0-beta13' // warning: newer versions v3.x do break storage layout
   	
-  	implementation group: 'org.json', name: 'json', version: '20250107'
-  	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.33'  // TODO: check compatibility with newer version 2.x
-  	implementation group: 'com.opencsv', name: 'opencsv', version: '5.10'  	
+  	implementation group: 'org.json', name: 'json', version: '20250517'
+  	implementation group: 'org.yaml', name: 'snakeyaml', version: '2.4'
+  	implementation group: 'com.opencsv', name: 'opencsv', version: '5.11'  	
   	implementation group: 'com.github.mreutegg', name: 'laszip4j', version: '0.20'
   	implementation group: 'ar.com.hjg', name: 'pngj', version: '2.1.0'
   	implementation group: 'com.samskivert', name: 'jmustache', version: '1.16'	
@@ -76,7 +76,7 @@ dependencies {
   	implementation group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.10.7' // caution: newer versions may break storage layout (last tested: 1.1.7.7)
     //implementation group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.11' // data format changed from 0.1.11 to 0.1.12  	
     implementation group: 'me.lemire.integercompression', name: 'JavaFastPFOR', version: '0.1.12' // version 0.2.1 compiled to new class file version not compatible with java 11; caution: newer versions may break storage layout
-  	implementation group: 'com.github.luben', name: 'zstd-jni', version: '1.5.7-2' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
+  	implementation group: 'com.github.luben', name: 'zstd-jni', version: '1.5.7-3' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
   	
   	implementation group: 'org.antlr', name: 'antlr4-runtime', version: '4.9.3' // caution: newer versions may break with generated DSL Java source files
   	
