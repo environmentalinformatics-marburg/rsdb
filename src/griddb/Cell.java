@@ -21,7 +21,10 @@ public class Cell {
 	private int[] column_sizes;
 	
 	public Cell(int x, int y, int b, byte[] data_compressed) throws IOException {
-		long size = Zstd.decompressedSize(data_compressed);
+		long size = Zstd.getFrameContentSize(data_compressed);
+		if(size <= 0) {
+			throw new RuntimeException("decompression error " + size);
+		}
 		//Logger.info(data_compressed.length + " -> " + size);
 		this.data = Zstd.decompress(data_compressed, (int) size);
 		this.x = x;

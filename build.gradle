@@ -2,7 +2,7 @@
 
 plugins {
   //id 'org.kordamp.gradle.markdown' version '2.2.0' // https://github.com/aalmiray/markdown-gradle-plugin //Workaround disable markdownToHtml, reason: "Could not find remark-1.1.0.jar (com.overzealous:remark:1.1.0)"
-  id "com.github.ben-manes.versions" version '0.52.0' // update check task: dependencyUpdates  https://github.com/ben-manes/gradle-versions-plugin
+  id "com.github.ben-manes.versions" version '0.53.0' // update check task: dependencyUpdates  https://github.com/ben-manes/gradle-versions-plugin
 }
 
 // check for updates:
@@ -12,7 +12,7 @@ plugins {
 //gradle dependencies
 
 // upgrade gradle wrapper
-//./gradlew wrapper --gradle-version=9.1.0
+//./gradlew wrapper --gradle-version=9.2.0
 
 def isNonStable = { String version ->
   return version.contains('alpha') || version.contains('beta') 
@@ -38,7 +38,7 @@ eclipse {
   classpath {
     file {
       whenMerged { classpath ->
-        classpath.entries.removeIf { it instanceof org.gradle.plugins.ide.eclipse.model.Library && it.moduleVersion.toString() == 'org.gdal:gdal:2.2.0' }
+        classpath.entries.removeIf { it instanceof org.gradle.plugins.ide.eclipse.model.Library && it.moduleVersion.toString() == 'org.gdal:gdal:3.4.0' }
       }
     }
   }
@@ -63,7 +63,7 @@ dependencies {
   	implementation 'org.mapdb:mapdb:2.0-beta13' // warning: newer versions v3.x do break storage layout
   	
   	implementation 'org.json:json:20250517'
-  	implementation 'org.yaml:snakeyaml:2.4'
+  	implementation 'org.yaml:snakeyaml:2.5'
   	implementation 'com.opencsv:opencsv:5.12.0'  	
   	implementation 'com.github.mreutegg:laszip4j:0.21'
   	implementation 'ar.com.hjg:pngj:2.1.0'
@@ -75,7 +75,7 @@ dependencies {
   	implementation 'com.googlecode.javaewah:JavaEWAH:1.2.3'  	
   	implementation 'org.xerial.snappy:snappy-java:1.1.10.8' // caution: newer versions may break storage layout (last tested: 1.1.7.7)
     implementation 'me.lemire.integercompression:JavaFastPFOR:0.1.12' // version 0.2.1 compiled to new class file version not compatible with java 11; caution: newer versions may break storage layout  // data format changed from 0.1.11 to 0.1.12 
-  	implementation 'com.github.luben:zstd-jni:1.5.7-4' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
+  	implementation 'com.github.luben:zstd-jni:1.5.7-6' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
   	
   	implementation 'org.antlr:antlr4-runtime:4.9.3' // caution: newer versions may break with generated DSL Java source files
   	
@@ -89,7 +89,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5' // TODO: check for breaking changes in v0.12.x
     runtimeOnly 'io.jsonwebtoken:jjwt-gson:0.11.5' // TODO: check for breaking changes in v0.12.x	
 	
-	compileOnly 'org.gdal:gdal:2.2.0' // compileOnly because gdal library from executing system is needed; caution: newer versions may break compatibility
+	compileOnly 'org.gdal:gdal:3.4.0' // compileOnly because gdal library from executing system is needed; caution: newer versions may break compatibility
 	implementation 'org.locationtech.jts:jts-core:1.20.0'
 	implementation 'org.locationtech.proj4j:proj4j:1.4.1'
 	implementation 'org.locationtech.proj4j:proj4j-epsg:1.4.1'	
