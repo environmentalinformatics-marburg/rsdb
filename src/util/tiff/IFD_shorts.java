@@ -2,7 +2,6 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Objects;
 
 import util.tiff.TiffReader.IfdEntry;

@@ -1,8 +1,5 @@
 package voxeldb.raster.agg;
 
-
-import org.tinylog.Logger;
-
 public class RasterAggInt32ofInt32Sum extends RasterAggInt32ofInt32 {
 	
 

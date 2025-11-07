@@ -2,23 +2,16 @@ package server.api.voxeldbs;
 
 import java.io.IOException;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
+import org.tinylog.Logger;
 
 import broker.TimeSlice;
 import util.Range3d;
 import util.Web;
-import voxeldb.CellFactory;
-import voxeldb.VoxelCell;
 import voxeldb.VoxelDB;
 import voxeldb.VoxelGeoRef;
-import voxeldb.voxelcellprocessors.VcpCntUint16;
-import voxeldb.voxelcellprocessors.VcpCntUint8;
-import voxeldb.voxelcellprocessors.VcpInt32;
-import voxeldb.voxelcellprocessors.VcpInt32DivCount;
 
 public class Handler_voxels {
 	

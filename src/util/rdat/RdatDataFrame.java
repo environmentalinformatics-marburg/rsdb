@@ -10,8 +10,6 @@ import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 
-import org.mapdb.DataIO.DataOutputByteArray;
-
 import util.BufferedDataOuputStream;
 import util.Receiver;
 import util.Web;
@@ -203,6 +201,7 @@ public class RdatDataFrame<T> {
 		add(new StringColumn<T>(name, mapper));		
 	}
 
+	@SuppressWarnings("unchecked")
 	public void write(Receiver receiver, T... array) throws IOException {
 		write(receiver, Arrays.asList(array));
 	}

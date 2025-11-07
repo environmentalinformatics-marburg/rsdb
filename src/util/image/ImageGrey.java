@@ -10,9 +10,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 
-
-import org.tinylog.Logger;
-
 public class ImageGrey implements PureImage {
 	@SuppressWarnings("unused")
 	

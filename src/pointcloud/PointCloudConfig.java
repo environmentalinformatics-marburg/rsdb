@@ -12,7 +12,6 @@ import org.yaml.snakeyaml.Yaml;
 import broker.Informal;
 import broker.acl.ACL;
 import broker.acl.AclUtil;
-import broker.acl.EmptyACL;
 import util.yaml.YamlMap;
 
 public class PointCloudConfig {

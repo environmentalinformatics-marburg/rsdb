@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.jetty.server.Response;
-import org.mapdb.DataIO.DataOutputByteArray;
 
 import pointdb.PointDB;
 import pointdb.base.GeoPoint;

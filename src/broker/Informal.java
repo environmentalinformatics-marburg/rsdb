@@ -98,6 +98,7 @@ public class Informal {
 	public static class Builder {
 		public String title = "";
 		public String description = "";
+		@SuppressWarnings("unchecked")
 		public ReadonlyList<String> tags = ReadonlyList.EMPTY;
 		public String acquisition_date = "";
 		public String corresponding_contact = "";

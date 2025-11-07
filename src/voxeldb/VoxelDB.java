@@ -90,6 +90,7 @@ public class VoxelDB implements AutoCloseable {
 
 		private static final String TYPE = "voxeldb";
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public void read(YamlMap yamlMap) {
 			synchronized (griddb) {

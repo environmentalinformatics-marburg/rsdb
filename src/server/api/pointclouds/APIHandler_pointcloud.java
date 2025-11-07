@@ -25,7 +25,6 @@ import broker.group.PoiGroup;
 import broker.group.RoiGroup;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.P2d;
-import pointcloud.Rect2d;
 import pointcloud.PointCloud;
 import pointcloud.Rect2d;
 import util.JsonUtil;

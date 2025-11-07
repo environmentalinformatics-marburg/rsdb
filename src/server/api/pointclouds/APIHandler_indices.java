@@ -2,8 +2,6 @@ package server.api.pointclouds;
 
 import java.io.IOException;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONArray;

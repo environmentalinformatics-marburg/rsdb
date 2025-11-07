@@ -12,8 +12,6 @@ import org.tinylog.Logger;
 import broker.Broker;
 import jakarta.servlet.http.HttpServletResponse;
 import pointcloud.Importer;
-import postgis.PostgisLayerManager;
-import rasterdb.RasterDB;
 import server.api.APIHandler;
 import util.Web;
 

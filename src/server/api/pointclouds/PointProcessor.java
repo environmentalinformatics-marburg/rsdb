@@ -13,7 +13,6 @@ import pointcloud.AttributeSelector;
 import pointcloud.CellTable.ChainedFilterFunc;
 import pointcloud.PointCloud;
 import pointcloud.PointTable;
-import pointcloud.PointTable.FilterByPolygonFunc;
 import pointdb.process.DataProvider2;
 import pointdb.processing.geopoint.GeoPointFilter;
 import pointdb.processing.geopoint.Normalise;

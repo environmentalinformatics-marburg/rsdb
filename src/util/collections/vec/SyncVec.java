@@ -19,25 +19,30 @@ public class SyncVec<T> implements Iterable<T> {
 	protected int size;
 	protected T[] items;	
 
+	@SuppressWarnings("unchecked")
 	public static <T> Vec<T> ofOne(T e) {
 		return new Vec<T>((T[]) new Object[] {e}, 1);
 	}
 
+	@SuppressWarnings("unchecked")
 	public SyncVec() {
 		this.lock = new ReentrantReadWriteLock();
 		this.items = (T[]) DEFAULT_SIZED_EMPTY_ARRAY;
 	}
 
+	@SuppressWarnings("unchecked")
 	public SyncVec(ReentrantReadWriteLock lock) {		
 		this.lock = lock;
 		this.items = (T[]) DEFAULT_SIZED_EMPTY_ARRAY;
 	}
 
+	@SuppressWarnings("unchecked")
 	public SyncVec(int initialCapacity) {
 		this.lock = new ReentrantReadWriteLock();
 		this.items = (T[]) new Object[initialCapacity];
 	}
 
+	@SuppressWarnings("unchecked")
 	public SyncVec(ReentrantReadWriteLock lock, int initialCapacity) {
 		this.lock = lock;
 		this.items = (T[]) new Object[initialCapacity];
@@ -127,6 +132,7 @@ public class SyncVec<T> implements Iterable<T> {
 		items[size++] = e;
 	}		
 
+	@SuppressWarnings("unchecked")
 	private void growForOneUnsync() {
 		if (items == DEFAULT_SIZED_EMPTY_ARRAY) {
 			items = (T[]) new Object[10];

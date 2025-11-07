@@ -45,8 +45,11 @@ public class Cell {
 		}
 	}
 	
-	public static byte[] recompressData(byte[] data_compressed, int compression_level) {
-		long size = Zstd.decompressedSize(data_compressed);
+	public static byte[] recompressData(byte[] data_compressed, int compression_level) {		
+		long size = Zstd.getFrameContentSize(data_compressed);
+		if(size <= 0) {
+			throw new RuntimeException("decompression error " + size);
+		}
 		byte[] result = Zstd.decompress(data_compressed, (int) size);
 		byte[] result_compressed = Zstd.compress(result, compression_level);
 		return result_compressed;

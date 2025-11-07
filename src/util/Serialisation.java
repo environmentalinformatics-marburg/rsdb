@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-
-import org.tinylog.Logger;
 import org.mapdb.DataIO;
 import org.mapdb.Serializer;
 import org.xerial.snappy.Snappy;

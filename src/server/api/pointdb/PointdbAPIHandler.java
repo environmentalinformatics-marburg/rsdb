@@ -1,7 +1,6 @@
 package server.api.pointdb;
 
 
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 
 import broker.Broker;

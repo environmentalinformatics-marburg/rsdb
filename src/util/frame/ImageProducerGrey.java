@@ -1,8 +1,6 @@
 package util.frame;
 
 
-import org.tinylog.Logger;
-
 import util.Util;
 import util.image.ImageGrey;
 

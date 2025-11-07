@@ -1,8 +1,6 @@
 package voxeldb.raster;
 
 
-import org.tinylog.Logger;
-
 import util.Range3d;
 import voxeldb.CellFactory;
 import voxeldb.VoxelCell;

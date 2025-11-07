@@ -81,6 +81,7 @@ public class Tiff {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void write(DoubleFrame[] doubleFrames, GeoReference ref) throws IOException {
 		writeWithSupplier(Arrays.stream(doubleFrames).<Supplier<DoubleFrame>>map(f->()->f).toArray(Supplier[]::new), ref);
 	}

@@ -2,9 +2,6 @@ package voxeldb.voxelcellprocessors;
 
 import java.util.function.Consumer;
 
-
-import org.tinylog.Logger;
-
 import voxeldb.VoxelCell;
 
 public abstract class Vcp implements Consumer<VoxelCell> {	

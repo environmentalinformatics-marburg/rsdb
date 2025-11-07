@@ -2,10 +2,6 @@ package util.tiff;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Arrays;
-
-
-import org.tinylog.Logger;
 
 import util.tiff.TiffReader.IfdEntry;
 

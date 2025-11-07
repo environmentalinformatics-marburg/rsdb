@@ -266,6 +266,7 @@ public class RasterDB implements AutoCloseable {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public synchronized void readMeta() {
 		try {
 			ref = GeoReference.EMPTY_DEFAULT;
@@ -284,6 +285,7 @@ public class RasterDB implements AutoCloseable {
 					ref = GeoReference.ofYaml(yamlMap.getMap("ref"));
 				}
 				if (yamlMap.contains("bands")) {
+					@SuppressWarnings("unchecked")
 					Map<Number, Object> m = (Map<Number, Object>) yamlMap.getObject("bands");
 					for (Entry<Number, Object> entry : m.entrySet()) {
 						int index = entry.getKey().intValue();

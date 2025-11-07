@@ -250,6 +250,7 @@ public class PointCloud implements AutoCloseable {
 
 		private static final String TYPE = "pointcloud";
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public void read(YamlMap yamlMap) {
 			synchronized (griddb) {

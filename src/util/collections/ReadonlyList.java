@@ -18,6 +18,7 @@ public interface ReadonlyList<T> extends List<T> {
 	@SuppressWarnings("rawtypes")
 	public static final ReadonlyArray EMPTY = new ReadonlyArray<>(new Object[0]);
 	
+	@SuppressWarnings("unchecked")
 	public static <E> ReadonlyArray<E> of(E... array) {
 		if(array == null || array.length == 0) {
 			return EMPTY;

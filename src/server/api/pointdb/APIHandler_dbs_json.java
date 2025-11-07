@@ -2,15 +2,12 @@ package server.api.pointdb;
 
 import java.io.IOException;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
 
 import broker.Broker;
+import jakarta.servlet.http.HttpServletResponse;
 import pointdb.base.PointdbConfig;
 import util.JsonUtil;
 import util.Web;

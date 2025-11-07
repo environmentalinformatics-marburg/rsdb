@@ -6,7 +6,6 @@ import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.json.JSONObject;

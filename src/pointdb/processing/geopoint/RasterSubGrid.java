@@ -7,8 +7,6 @@ import java.util.TreeMap;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
-import org.tinylog.Logger;
-
 import pointdb.base.Rect;
 import util.Serialisation;
 

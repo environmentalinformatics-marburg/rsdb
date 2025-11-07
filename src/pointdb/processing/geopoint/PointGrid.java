@@ -592,6 +592,7 @@ public class PointGrid extends AbstractCollection<GeoPoint> implements GeoPointC
 	}
 
 	public PointGrid copy() {
+		@SuppressWarnings("unchecked")
 		Vec<GeoPoint>[][] g = new Vec[range_y][range_x];
 		for(int y=0;y<range_y;y++) {
 			Vec<GeoPoint>[] row = grid[y];

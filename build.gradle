@@ -124,14 +124,15 @@ jar {
 }
 
 java {
-  sourceCompatibility = '11' // build compatiblity with java 11 and newer
-  targetCompatibility = '11' // run compatiblity with java 11 and newer
+  sourceCompatibility = '21' // build compatiblity with java 11 and newer
+  targetCompatibility = '21' // run compatiblity with java 11 and newer
 }
 
 tasks.withType(JavaCompile){
-    //options.deprecation = true
+    //options.deprecation = true // generate warnings for depricated
 	//options.listFiles = true
 	//options.verbose = true
+	options.compilerArgs << '-Xlint:unchecked' // generate warnings for unchecked
 }
 
 task clean_package(type: Delete) {

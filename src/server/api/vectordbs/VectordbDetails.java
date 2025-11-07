@@ -6,6 +6,7 @@ public class VectordbDetails {
 	
 	public String epsg = "";
 	public String proj4 = "";	
+	@SuppressWarnings("unchecked")
 	public ReadonlyList<String> attributes = ReadonlyList.EMPTY;
 
 }

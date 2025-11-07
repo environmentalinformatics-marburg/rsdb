@@ -3,8 +3,6 @@ package server.api.voxeldbs;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import javax.sound.midi.MetaEventListener;
-
 import org.eclipse.jetty.server.Response;
 
 import util.Extent3d;

@@ -2,8 +2,6 @@ package server.api.main;
 
 import java.io.IOException;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONWriter;
@@ -11,9 +9,9 @@ import org.json.JSONWriter;
 import broker.Broker;
 import broker.group.Roi;
 import broker.group.RoiGroup;
+import jakarta.servlet.http.HttpServletResponse;
 import pointdb.base.Point2d;
 import pointdb.base.PolygonUtil;
-import pointdb.base.PolygonUtil.PolygonsWithHoles;
 import server.api.APIHandler;
 import util.Web;
 

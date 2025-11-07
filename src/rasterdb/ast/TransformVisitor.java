@@ -2,9 +2,6 @@ package rasterdb.ast;
 
 import java.util.ArrayList;
 
-
-import org.tinylog.Logger;
-
 public interface TransformVisitor extends AstVisitor<AST, AST> {
 	
 	

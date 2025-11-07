@@ -10,7 +10,6 @@ import org.json.JSONWriter;
 import broker.Broker;
 import pointdb.process.AbstractProcessingFun;
 import pointdb.process.Functions;
-import pointdb.process.ProcessingFun;
 import util.JsonUtil;
 import util.ResponseReceiver;
 import util.Web;

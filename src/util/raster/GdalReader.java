@@ -192,6 +192,7 @@ public class GdalReader {
 		srcSr.ImportFromWkt(dataset.GetGCPProjection());
 		Transformer transformer = GeoUtil.createCoordinateTransformer(srcSr, dstSr);
 
+		@SuppressWarnings("unchecked")
 		Vector<GCP> gcps = dataset.GetGCPs();
 		Logger.info("gcps "+gcps.size());
 		double[] p = new double[]{0d, 0d, 0d};

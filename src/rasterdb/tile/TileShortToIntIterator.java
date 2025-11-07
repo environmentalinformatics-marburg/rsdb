@@ -3,7 +3,6 @@ package rasterdb.tile;
 import java.util.Iterator;
 
 import rasterunit.Tile;
-import util.frame.FloatFrame;
 import util.frame.IntFrame;
 
 public class TileShortToIntIterator implements Iterator<int[][]> {

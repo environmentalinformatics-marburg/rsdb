@@ -17,7 +17,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
-import org.gdal.osr.CoordinateTransformation;
 import org.tinylog.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

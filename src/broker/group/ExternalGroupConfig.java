@@ -2,7 +2,6 @@ package broker.group;
 
 import broker.Informal;
 import broker.acl.ACL;
-import broker.acl.EmptyACL;
 import util.yaml.YamlMap;
 
 public class ExternalGroupConfig {

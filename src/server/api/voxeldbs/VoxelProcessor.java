@@ -2,8 +2,6 @@ package server.api.voxeldbs;
 
 import java.io.IOException;
 
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Response;
 
 import broker.TimeSlice;

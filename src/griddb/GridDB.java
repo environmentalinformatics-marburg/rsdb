@@ -264,6 +264,7 @@ public class GridDB implements AutoCloseable {
 	public synchronized void yamlToMeta(YamlMap map) {
 		attributes.clear();
 		if (map.contains("attributes")) {
+			@SuppressWarnings("unchecked")
 			Map<Number, Object> m = (Map<Number, Object>) map.getObject("attributes");
 			for (Entry<Number, Object> entry : m.entrySet()) {
 				int id = entry.getKey().intValue();

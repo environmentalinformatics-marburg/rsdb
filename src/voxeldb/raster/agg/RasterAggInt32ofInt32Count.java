@@ -1,8 +1,5 @@
 package voxeldb.raster.agg;
 
-
-import org.tinylog.Logger;
-
 public class RasterAggInt32ofInt32Count extends RasterAggInt32ofInt32 {
 	
 

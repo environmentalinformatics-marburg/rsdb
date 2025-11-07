@@ -1,38 +1,26 @@
 package server;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import javax.security.auth.Subject;
+import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.security.UserAuthentication;
+import org.eclipse.jetty.server.Authentication;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.tinylog.Logger;
+
+import broker.Account;
+import broker.Broker;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
-
-import org.tinylog.Logger;
-import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.security.AbstractLoginService;
-import org.eclipse.jetty.security.DefaultUserIdentity;
-import org.eclipse.jetty.security.UserAuthentication;
-import org.eclipse.jetty.server.Authentication;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.UserIdentity;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import broker.Account;
-import broker.Broker;
-import server.api.main.APIHandler_identity;
 import util.Hex;
 import util.Nonce;
 import util.TemplateUtil;

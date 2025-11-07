@@ -3,9 +3,6 @@ package util.png;
 import java.io.DataOutput;
 import java.io.IOException;
 
-
-import org.tinylog.Logger;
-
 import util.image.ImageBufferARGB;
 
 public class PngWriter {

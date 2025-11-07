@@ -19,7 +19,9 @@ public class Associated {
 	private String rasterdb = "";
 	private String voxeldb = "";
 
+	@SuppressWarnings("unchecked")
 	private List<String> poi_groups = java.util.Collections.EMPTY_LIST;
+	@SuppressWarnings("unchecked")
 	private List<String> roi_groups = java.util.Collections.EMPTY_LIST;
 
 	public void setPointDB(String name) {

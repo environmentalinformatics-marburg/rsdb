@@ -26,6 +26,7 @@ public class Structure<T>{
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public Structure(T exampleObject) {		
 		if(clazz!=null) {
 			this.clazz = (Class<T>) exampleObject.getClass();
@@ -34,6 +35,7 @@ public class Structure<T>{
 		}		
 	}
 	
+	@SuppressWarnings("unchecked")
 	private static <T> Class<T> getTypeClass(Object o) {
 		Type superClass = o.getClass().getGenericSuperclass();		
 		if(superClass instanceof ParameterizedType) {

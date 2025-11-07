@@ -1,29 +1,21 @@
 package server;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.security.auth.Subject;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
-import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.security.UserAuthentication;
-import org.eclipse.jetty.security.UserStore;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.tinylog.Logger;
 
 import broker.Account;
 import broker.AccountManager;
-import broker.acl.FastUserIdentity;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Injects Authentication into Request if IP is in ipMap and user is in loginService.
