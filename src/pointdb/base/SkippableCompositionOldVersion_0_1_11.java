@@ -56,4 +56,10 @@ public class SkippableCompositionOldVersion_0_1_11 implements SkippableIntegerCO
         return F1.toString() + "+" + F2.toString();
     }
 
+	/*// TODO needed for JavaFastPFOR API v0.3.0; not checked for correctness
+    @Override
+	public int maxHeadlessCompressedLength(IntWrapper compressedPositions, int inlength) {
+		return F1.maxHeadlessCompressedLength(compressedPositions, inlength) + F2.maxHeadlessCompressedLength(compressedPositions, inlength);
+	}*/
+
 }

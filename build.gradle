@@ -74,7 +74,7 @@ dependencies {
   	
   	implementation 'com.googlecode.javaewah:JavaEWAH:1.2.3'  	
   	implementation 'org.xerial.snappy:snappy-java:1.1.10.8' // caution: newer versions may break storage layout (last tested: 1.1.7.7)
-    implementation 'me.lemire.integercompression:JavaFastPFOR:0.1.12' // version 0.2.1 compiled to new class file version not compatible with java 11; caution: newer versions may break storage layout  // data format changed from 0.1.11 to 0.1.12 
+    implementation 'me.lemire.integercompression:JavaFastPFOR:0.2.1' // caution: newer versions may break storage layout // api changed in 0.3.0  // data format changed from 0.1.11 to 0.1.12  // version 0.2.1 compiled to new class file version not compatible with java 11;
   	implementation 'com.github.luben:zstd-jni:1.5.7-6' // caution: newer versions may break storage layout (last tested: 1.4.5-6)
   	
   	implementation 'org.antlr:antlr4-runtime:4.9.3' // caution: newer versions may break with generated DSL Java source files
@@ -124,8 +124,8 @@ jar {
 }
 
 java {
-  sourceCompatibility = '21' // build compatiblity with java 11 and newer
-  targetCompatibility = '21' // run compatiblity with java 11 and newer
+  sourceCompatibility = '21' // build compatiblity with java 21 and newer
+  targetCompatibility = '21' // run compatiblity with java 21 and newer
 }
 
 tasks.withType(JavaCompile){

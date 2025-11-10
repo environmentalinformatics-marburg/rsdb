@@ -12,9 +12,9 @@ Or download [release package](https://github.com/environmentalinformatics-marbur
 
 Needed dependencies are **Java** and **GDAL** which are included in the **RSDB example distribution** but not in **release packages**.
 
-**Java**: Either Java system installation [(Java 8 or newer, JRE or JDK)](https://adoptopenjdk.net) needs to be present or [Java files](https://adoptopenjdk.net) need to be located at subfolder of this package at folder `java`. *(For RSDB example distribution the java-folder is included already.)*
+**Java**: Either Java system installation [(Java 21 or newer, JRE or JDK)](https://adoptium.net) needs to be present or [Java files](https://adoptium.net) need to be located at subfolder of this package at folder `java`. *(For RSDB example distribution the java-folder is included already.)*
 
-**GDAL** with Java bindings: [GDAL 2.x.x, (not GDAL 3)](https://www.gisinternals.com/release.php) needs to be located at subfolder `gdal`. Make sure to use GDAL 2 versions, GDAL 1 and GDAL 3 are not supported currently. *(For RSDB example distribution the gdal-folder is included already.)*
+**GDAL** with Java bindings: [GDAL 3.4.0 or newer](https://www.gisinternals.com/release.php) needs to be located at subfolder `gdal`. *(For RSDB example distribution the gdal-folder is included already.)*
 
 Extract zip-file to a short path without spaces, e.g. `C:/rsdb`
 
@@ -37,10 +37,11 @@ lsb_release -a
 # update package sources
 sudo apt update
 
-# install Java
-sudo apt-get install default-jdk
+# install Java 21 or newer
+#sudo apt install default-jdk
+sudo apt-get install openjdk-21-jdk
 
-# check if Java is installed and show Java version
+# check if Java is installed and show Java version 21 or newer
 java -version
 
 # install library connection GDAL to Java
