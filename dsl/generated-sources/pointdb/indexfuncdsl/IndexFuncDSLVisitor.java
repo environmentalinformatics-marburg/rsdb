@@ -1,6 +1,5 @@
-// Generated from IndexFuncDSL.g4 by ANTLR 4.4
+// Generated from grammars/IndexFuncDSL.g4 by ANTLR 4.13.2
 package pointdb.indexfuncdsl;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -12,39 +11,39 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface IndexFuncDSLVisitor<T> extends ParseTreeVisitor<T> {
 	/**
-	 * Visit a parse tree produced by {@link IndexFuncDSLParser#number}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNumber(@NotNull IndexFuncDSLParser.NumberContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link IndexFuncDSLParser#index_func}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIndex_func(@NotNull IndexFuncDSLParser.Index_funcContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link IndexFuncDSLParser#param}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitParam(@NotNull IndexFuncDSLParser.ParamContext ctx);
+	T visitIndex_func(IndexFuncDSLParser.Index_funcContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link IndexFuncDSLParser#param_sequence}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitParam_sequence(@NotNull IndexFuncDSLParser.Param_sequenceContext ctx);
+	T visitParam_sequence(IndexFuncDSLParser.Param_sequenceContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IndexFuncDSLParser#param}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParam(IndexFuncDSLParser.ParamContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link IndexFuncDSLParser#id}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitId(@NotNull IndexFuncDSLParser.IdContext ctx);
+	T visitId(IndexFuncDSLParser.IdContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link IndexFuncDSLParser#value}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitValue(@NotNull IndexFuncDSLParser.ValueContext ctx);
+	T visitValue(IndexFuncDSLParser.ValueContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link IndexFuncDSLParser#number}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNumber(IndexFuncDSLParser.NumberContext ctx);
 }

@@ -1,4 +1,4 @@
-// Generated from SubsetDSL.g4 by ANTLR 4.4
+// Generated from grammars/SubsetDSL.g4 by ANTLR 4.13.2
 package pointdb.subsetdsl;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -9,29 +9,78 @@ import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.*;
 
-@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
+@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue", "this-escape"})
 public class SubsetDSLLexer extends Lexer {
-	static { RuntimeMetaData.checkVersion("4.4", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.13.2", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__9=1, T__8=2, T__7=3, T__6=4, T__5=5, T__4=6, T__3=7, T__2=8, T__1=9, 
-		T__0=10, ID=11, WS=12, INT=13, PLUS_MINUS=14, SEPERATOR=15;
+		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, T__8=9, 
+		T__9=10, ID=11, WS=12, INT=13, PLUS_MINUS=14, SEPERATOR=15;
+	public static String[] channelNames = {
+		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
+	};
+
 	public static String[] modeNames = {
 		"DEFAULT_MODE"
 	};
 
-	public static final String[] tokenNames = {
-		"'\\u0000'", "'\\u0001'", "'\\u0002'", "'\\u0003'", "'\\u0004'", "'\\u0005'", 
-		"'\\u0006'", "'\\u0007'", "'\b'", "'\t'", "'\n'", "'\\u000B'", "'\f'", 
-		"'\r'", "'\\u000E'", "'\\u000F'"
-	};
-	public static final String[] ruleNames = {
-		"T__9", "T__8", "T__7", "T__6", "T__5", "T__4", "T__3", "T__2", "T__1", 
-		"T__0", "ID", "WS", "INT", "PLUS_MINUS", "SEPERATOR"
-	};
+	private static String[] makeRuleNames() {
+		return new String[] {
+			"T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "T__6", "T__7", "T__8", 
+			"T__9", "ID", "WS", "INT", "PLUS_MINUS", "SEPERATOR"
+		};
+	}
+	public static final String[] ruleNames = makeRuleNames();
+
+	private static String[] makeLiteralNames() {
+		return new String[] {
+			null, "'bbox('", "')'", "'square('", "','", "'.'", "'poi('", "'group='", 
+			"'roi('", "'/'", "'p('"
+		};
+	}
+	private static final String[] _LITERAL_NAMES = makeLiteralNames();
+	private static String[] makeSymbolicNames() {
+		return new String[] {
+			null, null, null, null, null, null, null, null, null, null, null, "ID", 
+			"WS", "INT", "PLUS_MINUS", "SEPERATOR"
+		};
+	}
+	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
+	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
+
+	/**
+	 * @deprecated Use {@link #VOCABULARY} instead.
+	 */
+	@Deprecated
+	public static final String[] tokenNames;
+	static {
+		tokenNames = new String[_SYMBOLIC_NAMES.length];
+		for (int i = 0; i < tokenNames.length; i++) {
+			tokenNames[i] = VOCABULARY.getLiteralName(i);
+			if (tokenNames[i] == null) {
+				tokenNames[i] = VOCABULARY.getSymbolicName(i);
+			}
+
+			if (tokenNames[i] == null) {
+				tokenNames[i] = "<INVALID>";
+			}
+		}
+	}
+
+	@Override
+	@Deprecated
+	public String[] getTokenNames() {
+		return tokenNames;
+	}
+
+	@Override
+
+	public Vocabulary getVocabulary() {
+		return VOCABULARY;
+	}
 
 
 	public SubsetDSLLexer(CharStream input) {
@@ -43,13 +92,13 @@ public class SubsetDSLLexer extends Lexer {
 	public String getGrammarFileName() { return "SubsetDSL.g4"; }
 
 	@Override
-	public String[] getTokenNames() { return tokenNames; }
-
-	@Override
 	public String[] getRuleNames() { return ruleNames; }
 
 	@Override
 	public String getSerializedATN() { return _serializedATN; }
+
+	@Override
+	public String[] getChannelNames() { return channelNames; }
 
 	@Override
 	public String[] getModeNames() { return modeNames; }
@@ -58,31 +107,61 @@ public class SubsetDSLLexer extends Lexer {
 	public ATN getATN() { return _ATN; }
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\2\21`\b\1\4\2\t\2\4"+
-		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
-		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\3\2\3\2\3\3\3\3\3\3"+
-		"\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\5\3\5\3\5\3\5\3\5\3\6\3\6\3\6\3\6\3\6\3"+
-		"\6\3\7\3\7\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\t\3\t\3\t\3\t\3\t\3\n\3\n"+
-		"\3\13\3\13\3\f\3\f\7\fN\n\f\f\f\16\fQ\13\f\3\r\6\rT\n\r\r\r\16\rU\3\16"+
-		"\6\16Y\n\16\r\16\16\16Z\3\17\3\17\3\20\3\20\2\2\21\3\3\5\4\7\5\t\6\13"+
-		"\7\r\b\17\t\21\n\23\13\25\f\27\r\31\16\33\17\35\20\37\21\3\2\7\4\2C\\"+
-		"c|\6\2\62;C\\aac|\5\2\13\f\17\17\"\"\4\2--//\5\2((==~~b\2\3\3\2\2\2\2"+
-		"\5\3\2\2\2\2\7\3\2\2\2\2\t\3\2\2\2\2\13\3\2\2\2\2\r\3\2\2\2\2\17\3\2\2"+
-		"\2\2\21\3\2\2\2\2\23\3\2\2\2\2\25\3\2\2\2\2\27\3\2\2\2\2\31\3\2\2\2\2"+
-		"\33\3\2\2\2\2\35\3\2\2\2\2\37\3\2\2\2\3!\3\2\2\2\5#\3\2\2\2\7&\3\2\2\2"+
-		"\t-\3\2\2\2\13\62\3\2\2\2\r8\3\2\2\2\17:\3\2\2\2\21B\3\2\2\2\23G\3\2\2"+
-		"\2\25I\3\2\2\2\27K\3\2\2\2\31S\3\2\2\2\33X\3\2\2\2\35\\\3\2\2\2\37^\3"+
-		"\2\2\2!\"\7\61\2\2\"\4\3\2\2\2#$\7r\2\2$%\7*\2\2%\6\3\2\2\2&\'\7i\2\2"+
-		"\'(\7t\2\2()\7q\2\2)*\7w\2\2*+\7r\2\2+,\7?\2\2,\b\3\2\2\2-.\7r\2\2./\7"+
-		"q\2\2/\60\7k\2\2\60\61\7*\2\2\61\n\3\2\2\2\62\63\7d\2\2\63\64\7d\2\2\64"+
-		"\65\7q\2\2\65\66\7z\2\2\66\67\7*\2\2\67\f\3\2\2\289\7+\2\29\16\3\2\2\2"+
-		":;\7u\2\2;<\7s\2\2<=\7w\2\2=>\7c\2\2>?\7t\2\2?@\7g\2\2@A\7*\2\2A\20\3"+
-		"\2\2\2BC\7t\2\2CD\7q\2\2DE\7k\2\2EF\7*\2\2F\22\3\2\2\2GH\7.\2\2H\24\3"+
-		"\2\2\2IJ\7\60\2\2J\26\3\2\2\2KO\t\2\2\2LN\t\3\2\2ML\3\2\2\2NQ\3\2\2\2"+
-		"OM\3\2\2\2OP\3\2\2\2P\30\3\2\2\2QO\3\2\2\2RT\t\4\2\2SR\3\2\2\2TU\3\2\2"+
-		"\2US\3\2\2\2UV\3\2\2\2V\32\3\2\2\2WY\4\62;\2XW\3\2\2\2YZ\3\2\2\2ZX\3\2"+
-		"\2\2Z[\3\2\2\2[\34\3\2\2\2\\]\t\5\2\2]\36\3\2\2\2^_\t\6\2\2_ \3\2\2\2"+
-		"\6\2OUZ\2";
+		"\u0004\u0000\u000f^\u0006\uffff\uffff\u0002\u0000\u0007\u0000\u0002\u0001"+
+		"\u0007\u0001\u0002\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004"+
+		"\u0007\u0004\u0002\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007"+
+		"\u0007\u0007\u0002\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b"+
+		"\u0007\u000b\u0002\f\u0007\f\u0002\r\u0007\r\u0002\u000e\u0007\u000e\u0001"+
+		"\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001"+
+		"\u0001\u0001\u0001\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0001"+
+		"\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0003\u0001\u0003\u0001"+
+		"\u0004\u0001\u0004\u0001\u0005\u0001\u0005\u0001\u0005\u0001\u0005\u0001"+
+		"\u0005\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001"+
+		"\u0006\u0001\u0006\u0001\u0007\u0001\u0007\u0001\u0007\u0001\u0007\u0001"+
+		"\u0007\u0001\b\u0001\b\u0001\t\u0001\t\u0001\t\u0001\n\u0001\n\u0005\n"+
+		"L\b\n\n\n\f\nO\t\n\u0001\u000b\u0004\u000bR\b\u000b\u000b\u000b\f\u000b"+
+		"S\u0001\f\u0004\fW\b\f\u000b\f\f\fX\u0001\r\u0001\r\u0001\u000e\u0001"+
+		"\u000e\u0000\u0000\u000f\u0001\u0001\u0003\u0002\u0005\u0003\u0007\u0004"+
+		"\t\u0005\u000b\u0006\r\u0007\u000f\b\u0011\t\u0013\n\u0015\u000b\u0017"+
+		"\f\u0019\r\u001b\u000e\u001d\u000f\u0001\u0000\u0005\u0002\u0000AZaz\u0004"+
+		"\u000009AZ__az\u0003\u0000\t\n\r\r  \u0002\u0000++--\u0003\u0000&&;;|"+
+		"|`\u0000\u0001\u0001\u0000\u0000\u0000\u0000\u0003\u0001\u0000\u0000\u0000"+
+		"\u0000\u0005\u0001\u0000\u0000\u0000\u0000\u0007\u0001\u0000\u0000\u0000"+
+		"\u0000\t\u0001\u0000\u0000\u0000\u0000\u000b\u0001\u0000\u0000\u0000\u0000"+
+		"\r\u0001\u0000\u0000\u0000\u0000\u000f\u0001\u0000\u0000\u0000\u0000\u0011"+
+		"\u0001\u0000\u0000\u0000\u0000\u0013\u0001\u0000\u0000\u0000\u0000\u0015"+
+		"\u0001\u0000\u0000\u0000\u0000\u0017\u0001\u0000\u0000\u0000\u0000\u0019"+
+		"\u0001\u0000\u0000\u0000\u0000\u001b\u0001\u0000\u0000\u0000\u0000\u001d"+
+		"\u0001\u0000\u0000\u0000\u0001\u001f\u0001\u0000\u0000\u0000\u0003%\u0001"+
+		"\u0000\u0000\u0000\u0005\'\u0001\u0000\u0000\u0000\u0007/\u0001\u0000"+
+		"\u0000\u0000\t1\u0001\u0000\u0000\u0000\u000b3\u0001\u0000\u0000\u0000"+
+		"\r8\u0001\u0000\u0000\u0000\u000f?\u0001\u0000\u0000\u0000\u0011D\u0001"+
+		"\u0000\u0000\u0000\u0013F\u0001\u0000\u0000\u0000\u0015I\u0001\u0000\u0000"+
+		"\u0000\u0017Q\u0001\u0000\u0000\u0000\u0019V\u0001\u0000\u0000\u0000\u001b"+
+		"Z\u0001\u0000\u0000\u0000\u001d\\\u0001\u0000\u0000\u0000\u001f \u0005"+
+		"b\u0000\u0000 !\u0005b\u0000\u0000!\"\u0005o\u0000\u0000\"#\u0005x\u0000"+
+		"\u0000#$\u0005(\u0000\u0000$\u0002\u0001\u0000\u0000\u0000%&\u0005)\u0000"+
+		"\u0000&\u0004\u0001\u0000\u0000\u0000\'(\u0005s\u0000\u0000()\u0005q\u0000"+
+		"\u0000)*\u0005u\u0000\u0000*+\u0005a\u0000\u0000+,\u0005r\u0000\u0000"+
+		",-\u0005e\u0000\u0000-.\u0005(\u0000\u0000.\u0006\u0001\u0000\u0000\u0000"+
+		"/0\u0005,\u0000\u00000\b\u0001\u0000\u0000\u000012\u0005.\u0000\u0000"+
+		"2\n\u0001\u0000\u0000\u000034\u0005p\u0000\u000045\u0005o\u0000\u0000"+
+		"56\u0005i\u0000\u000067\u0005(\u0000\u00007\f\u0001\u0000\u0000\u0000"+
+		"89\u0005g\u0000\u00009:\u0005r\u0000\u0000:;\u0005o\u0000\u0000;<\u0005"+
+		"u\u0000\u0000<=\u0005p\u0000\u0000=>\u0005=\u0000\u0000>\u000e\u0001\u0000"+
+		"\u0000\u0000?@\u0005r\u0000\u0000@A\u0005o\u0000\u0000AB\u0005i\u0000"+
+		"\u0000BC\u0005(\u0000\u0000C\u0010\u0001\u0000\u0000\u0000DE\u0005/\u0000"+
+		"\u0000E\u0012\u0001\u0000\u0000\u0000FG\u0005p\u0000\u0000GH\u0005(\u0000"+
+		"\u0000H\u0014\u0001\u0000\u0000\u0000IM\u0007\u0000\u0000\u0000JL\u0007"+
+		"\u0001\u0000\u0000KJ\u0001\u0000\u0000\u0000LO\u0001\u0000\u0000\u0000"+
+		"MK\u0001\u0000\u0000\u0000MN\u0001\u0000\u0000\u0000N\u0016\u0001\u0000"+
+		"\u0000\u0000OM\u0001\u0000\u0000\u0000PR\u0007\u0002\u0000\u0000QP\u0001"+
+		"\u0000\u0000\u0000RS\u0001\u0000\u0000\u0000SQ\u0001\u0000\u0000\u0000"+
+		"ST\u0001\u0000\u0000\u0000T\u0018\u0001\u0000\u0000\u0000UW\u000209\u0000"+
+		"VU\u0001\u0000\u0000\u0000WX\u0001\u0000\u0000\u0000XV\u0001\u0000\u0000"+
+		"\u0000XY\u0001\u0000\u0000\u0000Y\u001a\u0001\u0000\u0000\u0000Z[\u0007"+
+		"\u0003\u0000\u0000[\u001c\u0001\u0000\u0000\u0000\\]\u0007\u0004\u0000"+
+		"\u0000]\u001e\u0001\u0000\u0000\u0000\u0004\u0000MSX\u0000";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

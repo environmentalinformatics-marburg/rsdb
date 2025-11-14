@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<launchConfiguration type="com.github.jknack.Antlr4.tool">
-    <stringAttribute key="antlr4.arguments" value="-no-listener -visitor -encoding UTF-8 -package pointdb.indexfuncdsl -o dsl/generated-sources/pointdb/indexfuncdsl"/>
-    <stringAttribute key="antlr4.grammar" value="\rsdb\dsl\IndexFuncDSL.g4"/>
-    <stringAttribute key="antlr4.vmArguments" value=""/>
-</launchConfiguration>
