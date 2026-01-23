@@ -7,6 +7,9 @@
     <stringAttribute key="java_home" value=""/>
     <listAttribute key="jvm_arguments"/>
     <booleanAttribute key="offline_mode" value="false"/>
+    <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+        <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
+    </listAttribute>
     <booleanAttribute key="override_workspace_settings" value="false"/>
     <booleanAttribute key="show_console_view" value="true"/>
     <booleanAttribute key="show_execution_view" value="true"/>

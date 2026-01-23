@@ -66,7 +66,7 @@ dependencies {
   	
   	implementation 'org.mapdb:mapdb:2.0-beta13' // warning: newer versions v3.x do break storage layout
   	
-  	implementation 'org.json:json:20250517'
+  	implementation 'org.json:json:20251224'
   	implementation 'org.yaml:snakeyaml:2.5'
   	implementation 'com.opencsv:opencsv:5.12.0'  	
   	implementation 'com.github.mreutegg:laszip4j:0.21'
