@@ -27,7 +27,8 @@ public class InjectHandler extends AbstractHandler {
 
 			response.setHeader("X-Robots-Tag", "noindex, nofollow");
 
-			response.setHeader("Referrer-Policy", "no-referrer");
+			//response.setHeader("Referrer-Policy", "no-referrer"); // not allowed for OpenStreetMap tiles
+			response.setHeader("Referrer-Policy", "origin"); // needed for OpenStreetMap tiles
 			response.setHeader("X-Content-Type-Options", "nosniff");
 			if("127.0.0.1".equals(baseRequest.getRemoteAddr())  || "[0:0:0:0:0:0:0:1]".equals(baseRequest.getRemoteAddr())) {
 				response.setHeader("Access-Control-Allow-Origin", "*");
