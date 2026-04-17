@@ -28,6 +28,7 @@ public class MainAPICollectionHandler extends APICollectionHandler {
 		addMethod(new APIHandler_mbtiles(broker));
 		addMethod(new APIHandler_layers(broker));
 		addMethod(new APIHandler_epsg(broker));
+		addMethod(new APIHandler_stac(broker));
 	}
 
 }
