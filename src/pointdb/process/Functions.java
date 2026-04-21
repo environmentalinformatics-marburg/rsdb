@@ -89,6 +89,7 @@ public class Functions {
 
 		add(Fun_PR.class);
 		add(Fun_RD.class);
+		add(Fun_H_P.class);
 	}
 
 	public static void add(AbstractProcessingFun fun) {

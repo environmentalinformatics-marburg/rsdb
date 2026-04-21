@@ -67,12 +67,22 @@ BE_ELEV_SLOPE: |
   <br>
   <br>
   BE_ELEV_SLOPE := arctan( sqrt( dx² + dy² ) )
+H_P: |
+  <br>
+  <i>Parameter <b>percentile</b> needs to be set. Range: 0 to 100.
+  <br>
+  <br>
+  Examples:
+  <pre>
+  H_P(percentile = 99.1)
+  H_P(percentile =1)
+  H_P(percentile=98)
+  </pre>  
 point_coverage: |
   Query area is divided in 1x1 meter areas. One area is covered if at least one point is contained.
   <br>
   <br>
   point_coverage := covered_areas_count / areas_count
-
 PR: |
   Penetration rate at height range specified by parameters <b>height_lower</b> and <b>height_upper</b>.
   <br>  
@@ -103,9 +113,7 @@ PR: |
   PR(height_lower = 2; height_upper = 4)
   
   PR(height_lower = 4; height_upper = 8)
-  </pre>
-  
-  
+  </pre>  
 RD: |
   Return density at height range specified by parameters <b>height_lower</b> and <b>height_upper</b>.
   <br>  
@@ -139,9 +147,7 @@ RD: |
   RD(height_lower = -100; height_upper = 2)
   
   RD(height_lower = 2; height_upper = 100)
-  </pre>
-  
-  
+  </pre>  
 VDR: |
   reference: Martin Ehbrecht et al.: LiDAR-derived canopy structure supports the more-individuals hypothesis for arthropod diversity in temperate forests, Oikos (2018) 127: 814-824, <a href="https://doi.org/10.1111/oik.04972">https://doi.org/10.1111/oik.04972</a>
 ENL0: |

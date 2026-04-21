@@ -1,21 +1,15 @@
 package server.api.main;
 
 import java.io.IOException;
-import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-
-import org.tinylog.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.UserIdentity;
 import org.json.JSONWriter;
+import org.tinylog.Logger;
 
 import broker.Broker;
-import broker.group.PoiGroup;
-import pointdb.PointDB;
+import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.RasterDB;
 import server.api.APIHandler;
 import util.Web;

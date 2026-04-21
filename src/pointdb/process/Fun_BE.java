@@ -139,6 +139,18 @@ public class Fun_BE {
 		double[] hs = provider.get_sortedCanopyHeights();
 		return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(percentile);
 	}
+	
+	@Tag("canopy_height")
+	@Tag("canopy_height_percentile")
+	@Description("5% Percentile of Canopy Heights (based on point height above ground)")
+	static class Fun_BE_H_P5 extends ProcessingFun {
+		@Override
+		public double process(DataProvider2 provider) {
+			double[] hs = provider.get_sortedCanopyHeights();
+			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(5);
+		}
+	}
+
 
 	@Tag("canopy_height")
 	@Tag("canopy_height_percentile")
@@ -161,6 +173,18 @@ public class Fun_BE {
 			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(20);
 		}
 	}
+	
+	@Tag("canopy_height")
+	@Tag("canopy_height_percentile")
+	@Description("25% Percentile of Canopy Heights (based on point height above ground)")
+	static class Fun_BE_H_P25 extends ProcessingFun {
+		@Override
+		public double process(DataProvider2 provider) {
+			double[] hs = provider.get_sortedCanopyHeights();
+			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(25);
+		}
+	}
+
 
 	@Tag("canopy_height")
 	@Tag("canopy_height_percentile")
@@ -216,6 +240,18 @@ public class Fun_BE {
 			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(70);
 		}
 	}
+	
+	@Tag("canopy_height")
+	@Tag("canopy_height_percentile")
+	@Description("75% Percentile of Canopy Heights (based on point height above ground)")
+	static class Fun_BE_H_P75 extends ProcessingFun {
+		@Override
+		public double process(DataProvider2 provider) {
+			double[] hs = provider.get_sortedCanopyHeights();
+			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(75);
+		}
+	}
+
 
 	@Tag("canopy_height")
 	@Tag("canopy_height_percentile")
@@ -236,6 +272,28 @@ public class Fun_BE {
 		public double process(DataProvider2 provider) {
 			double[] hs = provider.get_sortedCanopyHeights();
 			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(90);
+		}
+	}
+	
+	@Tag("canopy_height")
+	@Tag("canopy_height_percentile")
+	@Description("95% Percentile of Canopy Heights (based on point height above ground)")
+	static class Fun_BE_H_P95 extends ProcessingFun {
+		@Override
+		public double process(DataProvider2 provider) {
+			double[] hs = provider.get_sortedCanopyHeights();
+			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(95);
+		}
+	}
+	
+	@Tag("canopy_height")
+	@Tag("canopy_height_percentile")
+	@Description("99% Percentile of Canopy Heights (based on point height above ground)")
+	static class Fun_BE_H_P99 extends ProcessingFun {
+		@Override
+		public double process(DataProvider2 provider) {
+			double[] hs = provider.get_sortedCanopyHeights();
+			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(99);
 		}
 	}
 
