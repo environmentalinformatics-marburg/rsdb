@@ -156,6 +156,7 @@ public class TiledWriter extends CancelableRemoteProxy {
 		if(isCanceled()) {
 			throw new RuntimeException("canceled");
 		}
+		this.setMessage("Write file: " + filename);
 		try(RandomAccessFile raf = new RandomAccessFile(filename, "rw")) {				
 			raf.setLength(0);
 			long imageDataPos = tiffFile.writeHeader(raf, bigTiff);

@@ -1,5 +1,6 @@
 package remotetask.rasterdb;
 
+import java.io.File;
 import java.util.Arrays;
 
 import org.json.JSONArray;
@@ -25,6 +26,7 @@ import util.tiff.file.TiledWriter.BandType;
 @Param(name="bands", type="integer_array", desc="Array of integer band numbers. Default: all bands.", example="1, 2, 3", required=false)
 @Param(name="data_type", desc="Pixel data type (same data type for all bands).\n Types: INT16, FLOAT32.\n If left empty, smallest type fitting all bands with no loss in precision will be chosen.", format="INT16 or FLOAT32", example="FLOAT32", required=false)
 @Param(name="compression", desc="Type of TIFF compression. Types:\n NO: no compression (fast, high space demand),\n DEFLATE: zip-like compression (compatibility with many applications),\n ZSTD: Zstandard compression (fast, low storage demands, compatibility verified with recent GDAL based applications like Qgis).\n Default: NO", format="NO or DEFLATE or ZSTD", example="ZSTD", required=false)
+@Param(name="filename", desc="Path and filename of exported TIFF. If parameter ends with a slash '/' (for a folder), the file name of raster layer id + '.tiff' is appended as file-name. Folders need to exist. File needs to not already exist, except if default file. Default: (inside of RSDB folder) ./temp/testingTiff.tif", format="path", example="./temp/raster.tiff", required=false)
 public class Task_export extends CancelableRemoteProxyTask {
 
 	private final Broker broker;
@@ -34,6 +36,7 @@ public class Task_export extends CancelableRemoteProxyTask {
 	private int[] bandIndices = null;
 	private BandType bandType = null;	
 	private TiffCompression tiffCompression;
+	private String filename = "./temp/testingTiff.tif";
 
 	public Task_export(Context ctx) {
 		super(ctx);
@@ -59,6 +62,18 @@ public class Task_export extends CancelableRemoteProxyTask {
 		this.bandType = BandType.parse(dataTypeText, null);
 		String compressionText = task.optString("compression");
 		this.tiffCompression = TiffCompression.parse(compressionText, TiffCompression.NO);
+		String paramFilename = task.optString("filename");
+		if(paramFilename != null && !paramFilename.isBlank()) {
+			filename = paramFilename.strip();
+			
+			if(filename.endsWith("/")) {
+				filename += name + ".tiff";
+			}
+			
+			if (new File(filename).exists()) {
+				throw new RuntimeException("File already exists.");
+			}
+		}
 	}
 
 	@Override
@@ -75,7 +90,7 @@ public class Task_export extends CancelableRemoteProxyTask {
 		} else {
 			bands = Arrays.stream(bandIndices).mapToObj(bandIndex -> rasterdb.getBandByNumberThrow(bandIndex)).toArray(Band[]::new);			
 		}
-		String filename = "temp/testingTiff.tif";
+
 		//int timestamp = 60598080;
 		//int timestamp = 0;
 		int timestamp = rasterdb.rasterUnit().timeKeysReadonly().last();
