@@ -9,9 +9,11 @@ import org.json.JSONWriter;
 import org.tinylog.Logger;
 
 import broker.Broker;
+import broker.catalog.CatalogKey;
 import jakarta.servlet.http.HttpServletResponse;
 import rasterdb.RasterDB;
 import server.api.APIHandler;
+import util.JsonUtil;
 import util.Web;
 
 public class APIHandler_stac extends APIHandler {
@@ -62,12 +64,12 @@ public class APIHandler_stac extends APIHandler {
 	}
 
 	private void handle_root(Request request, Response response, UserIdentity userIdentity) throws IOException {
-		
+
 		String serverName = request.getServerName();
 		int serverPort = request.getServerPort();
 		String domain = serverName + ":" + serverPort;
-		
-		
+
+
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
@@ -124,28 +126,48 @@ public class APIHandler_stac extends APIHandler {
 
 		json.key("links");
 		json.array();
-		for (String name : broker.getRasterdbNames()) {				
-			RasterDB rasterdb = broker.getRasterdb(name);
-			if (rasterdb.isAllowed(userIdentity)) {
-				json.object();
-				json.key("rel");
-				json.value("item");
-				json.key("href");
-				json.value("./stac/items/" + name);
-				json.key("type");
-				json.value("application/geo+json");
-				json.key("title");
-				json.value(name);
-				json.endObject();
-
-			}
-		}
+		addItem(json, "RasterDB__WCS");
+		addItem(json, "RasterDB__WMS");
+		addItem(json, "VectorDB__WFS");
+		addItem(json, "VectorDB__WMS");
 		json.endArray();
 
 		json.endObject();
 	}
 
+	private void addItem(JSONWriter json, String name) {
+		json.object();
+		json.key("rel");
+		json.value("item");
+		json.key("href");
+		json.value("./stac/items/" + name);
+		json.key("type");
+		json.value("application/geo+json");
+		json.key("title");
+		json.value(name);
+		json.endObject();
+	}
+
 	private void handle_items(String name, Request request, Response response, UserIdentity userIdentity) throws IOException {
+		switch(name) {
+		case "RasterDB__WCS":
+			handle_item_RasterDB__WCS(request, response, userIdentity);
+			break;
+		case "RasterDB__WMS":
+			handle_item_RasterDB__WMS(request, response, userIdentity);
+			break;
+		case "VectorDB__WFS":
+			handle_item_VectorDB__WFS(request, response, userIdentity);
+			break;	
+		case "VectorDB__WMS":
+			handle_item_VectorDB__WMS(request, response, userIdentity);
+			break;			
+		default:
+			throw new RuntimeException("unknown layer type: [" + name + "]");		
+		}
+	}
+	
+	private void handle_item_RasterDB__WCS(Request request, Response response, UserIdentity userIdentity) throws IOException {
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
 		JSONWriter json = new JSONWriter(response.getWriter());
@@ -155,7 +177,7 @@ public class APIHandler_stac extends APIHandler {
 		json.key("stac_version").value("1.0.0");
 		json.key("stac_extensions").array().endArray();
 		json.key("type").value("Feature");
-		json.key("id").value(name);
+		json.key("id").value("RasterDB__WCS");
 
 		json.key("geometry");
 		json.object();
@@ -163,7 +185,119 @@ public class APIHandler_stac extends APIHandler {
 
 		json.key("properties");
 		json.object();
-		json.key("title").value(name);
+		json.key("title").value("RasterDB WCS");
+		json.key("description").value("RSDB layer");
+		json.key("datetime").value(null);
+		json.key("start_datetime").value("1970-01-01T00:00:00Z");
+		json.key("end_datetime").value("1970-01-01T00:00:00Z");
+		json.endObject();
+
+		json.key("collection").value("simple-collection");
+
+		json.key("links");
+		json.array();
+		json.endArray();
+
+		json.key("assets");
+		json.object();
+
+
+		for (String layerName : broker.getRasterdbNames()) {				
+			RasterDB rasterdb = broker.getRasterdb(layerName);
+			if (rasterdb.isAllowed(userIdentity)) {
+				json.key(layerName + "__WCS");
+				json.object();
+				json.key("href").value("../../../rasterdb/" + layerName + "/wcs");
+				json.key("type").value("application/xml");
+				json.key("title").value(layerName + " - Web Coverage Service (WCS)");
+				json.key("roles");
+				json.array();
+				json.value("data");
+				json.endArray();
+				json.endObject();
+			}
+		}
+
+		json.endObject();
+
+		json.endObject();
+	}
+	
+	private void handle_item_RasterDB__WMS(Request request, Response response, UserIdentity userIdentity) throws IOException {
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(Web.MIME_JSON);
+		JSONWriter json = new JSONWriter(response.getWriter());
+
+		json.object();
+
+		json.key("stac_version").value("1.0.0");
+		json.key("stac_extensions").array().endArray();
+		json.key("type").value("Feature");
+		json.key("id").value("RasterDB__WMS");
+
+		json.key("geometry");
+		json.object();
+		json.endObject();
+
+		json.key("properties");
+		json.object();
+		json.key("title").value("RasterDB WMS");
+		json.key("description").value("RSDB layer");
+		json.key("datetime").value(null);
+		json.key("start_datetime").value("1970-01-01T00:00:00Z");
+		json.key("end_datetime").value("1970-01-01T00:00:00Z");
+		json.endObject();
+
+		json.key("collection").value("simple-collection");
+
+		json.key("links");
+		json.array();
+		json.endArray();
+
+		json.key("assets");
+		json.object();
+
+
+		for (String layerName : broker.getRasterdbNames()) {				
+			RasterDB rasterdb = broker.getRasterdb(layerName);
+			if (rasterdb.isAllowed(userIdentity)) {
+				json.key(layerName + "__WMS");
+				json.object();
+				json.key("href").value("../../../rasterdb/" + layerName + "/WMS");
+				json.key("type").value("application/xml");
+				json.key("title").value(layerName + " - Web Map Service (WMS)");
+				json.key("roles");
+				json.array();
+				json.value("data");
+				json.endArray();
+				json.endObject();
+			}
+		}
+
+		json.endObject();
+
+		json.endObject();
+	}
+	
+	private void handle_item_VectorDB__WFS(Request request, Response response, UserIdentity userIdentity) throws IOException {
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(Web.MIME_JSON);
+		JSONWriter json = new JSONWriter(response.getWriter());
+
+		json.object();
+
+		json.key("stac_version").value("1.0.0");
+		json.key("stac_extensions").array().endArray();
+		json.key("type").value("Feature");
+		json.key("id").value("VectorDB__WFS");
+
+		json.key("geometry");
+		json.object();
+		json.endObject();
+
+		json.key("properties");
+		json.object();
+		json.key("title").value("VectorDB WFS");
 		json.key("description").value("RSDB layer");
 		json.key("datetime").value(null);
 		json.key("start_datetime").value("1970-01-01T00:00:00Z");
@@ -179,30 +313,73 @@ public class APIHandler_stac extends APIHandler {
 		json.key("assets");
 		json.object();
 		
-		/*for (int i = 0; i < 30; i++) {
-			json.key("WCS" + i);
+		
+		broker.catalog.getSorted(CatalogKey.TYPE_VECTORDB, userIdentity).forEach(entry -> {
+			json.key(entry.name + "__WFS");
 			json.object();
-			json.key("href").value("../../../rasterdb/" + name + "/wcs");
+			json.key("href").value("../../../VectorDB/" + entry.name + "/WFS");
 			json.key("type").value("application/xml");
-			json.key("title").value(name + " - Web Coverage Service (WCS)");
+			json.key("title").value(entry.name + " - Web Feature Service (WFS)");
 			json.key("roles");
 			json.array();
 			json.value("data");
 			json.endArray();
 			json.endObject();
-		}*/
-		
-		json.key("WCS");
-		json.object();
-		json.key("href").value("../../../rasterdb/" + name + "/wcs");
-		json.key("type").value("application/xml");
-		json.key("title").value(name + " - Web Coverage Service (WCS)");
-		json.key("roles");
-		json.array();
-		json.value("data");
-		json.endArray();
+		});
+
 		json.endObject();
+
+		json.endObject();
+	}
+	
+	private void handle_item_VectorDB__WMS(Request request, Response response, UserIdentity userIdentity) throws IOException {
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(Web.MIME_JSON);
+		JSONWriter json = new JSONWriter(response.getWriter());
+
+		json.object();
+
+		json.key("stac_version").value("1.0.0");
+		json.key("stac_extensions").array().endArray();
+		json.key("type").value("Feature");
+		json.key("id").value("VectorDB__WMS");
+
+		json.key("geometry");
+		json.object();
+		json.endObject();
+
+		json.key("properties");
+		json.object();
+		json.key("title").value("VectorDB WMS");
+		json.key("description").value("RSDB layer");
+		json.key("datetime").value(null);
+		json.key("start_datetime").value("1970-01-01T00:00:00Z");
+		json.key("end_datetime").value("1970-01-01T00:00:00Z");
+		json.endObject();
+
+		json.key("collection").value("simple-collection");
+
+		json.key("links");
+		json.array();
+		json.endArray();
+
+		json.key("assets");
+		json.object();
 		
+		
+		broker.catalog.getSorted(CatalogKey.TYPE_VECTORDB, userIdentity).forEach(entry -> {
+			json.key(entry.name + "__WMS");
+			json.object();
+			json.key("href").value("../../../VectorDB/" + entry.name + "/WMS");
+			json.key("type").value("application/xml");
+			json.key("title").value(entry.name + " - Web Map Service (WMS)");
+			json.key("roles");
+			json.array();
+			json.value("data");
+			json.endArray();
+			json.endObject();
+		});
+
 		json.endObject();
 
 		json.endObject();

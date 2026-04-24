@@ -70,6 +70,10 @@ public class Task_export extends CancelableRemoteProxyTask {
 				filename += name + ".tiff";
 			}
 			
+			if(!filename.endsWith(".tiff")) {
+				throw new RuntimeException("File needs to end with '.tiff'");
+			}
+			
 			if (new File(filename).exists()) {
 				throw new RuntimeException("File already exists.");
 			}
