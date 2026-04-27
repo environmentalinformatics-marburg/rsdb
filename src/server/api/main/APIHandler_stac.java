@@ -263,7 +263,7 @@ public class APIHandler_stac extends APIHandler {
 			if (rasterdb.isAllowed(userIdentity)) {
 				json.key(layerName + "__WMS");
 				json.object();
-				json.key("href").value("../../../rasterdb/" + layerName + "/WMS");
+				json.key("href").value("../../../rasterdb/" + layerName + "/wms");
 				json.key("type").value("application/xml");
 				json.key("title").value(layerName + " - Web Map Service (WMS)");
 				json.key("roles");
@@ -317,7 +317,7 @@ public class APIHandler_stac extends APIHandler {
 		broker.catalog.getSorted(CatalogKey.TYPE_VECTORDB, userIdentity).forEach(entry -> {
 			json.key(entry.name + "__WFS");
 			json.object();
-			json.key("href").value("../../../VectorDB/" + entry.name + "/WFS");
+			json.key("href").value("../../../vectordbs/" + entry.name + "/wfs");
 			json.key("type").value("application/xml");
 			json.key("title").value(entry.name + " - Web Feature Service (WFS)");
 			json.key("roles");
@@ -370,7 +370,7 @@ public class APIHandler_stac extends APIHandler {
 		broker.catalog.getSorted(CatalogKey.TYPE_VECTORDB, userIdentity).forEach(entry -> {
 			json.key(entry.name + "__WMS");
 			json.object();
-			json.key("href").value("../../../VectorDB/" + entry.name + "/WMS");
+			json.key("href").value("../../../vectordbs/" + entry.name + "/wms");
 			json.key("type").value("application/xml");
 			json.key("title").value(entry.name + " - Web Map Service (WMS)");
 			json.key("roles");
