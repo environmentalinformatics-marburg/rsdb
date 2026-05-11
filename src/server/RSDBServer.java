@@ -51,6 +51,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.SessionCookieConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import server.api.RootAPICollectionHandler;
 import server.api.main.APIHandler_public;
 import server.api.main.MainAPICollectionHandler;
 import server.api.poi_groups.APIHandler_poi_groups;
@@ -460,6 +461,7 @@ public class RSDBServer {
 				createContext(prefixPath + "/rasterdbs.json", true, new RasterdbsHandler(broker)),
 				createContext(prefixPath + WEBCONTENT_URL, createWebcontentHandler()),
 				createContext(prefixPath + WEBFILES_URL, createWebfilesHandler()),
+				createContext(prefixPath, new RootAPICollectionHandler(broker)),
 				createContext(prefixPath + "/entrypoint", true, new BaseRedirector(prefixPath + WEBCONTENT_URL + "/admin2/")),
 				createContext(prefixPath + "/logout", true, new LogoutHandler(broker)),
 				createContext(prefixPath, createShutdownHandler("rsdb")),

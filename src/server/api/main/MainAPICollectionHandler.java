@@ -1,10 +1,12 @@
 package server.api.main;
 
 import broker.Broker;
+import server.api.APICollectionHandler;
 
 public class MainAPICollectionHandler extends APICollectionHandler {
 
 	public MainAPICollectionHandler(Broker broker) {
+		super(true);
 		addMethod(new APIHandler_poi_groups(broker));
 		addMethod(new APIHandler_poi_group(broker));
 		addMethod(new APIHandler_roi_groups(broker));
@@ -28,7 +30,5 @@ public class MainAPICollectionHandler extends APICollectionHandler {
 		addMethod(new APIHandler_mbtiles(broker));
 		addMethod(new APIHandler_layers(broker));
 		addMethod(new APIHandler_epsg(broker));
-		addMethod(new APIHandler_stac(broker));
 	}
-
 }
