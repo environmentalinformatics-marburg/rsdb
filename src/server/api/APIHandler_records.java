@@ -81,7 +81,7 @@ public class APIHandler_records extends APIHandler {
 		json.key("type");
 		json.value("application/json");
 		json.key("href");
-		json.value("http://" + domain + "/api/records");
+		json.value("http://" + domain + "/records");
 		json.endObject();
 
 		json.object();
@@ -90,7 +90,7 @@ public class APIHandler_records extends APIHandler {
 		json.key("type");
 		json.value("application/json");
 		json.key("href");
-		json.value("http://" + domain + "/api/records/conformance");
+		json.value("http://" + domain + "/records/conformance");
 		json.endObject();
 
 		json.object();
@@ -99,7 +99,7 @@ public class APIHandler_records extends APIHandler {
 		json.key("type");
 		json.value("application/json");
 		json.key("href");
-		json.value("http://" + domain + "/api/records/collections");
+		json.value("http://" + domain + "/records/collections");
 		json.endObject();
 
 		json.endArray();
@@ -186,14 +186,14 @@ public class APIHandler_records extends APIHandler {
 		json.key("rel");
 		json.value("self");
 		json.key("href");
-		json.value("http://" + domain + "/api/records/collections/datasets");
+		json.value("http://" + domain + "/records/collections/datasets");
 		json.endObject();
 
 		json.object();
 		json.key("rel");
 		json.value("items");
 		json.key("href");
-		json.value("http://" + domain + "/api/records/collections/datasets/items");
+		json.value("http://" + domain + "/records/collections/datasets/items");
 		json.endObject();
 
 		json.endArray();
@@ -208,7 +208,7 @@ public class APIHandler_records extends APIHandler {
 		json.key("rel");
 		json.value("self");
 		json.key("href");
-		json.value("http://" + domain + "/api/records/collections");
+		json.value("http://" + domain + "/records/collections");
 		json.endObject();
 
 		json.endArray();
