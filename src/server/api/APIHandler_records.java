@@ -60,8 +60,15 @@ public class APIHandler_records extends APIHandler {
 		}
 	}
 
+	/**
+	 * Hilfsmethode zur Ermittlung der Basis-URL aus dem Request.
+	 */
+	private String getBaseURL(Request request) {
+		return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+	}
+
 	private void handle_root(Request request, Response response, UserIdentity userIdentity) throws IOException {
-		String domain = request.getServerName() + ":" + request.getServerPort();
+		String baseURL = getBaseURL(request);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
@@ -81,7 +88,7 @@ public class APIHandler_records extends APIHandler {
 		json.key("type");
 		json.value("application/json");
 		json.key("href");
-		json.value("http://" + domain + "/records");
+		json.value(baseURL + "/records");
 		json.endObject();
 
 		json.object();
@@ -90,7 +97,7 @@ public class APIHandler_records extends APIHandler {
 		json.key("type");
 		json.value("application/json");
 		json.key("href");
-		json.value("http://" + domain + "/records/conformance");
+		json.value(baseURL + "/records/conformance");
 		json.endObject();
 
 		json.object();
@@ -99,7 +106,7 @@ public class APIHandler_records extends APIHandler {
 		json.key("type");
 		json.value("application/json");
 		json.key("href");
-		json.value("http://" + domain + "/records/collections");
+		json.value(baseURL + "/records/collections");
 		json.endObject();
 
 		json.endArray();
@@ -160,7 +167,7 @@ public class APIHandler_records extends APIHandler {
 	}
 
 	private void handle_collections_root(Request request, Response response, UserIdentity userIdentity) throws IOException {
-		String domain = request.getServerName() + ":" + request.getServerPort();
+		String baseURL = getBaseURL(request);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
@@ -186,14 +193,14 @@ public class APIHandler_records extends APIHandler {
 		json.key("rel");
 		json.value("self");
 		json.key("href");
-		json.value("http://" + domain + "/records/collections/datasets");
+		json.value(baseURL + "/records/collections/datasets");
 		json.endObject();
 
 		json.object();
 		json.key("rel");
 		json.value("items");
 		json.key("href");
-		json.value("http://" + domain + "/records/collections/datasets/items");
+		json.value(baseURL + "/records/collections/datasets/items");
 		json.endObject();
 
 		json.endArray();
@@ -208,7 +215,7 @@ public class APIHandler_records extends APIHandler {
 		json.key("rel");
 		json.value("self");
 		json.key("href");
-		json.value("http://" + domain + "/records/collections");
+		json.value(baseURL + "/records/collections");
 		json.endObject();
 
 		json.endArray();
@@ -235,7 +242,7 @@ public class APIHandler_records extends APIHandler {
 	private void handle_collections_items_root(String collection_name, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		Logger.info(collection_name);
 		
-		String domain = request.getServerName() + ":" + request.getServerPort();
+		String baseURL = getBaseURL(request);
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(Web.MIME_JSON);
@@ -293,7 +300,7 @@ public class APIHandler_records extends APIHandler {
 				json.key("type");
 				json.value("application/xml");
 				json.key("url");
-				json.value("https://" + domain + "/rasterdb/" + layerName + "/wms");
+				json.value(baseURL + "/rasterdb/" + layerName + "/wms");
 				json.key("layer");
 				json.value(layerName);
 				json.endObject();
@@ -304,7 +311,7 @@ public class APIHandler_records extends APIHandler {
 				json.key("type");
 				json.value("application/geo+json");
 				json.key("href");
-				json.value("https://" + domain + "/records/collections/datasets/items/" + layerName + "__WMS");
+				json.value(baseURL + "/records/collections/datasets/items/" + layerName + "__WMS");
 				json.endObject();
 
 				json.endArray();
@@ -322,14 +329,14 @@ public class APIHandler_records extends APIHandler {
 		json.key("rel");
 		json.value("self");
 		json.key("href");
-		json.value("https://" + domain + "/records/collections/" + collection_name + "/items");
+		json.value(baseURL + "/records/collections/" + collection_name + "/items");
 		json.endObject();
 
 		json.object();
 		json.key("rel");
 		json.value("collection");
 		json.key("href");
-		json.value("https://" + domain + "/records/collections/" + collection_name);
+		json.value(baseURL + "/records/collections/" + collection_name);
 		json.endObject();
 
 		json.endArray();
@@ -354,14 +361,9 @@ public class APIHandler_records extends APIHandler {
 
 	private void handle_collections_items_rasterdb(String collection_name, String itemId, String rasterdbId, Request request,
 			Response response, UserIdentity userIdentity) throws IOException {
-Logger.info(collection_name);
+		Logger.info(collection_name);
 	    
-		String scheme = request.getScheme();
-		String serverName = request.getServerName();
-		int serverPort = request.getServerPort();
-		String baseURL = scheme + "://" + serverName + ":" + serverPort;
-
-	    String domain = request.getServerName() + ":" + request.getServerPort();
+		String baseURL = getBaseURL(request);
 
 	    response.setStatus(HttpServletResponse.SC_OK);
 	    response.setContentType(Web.MIME_JSON);
@@ -397,8 +399,6 @@ Logger.info(collection_name);
 	    json.key("description");
 	    json.value("RSDB layer");
 	    json.key("type");
-	    //json.value("http://www.opengis.net/def/metadata/2.0/schema/iso/19115/-3/mrl/1.0");
-	    //json.value("https://" + domain + "/rasterdb/" + itemId.replace("__WMS", "") + "/wms");
 	    json.value(baseURL + "/rasterdb/" + rasterdbId + "/wms");
 	    json.endObject();
 
@@ -412,7 +412,7 @@ Logger.info(collection_name);
 	    json.key("type");
 	    json.value("application/xml");
 	    json.key("url");
-	    json.value("https://" + domain + "/rasterdb/" + itemId.replace("__WMS", "") + "/wms");
+	    json.value(baseURL + "/rasterdb/" + rasterdbId + "/wms");
 	    json.key("layer");
 	    json.value(itemId);
 	    json.endObject();
@@ -424,7 +424,7 @@ Logger.info(collection_name);
 	    json.key("type");
 	    json.value("application/geo+json");
 	    json.key("href");
-	    json.value("https://" + domain + "/records/collections/"+ collection_name +"/items/" + itemId);
+	    json.value(baseURL + "/records/collections/"+ collection_name +"/items/" + itemId);
 	    json.endObject();
 
 	    // Third link: collection
@@ -432,7 +432,7 @@ Logger.info(collection_name);
 	    json.key("rel");
 	    json.value("collection");
 	    json.key("href");
-	    json.value("https://" + domain + "/records/collections/"+ collection_name);
+	    json.value(baseURL + "/records/collections/"+ collection_name);
 	    json.endObject();
 
 	    json.endArray();
