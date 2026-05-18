@@ -241,7 +241,7 @@ public class APIHandler_records extends APIHandler {
 
 	private void handle_collections_items_root(String collection_name, Request request, Response response, UserIdentity userIdentity) throws IOException {
 		Logger.info(collection_name);
-		
+
 		String baseURL = getBaseURL(request);
 
 		response.setStatus(HttpServletResponse.SC_OK);
@@ -350,94 +350,98 @@ public class APIHandler_records extends APIHandler {
 	}
 
 	private void handle_collections_items_item(String collection_name, String itemId, Request request, Response response, UserIdentity userIdentity) throws IOException {
-	    Logger.info(collection_name);
-	    
-	    if(itemId.endsWith("__WMS")) {
-	    	String rasterdbId = itemId.substring(0, itemId.length() - "__WMS".length());
-	    	handle_collections_items_rasterdb(collection_name, itemId, rasterdbId, request, response, userIdentity);
-	    }
+		Logger.info(collection_name);
+
+		if(itemId.endsWith("__WMS")) {
+			String rasterdbId = itemId.substring(0, itemId.length() - "__WMS".length());
+			handle_collections_items_rasterdb(collection_name, itemId, rasterdbId, request, response, userIdentity);
+		}
 
 	}
 
 	private void handle_collections_items_rasterdb(String collection_name, String itemId, String rasterdbId, Request request,
 			Response response, UserIdentity userIdentity) throws IOException {
 		Logger.info(collection_name);
-	    
+
 		String baseURL = getBaseURL(request);
 
-	    response.setStatus(HttpServletResponse.SC_OK);
-	    response.setContentType(Web.MIME_JSON);
-	    JSONWriter json = new JSONWriter(response.getWriter());
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentType(Web.MIME_JSON);
+		JSONWriter json = new JSONWriter(response.getWriter());
 
-	    json.object(); // Start Feature object
+		json.object(); // Start Feature object
 
-	    json.key("id");
-	    json.value(itemId);
-	    json.key("type");
-	    json.value("Feature");
+		json.key("id");
+		json.value(itemId);
+		json.key("type");
+		json.value("Feature");
 
-	    json.key("geometry");
-	    json.object();
-	    json.key("type");
-	    json.value("Polygon");
-	    json.key("coordinates");
-	    json.array();
-	    json.array().value(5).value(47).endArray();
-	    json.array().value(15).value(47).endArray();
-	    json.array().value(15).value(55).endArray();
-	    json.array().value(5).value(55).endArray();
-	    json.array().value(5).value(47).endArray();
-	    json.endArray();
-	    json.endObject();
+		json.key("geometry");
+		json.object();
+		json.key("type");
+		json.value("Polygon");
+		json.key("coordinates");
+		json.array();
+		json.array().value(5).value(47).endArray();
+		json.array().value(15).value(47).endArray();
+		json.array().value(15).value(55).endArray();
+		json.array().value(5).value(55).endArray();
+		json.array().value(5).value(47).endArray();
+		json.endArray();
+		json.endObject();
 
-	    json.key("properties");
-	    json.object();
-	    json.key("identifier");
-	    json.value(itemId);
-	    json.key("title");
-	    json.value(itemId.replace("__", " "));
-	    json.key("description");
-	    json.value("RSDB layer");
-	    json.key("type");
-	    json.value(baseURL + "/rasterdb/" + rasterdbId + "/wms");
-	    json.endObject();
+		json.key("properties");
+		json.object();
+		json.key("identifier");
+		json.value(itemId);
+		json.key("title");
+		json.value(itemId.replace("__", " "));
+		json.key("description");
+		//json.value("RSDB layer");
+		json.value(baseURL + "/rasterdb/" + rasterdbId + "/wms");
+		json.key("type");
+		//json.value(baseURL + "/rasterdb/" + rasterdbId + "/wms");
+		json.value("http://www.opengis.net/def/metadata/2.0/schema/iso/19115/-3/mrl/1.0");
+		json.endObject();
 
-	    json.key("links");
-	    json.array();
+		json.key("links");
+		json.array();
 
-	    // First link: WMS service
-	    json.object();
-	    json.key("rel");
-	    json.value("service");
-	    json.key("type");
-	    json.value("application/xml");
-	    json.key("url");
-	    json.value(baseURL + "/rasterdb/" + rasterdbId + "/wms");
-	    json.key("layer");
-	    json.value(itemId);
-	    json.endObject();
+		// First link: WMS service
+		json.object();
+		json.key("rel");
+		json.value("service");
+		json.key("type");
+		json.value("application/xml");
+		json.key("protocol");
+		json.value("OGC:WMS");
+		json.key("href");
+		json.value(baseURL + "/rasterdb/" + rasterdbId + "/wms");
+		json.key("layer");
+		json.value(itemId);
+		json.endObject();
 
-	    // Second link: self
-	    json.object();
-	    json.key("rel");
-	    json.value("self");
-	    json.key("type");
-	    json.value("application/geo+json");
-	    json.key("href");
-	    json.value(baseURL + "/records/collections/"+ collection_name +"/items/" + itemId);
-	    json.endObject();
+		// Second link: self
+		json.object();
+		json.key("rel");
+		json.value("self");
+		json.key("type");
+		json.value("application/geo+json");
+		json.key("href");
+		json.value(baseURL + "/records/collections/"+ collection_name +"/items/" + itemId);
+		json.endObject();
 
-	    // Third link: collection
-	    json.object();
-	    json.key("rel");
-	    json.value("collection");
-	    json.key("href");
-	    json.value(baseURL + "/records/collections/"+ collection_name);
-	    json.endObject();
+		// Third link: collection
+		json.object();
+		json.key("rel");
+		json.value("collection");
+		json.key("href");
+		json.value(baseURL + "/records/collections/"+ collection_name);
+		json.endObject();
 
-	    json.endArray();
+		json.endArray();
 
-	    json.endObject(); // Close Feature object
-		
+		json.endObject(); // Close Feature object
+
 	}
 }
