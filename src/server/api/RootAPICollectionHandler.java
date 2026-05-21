@@ -8,5 +8,6 @@ public class RootAPICollectionHandler extends APICollectionHandler {
 		super(false);
 		addMethod(new APIHandler_stac(broker));
 		addMethod(new APIHandler_records(broker));
+		addMethod(new APIHandler_csw(broker));
 	}
 }
