@@ -15,5 +15,12 @@ public class Rect3d {
 		this.xmax = xmax;
 		this.ymax = ymax;
 		this.zmax = zmax;
-	}	
+	}
+
+	public double maxDimRange() {
+		double dx = xmax - xmin;
+		double dy = ymax - ymin;
+		double dz = zmax - zmin;
+		return Math.max(dx, Math.max(dy, dz));
+	}
 }

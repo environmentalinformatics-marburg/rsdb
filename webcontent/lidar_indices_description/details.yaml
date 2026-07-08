@@ -149,11 +149,20 @@ RD: |
   RD(height_lower = 2; height_upper = 100)
   </pre>  
 VDR: |
-  reference: Martin Ehbrecht et al.: LiDAR-derived canopy structure supports the more-individuals hypothesis for arthropod diversity in temperate forests, Oikos (2018) 127: 814-824, <a href="https://doi.org/10.1111/oik.04972">https://doi.org/10.1111/oik.04972</a>
+  Reference: Martin Ehbrecht et al.: LiDAR-derived canopy structure supports the more-individuals hypothesis for arthropod diversity in temperate forests, Oikos (2018) 127: 814-824, <a href="https://doi.org/10.1111/oik.04972">https://doi.org/10.1111/oik.04972</a>
 ENL0: |
-  reference: Martin Ehbrecht et al.: Effective number of layers: A new measure for quantifying threedimensional stand structure based on sampling with terrestrial LiDAR, Forest Ecology and Management (2016) 380: 212–223, <a href="https://doi.org/10.1016/j.foreco.2016.09.003">https://doi.org/10.1016/j.foreco.2016.09.003</a>
+  Reference: Martin Ehbrecht et al.: Effective number of layers: A new measure for quantifying threedimensional stand structure based on sampling with terrestrial LiDAR, Forest Ecology and Management (2016) 380: 212–223, <a href="https://doi.org/10.1016/j.foreco.2016.09.003">https://doi.org/10.1016/j.foreco.2016.09.003</a>
 ENL1: |
-  reference: Martin Ehbrecht et al.: Effective number of layers: A new measure for quantifying threedimensional stand structure based on sampling with terrestrial LiDAR, Forest Ecology and Management (2016) 380: 212–223, <a href="https://doi.org/10.1016/j.foreco.2016.09.003">https://doi.org/10.1016/j.foreco.2016.09.003</a>
+  Reference: Martin Ehbrecht et al.: Effective number of layers: A new measure for quantifying threedimensional stand structure based on sampling with terrestrial LiDAR, Forest Ecology and Management (2016) 380: 212–223, <a href="https://doi.org/10.1016/j.foreco.2016.09.003">https://doi.org/10.1016/j.foreco.2016.09.003</a>
 ENL2: |
-  reference: Martin Ehbrecht et al.: Effective number of layers: A new measure for quantifying threedimensional stand structure based on sampling with terrestrial LiDAR, Forest Ecology and Management (2016) 380: 212–223, <a href="https://doi.org/10.1016/j.foreco.2016.09.003">https://doi.org/10.1016/j.foreco.2016.09.003</a>
-
+  Reference: Martin Ehbrecht et al.: Effective number of layers: A new measure for quantifying threedimensional stand structure based on sampling with terrestrial LiDAR, Forest Ecology and Management (2016) 380: 212–223, <a href="https://doi.org/10.1016/j.foreco.2016.09.003">https://doi.org/10.1016/j.foreco.2016.09.003</a>
+VCI: |  
+  Similar to ENL (Effective number of layers), the point cloud is divided into elevation bins of 1 meter hight. The VCI then describes the Shannon entropy of the elevation point distribution.
+Db: |  
+  Reference: Seidel D. A holistic approach to determine tree structural complexity based on laser scanning data and fractal analysis. Ecol Evol. 2018;8:128–134. <a href="https://doi.org/10.1002/ece3.3661">https://doi.org/10.1002/ece3.3661</a> 
+  <br>
+  <br>  
+  A box size is not used for the regression in degenrate cases (all points in one box or all points in separate boxes). 
+  <br>  
+  <br>
+  Applied parametrisation: (MIN_SIZE = 0.2 Box size ist not smaller than 0.2 meter.; N_HALVINGS = 14 At most 14 halvings of the box size.; MIN_HEIGHT_FILTER = 0.5 Points below 0.5 meter are removed.) 
