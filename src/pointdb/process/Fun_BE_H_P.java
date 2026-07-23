@@ -9,8 +9,8 @@ import pointdb.indexfuncdsl.IndexFuncDSLParser.ValueContext;
 @Tag("parameterized")
 @Tag("canopy_height")
 @Tag("canopy_height_percentile")
-@Description("Percentile of Canopy Heights. Parameter: percentile  (based on point height above ground)")
-public class Fun_H_P extends ParamProcessingFun {
+@Description("Percentile of Canopy Heights. Parameter: percentile  (based on point height above ground, extreme points filtered)")
+public class Fun_BE_H_P extends ParamProcessingFun {
 
 	@Override
 	public ProcessingFun instantiate(HashMap<String, ValueContext> paramMap) {
@@ -21,7 +21,7 @@ public class Fun_H_P extends ParamProcessingFun {
 
 		private double percentile = -1;
 
-		public Fun(Fun_H_P that, HashMap<String, ValueContext> paramMap) {
+		public Fun(Fun_BE_H_P that, HashMap<String, ValueContext> paramMap) {
 			super(that.getClass());
 			ValueContext p = paramMap.get("percentile");
 			if(p != null) {
@@ -31,8 +31,8 @@ public class Fun_H_P extends ParamProcessingFun {
 
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(percentile);			
+			double[] hs = provider.get_filteredSortedCanopyHeights();
+			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_filteredSortedCanopyHeights()).getPercentile(percentile);			
 		}
 	}
 }

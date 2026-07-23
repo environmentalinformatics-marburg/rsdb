@@ -46,6 +46,7 @@ public class DataProvider2 {
 
 	private double[] sortedCanopyHeights = null;
 	private GeoPoint[] sortedCanopyHeightPoints = null;	
+	private Vec<GeoPoint> sortedVegetationHeightPoints = null;
 
 	public DataProvider old;
 
@@ -488,7 +489,7 @@ public class DataProvider2 {
 	 * just vegetation points, no ground points, no > 98% points
 	 * @return
 	 */
-	public synchronized double[] get_sortedCanopyHeights() {
+	public synchronized double[] get_filteredSortedCanopyHeights() {
 		if(sortedCanopyHeights == null) {
 			DoubleVec zs = new DoubleVec();
 			Vec<GeoPoint> points = get_sortedRegionHeightPoints();
@@ -520,7 +521,7 @@ public class DataProvider2 {
 	 * just vegetation points, no ground points, no > 98% points
 	 * @return
 	 */
-	public synchronized GeoPoint[] get_sortedCanopyHeightPoints() {
+	public synchronized GeoPoint[] get_filteredSortedCanopyHeightPoints() {
 		if(sortedCanopyHeightPoints == null) {
 			Vec<GeoPoint> points = get_sortedRegionHeightPoints();
 			int border = points.size();
@@ -546,6 +547,35 @@ public class DataProvider2 {
 			sortedCanopyHeightPoints = zs.toArray(GeoPoint[]::new);
 		}
 		return sortedCanopyHeightPoints;
+	}
+	
+	/**
+	 * just vegetation points, no ground points, not extremes filtered
+	 * @return
+	 */
+	public synchronized Vec<GeoPoint> get_sortedVegetationHeightPoints() {
+		if(sortedVegetationHeightPoints == null) {
+			Vec<GeoPoint> points = get_sortedRegionHeightPoints();
+			int border = points.size();
+			Vec<GeoPoint> zs = new Vec<GeoPoint>(border);
+			if(classified_vegetation) {
+				for (int i = 0; i < border; i++) {
+					GeoPoint p = points.get(i);
+					if(p.isVegetaion()) {
+						zs.add(p);
+					}
+				}
+			} else {
+				for (int i = 0; i < border; i++) {
+					GeoPoint p = points.get(i);
+					if(p.z >= GROUND_HEIGHT) {
+						zs.add(p);
+					}
+				}				
+			}
+			sortedVegetationHeightPoints = zs;
+		}
+		return sortedVegetationHeightPoints;
 	}
 
 	public synchronized int getRegionPulseCount() {

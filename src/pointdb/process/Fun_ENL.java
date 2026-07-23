@@ -8,11 +8,11 @@ import pointdb.base.GeoPoint;
 @Tag("forest_structure")
 public class Fun_ENL {
 
-	@Description("Effective number of layers (ENL) with Hill-Number 0D.")
+	@Description("Effective number of layers (ENL) with Hill-Number 0D. Extreme points filtered.")
 	static class Fun_ENL0 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
-			GeoPoint[] points = provider.get_sortedCanopyHeightPoints();
+			GeoPoint[] points = provider.get_filteredSortedCanopyHeightPoints();
 			if(points.length < 1) {
 				return Double.NaN;
 			}
@@ -24,11 +24,11 @@ public class Fun_ENL {
 		}
 	}
 	
-	@Description("Effective number of layers (ENL) with Hill-Number 1D.")
+	@Description("Effective number of layers (ENL) with Hill-Number 1D. Extreme points filtered.")
 	static class Fun_ENL1 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
-			GeoPoint[] points = provider.get_sortedCanopyHeightPoints();
+			GeoPoint[] points = provider.get_filteredSortedCanopyHeightPoints();
 			if(points.length < 1) {
 				return Double.NaN;
 			}
@@ -75,11 +75,11 @@ public class Fun_ENL {
 		}
 	}
 	
-	@Description("Effective number of layers (ENL) with Hill-Number 2D.")
+	@Description("Effective number of layers (ENL) with Hill-Number 2D. Extreme points filtered.")
 	static class Fun_ENL2 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {		
-			GeoPoint[] points = provider.get_sortedCanopyHeightPoints();
+			GeoPoint[] points = provider.get_filteredSortedCanopyHeightPoints();
 			if(points.length < 1) {
 				return Double.NaN;
 			}

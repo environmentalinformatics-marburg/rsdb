@@ -49,6 +49,9 @@ public class Functions {
 		addContained(Fun_surface_area.class);
 		addContained(Fun_forest_structure.class);
 		addContained(Fun_ENL.class);
+		addContained(Fun_point_z.class);
+		addContained(Fun_point_h.class);
+		addContained(Fun_point_veg_h.class);
 
 		for (int i = 1; i <= 55; i++) {
 			Functions.add(new Fun_BE_PR_INTERVAL(i));			
@@ -91,7 +94,7 @@ public class Functions {
 
 		add(Fun_PR.class);
 		add(Fun_RD.class);
-		add(Fun_H_P.class);
+		add(Fun_BE_H_P.class);
 	}
 
 	public static void add(AbstractProcessingFun fun) {

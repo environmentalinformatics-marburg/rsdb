@@ -7,15 +7,14 @@ import util.collections.vec.Vec;
 
 @Tag("BE")
 public class Fun_BE {
-	//
 
-	@Tag("canopy_height")
-	@Description("Mean Canopy Height (based on point height above ground)")	
+	@Tag("filtered_canopy_height")
+	@Description("Mean Canopy Height (based on point height above ground, extreme points filtered)")	
 	static class Fun_BE_H_MEAN extends ProcessingFun {
 		public static final Fun_BE_H_MEAN DEFAULT = new Fun_BE_H_MEAN();
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] zs = provider.get_sortedCanopyHeights();
+			double[] zs = provider.get_filteredSortedCanopyHeights();
 			if(zs.length==0) {
 				return 0; // !!!
 			}
@@ -29,14 +28,14 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("canopy_height")
-	@Description("Median Canopy Height (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("Median Canopy Height (based on point height above ground, extreme points filtered)")
 	public
 	static class Fun_BE_H_MEDIAN extends ProcessingFun {
 		public static final Fun_BE_H_MEDIAN DEFAULT = new Fun_BE_H_MEDIAN(); 
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] zs = provider.get_sortedCanopyHeights();
+			double[] zs = provider.get_filteredSortedCanopyHeights();
 			int len = zs.length;
 			if(len==0) {
 				return 0;
@@ -50,15 +49,15 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("canopy_height")
-	@Description("Standard Deviation of Canopy Height (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("Standard Deviation of Canopy Height (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_SD extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
 			double cnt = 0;
 			double sum = 0;
 			double qsum = 0;
-			for(double h:provider.get_sortedCanopyHeights()) {
+			for(double h:provider.get_filteredSortedCanopyHeights()) {
 				cnt++;
 				sum += h;
 				qsum += h*h;					
@@ -67,15 +66,15 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("canopy_height")
-	@Description("Variance of Canopy Height (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("Variance of Canopy Height (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_VAR extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
 			double cnt = 0;
 			double sum = 0;
 			double qsum = 0;
-			for(double h:provider.get_sortedCanopyHeights()) {
+			for(double h:provider.get_filteredSortedCanopyHeights()) {
 				cnt++;
 				sum += h;
 				qsum += h*h;					
@@ -84,15 +83,15 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("canopy_height")
-	@Description("Coefficient of Variation of Canopy Height (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("Coefficient of Variation of Canopy Height (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_VAR_COEF extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
 			double cnt = 0;
 			double sum = 0;
 			double qsum = 0;
-			for(double h:provider.get_sortedCanopyHeights()) {
+			for(double h:provider.get_filteredSortedCanopyHeights()) {
 				cnt++;
 				sum += h;
 				qsum += h*h;					
@@ -101,13 +100,13 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("canopy_height")
-	@Description("Maximum Canopy Height (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("Maximum Canopy Height (based on point height above ground, extreme points filtered)")
 	static public class Fun_BE_H_MAX extends ProcessingFun {
 		public static final Fun_BE_H_MAX DEFAULT = new Fun_BE_H_MAX(); 
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] zs = provider.get_sortedCanopyHeights();
+			double[] zs = provider.get_filteredSortedCanopyHeights();
 			if(zs.length==0) {
 				return 0; // !!
 			}
@@ -115,196 +114,166 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("canopy_height")
-	@Description("Skewness of Canopy Height Distribution (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("Skewness of Canopy Height Distribution (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_SKEW extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getSkewness();
+			double[] hs = provider.get_filteredSortedCanopyHeights();
+			return hs.length==0 ? 0 : new DescriptiveStatistics(hs).getSkewness();
 		}
 	}
 
-	@Tag("canopy_height")
-	@Description("Excess Kurtosis of Canopy Height Distribution (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("Excess Kurtosis of Canopy Height Distribution (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_KURTOSIS extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
+			double[] hs = provider.get_filteredSortedCanopyHeights();
 			return hs.length==0 ? 0 : new DescriptiveStatistics(hs).getKurtosis();
 		}
 	}
 
-	static double getPercentile(DataProvider2 provider, double percentile) {
-		double[] hs = provider.get_sortedCanopyHeights();
-		return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(percentile);
+	static double get_BE_H_Percentile(DataProvider2 provider, double percentile) {
+		double[] hs = provider.get_filteredSortedCanopyHeights();
+		return hs.length==0 ? 0 : new DescriptiveStatistics(hs).getPercentile(percentile);
 	}
 	
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("5% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("5% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P5 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(5);
+			return get_BE_H_Percentile(provider, 5);
 		}
 	}
 
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("10% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("10% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P10 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(10);
+			return get_BE_H_Percentile(provider, 10);
 		}
 	}
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("20% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("20% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P20 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(20);
+			return get_BE_H_Percentile(provider, 20);
 		}
 	}
 	
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("25% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("25% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P25 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(25);
+			return get_BE_H_Percentile(provider, 25);
 		}
 	}
 
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("30% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("30% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P30 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(30);
+			return get_BE_H_Percentile(provider, 30);
 		}
 	}
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("40% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("40% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P40 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(40);
+			return get_BE_H_Percentile(provider, 40);
 		}
 	}
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("50% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("50% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P50 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(50);
+			return get_BE_H_Percentile(provider, 50);
 		}
 	}
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("60% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("60% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P60 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(60);
+			return get_BE_H_Percentile(provider, 60);
 		}
 	}
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("70% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("70% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P70 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(70);
+			return get_BE_H_Percentile(provider, 70);
 		}
 	}
 	
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("75% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("75% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P75 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(75);
+			return get_BE_H_Percentile(provider, 75);
 		}
 	}
 
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("80% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("80% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P80 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(80);
+			return get_BE_H_Percentile(provider, 80);
 		}
 	}
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("90% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("90% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P90 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(90);
+			return get_BE_H_Percentile(provider, 90);
 		}
 	}
 	
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("95% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("95% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P95 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(95);
+			return get_BE_H_Percentile(provider, 95);
 		}
 	}
 	
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("99% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("99% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P99 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(99);
+			return get_BE_H_Percentile(provider, 99);
 		}
 	}
 
-	@Tag("canopy_height")
-	@Tag("canopy_height_percentile")
-	@Description("100% Percentile of Canopy Heights (based on point height above ground)")
+	@Tag("filtered_canopy_height")
+	@Description("100% Percentile of Canopy Heights (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_H_P100 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			double[] hs = provider.get_sortedCanopyHeights();
-			return hs.length==0 ? 0 : new DescriptiveStatistics(provider.get_sortedCanopyHeights()).getPercentile(100);
+			return get_BE_H_Percentile(provider, 100);
 		}
 	}
 
@@ -527,7 +496,7 @@ public class Fun_BE {
 		}
 	}
 
-	@Description("Foliage Height Diversity (based on point height above ground)")
+	@Description("Foliage Height Diversity (based on point height above ground, extreme points filtered)")
 	static class Fun_BE_FHD extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
@@ -695,7 +664,7 @@ public class Fun_BE {
 	static class Fun_BE_RD_H extends ProcessingFun {
 		private final int decile;
 		public Fun_BE_RD_H(int decile) {
-			this(decile, "BE_RD_H" + (decile<=9 ? "0" : "") + decile, "Return density of "+((decile-1)*10)+"% to "+(decile*10)+"% height layer relative to maximum height (based on point height above ground)");
+			this(decile, "BE_RD_H" + (decile<=9 ? "0" : "") + decile, "Return density of "+((decile-1)*10)+"% to "+(decile*10)+"% height layer relative to maximum height (based on point height above ground, extreme points filtered)");
 		}
 		public Fun_BE_RD_H(int decile, String name, String descrption) {
 			super(name, descrption);
@@ -726,7 +695,7 @@ public class Fun_BE {
 	static class Fun_BE_RD_Q extends ProcessingFun {
 		private final int quartile;
 		public Fun_BE_RD_Q(int quartile) {
-			this(quartile, "BE_RD_Q" + quartile, "Return density of quartile " + quartile + " of height layer relative to maximum height (based on point height above ground)");
+			this(quartile, "BE_RD_Q" + quartile, "Return density of quartile " + quartile + " of height layer relative to maximum height (based on point height above ground, extreme points filtered)");
 		}
 		public Fun_BE_RD_Q(int quartile, String name, String descrption) {
 			super(name, descrption);

@@ -1,6 +1,6 @@
 package pointdb.process;
 
-@Tag("abstract")
+@Tag("geometry")
 @Description("Bounding box area of subset (m²)  (independent of contained data) [bbox based]")
 class Fun_bbox_area extends ProcessingFun {
 	@Override
