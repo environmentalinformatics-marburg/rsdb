@@ -281,7 +281,8 @@ public class Fun_BE {
 	private static final double regeneration_layer_height_max = 2.0d;  // meter above ground
 	private static final double ground_layer_height_max = 0.3d; // meter above ground
 
-	@Tag("RD_strata")
+	@Tag("point")
+	@Tag("vegetation")
 	@Description("Return density of canopy vegetation layer (based on point height above ground)")
 	static class Fun_BE_RD_CAN extends ProcessingFun {
 		@Override
@@ -314,7 +315,8 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("RD_strata")
+	@Tag("point")
+	@Tag("vegetation")
 	@Description("Return density of understory vegetation layer (based on point height above ground)")
 	static class Fun_BE_RD_UND extends ProcessingFun {
 		@Override
@@ -347,7 +349,8 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("RD_strata")
+	@Tag("point")
+	@Tag("vegetation")
 	@Description("Return density of regeneration vegetation layer (based on point height above ground)")
 	static class Fun_BE_RD_REG extends ProcessingFun {
 		@Override
@@ -374,7 +377,8 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("RD_strata")
+	@Tag("point")
+	@Tag("vegetation")
 	@Description("Return density of ground layer (based on point height above ground)")
 	static class Fun_BE_RD_GND extends ProcessingFun {
 		@Override
@@ -412,7 +416,8 @@ public class Fun_BE {
 	}
 
 
-	@Tag("PR_strata")
+	@Tag("point")
+	@Tag("vegetation")
 	@Description("Penetration rate (pass through rate) of understory vegetation layer (based on point height above ground)")
 	static class Fun_BE_PR_UND extends ProcessingFun {
 		public static final Fun_BE_PR_UND DEFAULT = new Fun_BE_PR_UND(); 
@@ -458,7 +463,8 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("PR_strata")
+	@Tag("point")
+	@Tag("vegetation")
 	@Description("Penetration rate (pass through rate) of regeneration vegetation layer (based on point height above ground)")
 	static class Fun_BE_PR_REG extends ProcessingFun {
 		public static final Fun_BE_PR_REG DEFAULT = new Fun_BE_PR_REG(); 
@@ -536,7 +542,8 @@ public class Fun_BE {
 
 
 
-	@Tag("PR_relative")
+	@Tag("point")
+	@Tag("vegetation")
 	@Exculde("base class")
 	static class Fun_BE_PR_H extends ProcessingFun {
 		private final int decile;
@@ -586,7 +593,8 @@ public class Fun_BE {
 	}
 
 
-	@Tag("PR_meter")
+	@Tag("point")
+	@Tag("vegetation")
 	@Exculde("base class")
 	static class Fun_BE_PR_INTERVAL extends ProcessingFun {
 		private final double hsetMin;
@@ -633,7 +641,7 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("RD_meter")
+	@Tag("point")
 	@Exculde("base class")
 	static class Fun_BE_RD_INTERVAL extends ProcessingFun {
 		private final double hsetMin;
@@ -659,7 +667,7 @@ public class Fun_BE {
 		}
 	}
 
-	@Tag("RD_relative")
+	@Tag("point")
 	@Exculde("base class")
 	static class Fun_BE_RD_H extends ProcessingFun {
 		private final int decile;
@@ -690,7 +698,7 @@ public class Fun_BE {
 		}
 	}
 	
-	@Tag("RD_relative")
+	@Tag("point")
 	@Exculde("base class")
 	static class Fun_BE_RD_Q extends ProcessingFun {
 		private final int quartile;
@@ -721,7 +729,8 @@ public class Fun_BE {
 		}
 	}
 	
-	@Tag("PR_relative")
+	@Tag("point")
+	@Tag("vegetation")
 	@Exculde("base class")
 	static class Fun_BE_PR_Q extends ProcessingFun {
 		private final int quartile;

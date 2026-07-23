@@ -144,7 +144,7 @@ public class Fun_point_h {
 		}
 	}
 
-	static double get_BE_H_Percentile(DataProvider2 provider, double percentile) {
+	static double get_percentile(DataProvider2 provider, double percentile) {
 		double[] hs = getValues(provider);
 		return hs.length==0 ? 0 : new DescriptiveStatistics(hs).getPercentile(percentile);
 	}
@@ -155,7 +155,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P5 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 5);
+			return get_percentile(provider, 5);
 		}
 	}
 
@@ -166,7 +166,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P10 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 10);
+			return get_percentile(provider, 10);
 		}
 	}
 
@@ -176,7 +176,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P20 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 20);
+			return get_percentile(provider, 20);
 		}
 	}
 	
@@ -186,7 +186,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P25 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 25);
+			return get_percentile(provider, 25);
 		}
 	}
 
@@ -197,7 +197,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P30 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 30);
+			return get_percentile(provider, 30);
 		}
 	}
 
@@ -207,7 +207,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P40 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 40);
+			return get_percentile(provider, 40);
 		}
 	}
 
@@ -217,7 +217,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P50 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 50);
+			return get_percentile(provider, 50);
 		}
 	}
 
@@ -227,7 +227,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P60 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 60);
+			return get_percentile(provider, 60);
 		}
 	}
 
@@ -237,7 +237,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P70 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 70);
+			return get_percentile(provider, 70);
 		}
 	}
 	
@@ -247,7 +247,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P75 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 75);
+			return get_percentile(provider, 75);
 		}
 	}
 
@@ -258,7 +258,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P80 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 80);
+			return get_percentile(provider, 80);
 		}
 	}
 
@@ -268,7 +268,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P90 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 90);
+			return get_percentile(provider, 90);
 		}
 	}
 	
@@ -278,7 +278,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P95 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 95);
+			return get_percentile(provider, 95);
 		}
 	}
 	
@@ -288,7 +288,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P99 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 99);
+			return get_percentile(provider, 99);
 		}
 	}
 
@@ -298,7 +298,7 @@ public class Fun_point_h {
 	static class Fun_point_h_P100 extends ProcessingFun {
 		@Override
 		public double process(DataProvider2 provider) {
-			return get_BE_H_Percentile(provider, 100);
+			return get_percentile(provider, 100);
 		}
 	}
 
